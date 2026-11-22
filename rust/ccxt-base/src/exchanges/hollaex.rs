@@ -1651,12 +1651,16 @@ impl Hollaex {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut keys: Vec<&str> = tickers.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let tickersDict: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&tickers]);
+        let mut keys: Vec<Value> = Value::Array(tickersDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).copied();
+            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::from(key.as_deref()));
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[&Value::from(key.as_deref())]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);

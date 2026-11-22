@@ -1802,13 +1802,13 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[&__ws_arg_1]).await);
             }
             }
-            let results: crate::value::List = promise_all(&Value::from(promises)).await;
+            let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_3: bool = true;
                 while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (quotes.len() as i64) } {
                 let quote: Option<&str> = quotes.get(i as usize).and_then(Value::as_str);
-                let response: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+                let response: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
                 let data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
                     let m = indexmap::IndexMap::new();
                     m
@@ -2288,7 +2288,11 @@ impl Bithumb {
                     if (self.safe_string_k(&response, "market", &[]) != Value::Null) || (self.safe_string_k(&response, "trade_date", &[]) != Value::Null) || (self.safe_string_k(&response, "trade_timestamp", &[]) != Value::Null) {
                         tickers = std::sync::Arc::new(vec![response.clone()]);
                     }  else {
-                        let ids: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                        let responseDict: crate::value::Dict = self.extend_t(Value::Map({
+                            let m = indexmap::IndexMap::new();
+                            m
+                        }), &[&response]);
+                        let ids: Vec<Value> = Value::Array(responseDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
                             let mut __for_first_9: bool = true;
@@ -4364,13 +4368,17 @@ impl Bithumb {
 
     pub fn urlencode_with_array_brackets(&self, query: impl Into<crate::Value>) -> Option<String> {
         let query: Value = query.into();
-        let mut keys: Vec<&str> = query.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let queryCopy: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&query]);
+        let mut keys: Vec<Value> = Value::Array(queryCopy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: String = "".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).copied();
+            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let value: Option<crate::value::List> = self.safe_value(&query, Value::from(key.as_deref()), &[]).into_opt_list();
             if (value.is_some()) {
                 let encodedKey: String = format!("{}{}", self.encode_uri_component(Value::from(key.as_deref())), Value::Str("[]".into()));

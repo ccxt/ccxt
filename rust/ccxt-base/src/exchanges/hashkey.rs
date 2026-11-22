@@ -1478,7 +1478,7 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "handle_trigger_option_and_params" => self.handle_trigger_option_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "handle_trigger_option_and_params" => { let __t = self.handle_trigger_option_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) },
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -3097,7 +3097,7 @@ impl Hashkey {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.public_get_quote_v1_ticker24hr(&[&__ws_arg_7]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_quote_v1_ticker24hr(&[&__ws_arg_7]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -3114,7 +3114,7 @@ impl Hashkey {
         //         }
         //     ]
         //
-        let ticker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let ticker: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -3311,13 +3311,16 @@ impl Hashkey {
             m
         });
         let networkCodeInParamsparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
-        let networkCodeInParams: Value = networkCodeInParamsparamsNetworkCodeVariable.0;
+        let networkCodeInParams: Option<String> = networkCodeInParamsparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
         let paramsNetworkCode: crate::value::Dict = networkCodeInParamsparamsNetworkCodeVariable.1;
-        let mut networkCode: Value = (if (networkCodeInParams == Value::Null) { self.safe_string(self.safe_dict_k(&self.options, "defaultNetworks", &[Value::Map({
+        let mut networkCode: Option<String> = networkCodeInParams;
+        if (networkCode.is_none()) {
+            networkCode = self.safe_string_opt(self.safe_dict_k(&self.options, "defaultNetworks", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), code.clone(), &[self.safe_string_k(&self.options, "defaultNetwork", &[])]) } else { networkCodeInParams });
-        request.insert("chainType".into(), self.network_code_to_id(networkCode.as_text().as_deref(), code.as_text().as_deref()));
+})]), &code, &[&self.safe_string_k(&self.options, "defaultNetwork", &[])]);
+        }
+        request.insert("chainType".into(), self.network_code_to_id(networkCode.as_deref(), code.as_text().as_deref()));
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_get_api_v1_account_deposit_address(&[&__ws_arg_10]).await.unwrap_or_default();
         //
@@ -3333,7 +3336,7 @@ impl Hashkey {
         //     }
         //
         let mut depositAddress: Value = <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
-        if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("network".into(), networkCode); }
+        if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("network".into(), networkCode.map(Value::from).unwrap_or(Value::Null)); }
         return depositAddress;
         Value::Null
         }).await?))
@@ -4729,15 +4732,13 @@ impl Hashkey {
         }
 }
 
-    pub fn handle_trigger_option_and_params(&self, params: impl Into<crate::Value>, methodName: &str, optional_args: &[&Value]) -> Value {
+    pub fn handle_trigger_option_and_params(&self, params: impl Into<crate::Value>, methodName: &str, optional_args: &[&Value]) -> (Option<bool>, crate::value::Dict) {
         let params: Value = params.into();
         let defaultValue = get_arg(optional_args, 0, Value::Null);
         let isTriggerStopparamsStopVariable = self.handle_option_bool_and_params2(params, Value::from(methodName), Value::Str("stop".into()), Value::Str("trigger".into()), &[defaultValue]);
-        let mut isTriggerStop: Option<bool> = isTriggerStopparamsStopVariable.0;
+        let isTriggerStop: Option<bool> = isTriggerStopparamsStopVariable.0;
         let paramsStop: crate::value::Dict = isTriggerStopparamsStopVariable.1;
-        return Value::from(vec![isTriggerStop.map_or(Value::Null, Value::Bool), Value::Dict(paramsStop)]);
-
-    Value::Null
+        return (isTriggerStop, paramsStop);
 }
 
 
@@ -4842,13 +4843,13 @@ impl Hashkey {
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.public_get_api_v1_futures_funding_rate(&[&__ws_arg_33]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_api_v1_futures_funding_rate(&[&__ws_arg_33]).await.unwrap_or_default());
         //
         //     [
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        let rate: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let rate: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &rate, Some(&market));
         Value::Null
         }).await?))

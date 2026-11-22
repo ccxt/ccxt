@@ -1375,7 +1375,7 @@ impl Bit2me {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.public_get_v2_trading_tickers(&[&__ws_arg_2]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_v2_trading_tickers(&[&__ws_arg_2]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -1393,7 +1393,7 @@ impl Bit2me {
         //         }
         //     ]
         //
-        let ticker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let ticker: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -1556,11 +1556,11 @@ impl Bit2me {
         }  else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             let duration: i64 = ((self.parse_timeframe(&timeframe)) * 1000);
-            let mut end: Option<i64> = Some(self.milliseconds());
             if (until.is_some()) {
-                end = until;
+                request.insert("startTime".into(), Value::from((if let (Some(__l), Some(__r)) = (until, ((if let Some(__l) = requestLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None })));
+            }  else {
+                request.insert("startTime".into(), Value::from((if let Some(__r) = ((if let Some(__l) = requestLimit { Some(__l * duration) } else { None })) { Some((self.milliseconds()) - __r) } else { None })));
             }
-            request.insert("startTime".into(), Value::from((if let (Some(__l), Some(__r)) = (end, ((if let Some(__l) = requestLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None })));
         }
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
@@ -1933,12 +1933,12 @@ impl Bit2me {
                 m
             });
             let __ws_arg_7 = self.extend(Value::Map(requestByClientId), &[&query]);
-            let orders: crate::value::List = self.private_get_v1_trading_order(&[&__ws_arg_7]).await.unwrap_or_default();
+            let orders: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_v1_trading_order(&[&__ws_arg_7]).await.unwrap_or_default());
             let numOrders: i64 = orders.len() as i64;
             if (numOrders == 0) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find an order with clientOrderId ").into()), clientOrderId.as_deref().unwrap_or("null"))));
             }
-            let first: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(0));
+            let first: crate::value::Dict = orders.get(0).cloned().unwrap_or_default();
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, market.as_ref());
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -2001,9 +2001,12 @@ impl Bit2me {
         // startTime and endTime must always be sent together
         if (since.is_some()) || (until.is_some()) {
             let start: i64 = since.unwrap_or(0);
-            let end: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
             request.insert("startTime".into(), self.iso8601(start));
-            request.insert("endTime".into(), self.iso8601(end));
+            if (until.is_some()) {
+                request.insert("endTime".into(), self.iso8601(until));
+            }  else {
+                request.insert("endTime".into(), self.iso8601(Value::Int(self.milliseconds())));
+            }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::List = self.private_get_v1_trading_order(&[&__ws_arg_9]).await.unwrap_or_default();
@@ -2225,9 +2228,12 @@ impl Bit2me {
         // startTime and endTime must always be sent together
         if (since.is_some()) || (until.is_some()) {
             let start: i64 = since.unwrap_or(0);
-            let end: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
             request.insert("startTime".into(), self.iso8601(start));
-            request.insert("endTime".into(), self.iso8601(end));
+            if (until.is_some()) {
+                request.insert("endTime".into(), self.iso8601(until));
+            }  else {
+                request.insert("endTime".into(), self.iso8601(Value::Int(self.milliseconds())));
+            }
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.private_get_v1_trading_trade(&[&__ws_arg_14]).await.unwrap_or_default();

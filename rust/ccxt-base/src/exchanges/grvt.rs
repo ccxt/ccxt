@@ -2291,7 +2291,7 @@ impl Grvt {
         if approvedBuilderFee {
             return Value::Bool(true);
         }
-        let results: crate::value::List = promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await, self.load_account_infos().await])).await;
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await, self.load_account_infos().await])).await);
         //
         // {
         //     "results": [{
@@ -2301,7 +2301,7 @@ impl Grvt {
         //     }]
         // }
         //
-        let currentBuilders: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
+        let currentBuilders: crate::value::Dict = results.get(0).cloned().unwrap_or_default();
         let approvedBuilder: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&currentBuilders, "results"));
         let length: i64 = approvedBuilder.len() as i64;
         let mut found: bool = false;
@@ -2407,8 +2407,8 @@ if _try_result.is_err() {
         if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true)) {
             promises.push(self.sign_in(&[]).await);
         }
-        let results: crate::value::List = promise_all(&Value::from(promises)).await;
-        let response: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
+        let response: crate::value::Dict = results.get(0).cloned().unwrap_or_default();
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_markets(&result);
         Value::Null

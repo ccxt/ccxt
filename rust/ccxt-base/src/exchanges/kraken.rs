@@ -465,11 +465,11 @@ impl crate::exchange::DerivedExchange for Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (rawTrades.len() as i64) } {
-            let rawTrade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
-            if matches!(&rawTrade, Value::Str(_)) {
+            let rawTradeId: Option<String> = self.safe_string_opt(&rawTrades, Value::Int(i), &[]);
+            if (rawTradeId.is_some()) {
                 trades.push(Value::Dict(self.safe_trade(std::sync::Arc::new({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("id".to_string(), rawTrade.clone());
+                        m.insert("id".to_string(), rawTradeId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("order".to_string(), Value::from(id.as_deref()));
                         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("info".to_string(), Value::Map({
@@ -479,7 +479,7 @@ impl crate::exchange::DerivedExchange for Kraken {
                     m
                 }), None)));
             }  else {
-                trades.push(rawTrade);
+                trades.push(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -2089,8 +2089,8 @@ impl Kraken {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             promises.push(self.load_time_difference(&[]).await);
         }
-        let responses: crate::value::List = promise_all(&Value::from(promises)).await;
-        let assetsResponse: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(0));
+        let responses: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
+        let assetsResponse: crate::value::Dict = responses.get(0).cloned().unwrap_or_default();
         //
         //     {
         //         "error": [],
@@ -3740,11 +3740,11 @@ impl Kraken {
                                 let mut i: i64 = 0;
                 let mut __for_first_8: bool = true;
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let orderTrade: Value = orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if matches!(&orderTrade, Value::Str(_)) {
-                    std::sync::Arc::make_mut(&mut tradeIds).push(orderTrade);
+                let orderTradeId: Option<String> = self.safe_string_opt(&orderTrades, Value::Int(i), &[]);
+                if (orderTradeId.is_some()) {
+                    std::sync::Arc::make_mut(&mut tradeIds).push(orderTradeId.map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    std::sync::Arc::make_mut(&mut tradeIds).push(self.safe_string_k(&orderTrade, "id", &[]));
+                    std::sync::Arc::make_mut(&mut tradeIds).push(self.safe_string_k(orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "id", &[]));
                 }
             }
             }

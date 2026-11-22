@@ -1358,16 +1358,18 @@ impl Bitfinex {
         let subMessageHash: String = self.safe_string(&__ch.subscriptions, Value::from(unSubChannel.as_str()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let subscription: Value = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()), &[]);
         __ch.remove_subscription(unSubChannel.as_str());
-        let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
+        let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
         let subMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (messageHashes.len() as i64) } {
-            let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
-        }
+        if (messageHashes.is_some()) {
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let messageHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
+            }
+            }
         }
         self.clean_cache(subscription);
         return Value::Bool(true);

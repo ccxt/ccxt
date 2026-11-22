@@ -1925,7 +1925,6 @@ impl Krakenfutures {
                 m
             });
         }
-        let mut updatedBalance: Value = Value::Null;
         if (holding.is_some()) {
             let holdingKeys: Vec<Value> = Value::Array(holding.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // cashAccount
             { let __be_tmp = self.balance.get("cash").filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
@@ -1959,7 +1958,6 @@ impl Krakenfutures {
             }
             { let __be_tmp = self.prune_stale_balance_keys(Value::Map(cashBalance), Value::Map(holdingCodes)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
             { let __be_tmp = Value::Dict(self.safe_balance(self.balance.get("cash").cloned().unwrap_or(Value::Null))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
-            updatedBalance = self.balance.get("cash").cloned().unwrap_or(Value::Null);
         }
         if (futures.is_some()) {
             let futuresKeys: Vec<Value> = Value::Array(futures.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // marginAccount
@@ -2005,9 +2003,6 @@ impl Krakenfutures {
             { let __be_tmp = self.prune_stale_balance_keys(Value::Map(marginBalance), Value::Map(futuresSymbols)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
             { let __be_tmp = Value::Dict(self.safe_balance(self.balance.get("margin").cloned().unwrap_or(Value::Null))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
             client.resolve(self.balance.get("margin").cloned().unwrap_or(Value::Null), &(Value::Str(format!("{}{}", messageHash, ":futures").into())));
-            if (updatedBalance == Value::Null) {
-                updatedBalance = self.balance.get("margin").cloned().unwrap_or(Value::Null);
-            }
         }
         if (flexFutures.is_some()) {
             let flexFutureCurrencies: crate::value::Dict = self.safe_dict_k_t(&flexFutures, "currencies");
@@ -2047,16 +2042,17 @@ impl Krakenfutures {
             { let __be_tmp = self.prune_stale_balance_keys(Value::Map(flexBalance), Value::Map(flexCodes)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
             { let __be_tmp = Value::Dict(self.safe_balance(self.balance.get("flex").cloned().unwrap_or(Value::Null))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
             client.resolve(self.balance.get("flex").cloned().unwrap_or(Value::Null), &(Value::Str(format!("{}{}", messageHash, ":flex_futures").into())));
-            if (updatedBalance == Value::Null) {
-                updatedBalance = self.balance.get("flex").cloned().unwrap_or(Value::Null);
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if (updatedBalance != Value::Null) {
-            client.resolve(updatedBalance, messageHash.as_str());
+        if (holding.is_some()) {
+            client.resolve(self.balance.get("cash").cloned().unwrap_or(Value::Null), messageHash.as_str());
+        }  else if (futures.is_some()) {
+            client.resolve(self.balance.get("margin").cloned().unwrap_or(Value::Null), messageHash.as_str());
+        }  else if (flexFutures.is_some()) {
+            client.resolve(self.balance.get("flex").cloned().unwrap_or(Value::Null), messageHash.as_str());
         }
 }
 

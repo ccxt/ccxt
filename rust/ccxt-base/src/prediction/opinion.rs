@@ -933,7 +933,7 @@ impl Opinion {
     m
 }));
         self.require_event_query(&[&params]);
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         let eventId: Option<String> = self.safe_string_k_opt(&params, "eventId", &[]);
         let slug: Option<String> = self.safe_string_k_opt(&params, "slug", &[]);
         if (eventId.is_some()) || (slug.is_some()) {

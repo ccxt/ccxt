@@ -3150,7 +3150,8 @@ impl crate::exchange::DerivedExchange for Binance {
                     let mut origclientorderidlist: crate::value::List = self.safe_list2_t(&extendedParams, Value::Str("origclientorderidlist".into()), Value::Str("origClientOrderIdList".into()));
                     extendedParams = self.omit(extendedParams, &["orderidlist", "origclientorderidlist", "origClientOrderIdList"], &[]);
                     if (matches!(&extendedParams, Value::Dict(__d) if __d.contains_key("symbol"))) {
-                        { let __be_tmp = self.encode_uri_component(self.safe_string_k(&extendedParams, "symbol", &[Value::Str("".into())])); if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("symbol".into(), __be_tmp); } }
+                        let encodedSymbol: Option<String> = self.encode_uri_component(self.safe_string_k(&extendedParams, "symbol", &[Value::Str("".into())])).as_str().map(str::to_owned);
+                        if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("symbol".into(), encodedSymbol.map(Value::from).unwrap_or(Value::Null)); }
                     }
                     query = Value::from(self.rawencode(&extendedParams, &[]));
                     let orderidlistLength: i64 = orderidlist.len() as i64;
@@ -12526,30 +12527,34 @@ impl Binance {
         if (method != "POST") {
             return params;
         }
+        let mut generated: indexmap::IndexMap<String, Value> = ({
+            let m = indexmap::IndexMap::new();
+            m
+        });
         if (path == "order") || (path == "sor/order") || (path == "order/cancelReplace") || (path == "um/order") || (path == "cm/order") || (path == "margin/order") {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             let clientOrderIdKey: String = (if (api == "eapiPrivate") { "clientOrderId".to_string() } else { "newClientOrderId".to_string() });
             let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("newClientOrderId".into()), &[]);
             if (clientOrderId.is_none()) {
-                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey, self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null)); }
+                generated.insert(clientOrderIdKey, self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (path == "algoOrder") || (path == "um/algo/order") {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             let clientAlgoId: Option<String> = self.safe_string_k_opt(&params, "clientAlgoId", &[]);
             if (clientAlgoId.is_none()) {
-                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientAlgoId".into(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null)); }
+                generated.insert("clientAlgoId".into(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (path == "cm/conditional/order") || (path == "um/conditional/order") {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             let newClientStrategyId: Option<String> = self.safe_string_k_opt(&params, "newClientStrategyId", &[]);
             if (newClientStrategyId.is_none()) {
-                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("newClientStrategyId".into(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null)); }
+                generated.insert("newClientStrategyId".into(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (path == "equity/order/place") {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             let equityClientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
             if (equityClientOrderId.is_none()) {
-                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientOrderId".into(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null)); }
+                generated.insert("clientOrderId".into(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (path == "order/oco") || (path == "margin/order/oco") || (path == "orderList/oco") || (path == "orderList/oto") || (path == "orderList/otoco") || (path == "orderList/opo") || (path == "orderList/opoco") {
             // the order list endpoints take a listClientOrderId and one client order id per leg
@@ -12568,7 +12573,7 @@ impl Binance {
                 let currentClientOrderIdKey: Option<String> = clientOrderIdKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let currentClientOrderId: Option<String> = self.safe_string_opt(&params, Value::from(currentClientOrderIdKey.as_deref()), &[]);
                 if (currentClientOrderId.is_none()) {
-                    if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert(currentClientOrderIdKey.as_deref().unwrap_or("null").to_string(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null)); }
+                    generated.insert(currentClientOrderIdKey.as_deref().unwrap_or("null").to_string(), self.generate_client_order_id(None, &[Value::from(api), Value::from(path)]).map(Value::from).unwrap_or(Value::Null));
                 }
             }
             }
@@ -12593,7 +12598,8 @@ impl Binance {
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("batchOrders".into(), Value::Arr(checkedBatchOrders)); }
             }
         }
-        return params;
+        let withIds: crate::value::Dict = self.extend_t(params, &[Value::Map(generated)]);
+        return Value::Dict(withIds);
 
     Value::Null
 }
@@ -18422,7 +18428,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let response: Value = self.fetch2(path, &[api.clone(), method, params, config]).await;
+        // generate the client order ids once, so a retry inside fetch2 signs the same ids
+        let route: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("path".to_string(), path);
+                m.insert("method".to_string(), method);
+            m
+        });
+        let requestPath: String = self.safe_string_k(&route, "path", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let requestMethod: String = self.safe_string_k(&route, "method", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let response: Value = self.fetch2(Value::from(requestPath.as_str()), &[api.clone(), Value::from(requestMethod.as_str()), self.handle_client_order_id(params, (api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default(), requestPath.as_str(), requestMethod.as_str()), config]).await;
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("hasAlreadyAuthenticatedSuccessfully".into(), Value::Bool(true)); }
@@ -19872,7 +19887,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_220 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.eapi_public_get_ticker(&[&__ws_arg_220]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.eapi_public_get_ticker(&[&__ws_arg_220]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -19897,7 +19912,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     ]
         //
-        let chain: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let chain: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return self.parse_option(&chain, None, &[(market).raw.clone()]);
         Value::Null
         }).await?))

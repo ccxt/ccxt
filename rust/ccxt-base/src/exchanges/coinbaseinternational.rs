@@ -1085,7 +1085,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "handle_route_and_params" => crate::Value::Dict(self.handle_route_and_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "is_eddsa_secret" => self.is_eddsa_secret(),
                 "is_native_deribit_credentials" => self.is_native_deribit_credentials(),
-                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -3053,28 +3053,26 @@ impl Coinbaseinternational {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             let summaries: Option<crate::value::List> = self.safe_list_k_o(&result, "summaries");
             if (summaries.is_some()) {
-                return Value::Dict(self.parse_balance_list(&summaries));
+                return Value::Dict(self.parse_balance_list(&summaries, &summaries));
             }
-            return Value::Dict(self.parse_balance_list(self.safe_dict_k(&result, "summaries", &[Value::from(vec![])])));
+            return Value::Dict(self.parse_balance_list(self.safe_dict_k(&result, "summaries", &[Value::from(vec![])]), Value::from(vec![self.safe_dict_k(&result, "summaries", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})])])));
         }
-        return Value::Dict(self.parse_balance_list(&result));
+        return Value::Dict(self.parse_balance_list(&result, self.safe_list_k(&result, "summaries", &[Value::from(vec![Value::from(&result)])])));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>, summaries: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
+        let summaries: Value = summaries.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.clone());
+                m.insert("info".to_string(), response);
             m
         });
-        let mut summaries: Value = Value::from(vec![response.clone()]);
-        if (matches!(&response, Value::Arr(_))) {
-            summaries = response.clone();
-        }  else if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            summaries = self.safe_list_k(&response, "summaries", &[Value::from(vec![response.clone()])]);
-        }
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;

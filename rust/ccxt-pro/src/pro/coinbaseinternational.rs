@@ -563,7 +563,7 @@ impl Coinbaseinternational {
         let message = message.as_map().unwrap_or(&__message_empty);
         let params: crate::value::Dict = message.key_dict("params");
         let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
-        let parsed: crate::value::Dict = self.parent.parse_balance_list(&data);
+        let parsed: crate::value::Dict = self.parent.parse_balance_list(&data, Value::from(vec![Value::from(&data)]));
         { let __t = self.deep_extend_t(Value::Dict(self.balance.clone()), &[&parsed]); self.balance = __t; }
         client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
@@ -2914,7 +2914,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
             while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < summariesLength } {
-            balance = self.deep_extend(balance, &[Value::Dict(self.parent.parse_balance_list(summaries.get(i as usize).cloned().unwrap_or(Value::Null)))]);
+            balance = self.deep_extend(balance, &[Value::Dict(self.parent.parse_balance_list(summaries.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(vec![self.safe_dict(&summaries, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})])])))]);
         }
         }
         return Value::Dict(self.safe_balance(balance));

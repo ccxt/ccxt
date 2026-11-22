@@ -99,7 +99,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "renew_listen_token" => self.renew_listen_token(&args[..].iter().collect::<Vec<_>>()).await,
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "resolve_auth_type" => self.resolve_auth_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "resolve_auth_type" => { let __t = self.resolve_auth_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, __t.1, Value::Dict(__t.2)]) },
                 "sign_params" => self.sign_params(&args[..].iter().collect::<Vec<_>>()),
                 "stream" => crate::Value::from(self.stream(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -221,7 +221,7 @@ impl Binance {
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "renew_listen_token" => { crate::exchange_stubs::enqueue_spawn("renew_listen_token", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "request_id" => crate::Value::from(self.request_id(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-            "resolve_auth_type" => self.resolve_auth_type(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+            "resolve_auth_type" => { let __t = self.resolve_auth_type(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]); Value::from(vec![__t.0, __t.1, Value::Dict(__t.2)]) },
             "set_balance_cache" => { self.set_balance_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "sign_params" => self.sign_params(&args[..]),
@@ -796,9 +796,9 @@ impl Binance {
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             firstMarket = self.get_market_from_symbols(symbolsNormalized.as_deref());
         }
-        let resolvedAuth: Vec<Value> = self.resolve_auth_type(Value::Str("watchLiquidationsForSymbols".into()), firstMarket.as_ref(), &[&params]).as_array().cloned().unwrap_or_default();
-        let type_var: Option<String> = resolvedAuth.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = resolvedAuth.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let resolvedAuth = self.resolve_auth_type(Value::Str("watchLiquidationsForSymbols".into()), firstMarket.as_ref(), &[&params]);
+        let type_var: Option<String> = resolvedAuth.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = resolvedAuth.2;
         // the spot check runs on the RESOLVED type: a spot default combined
         // with a linear or inverse defaultSubType means the caller wants the
         // matching derivatives stream, so the rewrite is allowed to route it
@@ -1062,10 +1062,10 @@ impl Binance {
             }
             }
         }
-        let type_varsubTypeparamsValueVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[&params]).as_array().cloned().unwrap_or_default();
-        let type_var: Option<String> = type_varsubTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let subType: Option<String> = type_varsubTypeparamsValueVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[&params]);
+        let type_var: Option<String> = type_varsubTypeparamsValueVariable.0.as_str().map(str::to_owned);
+        let subType: Option<String> = type_varsubTypeparamsValueVariable.1.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.2;
         // hand the resolved type forward: the helper already omitted type and
         // subType from params, so a bare authenticate would re-derive from
         // options.defaultType and seed a different bucket than the listenKey
@@ -1231,7 +1231,7 @@ impl Binance {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]);
         let firstMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut type_var: String = (firstMarket).market_type.clone();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (firstMarket).option {
             type_var = "option".to_string();
         }  else if (firstMarket).contract {
@@ -1338,7 +1338,7 @@ impl Binance {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]);
         let firstMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut type_var: String = (firstMarket).market_type.clone();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (firstMarket).option {
             type_var = "option".to_string();
         }  else if (firstMarket).contract {
@@ -1818,16 +1818,18 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     pub fn handle_un_subscription(&mut self, client: &Value, mut subscription: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = subscription.as_map().unwrap_or(&__pro_message_empty);
-        let messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
         let subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
-        {
-                        let mut j: i64 = 0;
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { j += 1; } __for_first_7 = false; j < (messageHashes.len() as i64) } {
-            let unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-            let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-            self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
-        }
+        if (messageHashes.is_some()) {
+            {
+                                let mut j: i64 = 0;
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { j += 1; } __for_first_7 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
+            }
+            }
         }
         self.clean_cache(subscription);
 }
@@ -1879,7 +1881,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let paramsName: crate::value::Dict = nameparamsNameVariable.1;
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsName, Value::Str("callerMethodName".into()), &[]);
         let firstMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut type_var: String = (firstMarket).market_type.clone();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let isOption: bool = (firstMarket).option;
         if (isOption == true) {
             type_var = "option".to_string();
@@ -1999,7 +2001,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let paramsName: crate::value::Dict = nameparamsNameVariable.1;
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsName, Value::Str("callerMethodName".into()), &[]);
         let firstMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut type_var: String = (firstMarket).market_type.clone();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let isOption: bool = (firstMarket).option;
         if (isOption == true) {
             type_var = "option".to_string();
@@ -4198,9 +4200,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let time: i64 = self.milliseconds();
-        let resolvedAuth: Vec<Value> = self.resolve_auth_type(Value::Str("authenticate".into()), None, &[&params]).as_array().cloned().unwrap_or_default();
-        let type_var: Option<String> = resolvedAuth.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsAuth: crate::value::Dict = resolvedAuth.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let resolvedAuth = self.resolve_auth_type(Value::Str("authenticate".into()), None, &[&params]);
+        let type_var: Option<String> = resolvedAuth.0.as_str().map(str::to_owned);
+        let paramsAuth: crate::value::Dict = resolvedAuth.2;
         let isPortfolioMarginparamsPortfolioMarginVariable = self.handle_option_bool_and_params2(&paramsAuth, Value::Str("authenticate".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]);
         let isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.0 == Some(true);
         let paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.1;
@@ -4852,10 +4854,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // re-derives from its own method scope, so without this a method-scoped
         // options.watchBalance.type seeds one bucket while the read below
         // indexes another - the same derive-first shape watchOrders uses
-        let type_varsubTypeparamsValueVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchBalance".into()), None, &[&params]).as_array().cloned().unwrap_or_default();
-        let type_var: Option<String> = type_varsubTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let subType: Option<String> = type_varsubTypeparamsValueVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchBalance".into()), None, &[&params]);
+        let type_var: Option<String> = type_varsubTypeparamsValueVariable.0.as_str().map(str::to_owned);
+        let subType: Option<String> = type_varsubTypeparamsValueVariable.1.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.2;
         let __ws_arg_25 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
@@ -5048,7 +5050,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         return accountType.as_str().map(str::to_owned);
 }
 
-    pub fn resolve_auth_type(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> Value {
+    pub fn resolve_auth_type(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (Value, Value, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5074,9 +5076,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 type_var = Some("inverse".to_string());
             }
         }
-        return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsSubType)]);
-
-    Value::Null
+        return (type_var.map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), paramsSubType);
 }
 
     pub fn get_market_type(&self, method: &str, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> Option<String> {
@@ -6004,10 +6004,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = format!("{}{}", Value::Str("orders:".into()), Value::from(self.symbol(symbol.as_str())));
         }
-        let type_varsubTypeparamsValueVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchOrders".into()), market.as_ref(), &[&Value::Dict(paramsStock)]).as_array().cloned().unwrap_or_default();
-        let type_var: Option<String> = type_varsubTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let subType: Option<String> = type_varsubTypeparamsValueVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchOrders".into()), market.as_ref(), &[&Value::Dict(paramsStock)]);
+        let type_var: Option<String> = type_varsubTypeparamsValueVariable.0.as_str().map(str::to_owned);
+        let subType: Option<String> = type_varsubTypeparamsValueVariable.1.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.2;
         let paramsExtended: crate::value::Dict = self.extend_t(paramsValue, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(type_var.as_deref()));
@@ -6715,7 +6715,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut type_var: Option<String> = None;
         let mut subType: Option<String> = None;
         let mut paramsAuth: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.resolve_auth_type(Value::Str("watchPositions".into()), market.as_ref(), &[&params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); subType = __destr_tmp.get(1).and_then(Value::as_str).map(str::to_owned); paramsAuth = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.resolve_auth_type(Value::Str("watchPositions".into()), market.as_ref(), &[&params]); type_var = __destr_tmp.0.as_str().map(str::to_owned); subType = __destr_tmp.1.as_str().map(str::to_owned); paramsAuth = Value::Dict(__destr_tmp.2); }
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
@@ -7243,10 +7243,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Some(self.symbol(symbol.as_str()));
         }
-        let type_varsubTypeparamsAuthVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]).as_array().cloned().unwrap_or_default();
-        let type_var: Option<String> = type_varsubTypeparamsAuthVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let subType: Option<String> = type_varsubTypeparamsAuthVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let paramsAuth: crate::value::Dict = type_varsubTypeparamsAuthVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let type_varsubTypeparamsAuthVariable = self.resolve_auth_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]);
+        let type_var: Option<String> = type_varsubTypeparamsAuthVariable.0.as_str().map(str::to_owned);
+        let subType: Option<String> = type_varsubTypeparamsAuthVariable.1.as_str().map(str::to_owned);
+        let paramsAuth: crate::value::Dict = type_varsubTypeparamsAuthVariable.2;
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolParams: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();

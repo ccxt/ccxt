@@ -2585,16 +2585,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let isUnSub: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if isUnSub {
-            let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
+            let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
             let subMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_13: bool = true;
-                while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.len() as i64) } {
-                let messageHash: Option<String> = self.safe_string_opt(&messageHashes, Value::Int(i), &[]);
-                let subHash: Option<String> = self.safe_string_opt(&subMessageHashes, Value::Int(i), &[]);
-                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
-            }
+            if (messageHashes.is_some()) {
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_13: bool = true;
+                    while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let messageHash: Option<String> = self.safe_string_opt(&messageHashes, Value::Int(i), &[]);
+                    let subHash: Option<String> = self.safe_string_opt(&subMessageHashes, Value::Int(i), &[]);
+                    self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                }
+                }
             }
             let topic: Option<String> = self.safe_string_k_opt(&subscription, "topic", &[]);
             if (topic.as_deref() == Some("fundingRate")) {
@@ -2604,7 +2606,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                         let mut i: i64 = 0;
                     let mut __for_first_14: bool = true;
                     while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (symbols.len() as i64) } {
-                    let symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
+                    let symbol: Value = self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())]);
                     if (matches!((&self.fundingRates, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.fundingRates, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
@@ -3775,10 +3777,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let uta: bool = self.is_uta_enabled(&[]).await.as_bool().unwrap_or_default();
         let utaOptionparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("uta".into()), &[Value::Bool(uta)]);
-        let mut utaOption: Option<bool> = utaOptionparamsUtaVariable.0;
+        let utaOption: bool = utaOptionparamsUtaVariable.0 == Some(true);
         let paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.1;
         let mut tradeType: String = "TRADE".to_string();
-        if (utaOption == Some(true)) {
+        if utaOption {
             tradeType = "UNIFIED".to_string();
         }
         let messageHash: String = "positions".to_string();
@@ -3798,7 +3800,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let url: Option<String> = self.get_uta_url().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        self.set_positions_cache(client.as_value(), utaOption.map_or(Value::Null, Value::Bool));
+        self.set_positions_cache(client.as_value(), Value::Bool(utaOption));
         let fetchPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let awaitPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let cache: Option<crate::pro::cache::Cache> = self.positions.clone();

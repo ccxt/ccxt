@@ -2828,8 +2828,9 @@ impl Paradex {
         }  else {
             let endAtRaw: Option<i64> = self.safe_integer_k(&requestUntil, "end_at", &[Value::Int(self.milliseconds())]).as_i64();
             let endAt: Option<i64> = self.parse_to_int(Value::from(endAtRaw));
+            let startAt: Option<i64> = (if let (Some(__l), Some(__r)) = (endAt, ((if let Some(__l) = windowLength { Some(__l - 1) } else { None }))) { Some(__l - __r) } else { None });
             std::sync::Arc::make_mut(&mut requestUntil).insert("end_at".into(), Value::from(endAt));
-            std::sync::Arc::make_mut(&mut requestUntil).insert("start_at".into(), Value::from((if let (Some(__l), Some(__r)) = (endAt, ((if let Some(__l) = windowLength { Some(__l - 1) } else { None }))) { Some(__l - __r) } else { None })));
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start_at".into(), Value::from(startAt));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsOmitted]);
         let response: crate::value::Dict = self.public_get_markets_klines(&[&__ws_arg_1]).await.unwrap_or_default();
@@ -3100,7 +3101,7 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rate: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(rates), Value::from((market).symbol.clone()));
         if (rate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRate() could not find a funding rate for ").into()), symbol)));
@@ -3908,9 +3909,13 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = Value::Dict(self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, price, &[&params]));
         request = self.omit(request, &["instruction", "client_id", "flags", "recv_window"], &[]);
-        if let Value::Dict(__rda) = &mut request { std::sync::Arc::make_mut(__rda).insert("order_id".to_string(), id.clone()); }
-        if let Value::Dict(__rda) = &mut request { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }
-        request = self.sign_order_request(request, &[Value::Bool(true)]).await;
+        let editRequest: crate::value::Dict = self.extend_t(&request, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("order_id".to_string(), id.clone());
+                m.insert("id".to_string(), id);
+            m
+        })]);
+        request = self.sign_order_request(&editRequest, &[Value::Bool(true)]).await;
         let response: crate::value::Dict = self.private_put_orders_order_id(&[&request]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         None
@@ -4644,7 +4649,7 @@ impl Paradex {
             }
         }
         }
-        let positions: crate::value::List = self.parse_positions(Value::from(matching), &[Value::from(vec![Value::from((market).symbol.clone())])]);
+        let positions: crate::value::List = self.parse_positions(Value::from(matching), &[Value::from(vec![Value::from((market).symbol.as_str())])]);
         return self.safe_dict(&positions, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5888,15 +5893,18 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (results.len() as i64) } {
-            let mut rate: Option<crate::value::Dict> = self.safe_dict_o(&results, Value::Int(i));
+            let mut rate: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[results.get(i as usize).cloned().unwrap_or(Value::Null)]);
             if (next.is_some()) {
-                if let Some(__rdm) = &mut rate { std::sync::Arc::make_mut(__rdm).insert("next".to_string(), Value::from(next.as_deref())); } // the cursor helper reads it from info, the last page has none
+                std::sync::Arc::make_mut(&mut rate).insert("next".into(), Value::from(next.as_deref())); // the cursor helper reads it from info, the last page has none
             }
             let timestamp: Option<i64> = self.safe_integer_k(&rate, "created_at", &[]).as_i64();
             let datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), rate.clone().map_or(Value::Null, Value::Dict));
+                    m.insert("info".to_string(), Value::from(&rate));
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&rate, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));

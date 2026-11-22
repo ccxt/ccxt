@@ -1527,16 +1527,18 @@ impl Coinbase {
         let subKeysLength: i64 = subKeys.len() as i64;
         if isUnsub && (subKeysLength == 0) {
             let unSubObject: crate::value::Dict = self.safe_dict_k_t(&self.options, "unSubscription");
-            let messageHashes: crate::value::List = self.safe_list_k_t(&unSubObject, "messageHashes");
+            let messageHashes: Option<crate::value::List> = self.safe_string_list(&unSubObject, Value::from(vec![Value::Str("messageHashes".into())]));
             let subMessageHashes: crate::value::List = self.safe_list_k_t(&unSubObject, "subMessageHashes");
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_13: bool = true;
-                while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.len() as i64) } {
-                let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
-            }
+            if (messageHashes.is_some()) {
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_13: bool = true;
+                    while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let messageHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    let subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                }
+                }
             }
             self.clean_cache(Value::Dict(unSubObject));
         }

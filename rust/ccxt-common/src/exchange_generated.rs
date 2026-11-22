@@ -644,7 +644,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_string_list(&self, dictionaryOrList: impl KeyRead, mut keys: Value) -> Value {
+    fn safe_string_list(&self, dictionaryOrList: impl KeyRead, mut keys: Value) -> Option<crate::value::List> {
         /*
          * @ignore
          * @method
@@ -653,11 +653,12 @@ pub trait ExchangeBase:
          */
         let str_val: Option<String> = self.safe_string_n_opt(&dictionaryOrList, keys.clone(), &[]);
         if (str_val.is_some()) {
-            return Value::from(vec![str_val.map(Value::from).unwrap_or(Value::Null)]);
+            return Some(std::sync::Arc::new(vec![str_val.map(Value::from).unwrap_or(Value::Null)]));
         }
-        return self.safe_list_n(&dictionaryOrList, keys, &[]);
-
-    Value::Null
+        if let Value::Arr(list) = self.safe_list_n(&dictionaryOrList, keys, &[]) {
+        return Some(list);
+    }
+    None
 }
 
     fn safe_list(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
@@ -13478,14 +13479,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "filter_by_value_since_limit" => Value::Arr(self.filter_by_value_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64), &args[5.min(args.len())..])),
             "filter_out_by_array" => self.filter_out_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "find_broadly_matched_key" => self.find_broadly_matched_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "find_message_hashes" => Value::Arr(self.find_message_hashes(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+            "find_message_hashes" => crate::Value::Arr(self.find_message_hashes(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "find_nearest_ceiling" => self.find_nearest_ceiling(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "find_timeframe" => crate::Value::from(self.find_timeframe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "force_string" => self.force_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "get_default_options" => self.get_default_options(),
             "get_describe_for_extended_ws_exchange" => self.get_describe_for_extended_ws_exchange(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "get_list_from_object_values" => Value::Arr(self.get_list_from_object_values(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+            "get_list_from_object_values" => crate::Value::Arr(self.get_list_from_object_values(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "get_market_from_symbols" => crate::types::IntoRaw::into_raw(self.get_market_from_symbols(args.get(0).and_then(Value::as_array))),
             "get_supported_mapping" => self.get_supported_mapping(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "get_symbols_for_market_type" => self.get_symbols_for_market_type(&args[..]),

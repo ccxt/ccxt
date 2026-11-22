@@ -2177,7 +2177,7 @@ impl Hyperliquid {
         let outcomeInfo: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
         let nonce: i64 = self.incrementing_nonce();
-        let clientOrderIds: Value = self.safe_string_list(&params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]));
+        let clientOrderIds: Option<crate::value::List> = self.safe_string_list(&params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]));
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_id"], &[]);
         let mut cancelReq: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut cancelAction: indexmap::IndexMap<String, Value> = ({
@@ -2186,16 +2186,16 @@ impl Hyperliquid {
                 m.insert("cancels".to_string(), Value::from(vec![]));
             m
         });
-        if (clientOrderIds != Value::Null) {
+        if (clientOrderIds.is_some()) {
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_18: bool = true;
-                while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (clientOrderIds.len() as i64) } {
+                while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), Value::from(assetId));
-                        m.insert("cloid".to_string(), clientOrderIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("cloid".to_string(), clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     m
                 }));
             }
@@ -2235,8 +2235,8 @@ impl Hyperliquid {
         let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
         let outcomeSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[&outcome]);
         let mut requestIds: Value = ids;
-        if (clientOrderIds != Value::Null) {
-            requestIds = clientOrderIds.clone();
+        if (clientOrderIds.is_some()) {
+            requestIds = clientOrderIds.clone().map_or(Value::Null, Value::Arr);
         }
         let mut orders: Vec<Value> = Vec::new();
         {
@@ -2256,7 +2256,7 @@ impl Hyperliquid {
             let order: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId.clone());
-                    m.insert("clientOrderId".to_string(), (if (clientOrderIds != Value::Null) { requestId } else { Value::Null }));
+                    m.insert("clientOrderId".to_string(), (if (clientOrderIds.is_some()) { requestId } else { Value::Null }));
                     m.insert("info".to_string(), status);
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                     m.insert("outcome".to_string(), Value::from(outcomeSymbol.as_deref()));
@@ -2670,7 +2670,7 @@ impl Hyperliquid {
     m
 }));
         self.require_event_query(&[&params]);
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
         // markets. use the cached load so the handles advertised here always match the
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2946,8 +2946,9 @@ impl Hyperliquid {
         if (vaultAddress.is_none()) {
             data.push_str("00");
         }  else {
+            let vaultHex: Option<String> = vaultAddress.map(str::to_owned).as_deref().map(str::to_lowercase);
             data.push_str("01");
-            data.push_str(&Value::from(vaultAddress).to_string());
+            data.push_str(vaultHex.as_deref().unwrap_or("null"));
         }
         return Value::from(self.hash_binary(self.base16_to_binary(Value::from(data), &[]), "keccak"));
 

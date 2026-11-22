@@ -2277,9 +2277,9 @@ impl Digifinex {
             promisesRaw.push(self.public_spot_get_trades_symbols(&[&Value::Dict(query)]).await);
         }
         promisesRaw.push(self.public_swap_get_public_instruments(&[&params]).await);
-        let promises: crate::value::List = promise_all(&Value::from(promisesRaw)).await;
-        let spotMarkets: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(0));
-        let swapMarkets: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(1));
+        let promises: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promisesRaw)).await);
+        let spotMarkets: crate::value::Dict = promises.get(0).cloned().unwrap_or_default();
+        let swapMarkets: crate::value::Dict = promises.get(1).cloned().unwrap_or_default();
         //
         // spot and margin
         //

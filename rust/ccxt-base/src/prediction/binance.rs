@@ -641,7 +641,7 @@ impl Binance {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
+        let queries: Vec<Value> = self.parse_search_queries(&[&params]).to_vec();
         let queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
             let eventParams: crate::value::Dict = self.omit_t(&params, &["limit"], &[]);
@@ -886,7 +886,7 @@ impl Binance {
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[&params]);
         }
-        let queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
+        let queries: Vec<Value> = self.parse_search_queries(&[&params]).to_vec();
         // binance has no tag taxonomy — resolve requested tags through the semantic search too
         let tags: crate::value::List = self.safe_list_k_t(&params, "tags");
         let tagsLength: i64 = tags.len() as i64;

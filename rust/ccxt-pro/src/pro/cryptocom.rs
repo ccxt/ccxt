@@ -821,9 +821,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             stored.append(self.safe_dict(&parsedTrades, Value::Int(j), &[]));
         }
         }
-        let channelReplaced: Option<String> = (if let Some(__s) = channel.as_deref() { Some(__s.replace(format!("{}{}", ".", marketId.as_deref().unwrap_or("null")).as_str(), "")) } else { None });
+        let mut channelName: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
+        let marketIdName: String = (match message.get("instrument_name") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
+        let channelReplaced: String = channelName.replace(format!("{}{}", ".", marketIdName).as_str(), "");
         client.resolve(Value::from(&stored), symbolSpecificMessageHash.as_deref());
-        client.resolve(Value::from(&stored), channelReplaced.as_deref());
+        client.resolve(Value::from(&stored), channelReplaced.as_str());
 }
 
 /*
@@ -2276,16 +2278,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (id != subId) {
                     continue;
                 }
-                let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
+                let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
                 let subMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
-                {
-                                        let mut j: i64 = 0;
-                    let mut __for_first_16: bool = true;
-                    while { if !__for_first_16 { j += 1; } __for_first_16 = false; j < (messageHashes.len() as i64) } {
-                    let unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                    let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                    self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
-                }
+                if (messageHashes.is_some()) {
+                    {
+                                                let mut j: i64 = 0;
+                        let mut __for_first_16: bool = true;
+                        while { if !__for_first_16 { j += 1; } __for_first_16 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                        let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                        self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                    }
+                    }
                 }
                 self.clean_cache(subscription);
             }

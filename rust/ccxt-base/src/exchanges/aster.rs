@@ -2788,10 +2788,10 @@ impl Aster {
 }));
         let mut promises: Vec<Value> = vec![self.sapi_public_get_v3_exchange_info(&[&params]).await, self.fapi_public_get_v3_exchange_info(&[&params]).await];
         promises.push(self.sign_in(&[]).await);
-        let results: crate::value::List = promise_all(&Value::from(promises)).await;
-        let sapiResult: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
+        let sapiResult: crate::value::Dict = results.get(0).cloned().unwrap_or_default();
         let sapiRows: crate::value::List = self.safe_list_k_t(&sapiResult, "symbols");
-        let fapiResult: crate::value::Dict = self.safe_dict_t(&results, Value::Int(1));
+        let fapiResult: crate::value::Dict = results.get(1).cloned().unwrap_or_default();
         let fapiRows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fapiResult, "symbols"));
         //
         // example:

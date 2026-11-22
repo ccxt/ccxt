@@ -690,7 +690,11 @@ impl crate::exchange::DerivedExchange for Lighter {
                 m
             }));
         }
-        if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+        let query: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&params]);
+        if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("POST")) {
                 let multipartHeaders: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -4566,7 +4570,7 @@ if _try_result.is_err() {
         let signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
-                m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int((match ((Value::Int(10000)).as_f64(), (Value::from(self.parse_to_int(leverage))).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+                m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int((match ((Value::Int(10000)).as_f64(), (leverage).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 m.insert("margin_mode".to_string(), (if (marginMode == "cross") { Value::Int(0) } else { Value::Int(1) }));
                 m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));

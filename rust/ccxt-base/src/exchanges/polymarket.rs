@@ -632,7 +632,11 @@ impl crate::exchange::DerivedExchange for Polymarket {
             headersResolved.insert("Content-Type".into(), Value::Str("application/json".into()));
         }  else {
             if (method.as_str() == Some("GET")) {
-                let mut keys: Vec<Value> = Value::Array(query.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+                let queryCopy: crate::value::Dict = self.extend_t(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[&query]);
+                let mut keys: Vec<Value> = Value::Array(queryCopy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 let keysLength: i64 = keys.len() as i64;
                 if keysLength > 0 {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), implodedPath).into()), "?").into()), self.urlencode(&query, &[]));
@@ -2444,7 +2448,7 @@ impl Polymarket {
             m
         });
         let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[&params]).await;
-        let response: crate::value::List = self.trade_post_trade_orders(&[&Value::Dict(signed)]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.trade_post_trade_orders(&[&Value::Dict(signed)]).await.unwrap_or_default());
         //
         //     [
         //         { "status": "ok", "oid": 1234567890, "coid": "aabbccdd..." }
@@ -2455,7 +2459,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (response.len() as i64) } {
-            let ack: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let ack: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let marketInner: crate::value::Dict = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let echo: crate::value::Dict = self.safe_dict_t(&ordersEntries, Value::Int(i));
             let status: Option<String> = self.safe_string_k_opt(&ack, "status", &[]);
@@ -2744,7 +2748,7 @@ impl Polymarket {
             m
         });
         let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[&params]).await;
-        let response: crate::value::List = self.trade_patch_trade_orders(&[&Value::Dict(signed)]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.trade_patch_trade_orders(&[&Value::Dict(signed)]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -2753,7 +2757,7 @@ impl Polymarket {
         //         }
         //     ]
         //
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let status: Option<String> = self.safe_string_k_opt(&first, "status", &[]);
         if (status.as_deref() == Some("err")) {
             let merged: indexmap::IndexMap<String, Value> = ({
@@ -3070,12 +3074,12 @@ impl Polymarket {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_account_orders(&[&__ws_arg_8]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_account_orders(&[&__ws_arg_8]).await.unwrap_or_default());
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (response.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let row: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let rowId: Option<String> = self.safe_string_k_opt(&row, "order_id", &[]);
             if (rowId.as_deref() == Some(id.as_str().unwrap_or_default().to_string().as_str())) {
                 return <Self as crate::exchange::DerivedExchange>::parse_order(self, &row, market.as_ref());
@@ -3538,12 +3542,12 @@ impl Polymarket {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_account_config(&[&__ws_arg_14]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_account_config(&[&__ws_arg_14]).await.unwrap_or_default());
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (response.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let row: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let rowId: Option<String> = self.safe_string_k_opt(&row, "instrument_id", &[]);
             if ((rowId.as_deref() == Value::from((market).id.as_deref()).as_str())) {
                 return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &row, Some(&market));

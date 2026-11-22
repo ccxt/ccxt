@@ -377,11 +377,12 @@ impl crate::exchange::DerivedExchange for Phemex {
                 priceString = self.safe_string_k_opt(&trade, "execPriceRp", &[]);
                 amountString = self.safe_string_k_opt(&trade, "execQtyRq", &[]);
                 costString = self.safe_string_k(&trade, "execValueRv", &[]);
-                feeCostString = self.omit_zero(self.safe_string_k(&trade, "execFeeRv", &[]));
+                let execFeeRv: Option<String> = self.omit_zero(self.safe_string_k(&trade, "execFeeRv", &[]));
                 feeRateString = self.safe_string_k(&trade, "feeRateRr", &[]);
-                if (feeCostString.is_some()) {
+                if (execFeeRv.is_some()) {
                     let currencyId: Option<String> = self.safe_string_k_opt(&trade, "currency", &[]);
                     feeCurrencyCode = self.safe_currency_code(currencyId.as_deref(), None);
+                    feeCostString = execFeeRv;
                 }  else {
                     let ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(&trade, "ptFeeRv", &[]));
                     if (ptFeeRv.is_some()) {
@@ -413,9 +414,10 @@ impl crate::exchange::DerivedExchange for Phemex {
                         }
                     }
                 }  else {
-                    feeCostString = self.safe_string_k_opt(&trade, "ptFeeRv", &[]);
-                    if (feeCostString.is_some()) {
+                    let ptFeeRvString: Option<String> = self.safe_string_k_opt(&trade, "ptFeeRv", &[]);
+                    if (ptFeeRvString.is_some()) {
                         feeCurrencyCode = Some("PT".to_string());
+                        feeCostString = ptFeeRvString;
                     }
                 }
             }

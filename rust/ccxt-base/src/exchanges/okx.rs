@@ -6046,13 +6046,13 @@ impl Okx {
                 promises.push(self.public_get_public_instruments(&[&__ws_arg_10]).await);
             }
             }
-            let promisesResult: crate::value::List = promise_all(&Value::from(promises)).await;
+            let promisesResult: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
             let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_5: bool = true;
                 while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (promisesResult.len() as i64) } {
-                let res: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(i));
+                let res: crate::value::Dict = promisesResult.get(i as usize).cloned().unwrap_or_default();
                 let options: crate::value::List = self.safe_list_k_t(&res, "data");
                 markets = self.array_concat_t(Value::Arr(markets), &options);
             }
@@ -9483,7 +9483,11 @@ impl Okx {
             return self.safe_dict(&response, codeNetwork.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         // if the network is not specified, return the first address
-        let mut keys: crate::value::List = crate::value::List::new(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let responseDict: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&response]);
+        let mut keys: crate::value::List = crate::value::List::new(responseDict.keys().cloned().map(Value::from).collect());
         let first: String = self.safe_string(&keys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return self.safe_dict(&response, Value::from(first), &[]);
         Value::Null
@@ -10151,7 +10155,8 @@ impl Okx {
                 while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (symbols.len() as i64) } {
                 let entry: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(entry.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                marketIds.push(Value::from((market).id.as_deref()));
+                let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                marketIds.push(Value::from(marketId));
             }
             }
             let marketIdsLength: i64 = marketIds.len() as i64;

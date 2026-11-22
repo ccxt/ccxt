@@ -8934,10 +8934,11 @@ impl Bingx {
                     let arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {
+                        let elementStr: String = self.safe_string(&value, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         if j > 0 {
-                            arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ",", "\"").into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into())).into());
+                            arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ",", "\"").into()), elementStr).into()), "\"").into())).into());
                         }  else {
-                            arrStr = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("\"".into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into());
+                            arrStr = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "\"", elementStr).into()), "\"").into());
                         }
                     }  else {
                         if j > 0 {

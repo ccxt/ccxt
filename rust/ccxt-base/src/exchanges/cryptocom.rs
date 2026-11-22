@@ -846,7 +846,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptocom {
                 "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "custom_handle_margin_mode_and_params" => self.custom_handle_margin_mode_and_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "custom_handle_margin_mode_and_params" => { let __t = self.custom_handle_margin_mode_and_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "edit_order_request" => Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_f64), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
@@ -2994,9 +2994,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("createOrder".into()), Some(&market), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
-        let marginModeparamsValueVariable: Vec<Value> = self.custom_handle_margin_mode_and_params("createOrder", &[&Value::Dict(paramsMarketType)]).as_array().cloned().unwrap_or_default();
-        let marginMode: Option<String> = marginModeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = marginModeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let marginModeparamsValueVariable = self.custom_handle_margin_mode_and_params("createOrder", &[&Value::Dict(paramsMarketType)]);
+        let marginMode: Option<String> = marginModeparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = marginModeparamsValueVariable.1;
         if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             request.insert("spot_margin".into(), Value::Str("MARGIN".into()));
         }  else if (marketType.as_deref() == Some("spot")) {
@@ -4036,7 +4036,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 return self.safe_dict(&depositAddresses, network.map(Value::from).unwrap_or(Value::Null), &[]);
             }
         }
-        let mut keys: crate::value::List = crate::value::List::new(depositAddresses.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let addressesCopy: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&depositAddresses]);
+        let mut keys: crate::value::List = crate::value::List::new(addressesCopy.keys().cloned().map(Value::from).collect());
         return self.safe_dict(&depositAddresses, self.safe_string(&keys, Value::Int(0), &[]), &[]);
         Value::Null
         }).await?))
@@ -4260,7 +4264,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
 
-    pub fn custom_handle_margin_mode_and_params(&self, methodName: &str, optional_args: &[&Value]) -> Value {
+    pub fn custom_handle_margin_mode_and_params(&self, methodName: &str, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4287,9 +4291,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 marginMode = Some("cross".to_string());
             }
         }
-        return Value::from(vec![marginMode.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarginMode)]);
-
-    Value::Null
+        return (marginMode.map(Value::from).unwrap_or(Value::Null), paramsMarginMode);
 }
 
 
@@ -4939,7 +4941,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (matches!(&object, Value::Arr(_))) {
             paramsKeys = object.clone();
         }  else {
-            let objectKeys: Value = Value::Array(object.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let objectDict: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&object]);
+            let objectKeys: Value = Value::Array(objectDict.keys().cloned().map(Value::from).collect());
             paramsKeys = self.sort(objectKeys, &[]);
         }
         {

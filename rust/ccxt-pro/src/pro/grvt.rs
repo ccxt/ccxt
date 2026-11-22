@@ -272,12 +272,12 @@ impl Grvt {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut apiPart: Value = Value::Str("privateTrading".into());
+        let mut apiPart: String = "privateTrading".to_string();
         if publicOrPrivate {
-            apiPart = Value::Str("publicMarket".into());
+            apiPart = "publicMarket".to_string();
         }
-        let __ws_arg_0 = self.urls.get("api").cloned().unwrap_or(Value::Null);
-        return self.watch_multiple(&(get_value(&crate::value::get_value_k(&__ws_arg_0, "ws"), &apiPart)), messageHashes, Value::Map(payload), rawHashes, Value::Null).await;
+        let __ws_arg_0 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::from(apiPart), &[]);
+        return self.watch_multiple(&(__ws_arg_0), messageHashes, Value::Map(payload), rawHashes, Value::Null).await;
 
     Value::Null
 }
@@ -999,8 +999,8 @@ impl Grvt {
                 m
             });
             self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-            let __ws_arg_6 = self.urls.get("api").cloned().unwrap_or(Value::Null);
-            self.client(&(crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "privateTrading")));
+            let __ws_arg_6 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::Str("privateTrading".into()), &[]);
+            self.client(&(__ws_arg_6));
         }
 
     Value::Null

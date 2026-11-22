@@ -2721,8 +2721,8 @@ impl Hibachi {
         });
         let __ws_arg_17 = self.extend(&request, &[&params]);
         let rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_capital_history(&[&__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[&self.extend(Value::Map(request), &[&params])]).await]);
-        let promises: crate::value::List = promise_all(&Value::Arr(rawPromises)).await;
-        let responseCapitalHistory: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(0));
+        let promises: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::Arr(rawPromises)).await);
+        let responseCapitalHistory: crate::value::Dict = promises.get(0).cloned().unwrap_or_default();
         //
         // {
         //     "transactions": [
@@ -2777,7 +2777,7 @@ impl Hibachi {
         // }
         //
         let rowsCapitalHistory: crate::value::List = self.safe_list_k_t(&responseCapitalHistory, "transactions");
-        let responseTradingHistory: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(1));
+        let responseTradingHistory: crate::value::Dict = promises.get(1).cloned().unwrap_or_default();
         //
         // {
         //     "tradingHistory": [

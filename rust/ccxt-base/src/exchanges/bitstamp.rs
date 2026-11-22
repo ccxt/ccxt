@@ -157,7 +157,11 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         // resolved in the key scan below, falling back to the passed market
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (market.is_none()) {
-            let mut keys: Vec<Value> = Value::Array(trade.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let tradeCopy: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&trade]);
+            let mut keys: Vec<Value> = Value::Array(tradeCopy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_3: bool = true;
@@ -172,7 +176,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (marketResolved.is_none()) {
+        if (self.safe_string_k(&marketResolved, "id", &[]) == Value::Null) {
             marketResolved = self.get_market_from_trade(trade.clone());
         }
         let feeCostString: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
@@ -468,7 +472,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if (market.is_none()) {
+            if (self.safe_string_k(&market, "id", &[]) == Value::Null) {
                 market = self.get_market_from_trade(item.clone());
             }
             let direction: String = (if (self.safe_string_k(&parsedTrade, "side", &[]).as_str() == Some("buy")) { "in".to_string() } else { "out".to_string() });
@@ -854,12 +858,16 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             if matches!(&error, Value::Str(_)) {
                 std::sync::Arc::make_mut(&mut errors).push(error.clone());
             }  else if (error != Value::Null) {
-                let mut keys: Vec<&str> = error.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+                let errorDict: crate::value::Dict = self.extend_t(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[&error]);
+                let mut keys: Vec<Value> = Value::Array(errorDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_9: bool = true;
                     while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (keys.len() as i64) } {
-                    let key: Option<&str> = keys.get(i as usize).copied();
+                    let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                     let value: Value = self.safe_value(&error, Value::from(key.as_deref()), &[]);
                     if (matches!(&value, Value::Arr(_))) {
                         errors = self.array_concat_t(Value::Arr(errors), value.clone());
@@ -3549,10 +3557,10 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (feesList.len() as i64) } {
-            let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(feesList.get(i as usize).cloned().unwrap_or(Value::Null), None));
-            let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let fee: crate::value::Dict = self.parse_trading_fee(feesList.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
             }
         }
         }

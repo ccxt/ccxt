@@ -2193,16 +2193,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_un_subscription(&mut self, client: &Value, mut subscription: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = subscription.as_map().unwrap_or(&__pro_message_empty);
-        let messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
         let subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
-        {
-                        let mut j: i64 = 0;
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { j += 1; } __for_first_9 = false; j < (messageHashes.len() as i64) } {
-            let unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-            let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-            self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
-        }
+        if (messageHashes.is_some()) {
+            {
+                                let mut j: i64 = 0;
+                let mut __for_first_9: bool = true;
+                while { if !__for_first_9 { j += 1; } __for_first_9 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
+            }
+            }
         }
         self.clean_cache(subscription);
 }

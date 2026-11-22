@@ -1656,8 +1656,12 @@ impl Bitget {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit);
         }
         let result: Value = Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
-        if (match &(self.handle_option(Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)])) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
-            Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let ignoreDuplicatesVariable = self.handle_option_bool_and_params(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)]);
+        let ignoreDuplicates: bool = ignoreDuplicatesVariable.0 == Some(true);
+        if ignoreDuplicates {
             let mut filtered: Value = self.remove_repeated_trades_from_array(result.clone());
             filtered = self.sort_by(filtered, Value::Str("timestamp".into()), &[]);
             return filtered;
@@ -2341,7 +2345,10 @@ impl Bitget {
             instType = Some("UTA".to_string());
             channel = "order".to_string();
         }
-        subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, ":").into()), instType.as_deref().unwrap_or("null"));
+        let mut subscriptionHashInst: String = format!("{}{}", subscriptionHash, ":");
+        if (instType.is_some()) {
+            subscriptionHashInst = format!("{}{}", subscriptionHashInst, instType.as_deref().unwrap_or("null"));
+        }
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
@@ -2363,7 +2370,7 @@ impl Bitget {
         if !(uta == Some(true)) {
             args.insert("instId".into(), instId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orders: Value = self.watch_private((uta == Some(true)), messageHash.as_str(), subscriptionHash.as_str(), Value::Map(args), &[paramsRequest]).await;
+        let mut orders: Value = self.watch_private((uta == Some(true)), messageHash.as_str(), subscriptionHashInst.as_str(), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);

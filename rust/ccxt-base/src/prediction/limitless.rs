@@ -1328,7 +1328,7 @@ impl Limitless {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
+        let queries: Vec<Value> = self.parse_search_queries(&[&params]).to_vec();
         let rest: crate::value::Dict = self.omit_t(&params, &["query", "queries", "limit"], &[]);
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
@@ -1467,8 +1467,7 @@ impl Limitless {
             let mut m: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone()).into_dict();
             markets.push(Value::from(&m));
             if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
-                if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
-                    eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({
+                let mut eventGroup: crate::value::Dict = self.safe_dict_or(&eventGroups, Value::from(eventKey.as_deref()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(&raw, Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -1476,14 +1475,10 @@ impl Limitless {
         m.insert("markets".to_string(), Value::from(vec![]));
     m
 }));
-                }
-                let mut eventGroup: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
-                let mut groupMarkets: Value = crate::value::get_value_k(&eventGroup, "markets");
-                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(m)); }
-                add_element_to_object(&mut eventGroup, &Value::Str("markets".into()), groupMarkets);
+                let mut groupMarkets: Value = crate::value::KeyRead::key_read(&&eventGroup, "markets");
+                append_to_array(&mut groupMarkets, Value::Dict(m));
+                std::sync::Arc::make_mut(&mut eventGroup).insert("markets".into(), groupMarkets);
+                eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Dict(eventGroup));
             }
         }
         }
@@ -4049,7 +4044,7 @@ if _try_result.is_err() {
     m
 }));
         self.require_event_query(&[&params]);
-        let queries: Value = self.parse_search_queries(&[&params]);
+        let queries: Value = Value::Arr(self.parse_search_queries(&[&params]));
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
         }
@@ -4145,18 +4140,17 @@ if _try_result.is_err() {
             while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < rawMarketsLength } {
             let raw: Value = expandedMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let groupId: Option<String> = self.safe_string_n_opt(&raw, Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(&raw, "slug", &[])]);
-            let mut eventKey: Option<String> = None;
+            let mut eventKey: Value = Value::Null;
             if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = Some(self.shorten_slug(Value::from(groupId.as_deref())));
+                eventKey = Value::from(self.shorten_slug(Value::from(groupId.as_deref())));
             }
             let mut m: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone());
             if (m == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing m")));
             }
             if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), m.clone()); }
-            if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
-                if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
-                    eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({
+            if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
+                let mut eventGroup: crate::value::Dict = self.safe_dict_or(&eventGroups, &eventKey, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(&raw, Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -4164,14 +4158,10 @@ if _try_result.is_err() {
         m.insert("markets".to_string(), Value::from(vec![]));
     m
 }));
-                }
-                let mut eventGroup: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
-                let mut groupMarkets: Value = crate::value::get_value_k(&eventGroup, "markets");
-                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(m.clone()); }
-                add_element_to_object(&mut eventGroup, &Value::Str("markets".into()), groupMarkets);
+                let mut groupMarkets: Value = crate::value::KeyRead::key_read(&&eventGroup, "markets");
+                append_to_array(&mut groupMarkets, m);
+                std::sync::Arc::make_mut(&mut eventGroup).insert("markets".into(), groupMarkets);
+                eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Dict(eventGroup));
             }
         }
         }

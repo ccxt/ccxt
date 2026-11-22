@@ -1126,12 +1126,10 @@ impl Polymarket {
         //         }
         //     }
         //
-        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&message, "data");
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        if let Value::Arr(__a) = data {
-            rows = __a;
-        }  else {
-            std::sync::Arc::make_mut(&mut rows).push(data);
+        if (data.is_some()) {
+            std::sync::Arc::make_mut(&mut rows).push(data.map_or(Value::Null, Value::Dict));
         }
         let rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
@@ -1660,7 +1658,8 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_13: bool = true;
                 while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.len() as i64) } {
-                self.clean_unsubscription(&client, subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+                let __ws_arg_2 = self.safe_string(&subMessageHashes, Value::Int(i), &[]);
+                self.clean_unsubscription(&client, __ws_arg_2, messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             }
             }
         }

@@ -1971,8 +1971,8 @@ impl crate::exchange::DerivedExchange for Bybit {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i += 1; } __for_first_28 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&tier, "symbol", &[]);
             let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]);
@@ -2285,17 +2285,15 @@ impl crate::exchange::DerivedExchange for Bybit {
                 })]);
                 let sortedQuery: crate::value::Dict = self.keysort(Value::from(&query), &[]).into_dict();
                 let auth: Value = Value::from(self.rawencode(&sortedQuery, &[Value::Bool(true)]));
-                let mut signature: Value = Value::Null;
+                let mut signature: String = self.hmac(self.encode(&auth), self.encode(&self.secret), "sha256", &[]);
                 if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
-                    signature = Value::from(rsa(auth.clone(), self.secret.clone(), Value::Str("sha256".into())));
-                }  else {
-                    signature = Value::from(self.hmac(self.encode(auth), self.encode(&self.secret), "sha256", &[]));
+                    signature = rsa(auth, self.secret.clone(), Value::Str("sha256".into()));
                 }
                 if (method.as_str() == Some("POST")) {
                     let isSpot: bool = baseUrl.contains("spot");
                     let extendedQuery: crate::value::Dict = self.extend_t(query, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("sign".to_string(), signature.clone());
+                            m.insert("sign".to_string(), Value::from(signature.as_str()));
                         m
                     })]);
                     if isSpot {
@@ -5926,9 +5924,9 @@ impl Bybit {
                 return (self.options.get("enableUnifiedMargin").cloned().unwrap_or(Value::Null).as_bool(), self.options.get("enableUnifiedAccount").cloned().unwrap_or(Value::Null).as_bool());
             }
             let rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_v5_user_query_api(&[&params]).await, self.private_get_v5_account_info(&[&params]).await]);
-            let promises: crate::value::List = promise_all(&Value::Arr(rawPromises)).await;
-            let response: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(0));
-            let accountInfo: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(1));
+            let promises: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::Arr(rawPromises)).await);
+            let response: crate::value::Dict = promises.get(0).cloned().unwrap_or_default();
+            let accountInfo: crate::value::Dict = promises.get(1).cloned().unwrap_or_default();
             //
             //     {
             //         "retCode": 0,
@@ -12773,19 +12771,36 @@ impl Bybit {
         });
         let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsSubType]);
         let response: crate::value::Dict = self.public_get_v5_market_risk_limit(&[&__ws_arg_75]).await.unwrap_or_default();
-        let mut result: Value = Value::Arr(self.add_pagination_cursor_to_result(&response));
+        let result: crate::value::List = self.add_pagination_cursor_to_result(&response);
         let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
         let total: i64 = result.len() as i64;
         let lastIndex: i64 = (total - 1);
-        let mut last: crate::value::Dict = self.safe_dict_t(&result, lastIndex);
+        let last: crate::value::Dict = self.safe_dict_t(&result, lastIndex);
         let cursorValue: Option<String> = self.safe_string_k_opt(&first, "nextPageCursor", &[]);
-        std::sync::Arc::make_mut(&mut last).insert("info".into(), Value::Map({
+        let lastRow: crate::value::Dict = self.extend_t(last, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("nextPageCursor".to_string(), cursorValue.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-        add_element_to_object(&mut result, &Value::from(lastIndex), Value::Dict(last));
-        return self.to_array(result);
+            m
+        })]);
+        let mut rows: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < lastIndex } {
+            rows.push(self.safe_dict(&result, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]));
+        }
+        }
+        if total > 0 {
+            rows.push(Value::Dict(lastRow));
+        }
+        return self.to_array(Value::from(rows));
 
     Value::Null
 }
@@ -12864,14 +12879,14 @@ impl Bybit {
         let mut keys: Vec<Value> = Value::Array(grouped.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_27: bool = true;
-            while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (keys.len() as i64) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut entry: Value = crate::value::KeyRead::read(&&grouped, &Value::from(marketId));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_26: bool = true;
-                while { if !__for_first_26 { j += 1; } __for_first_26 = false; j < (entry.len() as i64) } {
+                let mut __for_first_27: bool = true;
+                while { if !__for_first_27 { j += 1; } __for_first_27 = false; j < (entry.len() as i64) } {
                 let id: Value = self.safe_integer_k(entry.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), "id", &[]);
                 if let Value::Arr(__a) = &mut entry { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(j as usize) { std::sync::Arc::make_mut(__d).insert("id".into(), Value::from(id)); } }
             }
@@ -13364,8 +13379,8 @@ impl Bybit {
         let coins: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "coins"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_29: bool = true;
-            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (coins.len() as i64) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (coins.len() as i64) } {
             let entry: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
             let disableFrom: bool = self.safe_bool_k_opt(&entry, "disableFrom", &[Value::Bool(false)]).unwrap_or(false);

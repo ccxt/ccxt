@@ -5051,8 +5051,7 @@ impl Hitbtc {
         if (Some((market).market_type.as_str()) != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " setLeverage() supports swap contracts only")));
         }
-        let leverageValue: Option<i64> = self.parse_to_int(&leverage);
-        if ((leverageValue.is_some() && leverageValue < Some(1))) || (leverageValue > Some(maxLeverage)) {
+        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_i64().unwrap_or_default() > maxLeverage) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " setLeverage() leverage should be between 1 and ").into()), Value::Str(format!("{}", maxLeverage).into())).into()), " for ").into()), symbol)));
         }
         let request: indexmap::IndexMap<String, Value> = ({

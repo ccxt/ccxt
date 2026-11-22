@@ -4331,7 +4331,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
          * @returns {object} the raw request object to be sent to the exchange
          */
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let clientOrderIds: Value = self.safe_string_list(&params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]));
+        let clientOrderIds: Option<crate::value::List> = self.safe_string_list(&params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]));
         let fast: bool = self.safe_bool_k_opt(&params, "fast", &[Value::Bool(false)]).unwrap_or(false);
         let mut params2: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_id", "fast"], &[]);
         let nonce: i64 = self.incrementing_nonce();
@@ -4348,12 +4348,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let baseId: Value = self.parse_to_numeric(Value::from((market).base_id.as_deref()));
-        if (clientOrderIds != Value::Null) {
+        if (clientOrderIds.is_some()) {
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_19: bool = true;
-                while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (clientOrderIds.len() as i64) } {
+                while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());

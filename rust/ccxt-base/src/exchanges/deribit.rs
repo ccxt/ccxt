@@ -2664,7 +2664,7 @@ impl Deribit {
                 }  else if !isComboMarket {
                     symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")));
                     if option || matches!(&future, Value::Bool(true)) {
-                        symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "-").into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])));
+                        symbol = Some(format!("{}{}", symbol.as_deref().unwrap_or("null"), (Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])).into()))));
                         if option {
                             strike = self.safe_number_k(&market, "strike", &[]).as_f64();
                             optionType = self.safe_string_k_opt(&market, "option_type", &[]);

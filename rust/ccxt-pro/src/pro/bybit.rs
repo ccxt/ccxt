@@ -3323,7 +3323,8 @@ impl Bybit {
                                         let mut j: i64 = 0;
                     let mut __for_first_26: bool = true;
                     while { if !__for_first_26 { j += 1; } __for_first_26 = false; j < recordedLength } {
-                    subscribedTopics.insert(crate::runtime::stringify_param(&(recordedTopics.get(j as usize).cloned().unwrap_or(Value::Null))), Value::Bool(true));
+                    let recordedTopic: String = self.safe_string(&recordedTopics, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    subscribedTopics.insert(recordedTopic, Value::Bool(true));
                 }
                 }
             }
@@ -3753,17 +3754,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (reqId != subId) {
                     continue;
                 }
-                let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
+                let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
                 let subMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
-                {
-                                        let mut j: i64 = 0;
-                    let mut __for_first_31: bool = true;
-                    while { if !__for_first_31 { j += 1; } __for_first_31 = false; j < (messageHashes.len() as i64) } {
-                    let unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                    let subHash: Option<String> = self.safe_string_opt(&subMessageHashes, Value::Int(j), &[]);
-                    let usePrefix: bool = (((subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades"))) || (subHash.as_deref() == Some("positions")));
-                    self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(usePrefix)]);
-                }
+                if (messageHashes.is_some()) {
+                    {
+                                                let mut j: i64 = 0;
+                        let mut __for_first_31: bool = true;
+                        while { if !__for_first_31 { j += 1; } __for_first_31 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                        let subHash: Option<String> = self.safe_string_opt(&subMessageHashes, Value::Int(j), &[]);
+                        let usePrefix: bool = (((subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades"))) || (subHash.as_deref() == Some("positions")));
+                        self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(usePrefix)]);
+                    }
+                    }
                 }
                 self.clean_cache(subscription);
             }

@@ -91,7 +91,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "send_request" => self.send_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref()).await,
                 "send_unsubscribe" => self.send_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscribe_channels" => self.subscribe_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "subscribe_markets_summary" => self.subscribe_markets_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "subscribe_markets_summary" => self.subscribe_markets_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscribe_request" => crate::Value::Dict(self.subscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_funding_rate" => crate::types::IntoRaw::into_raw(self.un_watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1587,7 +1587,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", "markets_summary.", (market).symbol);
-        return self.subscribe_markets_summary(Value::from(vec![Value::from((market).symbol.clone())]), &[Value::from(messageHash)], &[&params]).await;
+        return self.subscribe_markets_summary(Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1631,7 +1631,7 @@ if _try_result.is_err() {
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
-            newTicker = self.subscribe_markets_summary(symbolsNormalized.clone(), &messageHashes, &[&params]).await;
+            newTicker = self.subscribe_markets_summary(symbolsNormalized.clone(), Value::from(messageHashes), &[&params]).await;
         }  else {
             // every listed market, options included
             let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
@@ -1834,7 +1834,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters merged into the request
  * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
  */
-    pub async fn subscribe_markets_summary(&mut self, mut symbols: Value, messageHashes: &[crate::Value], optional_args: &[&Value]) -> Value {
+    pub async fn subscribe_markets_summary(&mut self, mut symbols: Value, mut messageHashes: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1874,7 +1874,7 @@ if _try_result.is_err() {
             subscribeHashes.push(Value::from(subscribeHash.as_str()));
             if !(client.has_subscription(subscribeHash.as_str())) {
                 missing.push(Value::from(marketId));
-                missingHashes.push(messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
+                missingHashes.push(self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]));
             }
         }
         }
@@ -2028,7 +2028,8 @@ if _try_result.is_err() {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&newBidAsk, "symbol"))), newBidAsk.clone());
+            let bidAskSymbol: String = self.safe_string_k(&newBidAsk, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(bidAskSymbol, newBidAsk);
             return Value::Map(result);
         }
         return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized, &[]);

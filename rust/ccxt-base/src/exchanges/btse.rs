@@ -2467,8 +2467,8 @@ impl Btse {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            if (symbolsNormalized.is_none()) || self.in_array(symbol.clone(), &symbolsNormalized) {
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (symbolsNormalized.is_none()) || self.in_array(&symbol, &symbolsNormalized) {
                 let levels: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "riskLimits"));
                 let mut tiers: crate::value::List = std::sync::Arc::new(Vec::new());
                 // each tier's floor is the previous tier's cap (0 for the first)
@@ -2484,7 +2484,7 @@ impl Btse {
                     std::sync::Arc::make_mut(&mut tiers).push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tier".to_string(), self.safe_integer_k(&level, "level", &[]));
-                            m.insert("symbol".to_string(), symbol.clone());
+                            m.insert("symbol".to_string(), Value::from(symbol.as_str()));
                             m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&market, "settle"));
                             m.insert("minNotional".to_string(), (if (j == 0) { Value::Int(0) } else { Value::from(minNotional) }));
                             m.insert("maxNotional".to_string(), Value::from(maxNotional));
@@ -2496,7 +2496,7 @@ impl Btse {
                     minNotional = maxNotional.take();
                 }
                 }
-                result.insert(crate::runtime::stringify_param(&symbol), Value::Arr(tiers)); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                result.insert(symbol.clone(), Value::Arr(tiers)); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         }
@@ -2631,10 +2631,10 @@ impl Btse {
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
         let rows: crate::value::List = self.safe_list_k_t(&response, "data");
-        let data: crate::value::Dict = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let data: crate::value::Dict = self.safe_dict_k_or(&response, "data", self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})])]).into_dict();
+})]));
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2674,10 +2674,10 @@ impl Btse {
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[&__ws_arg_6]).await.unwrap_or_default();
         let rows: crate::value::List = self.safe_list_k_t(&response, "data");
-        let interest: crate::value::Dict = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let interest: crate::value::Dict = self.safe_dict_k_or(&response, "data", self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})])]).into_dict();
+})]));
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, Some(&market));
         Value::Null
         }).await?))
@@ -2758,10 +2758,10 @@ impl Btse {
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[&__ws_arg_7]).await.unwrap_or_default();
         let rows: crate::value::List = self.safe_list_k_t(&response, "data");
-        let data: crate::value::Dict = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let data: crate::value::Dict = self.safe_dict_k_or(&response, "data", self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})])]).into_dict();
+})]));
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -4670,7 +4670,7 @@ impl Btse {
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_futures_api_v3_trade_position_mode(&[&__ws_arg_33]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_futures_api_v3_trade_position_mode(&[&__ws_arg_33]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -4679,7 +4679,7 @@ impl Btse {
         //         }
         //     ]
         //
-        let data: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let positionMode: Option<String> = self.safe_string_k_opt(&data, "positionMode", &[]);
         let hedged: bool = ((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         return Value::Map({
@@ -4762,8 +4762,8 @@ impl Btse {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_futures_api_v3_trade_leverage(&[&__ws_arg_35]).await.unwrap_or_default();
-        let data: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_futures_api_v3_trade_leverage(&[&__ws_arg_35]).await.unwrap_or_default());
+        let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &data, Some(&market));
         Value::Null
         }).await?))

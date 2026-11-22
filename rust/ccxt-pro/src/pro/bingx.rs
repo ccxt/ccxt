@@ -665,8 +665,12 @@ impl Bingx {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
         }
         let result: Value = Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
-        if (match &(self.handle_option(Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)])) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
-            Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let ignoreDuplicatesVariable = self.handle_option_bool_and_params(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)]);
+        let ignoreDuplicates: bool = ignoreDuplicatesVariable.0 == Some(true);
+        if ignoreDuplicates {
             let mut filtered: Value = self.remove_repeated_trades_from_array(result.clone());
             filtered = self.sort_by(filtered, Value::Str("timestamp".into()), &[]);
             return filtered;

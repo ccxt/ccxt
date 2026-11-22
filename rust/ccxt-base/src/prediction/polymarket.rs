@@ -1426,7 +1426,7 @@ impl Polymarket {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         let rest: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         let queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -2050,7 +2050,7 @@ impl Polymarket {
                                         let mut i: i64 = 0;
                     let mut __for_first_19: bool = true;
                     while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < ccxtMarketsLength } {
-                    let mkt: Value = ccxtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mkt: Value = self.safe_dict(&ccxtMarkets, Value::Int(i), &[]);
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcome() could not resolve mkt")));
                     }
@@ -2131,7 +2131,7 @@ impl Polymarket {
                                         let mut i: i64 = 0;
                     let mut __for_first_22: bool = true;
                     while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (ccxtMarkets.len() as i64) } {
-                    let mkt: Value = ccxtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mkt: Value = self.safe_dict(&ccxtMarkets, Value::Int(i), &[]);
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcomes() could not resolve mkt")));
                     }
@@ -2551,8 +2551,11 @@ impl Polymarket {
                 endS = (if ((endBound.is_some() && endBound < Some(nowS))) { endBound } else { Some(nowS) });
             }
         }  else {
-            let barCount: i64 = limit.unwrap_or(100);
-            startS = self.parse_to_int(Value::Int((nowS - ((((barCount * fidelityMin)) * 60)))));
+            if (limit.is_some()) {
+                startS = self.parse_to_int(Value::from((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = limit { Some(__l * fidelityMin) } else { None })) { Some(__l * 60) } else { None })) { Some(nowS - __r) } else { None })));
+            }  else {
+                startS = self.parse_to_int(Value::Int((nowS - ((((100 * fidelityMin)) * 60)))));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -2758,11 +2761,11 @@ impl Polymarket {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.data_public_get_oi(&[&__ws_arg_4]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.data_public_get_oi(&[&__ws_arg_4]).await.unwrap_or_default());
         //
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         //
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return self.parse_prediction_open_interest(&first, outcomeObj.as_ref());
         Value::Null
         }).await?))
@@ -3687,7 +3690,7 @@ impl Polymarket {
 }));
             m
         });
-        let cfg: crate::value::Dict = self.safe_dict(&configs, Value::from(tickSize), &[self.safe_dict_k(&configs, "0.01", &[])]).into_dict();
+        let cfg: crate::value::Dict = self.safe_dict_or(&configs, Value::from(tickSize), self.safe_dict_k(&configs, "0.01", &[]));
         let priceDecimals: Option<i64> = self.safe_integer_k(&cfg, "price", &[]).as_i64();
         let sizeDecimals: Option<i64> = self.safe_integer_k(&cfg, "size", &[]).as_i64();
         let amountDecimals: Option<i64> = self.safe_integer_k(&cfg, "amount", &[]).as_i64();
@@ -4077,7 +4080,7 @@ impl Polymarket {
         self.require_event_query(&[&params]);
         let requestedEventId: Option<String> = self.safe_string_k_opt(&params, "eventId", &[]);
         let requestedSlug: Option<String> = self.safe_string_k_opt(&params, "slug", &[]);
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         let rest: crate::value::Dict = self.omit_t(&params, &["query", "queries", "eventId", "slug"], &[]);
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
@@ -4148,7 +4151,7 @@ impl Polymarket {
                                 let mut mi: i64 = 0;
                 let mut __for_first_41: bool = true;
                 while { if !__for_first_41 { mi += 1; } __for_first_41 = false; mi < (ccxtMarkets.len() as i64) } {
-                let m: Value = ccxtMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null);
+                let m: Value = self.safe_dict(&ccxtMarkets, Value::Int(mi), &[]);
                 if (m == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing m")));
                 }
@@ -4928,28 +4931,28 @@ if _try_result.is_err() {
             }
         }
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), subscribeHash.as_str(), Value::Null).await.into();
-        let bids: Value = orderbook.book_field("bids");
-        let asks: Value = orderbook.book_field("asks");
+        let orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), subscribeHash.as_str(), Value::Null).await.into();
+        let bids: crate::value::List = self.safe_list_k_t(Value::from(&orderbook), "bids");
+        let asks: crate::value::List = self.safe_list_k_t(Value::from(&orderbook), "asks");
         let mut bestBid: Option<f64> = None;
         let mut bestBidVolume: Option<f64> = None;
         let mut bidsLength: i64 = 0;
-        if (bids != Value::Null) {
-            bidsLength = get_array_length(&bids).as_i64().unwrap_or_default();
+        if (true) {
+            bidsLength = bids.len() as i64;
         }
-        if (bids != Value::Null) && (bidsLength > 0) {
-            bestBid = self.safe_number(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]).as_f64();
-            bestBidVolume = self.safe_number(get_value(&bids, &Value::Int(0)), Value::Int(1), &[]).as_f64();
+        if (true) && (bidsLength > 0) {
+            bestBid = self.safe_number(crate::value::KeyRead::read(&&bids, &Value::Int(0)), Value::Int(0), &[]).as_f64();
+            bestBidVolume = self.safe_number(crate::value::KeyRead::read(&&bids, &Value::Int(0)), Value::Int(1), &[]).as_f64();
         }
         let mut bestAsk: Option<f64> = None;
         let mut bestAskVolume: Option<f64> = None;
         let mut asksLength: i64 = 0;
-        if (asks != Value::Null) {
-            asksLength = get_array_length(&asks).as_i64().unwrap_or_default();
+        if (true) {
+            asksLength = asks.len() as i64;
         }
-        if (asks != Value::Null) && (asksLength > 0) {
-            bestAsk = self.safe_number(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]).as_f64();
-            bestAskVolume = self.safe_number(get_value(&asks, &Value::Int(0)), Value::Int(1), &[]).as_f64();
+        if (true) && (asksLength > 0) {
+            bestAsk = self.safe_number(crate::value::KeyRead::read(&&asks, &Value::Int(0)), Value::Int(0), &[]).as_f64();
+            bestAskVolume = self.safe_number(crate::value::KeyRead::read(&&asks, &Value::Int(0)), Value::Int(1), &[]).as_f64();
         }
         let mut mid: Option<f64> = None;
         if (bestBid.is_some()) && (bestAsk.is_some()) {

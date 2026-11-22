@@ -5322,8 +5322,8 @@ impl Weex {
             m
         });
         let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.contract_private_post_capi_v3_close_positions(&[&__ws_arg_40]).await.unwrap_or_default();
-        let order: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.contract_private_post_capi_v3_close_positions(&[&__ws_arg_40]).await.unwrap_or_default());
+        let order: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -5423,7 +5423,7 @@ impl Weex {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[&__ws_arg_42]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.contract_private_get_capi_v3_account_symbol_config(&[&__ws_arg_42]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -5436,7 +5436,7 @@ impl Weex {
         //         }
         //     ]
         //
-        let marginMode: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let marginMode: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &marginMode, Some(&market));
         Value::Null
         }).await?))
@@ -5568,8 +5568,8 @@ impl Weex {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[&__ws_arg_44]).await.unwrap_or_default();
-        let marginMode: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.contract_private_get_capi_v3_account_symbol_config(&[&__ws_arg_44]).await.unwrap_or_default());
+        let marginMode: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &marginMode, Some(&market));
         Value::Null
         }).await?))

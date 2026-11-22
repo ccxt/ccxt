@@ -2608,8 +2608,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // spot ws client - the first caller fetches the listenKey, concurrent
         // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
-        let __ws_arg_6 = self.urls.get("api").cloned().unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(&(crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "spot"))));
+        let spotUrl: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "spot").as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(spotUrl.as_deref()));
         let messageHash: String = "authenticate:listenKey".to_string();
         let isFetching: bool = self.safe_bool_k_opt(&self.options, "listenKeyFetching", &[Value::Bool(false)]).unwrap_or(false);
         if isFetching {
@@ -2657,8 +2657,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-            self.parent.spot_private_put_user_data_stream(&[&__ws_arg_7]).await;
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
+            self.parent.spot_private_put_user_data_stream(&[&__ws_arg_6]).await;
             let listenKeyRefreshRate: i64 = self.safe_integer_k(&self.options, "listenKeyRefreshRate", &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
             self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()), listenKey.clone(), params]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;

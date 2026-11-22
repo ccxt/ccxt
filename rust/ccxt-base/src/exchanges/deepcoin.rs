@@ -946,7 +946,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_market_type_and_params" => { let __t = self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>());
                     Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-                "handle_type_post_only_and_time_in_force" => self.handle_type_post_only_and_time_in_force(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_type_post_only_and_time_in_force" => { let __t = self.handle_type_post_only_and_time_in_force(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1832,7 +1832,11 @@ impl Deepcoin {
     pub fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
         let currencies = get_arg(optional_args, 0, Value::Null);
         let result: Value = self.super_set_markets(markets, currencies);
-        let symbols: Vec<Value> = Value::Array(result.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+        let resultCopy: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&result]);
+        let symbols: Vec<Value> = Value::Array(resultCopy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
@@ -2811,9 +2815,9 @@ impl Deepcoin {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let orderTypeparamsOrderTypeVariable: Vec<Value> = self.handle_type_post_only_and_time_in_force(type_var, params).as_array().cloned().unwrap_or_default();
-        let orderType: Option<String> = orderTypeparamsOrderTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsOrderType: crate::value::Dict = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let orderTypeparamsOrderTypeVariable = self.handle_type_post_only_and_time_in_force(type_var, params);
+        let orderType: Option<String> = orderTypeparamsOrderTypeVariable.0.as_str().map(str::to_owned);
+        let paramsOrderType: crate::value::Dict = orderTypeparamsOrderTypeVariable.1;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
@@ -2989,7 +2993,7 @@ impl Deepcoin {
     Value::Null
 }
 
-    pub fn handle_type_post_only_and_time_in_force(&self, type_var: Option<&str>, params: impl Into<crate::Value>) -> Value {
+    pub fn handle_type_post_only_and_time_in_force(&self, type_var: Option<&str>, params: impl Into<crate::Value>) -> (Value, crate::value::Dict) {
         let params: Value = params.into();
         let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(type_var == Some("post_only")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
@@ -2997,14 +3001,12 @@ impl Deepcoin {
         let timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsPostOnly)]).as_str().map(str::to_owned);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsPostOnly, Value::Str("timeInForce".into()), &[]);
         if (timeInForce.as_deref() == Some("IOC")) {
-            return Value::from(vec![Value::Str("ioc".into()), Value::from(&paramsOmitted)]);
+            return (Value::Str("ioc".into()), paramsOmitted);
         }
         if postOnly {
-            return Value::from(vec![Value::Str("post_only".into()), Value::from(&paramsOmitted)]);
+            return (Value::Str("post_only".into()), paramsOmitted);
         }
-        return Value::from(vec![Value::from(type_var), Value::Dict(paramsOmitted)]);
-
-    Value::Null
+        return (Value::from(type_var), paramsOmitted);
 }
 
 /*

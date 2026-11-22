@@ -2372,15 +2372,15 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (types.len() as i64) } {
-            let marketType: Option<String> = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if (marketType.as_deref() == Some("spot")) {
+            let marketType: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (marketType == "spot") {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[&params]).await);
-            }  else if (marketType.as_deref() == Some("linear")) {
+            }  else if (marketType == "linear") {
                 promisesRaw.push(self.call_method(Value::Str("fapi_v1_public_get_contracts".into()), &[&params]).await);
-            }  else if (marketType.as_deref() == Some("inverse")) {
+            }  else if (marketType == "inverse") {
                 promisesRaw.push(self.call_method(Value::Str("dapi_v1_public_get_contracts".into()), &[&params]).await);
             }  else {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() this.options fetchMarkets \"").into()), marketType.as_deref().unwrap_or("null")).into()), "\" is not a supported market type")));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() this.options fetchMarkets \"").into()), marketType).into()), "\" is not a supported market type")));
             }
         }
         }
@@ -2845,7 +2845,8 @@ impl Bitrue {
             let m = indexmap::IndexMap::new();
             m
         });
-        data.insert(crate::runtime::stringify_param(&(Value::from((market).id.as_deref()))), response);
+        let tickerKey: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        data.insert(tickerKey, response);
         return self.parse_tickers(Value::Map(data), &[Value::Arr(symbolsNormalized)]);
         Value::Null
         }).await?))
@@ -2963,7 +2964,8 @@ impl Bitrue {
                 continue;
             }
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            tickers.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&market, "id"))), Value::Dict(ticker));
+            let tickerKey: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            tickers.insert(tickerKey, Value::Dict(ticker));
         }
         }
         return self.parse_tickers(Value::Map(tickers), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

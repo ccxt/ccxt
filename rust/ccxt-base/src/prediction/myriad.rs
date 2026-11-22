@@ -802,7 +802,7 @@ impl Myriad {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         let rest: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         let queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -3268,7 +3268,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("expiry".to_string(), (if ((endDate.is_some()) && (endDate.as_deref() != Some(""))) { Value::from(self.parse8601(Value::from(endDate.as_deref()))) } else { Value::Null }));
+        m.insert("expiry".to_string(), Value::from(self.parse8601(Value::from(endDate.as_deref()))));
         m.insert("expiryDatetime".to_string(), Value::from(endDate.as_deref()));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
@@ -3864,6 +3864,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let outcomes: crate::value::List = self.safe_list_k_t(&response, "outcomes");
         let mut selectedOutcome: Value = Value::Null;
+        let mut outcomeSelected: bool = false;
         {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
@@ -3875,8 +3876,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 selectedOutcome = oc.clone().map_or(Value::Null, Value::Dict);
                 break;
             }
-            if (selectedOutcome == Value::Null) && (outcomeTitle.is_some()) && (currentTitle == outcomeTitle) {
+            if (!outcomeSelected) && (outcomeTitle.is_some()) && (currentTitle == outcomeTitle) {
                 selectedOutcome = oc.map_or(Value::Null, Value::Dict);
+                outcomeSelected = true;
             }
         }
         }
@@ -4158,7 +4160,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[&params]);
         }
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         let rest: crate::value::Dict = self.omit_t(&params, &["query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"], &[]);
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));

@@ -2754,16 +2754,18 @@ impl Weex {
         let unsubscribe: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if unsubscribe {
             let subHashIsPrefix: bool = self.safe_bool_k_opt(&subscription, "subHashIsPrefix", &[Value::Bool(false)]).unwrap_or(false);
-            let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
+            let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
             let subHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_21: bool = true;
-                while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (messageHashes.len() as i64) } {
-                let unSubHash: Option<String> = self.safe_string_opt(&messageHashes, Value::Int(i), &[]);
-                let subHash: Option<String> = self.safe_string_opt(&subHashes, Value::Int(i), &[]);
-                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unSubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);
-            }
+            if (messageHashes.is_some()) {
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_21: bool = true;
+                    while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let unSubHash: Option<String> = self.safe_string_opt(&messageHashes, Value::Int(i), &[]);
+                    let subHash: Option<String> = self.safe_string_opt(&subHashes, Value::Int(i), &[]);
+                    self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unSubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);
+                }
+                }
             }
             self.clean_cache(Value::Dict(subscription));
         }

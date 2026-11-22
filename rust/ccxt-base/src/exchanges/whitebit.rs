@@ -2622,12 +2622,16 @@ impl Whitebit {
             m
         });
         let codesValue: Option<crate::value::List> = self.market_codes(&[codes]);
-        let currencyIds: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let feesById: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&response]);
+        let currencyIds: Vec<Value> = Value::Array(feesById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (currencyIds.len() as i64) } {
-            let entry: Option<&str> = currencyIds.get(i as usize).copied();
+            let entry: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let splitEntry: crate::value::List = crate::value::List::new(if let Some(__s) = entry.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let currencyId: Option<String> = splitEntry.get(0).and_then(Value::as_str).map(str::to_owned);
             let feeInfo: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(entry.as_deref()));
@@ -2931,9 +2935,9 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        let responses: crate::value::List = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[&params]).await])).await;
-        let currenciesData: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(0));
-        let feesData: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(1));
+        let responses: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[&params]).await])).await);
+        let currenciesData: crate::value::Dict = responses.get(0).cloned().unwrap_or_default();
+        let feesData: crate::value::Dict = responses.get(1).cloned().unwrap_or_default();
         //
         // Currencies response structure (from fetchCurrencies):
         //     {
@@ -3237,7 +3241,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 let mut response: crate::value::Dict = self.v4_private_post_trade_account_order_history(&[&__ws_arg_2]).await.unwrap_or_default();
                 // Search for order in executed orders response (object format)
-                let marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+                let executedById: crate::value::Dict = self.extend_t(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[&response]);
+                let marketIds: Vec<Value> = Value::Array(executedById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_10: bool = true;
@@ -3591,7 +3599,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Arr(self.parse_trades(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }  else {
             let mut results: Value = Value::from(vec![]);
-            let mut keys: Vec<Value> = Value::Array((response__map.clone().map_or(Value::Null, Value::Dict)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let tradesById: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[response__map.clone().map_or(Value::Null, Value::Dict)]);
+            let mut keys: Vec<Value> = Value::Array(tradesById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_13: bool = true;
@@ -5924,7 +5936,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.v4_private_post_collateral_account_positions_open(&[&__ws_arg_41]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.v4_private_post_collateral_account_positions_open(&[&__ws_arg_41]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -5946,7 +5958,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     ]
         //
-        let data: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_position(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

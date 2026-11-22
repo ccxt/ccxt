@@ -551,7 +551,11 @@ impl crate::exchange::DerivedExchange for Foxbit {
         let mut query: String = "".to_string();
         let mut signatureQuery: String = "".to_string();
         if (method.as_str() == Some("GET")) {
-            let paramKeys: Vec<Value> = Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+            let paramsCopy: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&paramsOmitted]);
+            let paramKeys: Vec<Value> = Value::Array(paramsCopy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let paramKeysLength: i64 = paramKeys.len() as i64;
             let lastKeyIndex: i64 = (paramKeysLength - 1);
             if paramKeysLength > 0 {

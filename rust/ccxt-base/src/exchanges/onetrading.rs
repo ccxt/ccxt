@@ -1393,7 +1393,7 @@ impl Onetrading {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let response: crate::value::List = self.public_get_fees(&[&params]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_fees(&[&params]).await.unwrap_or_default());
         //
         // [
         //     {
@@ -1436,8 +1436,8 @@ impl Onetrading {
         //     },
         // ];
         //
-        let spotFees: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
-        let futuresFees: crate::value::Dict = self.safe_dict_t(&response, Value::Int(1));
+        let spotFees: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
+        let futuresFees: crate::value::Dict = response.get(1).cloned().unwrap_or_default();
         let spotFeeTiers: crate::value::List = self.safe_list_k_t(&spotFees, "fee_tiers");
         let futuresFeeTiers: crate::value::List = self.safe_list_k_t(&futuresFees, "fee_tiers");
         let spotTiers: crate::value::Dict = self.parse_fee_tiers(&spotFeeTiers, None);

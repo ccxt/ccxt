@@ -5021,9 +5021,8 @@ if _try_result.is_err() {
         if (subAccountPrivateKey.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")));
         }
-        let timestampparamsTimestampVariable = self.handle_param_integer(&paramsSubAccountPrivateKey, Value::Str("timestamp".into()), &[Value::Int(self.milliseconds())]);
-        let timestamp: Option<i64> = timestampparamsTimestampVariable.0;
-        let paramsTimestamp: crate::value::Dict = timestampparamsTimestampVariable.1;
+        let timestamp: Option<i64> = self.safe_integer_k(&paramsSubAccountPrivateKey, "timestamp", &[Value::Int(self.milliseconds())]).as_i64();
+        let paramsTimestamp: crate::value::Dict = self.omit_t(&paramsSubAccountPrivateKey, Value::Str("timestamp".into()), &[]);
         let expiryWindowparamsExpiryWindowVariable = self.handle_option_integer_and_params2(&paramsTimestamp, Value::Str("createSubAccount".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]);
         let expiryWindow: Option<i64> = expiryWindowparamsExpiryWindowVariable.0;
         let paramsExpiryWindow: crate::value::Dict = expiryWindowparamsExpiryWindowVariable.1;
@@ -5289,7 +5288,11 @@ if _try_result.is_err() {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            let mut keys: Value = Value::Array(value.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let valueCopy: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&value]);
+            let mut keys: Value = Value::Array(valueCopy.keys().cloned().map(Value::from).collect());
             let sortedKeys: Value = self.sort(keys, &[]);
             {
                                 let mut i: i64 = 0;

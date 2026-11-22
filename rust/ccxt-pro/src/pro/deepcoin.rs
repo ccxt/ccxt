@@ -64,7 +64,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "order_book_suffix" => self.order_book_suffix(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "order_book_suffix" => { let __t = self.order_book_suffix(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "parse_position_side" => self.parse_position_side(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -118,7 +118,7 @@ impl Deepcoin {
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "order_book_suffix" => self.order_book_suffix(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).copied().cloned().unwrap_or_default()).as_ref(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "order_book_suffix" => { let __t = self.order_book_suffix(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).copied().cloned().unwrap_or_default()).as_ref(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
             "parse_position_side" => self.parse_position_side(args.get(0).copied().and_then(crate::Value::as_text).as_deref()),
             "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).copied().and_then(crate::Value::as_text).as_deref()),
             "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
@@ -368,9 +368,10 @@ impl Deepcoin {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
+        self.authenticate(&[]).await;
+        let mut listenKey: String = self.safe_string_k(&self.options, "listenKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let __ws_arg_2 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::Str("private".into()), &[Value::Str("".into())]);
-        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", __ws_arg_2, Value::Str("?listenKey=".into())).into()), listenKey.as_deref().unwrap_or("null")).into())), messageHash, Value::Null, "private", params).await;
+        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", __ws_arg_2, Value::Str("?listenKey=".into())).into()), listenKey).into())), messageHash, Value::Null, "private", params).await;
 
     Value::Null
 }
@@ -997,9 +998,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", "::").into()), Value::from((market).symbol.as_str()));
-        let suffixparamsValueVariable: Vec<Value> = self.order_book_suffix(Some(&market), Value::Str("watchOrderBook".into()), &[&params]).as_array().cloned().unwrap_or_default();
-        let suffix: Option<String> = suffixparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = suffixparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let suffixparamsValueVariable = self.order_book_suffix(Some(&market), Value::Str("watchOrderBook".into()), &[&params]);
+        let suffix: Option<String> = suffixparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = suffixparamsValueVariable.1;
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_public(Some(&market), messageHash.as_str(), "25", &[Value::Dict(paramsValue), suffix.map(Value::from).unwrap_or(Value::Null)]).await.into();
         return orderbook.limit();
         Value::Null
@@ -1032,9 +1033,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", "::").into()), Value::from((market).symbol.as_str()));
-        let suffixparamsValueVariable: Vec<Value> = self.order_book_suffix(Some(&market), Value::Str("unWatchOrderBook".into()), &[&params]).as_array().cloned().unwrap_or_default();
-        let suffix: Option<String> = suffixparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsValue: crate::value::Dict = suffixparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let suffixparamsValueVariable = self.order_book_suffix(Some(&market), Value::Str("unWatchOrderBook".into()), &[&params]);
+        let suffix: Option<String> = suffixparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = suffixparamsValueVariable.1;
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
@@ -1045,7 +1046,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn order_book_suffix(&self, market: Option<&crate::types::Market>, mut methodName: Value, optional_args: &[&Value]) -> Value {
+    pub fn order_book_suffix(&self, market: Option<&crate::types::Market>, mut methodName: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1073,9 +1074,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             aggregation = self.number_to_string(Value::from(tickSize));
         }
-        return Value::from(vec![Value::Str(format!("{}{}", "_", aggregation.as_deref().unwrap_or("null")).into()), Value::Dict(paramsAggregation)]);
-
-    Value::Null
+        return (Value::Str(format!("{}{}", "_", aggregation.as_deref().unwrap_or("null")).into()), paramsAggregation);
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
@@ -1514,7 +1513,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
+        self.authenticate(&[]).await;
+        let mut listenKey: String = self.safe_string_k(&self.options, "listenKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let messageHash: String = "positions".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1531,7 +1531,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else {
             messageHashes.push(Value::from(messageHash));
         }
-        let url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey.as_deref().unwrap_or("null"));
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey);
         let positions: Option<crate::pro::cache::Cache> = self.watch_multiple(url.as_str(), Value::from(messageHashes), params, Value::from(vec![Value::Str("private".into())]), Value::Null).await.into();
         if self.newUpdates.as_bool() == Some(true) {
             return Value::from(&positions);

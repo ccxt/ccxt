@@ -5667,12 +5667,16 @@ impl Htx {
 })]); types = __destr_tmp.0; paramsTypes = __destr_tmp.1; }
         let mut allMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut promises: Vec<Value> = Vec::new();
-        let mut keys: Vec<&str> = types.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let typesDict: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&types]);
+        let mut keys: Vec<Value> = Value::Array(typesDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).copied();
+            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if matches!(self.safe_bool(&types, Value::from(key.as_deref()), &[Value::Bool(false)]), Value::Bool(true)) {
                 if (key.as_deref() == Some("spot")) {
                     promises.push(self.fetch_markets_by_type_and_sub_type(Some("spot"), None, &[&Value::from(&paramsTypes)]).await);
@@ -6973,10 +6977,8 @@ impl Htx {
         });
         let priceType: Option<String> = self.safe_string2_opt(Value::from(&paramsPaginate), Value::Str("priceType".into()), Value::Str("price".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, &["priceType", "price"], &[]);
-        let untilParamparamsUntilVariable = self.handle_param_integer(&paramsOmitted, Value::Str("until".into()), &[]);
-        let untilParam: Option<i64> = untilParamparamsUntilVariable.0;
-        let paramsUntil: crate::value::Dict = untilParamparamsUntilVariable.1;
-        let until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[Value::from(untilParam)]).as_i64();
+        let until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
+        let paramsUntil: crate::value::Dict = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
         let mut untilSeconds: Option<i64> = None;
         if (until.is_some()) {
             untilSeconds = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
@@ -9886,7 +9888,7 @@ impl Htx {
         let mut query: crate::value::Dict = self.omit_t(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let clientOrderIds: Value = self.safe_string_list(&query, Value::from(vec![Value::Str("client-order-ids".into()), Value::Str("clientOrderIds".into()), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into())]));
+            let clientOrderIds: Value = self.safe_string_list(&query, Value::from(vec![Value::Str("client-order-ids".into()), Value::Str("clientOrderIds".into()), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into())])).map_or(Value::Null, Value::Arr);
             if (clientOrderIds == Value::Null) {
                 request.insert("order-ids".into(), ids);
             }  else {

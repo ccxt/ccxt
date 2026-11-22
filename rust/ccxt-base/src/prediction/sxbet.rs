@@ -928,7 +928,7 @@ impl Sxbet {
         let eventId: Option<String> = self.safe_string2_opt(&params, Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
         let leagueId: Option<String> = self.safe_string_k_opt(&params, "leagueId", &[]);
         let sportId: Option<String> = self.safe_string_k_opt(&params, "sportId", &[]);
-        let mut queries: Value = self.parse_search_queries(&[&params]);
+        let mut queries: Value = Value::Arr(self.parse_search_queries(&[&params]));
         let tags: crate::value::List = self.safe_list_k_t(&params, "tags");
         let tagsLength: i64 = tags.len() as i64;
         {
@@ -2898,9 +2898,9 @@ impl Sxbet {
                                 let mut i: i64 = 0;
                 let mut __for_first_27: bool = true;
                 while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < hashesLength } {
-                let marketHash: Option<String> = hashesOrder.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
-                rowsByHash.insert(marketHash.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_sxbet_snapshot_best_odds(&snapshot)));
+                let marketHash: String = self.safe_string(&hashesOrder, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(Some(marketHash.as_str())).await;
+                rowsByHash.insert(marketHash, Value::Dict(self.parse_sxbet_snapshot_best_odds(&snapshot)));
             }
             }
             return self.parse_sxbet_tickers_by_hash(outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Map(rowsByHash));
@@ -3572,8 +3572,8 @@ impl Sxbet {
                                 let mut j: i64 = 0;
                 let mut __for_first_35: bool = true;
                 while { if !__for_first_35 { j += 1; } __for_first_35 = false; j < refreshedLength } {
-                let sym: Option<String> = refreshed.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                client.resolve(Value::from(self.orderbooks.lookup(&sym)), &(Value::Str(format!("{}{}", "orderbook::", sym.as_deref().unwrap_or("null")).into())));
+                let sym: String = self.safe_string(&refreshed, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                client.resolve(Value::from(self.orderbooks.lookup(&sym)), &(Value::Str(format!("{}{}", "orderbook::", sym).into())));
             }
             }
         }
@@ -3611,10 +3611,9 @@ impl Sxbet {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let channel: String = "best_odds_v3:global".to_string();
         let mut hydrated: bool = false;
-        if (self.safe_dict(self.safe_dict_k(&self.options, "wsTickers", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]), Value::from(sym.as_str()), &[]) == Value::Null) {
+        let cachedTickers: crate::value::Dict = self.safe_dict_k_t(&self.options, "wsTickers");
+        let cachedTicker: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = cachedTickers.get(sym.as_str()) { Some(std::sync::Arc::clone(__m)) } else { None });
+        if (cachedTicker.is_none()) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription

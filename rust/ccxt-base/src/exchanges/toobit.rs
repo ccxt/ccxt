@@ -4218,7 +4218,7 @@ impl Toobit {
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_api_v1_futures_account_leverage(&[&__ws_arg_36]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_api_v1_futures_account_leverage(&[&__ws_arg_36]).await.unwrap_or_default());
         //
         // [
         //     {
@@ -4228,7 +4228,7 @@ impl Toobit {
         //     }
         // ]
         //
-        let data: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &data, Some(&market));
         Value::Null
         }).await?))

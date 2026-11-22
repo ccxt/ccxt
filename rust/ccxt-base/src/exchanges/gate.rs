@@ -5450,12 +5450,12 @@ if _try_result.is_err() {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
-            let response: crate::value::List = self.public_futures_get_settle_contracts(&[&__ws_arg_0]).await.unwrap_or_default();
+            let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_futures_get_settle_contracts(&[&__ws_arg_0]).await.unwrap_or_default());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_2: bool = true;
                 while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (response.len() as i64) } {
-                let contract: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+                let contract: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
                 let parsedMarket: Value = self.parse_contract_market(&contract, settleId.as_deref());
                 if (parsedMarket != Value::Null) {
                     result.push(parsedMarket);
@@ -5488,12 +5488,12 @@ if _try_result.is_err() {
                 m
             });
             let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
-            let response: crate::value::List = self.public_delivery_get_settle_contracts(&[&__ws_arg_1]).await.unwrap_or_default();
+            let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_delivery_get_settle_contracts(&[&__ws_arg_1]).await.unwrap_or_default());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (response.len() as i64) } {
-                let contract: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+                let contract: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
                 let parsedMarket: Value = self.parse_contract_market(&contract, settleId.as_deref());
                 if (parsedMarket != Value::Null) {
                     result.push(parsedMarket);
@@ -5740,12 +5740,12 @@ if _try_result.is_err() {
                 m
             }), &[&params]);
             std::sync::Arc::make_mut(&mut query).insert("underlying".into(), Value::from(underlying.as_deref()));
-            let response: crate::value::List = self.public_options_get_contracts(&[&Value::Dict(query)]).await.unwrap_or_default();
+            let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_options_get_contracts(&[&Value::Dict(query)]).await.unwrap_or_default());
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_6: bool = true;
                 while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (response.len() as i64) } {
-                let market: crate::value::Dict = self.safe_dict_t(&response, Value::Int(j));
+                let market: crate::value::Dict = response.get(j as usize).cloned().unwrap_or_default();
                 let id: Option<String> = self.safe_string_k_opt(&market, "name", &[]);
                 let parts: crate::value::List = crate::value::List::new(if let Some(__s) = underlying.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 let baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -5852,7 +5852,7 @@ if _try_result.is_err() {
 }
 
     pub async fn fetch_option_underlyings(&mut self) -> Value {
-        let underlyingsResponse: crate::value::List = self.public_options_get_underlyings(&[]).await.unwrap_or_default();
+        let underlyingsResponse: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_options_get_underlyings(&[]).await.unwrap_or_default());
         //
         //    [
         //        {
@@ -5867,7 +5867,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (underlyingsResponse.len() as i64) } {
-            let underlying: crate::value::Dict = self.safe_dict_t(&underlyingsResponse, Value::Int(i));
+            let underlying: crate::value::Dict = underlyingsResponse.get(i as usize).cloned().unwrap_or_default();
             let name: Option<String> = self.safe_string_k_opt(&underlying, "name", &[]);
             if (name.is_some()) {
                 underlyings.push(name.map(Value::from).unwrap_or(Value::Null));
@@ -6449,7 +6449,7 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let response: crate::value::List = self.private_wallet_get_withdraw_status(&[&params]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_wallet_get_withdraw_status(&[&params]).await.unwrap_or_default());
         //
         //    {
         //        "currency": "MTN",
@@ -6483,7 +6483,7 @@ if _try_result.is_err() {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            let entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let entry: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (codes != Value::Null) && !self.in_array(&code, &codes) {
@@ -7482,7 +7482,7 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut request).insert("to".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
         }
         let __ws_arg_33 = self.extend(request, &[self.omit(&paramsRequest, Value::Str("until".into()), &[])]);
-        let response: crate::value::List = self.public_futures_get_settle_funding_rate(&[&__ws_arg_33]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_futures_get_settle_funding_rate(&[&__ws_arg_33]).await.unwrap_or_default());
         //
         //     {
         //         "r": "0.00063521",
@@ -7494,7 +7494,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_19: bool = true;
             while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (response.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let entry: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_timestamp_k(&entry, "t", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -10955,7 +10955,7 @@ if _try_result.is_err() {
         if (marketTypeRaw.as_deref() != Some("option")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchUnderlyingAssets() supports option markets only")));
         }
-        let response: crate::value::List = self.public_options_get_underlyings(&[&Value::Dict(paramsMarketType)]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_options_get_underlyings(&[&Value::Dict(paramsMarketType)]).await.unwrap_or_default());
         //
         //    [
         //        {
@@ -10970,7 +10970,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (response.len() as i64) } {
-            let underlying: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let underlying: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let name: Option<String> = self.safe_string_k_opt(&underlying, "name", &[]);
             if (name.is_some()) {
                 underlyings.push(name.map(Value::from).unwrap_or(Value::Null));
@@ -11133,7 +11133,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_110 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.public_options_get_tickers(&[&__ws_arg_110]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_options_get_tickers(&[&__ws_arg_110]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -11161,7 +11161,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (response.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let entry: crate::value::Dict = response.get(i as usize).cloned().unwrap_or_default();
             let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "name", &[]);
             if (entryMarketId == marketId) {
                 return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, &entry, Some(&market));

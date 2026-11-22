@@ -8246,13 +8246,13 @@ if _try_result.is_err() {
             promises.push(self.public_uta_get_v3_market_instruments(&[&Value::Dict(req)]).await);
         }
         }
-        let results: crate::value::List = promise_all(&Value::from(promises)).await;
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (results.len() as i64) } {
-            let res: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+            let res: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
             let data: crate::value::List = self.safe_list_k_t(&res, "data");
             markets = self.array_concat_t(Value::Arr(markets), &data);
         }
@@ -13640,13 +13640,14 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbol: Option<String> = self.safe_string_k_opt(&params, "symbol", &[]);
-        let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("symbol".into()), &[]);
+        let paramsNoSymbol: crate::value::Dict = self.omit_t(params, Value::Str("symbol".into()), &[]);
         let mut market: Option<crate::types::Market> = None;
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut marketType: Option<String> = None;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), market.as_ref(), &[&Value::from(&paramsOmitted)]); marketType = __destr_tmp.0.as_str().map(str::to_owned); paramsOmitted = __destr_tmp.1; }
+        let mut paramsOmitted: crate::value::Dict = Default::default();
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), market.as_ref(), &[&Value::Dict(paramsNoSymbol)]); marketType = __destr_tmp.0.as_str().map(str::to_owned); paramsOmitted = __destr_tmp.1; }
         let mut uta: Option<bool> = None;
         { let __destr_tmp = self.handle_uta_and_params(&paramsOmitted, Some("fetchLedger"), &[&Value::Bool(false)]).await; uta = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
         let mut paginate: bool = false;
@@ -16092,8 +16093,8 @@ if _try_result.is_err() {
         if (since.is_some()) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("startTime".into(), Value::from(since));
         }  else {
-            std::sync::Arc::make_mut(&mut requestUntil).insert("startTime".into(), (match (&(Value::Int(self.milliseconds())), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            let defaultStart: i64 = ((self.milliseconds()) - 7776000000);
+            std::sync::Arc::make_mut(&mut requestUntil).insert("startTime".into(), Value::from(defaultStart));
         }
         if (limit.is_some()) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), Value::from(limit));

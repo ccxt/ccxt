@@ -2800,7 +2800,7 @@ impl Coinsph {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_openapi_v1_asset_trade_fee(&[&__ws_arg_18]).await.unwrap_or_default();
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_openapi_v1_asset_trade_fee(&[&__ws_arg_18]).await.unwrap_or_default());
         //
         //     [
         //       {
@@ -2810,7 +2810,7 @@ impl Coinsph {
         //       }
         //     ]
         //
-        let tradingFee: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let tradingFee: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return Value::Dict(self.parse_trading_fee(&tradingFee, Some(&market)));
         Value::Null
         }).await?))

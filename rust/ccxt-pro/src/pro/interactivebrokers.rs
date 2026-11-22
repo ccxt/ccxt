@@ -277,7 +277,7 @@ impl Interactivebrokers {
             url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl, "?oauth_token=").into()), self.apiKey).into());
         }
         if !(matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let response: crate::value::Dict = self.parent.webapi_post_v1_api_tickle(&[]).await.unwrap_or_default();
+            let response: crate::value::Dict = self.parent.call_method_t("webapi_post_v1_api_tickle", &[]).await;
             //
             //     { "session": "bb665d0f55b6289d70bc8a7f4fd2d3d0", "iserver": { "authStatus": { "authenticated": true, ... } }, ... }
             //
@@ -578,8 +578,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let m = indexmap::IndexMap::new();
                 m
             });
-            let tickerSymbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
-            result.insert(crate::runtime::stringify_param(&tickerSymbol), Value::Dict(ticker));
+            let tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(tickerSymbol, Value::Dict(ticker));
             return Value::Map(result);
         }
         return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), Value::from(symbols), &[]);
@@ -613,8 +613,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let m = indexmap::IndexMap::new();
                 m
             });
-            let tickerSymbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
-            result.insert(crate::runtime::stringify_param(&tickerSymbol), Value::Dict(ticker));
+            let tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(tickerSymbol, Value::Dict(ticker));
             return Value::Map(result);
         }
         return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbols), &[]);
@@ -874,7 +874,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let unifiedSymbol: Value = Value::from((market).symbol.clone());
+        let unifiedSymbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let historyMarketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", unifiedSymbol).into()), "::").into()), timeframe);
@@ -892,7 +893,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 })]).await;
         // the history, it seeds the candles
-        let historyHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh::", Value::from((market).id.as_deref())).into()), "::").into()), timeframe);
+        let historyHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh::", historyMarketId).into()), "::").into()), timeframe);
         if !(client.has_subscription(historyHash.as_str())) {
             if !(CacheShelves::has(&self.ohlcvs, &unifiedSymbol)) {
                 CacheShelves::reset(&mut self.ohlcvs, &unifiedSymbol);
@@ -915,7 +916,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
             let __ws_arg_0 = self.keysort(self.extend(Value::Map(historyRequest), &[query]), &[]);
-            let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh+", Value::from((market).id.as_deref())).into()), "+").into()), self.json(__ws_arg_0));
+            let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh+", historyMarketId).into()), "+").into()), self.json(__ws_arg_0));
             self.ibkr_subscribe(&client.as_value(), historyHash.as_str(), Value::from(request), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("conid".to_string(), Value::from((market).id.as_deref()));
@@ -959,10 +960,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let unifiedSymbol: String = (market).symbol.clone();
+        let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let historyMarketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        let subHashes: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", unifiedSymbol).into()), "::").into()), timeframe).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh::", Value::from((market).id.as_deref())).into()), "::").into()), timeframe).into())]);
+        let subHashes: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", unifiedSymbol).into()), "::").into()), timeframe).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh::", historyMarketId).into()), "::").into()), timeframe).into())]);
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
@@ -1187,10 +1189,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (candle == Value::Null) {
                 stored.append(Value::from(vec![candleTimestamp.clone(), Value::from(price), Value::from(price), Value::from(price), Value::from(price), size.clone()]));
             }  else {
-                let high: Value = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &Value::from(price));
-                let low: Value = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &Value::from(price));
+                let mut high: Option<f64> = price;
+                let prevHigh: Option<f64> = self.safe_number(&candle, Value::Int(2), &[]).as_f64();
+                if (prevHigh.is_some()) && (price.is_some()) && ((prevHigh.is_some() && price.is_some() && prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let mut low: Option<f64> = price;
+                let prevLow: Option<f64> = self.safe_number(&candle, Value::Int(3), &[]).as_f64();
+                if (prevLow.is_some()) && (price.is_some()) && ((price.is_some() && prevLow.is_some() && price > prevLow)) {
+                    low = prevLow;
+                }
                 let volume: Value = self.sum(&[get_value(&candle, &Value::Int(5)), size.clone()]);
-                stored.append(Value::from(vec![candleTimestamp, get_value(&candle, &Value::Int(1)), high, low, Value::from(price), volume]));
+                stored.append(Value::from(vec![candleTimestamp, get_value(&candle, &Value::Int(1)), Value::from(high), Value::from(low), Value::from(price), volume]));
             }
             client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", Value::from(symbol)).into()), "::").into()), timeframe.as_deref().unwrap_or("null")).into())));
         }
@@ -1781,12 +1791,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
         let subscription: crate::value::Dict = self.safe_dict_k_t(&__ch.subscriptions, "str");
         let realtimeUpdatesOnly: bool = self.safe_bool_k_opt(&subscription, "realtimeUpdatesOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut threshold: Value = Value::Null;
+        let mut threshold: Option<i64> = None;
         if realtimeUpdatesOnly {
             let subscribedAt: Option<i64> = self.safe_integer_k(&subscription, "subscribedAt", &[]).as_i64();
             if (subscribedAt.is_some()) {
-                threshold = (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__l) = subscribedAt { Some((__l as f64) / 1000.0) } else { None }))))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                threshold = (if let Some(__l) = (self.parse_to_int(Value::from((if let Some(__l) = subscribedAt { Some((__l as f64) / 1000.0) } else { None })))) { Some(__l * 1000) } else { None });
             }
         }
         // the same execution can be sent several times, first without the commission, then with it, then again unchanged,
@@ -1803,8 +1812,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (args.len() as i64) } {
             let rawTrade: Value = args.get(i as usize).cloned().unwrap_or(Value::Null);
             let trade: crate::value::Dict = self.parse_trade(rawTrade.clone(), None);
-            let tradeTimestamp: Value = crate::value::KeyRead::key_read(&&trade, "timestamp");
-            if (threshold != Value::Null) && (tradeTimestamp != Value::Null) && (tradeTimestamp.as_f64().unwrap_or(f64::NAN) < threshold.as_f64().unwrap_or(f64::NAN)) {
+            let tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
+            if (threshold.is_some()) && (tradeTimestamp.is_some()) && ((tradeTimestamp.is_some() && threshold.is_some() && tradeTimestamp < threshold)) {
                 continue;
             }
             if skipDuplicates {

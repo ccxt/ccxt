@@ -5166,7 +5166,8 @@ impl Kucoin {
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             let mut type_var: String = "swap".to_string();
             if future {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())]));
+                let expirySuffix: String = format!("{}{}", Value::Str("-".into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())]));
+                symbol = format!("{}{}", symbol, expirySuffix);
                 type_var = "future".to_string();
             }
             let mut inverse: Option<bool> = self.safe_bool_k_opt(&market, "isInverse", &[]);

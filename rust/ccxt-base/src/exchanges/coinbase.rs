@@ -3365,7 +3365,7 @@ impl Coinbase {
         //        has_promo_fee: false
         //    }
         //
-        let promises: crate::value::List = promise_all(&Value::from(spotUnresolvedPromises)).await;
+        let promises: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(spotUnresolvedPromises)).await);
         let mut unresolvedContractPromises: crate::value::List = std::sync::Arc::new(Vec::new());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_10 = self.extend(paramsUsePrivate, &[Value::Map({
@@ -3385,8 +3385,8 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             contractPromises = Value::from(vec![]);
         }
-        let spot: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(0));
-        let fees: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(1));
+        let spot: crate::value::Dict = promises.get(0).cloned().unwrap_or_default();
+        let fees: crate::value::Dict = promises.get(1).cloned().unwrap_or_default();
         let expiringFutures: crate::value::Dict = self.safe_dict_t(&contractPromises, Value::Int(0));
         let perpetualFutures: crate::value::Dict = self.safe_dict_t(&contractPromises, Value::Int(1));
         //
@@ -3830,8 +3830,8 @@ if _try_result.is_err() {
         let now: i64 = self.milliseconds();
         if (timestamp.is_none()) || (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires)) {
             let promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[&params]).await, self.v2_public_get_currencies_crypto(&[&params]).await]);
-            let promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await;
-            let fiatResponse: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(0));
+            let promisesResult: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::Arr(promises)).await);
+            let fiatResponse: crate::value::Dict = promisesResult.get(0).cloned().unwrap_or_default();
             //
             //    [
             //        "data": {
@@ -3842,7 +3842,7 @@ if _try_result.is_err() {
             //        ...
             //    ]
             //
-            let cryptoResponse: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(1));
+            let cryptoResponse: crate::value::Dict = promisesResult.get(1).cloned().unwrap_or_default();
             //
             //    {
             //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
@@ -3895,8 +3895,8 @@ if _try_result.is_err() {
     m
 }));
         let promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[&params]).await, self.v2_public_get_currencies_crypto(&[&params]).await, self.v2_public_get_exchange_rates(&[&params]).await]);
-        let promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await;
-        let fiatResponse: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(0));
+        let promisesResult: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::Arr(promises)).await);
+        let fiatResponse: crate::value::Dict = promisesResult.get(0).cloned().unwrap_or_default();
         //
         //    [
         //        "data": [
@@ -3907,7 +3907,7 @@ if _try_result.is_err() {
         //            },
         //        ...
         //
-        let cryptoResponse: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(1));
+        let cryptoResponse: crate::value::Dict = promisesResult.get(1).cloned().unwrap_or_default();
         //
         //     [
         //        "data": [
@@ -3923,7 +3923,7 @@ if _try_result.is_err() {
         //           },
         //          ...
         //
-        let ratesResponse: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(2));
+        let ratesResponse: crate::value::Dict = promisesResult.get(2).cloned().unwrap_or_default();
         let fiatData: crate::value::List = self.safe_list_k_t(&fiatResponse, "data");
         let cryptoData: crate::value::List = self.safe_list_k_t(&cryptoResponse, "data");
         let ratesData: crate::value::Dict = self.safe_dict_k_t(&ratesResponse, "data");

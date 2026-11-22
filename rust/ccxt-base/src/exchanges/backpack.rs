@@ -3310,8 +3310,8 @@ impl Backpack {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.public_get_api_v1_mark_prices(&[&__ws_arg_7]).await.unwrap_or_default();
-        let data: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_api_v1_mark_prices(&[&__ws_arg_7]).await.unwrap_or_default());
+        let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -3351,8 +3351,8 @@ impl Backpack {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.public_get_api_v1_open_interest(&[&__ws_arg_8]).await.unwrap_or_default();
-        let interest: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_api_v1_open_interest(&[&__ws_arg_8]).await.unwrap_or_default());
+        let interest: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, Some(&market));
         Value::Null
         }).await?))

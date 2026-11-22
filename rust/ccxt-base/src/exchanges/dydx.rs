@@ -2604,8 +2604,7 @@ impl Dydx {
         let mut goodTillBlockTime: Option<i64> = None;
         let defaultOrderFlags: i64 = (if isTrigger { 32 } else { 64 });
         let orderFlags: Option<i64> = self.safe_integer_k(&paramsGoodTillBlockTimeInSeconds, "orderFlags", &[Value::from(defaultOrderFlags)]).as_i64();
-        let subAccountId: i64 = 0;
-        let subAccountIdOptionVariable = self.handle_option_integer_and_params(&paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]);
+        let subAccountIdOptionVariable = self.handle_option_integer_and_params(&paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::Int(0)]);
         let subAccountIdOption: Option<i64> = subAccountIdOptionVariable.0;
         if (orderFlags != Some(0)) && (orderFlags != Some(64)) && (orderFlags != Some(32)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " invalid orderFlags, allowed values are (0, 64, 32).")));
@@ -2718,8 +2717,7 @@ impl Dydx {
         if (clientOrderIds.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelOrders only support clientOrderIds.")));
         }
-        let subAccountId: i64 = 0;
-        let subAccountIdOptionparamsSubAccountIdVariable = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]);
+        let subAccountIdOptionparamsSubAccountIdVariable = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[Value::Int(0)]);
         let subAccountIdOption: Option<i64> = subAccountIdOptionparamsSubAccountIdVariable.0;
         let paramsSubAccountId: crate::value::Dict = subAccountIdOptionparamsSubAccountIdVariable.1;
         let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
@@ -3138,9 +3136,8 @@ impl Dydx {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let tagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
-        let tag: Option<String> = tagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
-        let paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.1;
+        let tag: Option<String> = self.safe_string_k_opt(&params, "tag", &[]);
+        let paramsWithdrawTag: crate::value::Dict = self.omit_t(params, Value::Str("tag".into()), &[]);
         if (code.as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " withdraw() only support USDC")));
         }

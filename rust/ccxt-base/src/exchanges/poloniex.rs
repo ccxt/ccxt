@@ -1084,7 +1084,7 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "prepare_request_for_deposit_address" => self.prepare_request_for_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "prepare_request_for_deposit_address" => crate::Value::Dict(self.prepare_request_for_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -4316,15 +4316,14 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let requestextraParamscurrencynetworkEntryVariable: Vec<Value> = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&params]).as_array().cloned().unwrap_or_default();
-        let request: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let extraParams: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let currency: Value = requestextraParamscurrencynetworkEntryVariable.get(2).cloned().unwrap_or(Value::Null);
-        let networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.get(3).cloned().unwrap_or(Value::Null);
-        let paramsValue: crate::value::Dict = extraParams;
+        let prepared: crate::value::Dict = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&params]);
+        let request: crate::value::Dict = self.safe_dict_k_t(&prepared, "request");
+        let paramsValue: crate::value::Dict = self.safe_dict_k_t(&prepared, "query");
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let networkEntry: crate::value::Dict = self.safe_dict_k_t(&prepared, "networkEntry");
         let __ws_arg_31 = self.extend(request, &[&paramsValue]);
         let response: crate::value::Dict = self.private_post_wallets_address(&[&__ws_arg_31]).await.unwrap_or_default();
-        return self.parse_deposit_address_special(&response, currency, networkEntry);
+        return self.parse_deposit_address_special(&response, crate::Value::from(Some(&currency)), &networkEntry);
         Value::Null
         }).await?))
     }
@@ -4350,12 +4349,11 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let requestextraParamscurrencynetworkEntryVariable: Vec<Value> = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&params]).as_array().cloned().unwrap_or_default();
-        let request: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let extraParams: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let currency: Value = requestextraParamscurrencynetworkEntryVariable.get(2).cloned().unwrap_or(Value::Null);
-        let networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.get(3).cloned().unwrap_or(Value::Null);
-        let paramsValue: crate::value::Dict = extraParams;
+        let prepared: crate::value::Dict = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&params]);
+        let request: crate::value::Dict = self.safe_dict_k_t(&prepared, "request");
+        let paramsValue: crate::value::Dict = self.safe_dict_k_t(&prepared, "query");
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let networkEntry: crate::value::Dict = self.safe_dict_k_t(&prepared, "networkEntry");
         let __ws_arg_32 = self.extend(request, &[&paramsValue]);
         let response: crate::value::Dict = self.private_get_wallets_addresses(&[&__ws_arg_32]).await.unwrap_or_default();
         //
@@ -4368,12 +4366,12 @@ impl Poloniex {
         if length < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")));
         }
-        return self.parse_deposit_address_special(&response, currency, networkEntry);
+        return self.parse_deposit_address_special(&response, crate::Value::from(Some(&currency)), &networkEntry);
         Value::Null
         }).await?))
     }
 
-    pub fn prepare_request_for_deposit_address(&self, code: &str, optional_args: &[&Value]) -> Value {
+    pub fn prepare_request_for_deposit_address(&self, code: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let mut code: Value = code.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4402,13 +4400,19 @@ impl Poloniex {
                 m.insert("currency".to_string(), exchangeNetworkId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return Value::from(vec![Value::Map(request), Value::Dict(query), crate::Value::from(Some(&currency)), networkEntry]);
-
-    Value::Null
+        return std::sync::Arc::new({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("request".to_string(), Value::Map(request));
+        m.insert("query".to_string(), Value::Dict(query));
+        m.insert("currency".to_string(), crate::Value::from(Some(&currency)));
+        m.insert("networkEntry".to_string(), networkEntry);
+    m
+});
 }
 
-    pub fn parse_deposit_address_special(&self, response: impl Into<crate::Value>, mut currency: Value, mut networkEntry: Value) -> Value {
+    pub fn parse_deposit_address_special(&self, response: impl Into<crate::Value>, mut currency: Value, networkEntry: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
+        let networkEntry: Value = networkEntry.into();
         let __currency_empty = indexmap::IndexMap::new();
         let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);

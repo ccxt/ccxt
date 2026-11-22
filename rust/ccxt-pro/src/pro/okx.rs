@@ -1841,11 +1841,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let symbolAndTimeframe: &Value = symbolsAndTimeframes.get(i as usize).unwrap_or(&Value::Null);
-            let sym: Option<String> = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
-            let tf: Option<String> = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let marketId: Option<String> = self.market_id(sym.as_deref()).as_str().map(str::to_owned);
-            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_deref()), &[&tf]);
+            let sym: String = self.safe_string(symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let tf: String = self.safe_string(symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let marketId: Option<String> = self.market_id(Some(sym.as_str())).as_str().map(str::to_owned);
+            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
             let channel: String = format!("{}{}", "candle", interval.as_deref().unwrap_or("null"));
             let topic: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1854,7 +1853,7 @@ impl Okx {
                 m
             });
             topics.push(Value::Map(topic));
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "multi:", channel).into()), ":").into()), sym.as_deref().unwrap_or("null")).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "multi:", channel).into()), ":").into()), sym).into()));
         }
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -1913,11 +1912,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let symbolAndTimeframe: &Value = symbolsAndTimeframes.get(i as usize).unwrap_or(&Value::Null);
-            let sym: Option<String> = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
-            let tf: Option<String> = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let marketId: Option<String> = self.market_id(sym.as_deref()).as_str().map(str::to_owned);
-            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_deref()), &[&tf]);
+            let sym: String = self.safe_string(symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let tf: String = self.safe_string(symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let marketId: Option<String> = self.market_id(Some(sym.as_str())).as_str().map(str::to_owned);
+            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
             let channel: String = format!("{}{}", "candle", interval.as_deref().unwrap_or("null"));
             let topic: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1926,7 +1924,7 @@ impl Okx {
                 m
             });
             topics.push(Value::Map(topic));
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:multi:", channel).into()), ":").into()), sym.as_deref().unwrap_or("null")).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:multi:", channel).into()), ":").into()), sym).into()));
         }
         }
         let request: indexmap::IndexMap<String, Value> = ({

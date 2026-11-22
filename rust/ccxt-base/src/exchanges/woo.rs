@@ -1323,7 +1323,7 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_asset_history_rows" => Value::Arr(self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "get_currency_from_chaincode" => self.get_currency_from_chaincode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "get_dedicated_network_id" => self.get_dedicated_network_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "get_dedicated_network_id" => { let __t = self.get_dedicated_network_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -4740,7 +4740,7 @@ impl Woo {
         }).await?))
     }
 
-    pub fn get_dedicated_network_id(&self, mut currency: Value, params: impl Into<crate::Value>) -> Value {
+    pub fn get_dedicated_network_id(&self, mut currency: Value, params: impl Into<crate::Value>) -> (Value, crate::value::Dict) {
         let params: Value = params.into();
         let __currency_empty = indexmap::IndexMap::new();
         let currency = currency.as_map().unwrap_or(&__currency_empty);
@@ -4756,9 +4756,7 @@ impl Woo {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: ").into()), json_stringify(&supportedNetworks))));
         }
         let currentyNetworkId: Option<String> = self.safe_string_k_opt(&networkEntry, "currencyNetworkId", &[]);
-        return Value::from(vec![currentyNetworkId.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsNetworkCode)]);
-
-    Value::Null
+        return (currentyNetworkId.map(Value::from).unwrap_or(Value::Null), paramsNetworkCode);
 }
 
 

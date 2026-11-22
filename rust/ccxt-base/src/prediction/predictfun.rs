@@ -986,7 +986,7 @@ impl Predictfun {
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[&params]);
         }
-        let queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
+        let queries: crate::value::List = self.parse_search_queries(&[&params]);
         let queriesLength: i64 = queries.len() as i64;
         let paramsValue: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         // keys dropped before the client-side pass; the categories listing also drops its limit

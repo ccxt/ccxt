@@ -753,8 +753,8 @@ impl Interactivebrokers {
     }
 
     /// Auto-generated wrapper for the `webapiPostV1ApiTickle` implicit endpoint.
-    pub async fn webapi_post_v1_api_tickle(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        self.call_method_as("webapi_post_v1_api_tickle", optional_args).await
+    pub async fn webapi_post_v1_api_tickle(&mut self, optional_args: &[&Value]) -> Value {
+        self.call_method(Value::Str("webapi_post_v1_api_tickle".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `webapiPostV1ApiIserverAuthStatus` implicit endpoint.

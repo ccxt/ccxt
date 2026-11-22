@@ -596,14 +596,18 @@ impl Gate {
         let requestrequestParamsVariable: Vec<Value> = (if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) { { let __t = self.parent.spot_order_prepare_request(market.as_ref(), &[&Value::Bool(trigger), &Value::from(&query)]);
             Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) } } else { { let __t = self.parent.prepare_request(market.as_ref(), &[&type_var.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(&query)]);
             Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) } }).as_array().cloned().unwrap_or_default();
-        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel");
         let url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
-        std::sync::Arc::make_mut(&mut request).insert("order_id".into(), Value::Str(format!("{}", id).into()));
-        let __ws_arg_1 = self.extend(request, &[&requestParams]);
+        let orderRequest: crate::value::Dict = self.extend_t(request, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("order_id".to_string(), Value::Str(format!("{}", id).into()));
+            m
+        })]);
+        let __ws_arg_1 = self.extend(orderRequest, &[&requestParams]);
         let res: Value = self.request_private(url.as_deref(), __ws_arg_1, Some(channel.as_str()), None).await;
         return Value::Dict(self.parse_order(res, market.as_ref()));
         Value::Null
@@ -3014,16 +3018,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (id != subId) {
                     continue;
                 }
-                let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
+                let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));
                 let subMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
-                {
-                                        let mut j: i64 = 0;
-                    let mut __for_first_21: bool = true;
-                    while { if !__for_first_21 { j += 1; } __for_first_21 = false; j < (messageHashes.len() as i64) } {
-                    let unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                    let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                    self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
-                }
+                if (messageHashes.is_some()) {
+                    {
+                                                let mut j: i64 = 0;
+                        let mut __for_first_21: bool = true;
+                        while { if !__for_first_21 { j += 1; } __for_first_21 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                        let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                        self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                    }
+                    }
                 }
                 self.clean_cache(subscription);
             }
@@ -3408,11 +3414,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         let idArray: Value = Value::from(vec![self.uid.clone()]);
-        let payloadWithUid: Value = (if (payload == Value::Null) { idArray } else { self.array_concat(idArray, payload.clone()) });
-        let mut payloadValue: Value = payload;
-        if requiresUid.as_bool() == Some(true) {
-            payloadValue = payloadWithUid;
-        }
+        let noPayload: bool = payload == Value::Null;
+        let payloadWithUid: Value = (if noPayload { idArray } else { self.array_concat(idArray, payload.clone()) });
         let mut time: i64 = self.seconds();
         let mut event: String = "subscribe".to_string();
         let signaturePayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "channel=", Value::from(channel)).into()), "&").into()), "event=").into()), event).into()), "&").into()), "time=").into()), Value::Str(format!("{}", time).into()));
@@ -3434,8 +3437,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("auth".to_string(), Value::Map(auth));
             m
         });
-        if (payloadValue != Value::Null) {
-            request.insert("payload".into(), payloadValue);
+        if requiresUid.as_bool() == Some(true) {
+            request.insert("payload".into(), payloadWithUid);
+        }  else if !noPayload {
+            request.insert("payload".into(), payload);
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(&Value::from(url)));
         if !(client.has_subscription(&Value::from(messageHash))) {

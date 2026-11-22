@@ -3502,7 +3502,11 @@ impl Mexc {
             //
             //     {}
             //
-            let mut keys: Vec<&str> = spotResponse.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+            let spotResponseCopy: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[spotResponse]);
+            let mut keys: Vec<Value> = Value::Array(spotResponseCopy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let length: i64 = keys.len() as i64;
             status = (if (length > 0) { json_stringify(&response).as_str().map(str::to_owned) } else { Some("ok".to_string()) });
         }  else if (marketType.as_deref() == Some("swap")) {
