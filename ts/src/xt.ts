@@ -5244,7 +5244,8 @@ export default class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[this.safeString (breakEntry, 'symbol', '') + '_' + this.safeString (breakEntry, 'positionSide', '')] = breakEntry;
+            const breakKey: string = this.safeString (breakEntry, 'symbol', '') + '_' + this.safeString (breakEntry, 'positionSide', '');
+            breakBySymbolSide[breakKey] = breakEntry;
         }
         return breakBySymbolSide;
     }
