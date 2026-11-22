@@ -8778,6 +8778,8 @@ function rustProvenDictBody(decl: string, body: string): string | undefined {
         const map = /^Value::Map\((\w+)\)$/.exec(e);
         if (map !== null && new RegExp(`\\blet mut ${map[1]}: indexmap::IndexMap<String, Value> = `).test(body)) return `${r}std::sync::Arc::new(${map[1]});`;
         if (/^\w+$/.test(e) && new RegExp(`(?:\\(&self|, |\\blet )(?:mut )?${e}: Value\\b`).test(decl + body)) return `${r}${e}.into_dict();`;
+        const held = /^Value::Dict\((\w+)\)$/.exec(e);
+        if (held !== null && new RegExp(`\\blet (?:mut )?${held[1]}: crate::value::Dict = `).test(body) && !new RegExp(`(?:\\(&self|, |\\blet )(?:mut )?${held[1]}: (?!crate::value::Dict\\b)`).test(decl + body)) return `${r}${held[1]};`;
         ok = false;
         return l;
     });
