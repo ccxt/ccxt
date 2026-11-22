@@ -714,8 +714,8 @@ export default class poloniex extends poloniexRest {
         }
         if (!('info' in this.balance)) {
             this.balance['info'] = response['info'];
-            this.balance['timestamp'] = response['timestamp'];
-            this.balance['datetime'] = response['datetime'];
+            this.balance['timestamp'] = this.safeInteger (response, 'timestamp');
+            this.balance['datetime'] = this.safeString (response, 'datetime');
         }
         this.balance = this.safeBalance (this.balance);
         // don't remove the future from the .futures cache
