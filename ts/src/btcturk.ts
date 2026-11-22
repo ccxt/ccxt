@@ -755,7 +755,7 @@ export default class btcturk extends Exchange {
             }
             const seconds = this.parseTimeframe (timeframe);
             const limitCount: Int = (limit === undefined) ? 100 : Math.min (limit, 11000);
-            const limitSeconds: int = this.parseToInt (seconds * (limitCount - 1));
+            const limitSeconds = seconds * (limitCount - 1);
             if (since !== undefined) {
                 const sinceSeconds: int = this.parseToInt (since / 1000);
                 const to: int = sinceSeconds + limitSeconds;
