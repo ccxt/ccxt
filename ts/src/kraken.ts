@@ -2516,22 +2516,22 @@ export default class kraken extends Exchange {
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
         // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
-        const batches: List = [];
+        const batches: string[] = [];
         let batch: string[] = [];
         for (let i = 0; i < numTradeIds; i++) {
-            batch.push (tradeIds[i]);
+            const tradeId: string = this.safeString (tradeIds, i, '');
+            batch.push (tradeId);
             const batchLength = batch.length;
             if (batchLength >= batchSize) {
-                batches.push (batch);
+                batches.push (batch.join (','));
                 batch = [];
             }
         }
-        batches.push (batch);
+        batches.push (batch.join (','));
         let result: List = [];
         for (let j = 0; j < batches.length; j++) {
-            const requestIds: string[] = batches[j];
             const request: Dict = {
-                'txid': requestIds.join (','),
+                'txid': batches[j],
             };
             const response = await this.privatePostQueryTrades (request);
             //

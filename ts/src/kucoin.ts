@@ -7801,9 +7801,10 @@ export default class kucoin extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'address');
         const amount = this.safeString (transaction, 'amount');
-        let txid = this.safeString (transaction, 'walletTxId');
-        if (txid !== undefined) {
-            const txidParts = txid.split ('@');
+        const walletTxId = this.safeString (transaction, 'walletTxId');
+        let txid: Str = undefined;
+        if (walletTxId !== undefined) {
+            const txidParts = walletTxId.split ('@');
             const numTxidParts = txidParts.length;
             if (numTxidParts > 1) {
                 const txidAddress: string = txidParts[1];
