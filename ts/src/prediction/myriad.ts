@@ -2439,7 +2439,7 @@ export default class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        const outcomeId = (market !== undefined && market !== null) ? this.safeString (market['info'], 'outcomeId') : undefined;
+        const outcomeId = this.safeString (this.safeDict (market, 'info'), 'outcomeId');
         const outcomes: Dict[] = this.safeList (raw, 'outcomes', []);
         let price: Num = undefined;
         let change: Num = undefined;
@@ -2457,7 +2457,7 @@ export default class myriad extends Exchange {
                 if ((priceValue !== undefined) && (changeValue !== undefined)) {
                     const previousCloseValue = priceValue - changeValue;
                     previousClose = previousCloseValue;
-                    if (previousCloseValue !== 0) {
+                    if (priceValue !== changeValue) {
                         percentage = changeValue / previousCloseValue * 100;
                     }
                 }
