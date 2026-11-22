@@ -388,9 +388,12 @@ export default class hyperliquid extends Exchange {
             if ((baseName as string) in spotCurrencyMapping) {
                 const unifiedBaseName = this.safeString (spotCurrencyMapping, baseName);
                 const quote = this.safeString (symbolParts, 1);
-                const newSymbol = this.safeCurrencyCode (unifiedBaseName) + '/' + quote;
-                if (newSymbol in this.markets) {
-                    return this.markets[newSymbol];
+                const unifiedBase = this.safeCurrencyCode (unifiedBaseName);
+                if ((unifiedBase !== undefined) && (quote !== undefined)) {
+                    const newSymbol = unifiedBase + '/' + quote;
+                    if (newSymbol in this.markets) {
+                        return this.markets[newSymbol];
+                    }
                 }
             }
         }

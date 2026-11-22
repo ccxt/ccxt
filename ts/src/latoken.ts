@@ -850,10 +850,11 @@ export default class latoken extends Exchange {
         let symbol: Str = undefined;
         let marketResolved: Market = market;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                marketResolved = this.market (symbol);
+            const knownSymbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
+                marketResolved = this.market (knownSymbol);
             }
+            symbol = knownSymbol;
         }
         const last = this.safeString (ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero (ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1031,10 +1032,11 @@ export default class latoken extends Exchange {
         let symbol: Str = undefined;
         let marketResolved: Market = market;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                marketResolved = this.market (symbol);
+            const knownSymbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
+                marketResolved = this.market (knownSymbol);
             }
+            symbol = knownSymbol;
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
@@ -1312,10 +1314,14 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol: Str = undefined;
+        let symbolKnown = false;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
+            const knownSymbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
+                symbolKnown = true;
+            }
+            symbol = knownSymbol;
         }
-        const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
         let marketResolved: Market = market;
         if (symbolKnown) {
             marketResolved = this.market (symbol);
