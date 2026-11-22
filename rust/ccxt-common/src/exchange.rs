@@ -3071,7 +3071,7 @@ mod cow_alias_tests {
             Value::Int(0), Value::Int(1), Value::Int(10),
         ]);
         let ohlcvs = Value::List(vec![row.clone(), row]);
-        let r = ex.convert_ohlcv_to_trading_view(ohlcvs, &[]);
+        let r = Value::Dict(ex.convert_ohlcv_to_trading_view(ohlcvs, &[]));
         for key in ["t", "o", "h", "l", "c", "v"] {
             let col = r.at(key);
             assert_eq!(col.as_array().map(|a| a.len()), Some(2),

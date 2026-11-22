@@ -8681,6 +8681,117 @@ function rustTypedDictProducers (content: string): string {
     }
     return content;
 }
+// Base methods ts/src declares `Dict` (or `[Str, Str, Str, Dict]`) whose name no other ts/src file declares return the
+// declared type when their printed body proves it: `.into_dict()` at a caller drops, a slot read is the tuple field, any
+// other use re-boxes. A body the pass cannot prove keeps `Value`.
+let rustBaseDeclaredCache: { dict: string[], trigger: string[] } | undefined;
+function rustBaseDeclaredReturns(): { dict: string[], trigger: string[] } {
+    if (rustBaseDeclaredCache !== undefined) return rustBaseDeclaredCache;
+    const base = readTsIndexSource('./ts/src/base/Exchange.ts') ?? '';
+    const own = [ ...base.matchAll(/\n {4}(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\n/g) ];
+    const counts = new Map<string, number>();
+    for (const m of base.matchAll(/\n {4}(?:override )?(?:async )?(\w+) \(/g)) counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+    const other = new Set<string>();
+    for (const dir of [ './ts/src', './ts/src/pro', './ts/src/prediction' ]) {
+        let files: string[] = [];
+        try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
+        for (const f of files) for (const m of (readTsIndexSource(`${dir}/${f}`) ?? '').matchAll(/\n {4}(?:override )?(?:async )?(\w+) \(/g)) other.add(m[1]);
+    }
+    const single = (n: string) => counts.get(n) === 1 && !other.has(n);
+    const dict = own.filter((m) => m[2] === 'Dict' && single(m[1])).map((m) => toSnakeCase(m[1]));
+    const trigger = own.filter((m) => /^\[\s*Str,\s*Str,\s*Str,\s*Dict\s*\]$/.test(m[2]) && single(m[1])).map((m) => toSnakeCase(m[1]));
+    return (rustBaseDeclaredCache = { dict, trigger });
+}
+// The typed body of a base `-> Value` method whose every return is a proven Dict, or undefined.
+function rustProvenDictBody(decl: string, body: string): string | undefined {
+    if (/\|[^|\n]*\|\s*\{/.test(body)) return undefined;
+    let ok = true;
+    const typed = body.replace(/^( *return )([^\n]*);$/gm, (l, r: string, e: string) => {
+        const map = /^Value::Map\((\w+)\)$/.exec(e);
+        if (map !== null && new RegExp(`\\blet mut ${map[1]}: indexmap::IndexMap<String, Value> = `).test(body)) return `${r}std::sync::Arc::new(${map[1]});`;
+        if (/^\w+$/.test(e) && new RegExp(`(?:\\(&self|, |\\blet )(?:mut )?${e}: Value\\b`).test(decl + body)) return `${r}${e}.into_dict();`;
+        ok = false;
+        return l;
+    });
+    if (!ok || (typed.match(/\breturn\b/g) ?? []).length !== (typed.match(/^ *return [^\n]*;$/gm) ?? []).length) return undefined;
+    return typed;
+}
+// Callers follow the printed base declaration: the base file in `content`, else the base file on disk.
+function rustBaseTypedHead(content: string, fn: string, ret: string): boolean {
+    const head = `\n    fn ${fn}(&self`, has = (src: string) => { const i = src.indexOf(head); return i >= 0 && src.slice(i, src.indexOf('\n', i + 1)).endsWith(`) -> ${ret} {`); };
+    if (content.includes(head)) return has(content);
+    try { return has(fs.readFileSync(BASE_METHODS_FILE, 'utf8')); } catch { return false; }
+}
+function rustBaseTypedDictFns(content: string, dict: string[]): string[] {
+    return dict.filter((fn) => rustBaseTypedHead(content, fn, 'crate::value::Dict'));
+}
+function typeBaseDeclaredReturns(content: string): string {
+    const { dict, trigger } = rustBaseDeclaredReturns();
+    const tail = '\n\n    Value::Null\n}';
+    for (const fn of dict) {
+        const decl = new RegExp(`\\n    fn ${fn}\\(&self[^\\n]*\\) -> Value \\{\\n`).exec(content);
+        if (decl === null) continue;
+        const open = decl.index + decl[0].length, end = content.indexOf(tail, open);
+        const typed = end < 0 ? undefined : rustProvenDictBody(decl[0], content.slice(open, end));
+        if (typed === undefined) continue;
+        content = content.slice(0, decl.index) + decl[0].replace(') -> Value {', ') -> crate::value::Dict {') + typed + '\n\n    Default::default()\n}' + content.slice(end + tail.length);
+    }
+    for (const fn of rustBaseTypedDictFns(content, dict)) {
+        const head = new RegExp(`(?<![\\w.])(?:self|exchange)\\.${fn}\\(`, 'g'), starts: number[] = [];
+        for (let m: RegExpExecArray | null; (m = head.exec(content)) !== null;) starts.push(m.index);
+        for (const s of starts.reverse()) {
+            const close = balancedCloseIndex(content, content.indexOf('(', s) + 1);
+            if (close >= content.length) continue;
+            const call = content.slice(s, close + 1), rest = content.slice(close + 1);
+            content = rest.startsWith('.into_dict()') ? content.slice(0, s) + call + rest.slice('.into_dict()'.length) : content.slice(0, s) + `Value::Dict(${call})` + rest;
+        }
+    }
+    for (const fn of trigger) content = typeBaseTriggerTuple(content, fn);
+    return content;
+}
+// handleTriggerPricesAndParams: `(Option<String>, Option<String>, Option<String>, Dict)`; a `Vec<Value>` head read only through
+// `.get(i)` slot reads takes the tuple, every other use re-boxes the four slots as the list the base used to build.
+function typeBaseTriggerTuple(input: string, fn: string): string {
+    let content = input;
+    const tuple = '(Option<String>, Option<String>, Option<String>, crate::value::Dict)', tail = '\n\n    Value::Null\n}';
+    const decl = new RegExp(`\\n    fn ${fn}\\(&self[^\\n]*\\) -> Value \\{\\n`).exec(content);
+    if (decl !== null) {
+        const open = decl.index + decl[0].length, end = content.indexOf(tail, open);
+        const ret = /\n( *)return Value::from\(vec!\[(\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), (\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), (\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), (\w+)\]\);$/;
+        const body = end < 0 ? '' : content.slice(open, end), r = ret.exec(body);
+        if (r === null || (body.match(/\breturn\b/g) ?? []).length !== 1 || ![ r[2], r[3], r[4] ].every((v) => body.includes(`let mut ${v}: Option<String> = `))
+            || !new RegExp(`\\blet (?:mut )?${r[5]}: Value = `).test(body)) return content;
+        const typed = body.replace(r[0], `\n${r[1]}return (${r[2]}, ${r[3]}, ${r[4]}, ${r[5]}.into_dict());`);
+        content = content.slice(0, decl.index) + decl[0].replace(') -> Value {', `) -> ${tuple} {`) + typed + '\n}' + content.slice(end + tail.length);
+    }
+    if (!rustBaseTypedHead(content, fn, tuple)) return content;
+    const head = new RegExp(`(?<![\\w.])self\\.${fn}\\(`, 'g'), starts: number[] = [];
+    for (let m: RegExpExecArray | null; (m = head.exec(content)) !== null;) starts.push(m.index);
+    const box = (call: string) => `{ let __t = ${call}; Value::from(vec![Value::from(__t.0), Value::from(__t.1), Value::from(__t.2), Value::Dict(__t.3)]) }`;
+    for (const s of starts.reverse()) {
+        const close = balancedCloseIndex(content, content.indexOf('(', s) + 1);
+        if (close >= content.length) continue;
+        const call = content.slice(s, close + 1), ls = content.lastIndexOf('\n', s) + 1;
+        const lhead = /let (?:mut )?(\w+): Vec<Value> = $/.exec(content.slice(ls, s));
+        const listTail = '.as_array().cloned().unwrap_or_default();';
+        if (lhead !== null && content.startsWith(listTail, close + 1)) {
+            const n = lhead[1], from = close + 1 + listTail.length, rest = rustFnRest(content, from);
+            const slot = new RegExp(`(?<![\\w.])${n}\\.get\\(([0-3])\\)(\\.and_then\\(Value::as_str\\)\\.map\\(str::to_owned\\)|\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)\\.into_dict\\(\\))`, 'g');
+            const seen: string[] = [];
+            const body = rest.replace(slot, (whole, i: string, r: string) => {
+                if ((i === '3') !== r.endsWith('.into_dict()')) return whole;
+                seen.push(i);
+                return `${n}.${i}`;
+            });
+            if (seen.length > 0 && new Set(seen).size === seen.length && !new RegExp(`(?<![\\w.])${n}\\b(?!\\.[0-3]\\b)`).test(body)) {
+                content = content.slice(0, ls) + content.slice(ls, s).replace(/let (?:mut )?(\w+): Vec<Value> = $/, 'let $1 = ') + call + ';' + body + content.slice(from + rest.length);
+                continue;
+            }
+        }
+        content = content.slice(0, s) + box(call) + content.slice(close + 1);
+    }
+    return content;
+}
 // ===== h29-R02
 // every `return` statement is a whole `Value::Dict(x);` / `Value::Map(m);` at statement start, the last one ends the body.
 function rustBuiltDictReturns (fn: string, body: string): string {
@@ -9350,6 +9461,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typedPromiseAllResults,
     rustTypedListReads,
     rustTypedDictProducers,
+    typeBaseDeclaredReturns,
     nativeMarketKeyStringReads,
     lendAlgoLiterals,
     nativeLocalStrKeyRemove,
