@@ -7061,16 +7061,6 @@ function literalRecordPlusLeftAccepted (declaration, node, right) {
     } catch (e) {}
 }
 
-function literalDumpPlusLeftAccepted () {
-    if (literalPlusLeftAccepted.length === 0) {
-        return;
-    }
-    try {
-        process.stderr.write ('[java-literal-types plus-left accepted]\n'
-            + literalPlusLeftAccepted.map ((e) => `  ${e.file} ${e.name} + ${e.right}`).join ('\n') + '\n');
-    } catch (e) {}
-}
-
 function literalIsProvablyStringValue (printer, value) {
     if (value === undefined) {
         return false;
@@ -7497,7 +7487,6 @@ function literalMaybeInstallCensusHook () {
             process.stderr.write ('[java-literal-types census] ' + JSON.stringify (javaLiteralTypeCensus) + '\n');
         } catch (e) {}
     });
-    process.on ('exit', literalDumpPlusLeftAccepted);
 }
 
 // this slice's patcher; installed next to installJavaLocalTypes at both call sites
@@ -7698,20 +7687,6 @@ function numericReceiverCallIsSafe (method) {
     return NUMERIC_RECEIVER_METHODS.has (method);
 }
 
-// is `n` (through parentheses) a direct operand of a `-`? keeps int locals off
-// Helpers.subtract so an (int, int) overload could never rebind them.
-function numericIsMinusOperand (n) {
-    let node = n;
-    let parent = n.parent;
-    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
-        node = parent;
-        parent = parent.parent;
-    }
-    return parent !== undefined && ts.isBinaryExpression (parent)
-        && parent.operatorToken.kind === ts.SyntaxKind.MinusToken
-        && (parent.left === node || parent.right === node);
-}
-
 // reject the narrowing when any use needs the local to stay `Object` (or the printer
 // would emit a cast / unboxing the narrowed type can't satisfy).
 function numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
@@ -7797,9 +7772,6 @@ function numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isPr
                 // (an int operand of `-` prints Helpers.subtract(int, int) the moment the
                 // commented-out primitive overload at Helpers.java:331 is re-enabled)
             }
-        } else if (javaType === 'int' && numericIsMinusOperand (n)) {
-            numericDebug (`reject ${sourceName} (int subtract operand)`);
-            return false;
         }
         if (ts.isCallExpression (parent) && parent.arguments.indexOf (n) !== -1) {
             const callee = parent.expression;
