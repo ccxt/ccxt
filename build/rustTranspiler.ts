@@ -8196,24 +8196,7 @@ function lendClientSubscriptions (content: string): string {
         .replace (/(self\.safe_(?:value|dict|string)[a-z_]*\()(__ch|\(client\))\.subscriptions\.clone\(\),/g, '$1&$2.subscriptions,')
         .replace (/\b((?:object_keys|object_values|get_value)\(&(?:__ch|\(client\))\.subscriptions)\.clone\(\)/g, '$1');
 }
-// `get_url_by_market` only key-reads its market: take `impl KeyRead` and lend a typed market (`&market`)
-// instead of copying its raw map; Value callers and dispatch arms still pass a `Value` (also KeyRead).
-const RUST_KEYREAD_MARKET_FNS = ['get_url_by_market'];
 function lendTypedMarketRaw(content: string): string {
-    for (const name of RUST_KEYREAD_MARKET_FNS) {
-        const sig = `pub fn ${name}(&self, market: impl Into<crate::Value>) -> Value {\n        let mut market: Value = market.into();\n`;
-        const at = content.indexOf(sig);
-        if (at < 0) continue;
-        const open = at + sig.indexOf('{'), close = balancedCloseIndex(content, open + 1);
-        const body = content.slice(at + sig.length, close);
-        const rest = body.replace(/\bself\.safe_\w+\(&market, /g, '').replace(/crate::value::get_value_k\(&market, /g, '');
-        if (/\bmarket\b/.test(rest)) continue;
-        const callers = [...content.matchAll(new RegExp(`\\b${name}\\(([^\\n]*)`, 'g'))].filter(m => content.slice((m.index as number) - 7, m.index) !== 'pub fn ');
-        if (!callers.every(m => /^(?:\(\w+\)\.raw\.clone\(\)\)|crate::Value::from\(|args\.get\(0\)\.cloned\(\)\.unwrap_or\(crate::Value::Null\)\))/.test(m[1]))) continue;
-        const newBody = body.replace(/crate::value::get_value_k\(&market, /g, 'crate::value::KeyRead::key_read(&market, ');
-        content = content.slice(0, at) + `pub fn ${name}(&self, market: impl crate::value::KeyRead) -> Value {\n` + newBody + content.slice(close);
-        content = content.replace(new RegExp(`\\b(self\\.${name})\\(\\((\\w+)\\)\\.raw\\.clone\\(\\)\\)`, 'g'), '$1(&$2)');
-    }
     // a lent raw map of a typed struct local needs no copy: `&(m).raw.clone()` prints `&(m).raw`
     return content.replace(/&\((\w+)\)\.raw\.clone\(\)/g, (s, v, off) => {
         const fnAt = content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', off));
