@@ -986,7 +986,7 @@ export default class toobit extends Exchange {
         if (isContract) {
             symbol = base + '/' + quote + ':' + settle;
         }
-        return this.safeMarketStructure ({
+        const result: Dict = {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -1003,8 +1003,8 @@ export default class toobit extends Exchange {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? (inverse !== true) : undefined,
-            'inverse': isContract ? inverse : undefined,
+            'linear': undefined,
+            'inverse': undefined,
             'contractSize': this.safeNumber (market, 'contractMultiplier'),
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1034,7 +1034,12 @@ export default class toobit extends Exchange {
             },
             'created': undefined,
             'info': market,
-        });
+        };
+        if (isContract) {
+            result['linear'] = (inverse !== true);
+            result['inverse'] = inverse;
+        }
+        return this.safeMarketStructure (result);
     }
 
     /**
