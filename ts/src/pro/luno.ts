@@ -4,7 +4,7 @@ import lunoRest from '../luno.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -251,7 +251,7 @@ export default class luno extends lunoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customParseOrderBook (orderbook: Dict, symbol: Str, timestamp: Int = undefined, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
+    customParseOrderBook (orderbook: Dict, symbol: Str, timestamp: Int = undefined, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2): Dict {
         const bids = this.parseOrderBookBidsAsks (this.safeList (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeList (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
@@ -273,7 +273,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2): List {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
