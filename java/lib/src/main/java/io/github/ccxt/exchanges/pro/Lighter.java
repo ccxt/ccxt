@@ -171,8 +171,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
 
         (this.preLoadLighterLibrary(new HashMap<String, Object>() {{}})).join();
-        Helpers.addElementToObject(parameters, "auth", this.createAuth(parameters));
-        return (this.subscribePublic((String) (messageHash), parameters)).join();
+        Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "auth", Lighter.this.createAuth(parameters) );
+        }});
+        return (this.subscribePublic((String) (messageHash), request)).join();
 
     }
 
@@ -1689,7 +1691,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> orders = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < orders.size(); j++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), market);
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(orders, j, new HashMap<String, Object>() {{}}), market);
                 stored.append(order);
                 String symbol = this.safeString(order, "symbol");
                 if (!java.util.Objects.equals(symbol, null))

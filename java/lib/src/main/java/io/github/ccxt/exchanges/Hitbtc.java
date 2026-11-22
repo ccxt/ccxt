@@ -1854,8 +1854,7 @@ public class Hitbtc extends HitbtcApi
         String addressTo = address;
         String tag = this.safeString(nativeVar, "payment_id");
         String tagTo = tag;
-        List<Object> sender = this.safeList(nativeVar, "senders", null);
-        String addressFrom = this.safeString(sender, 0);
+        String addressFrom = this.safeString(this.safeList(nativeVar, "senders", new ArrayList<Object>(Arrays.asList())), 0);
         Double amount = this.safeNumber(nativeVar, "amount", (Object) null);
         String subType = this.safeString(transaction, "subtype");
         Boolean intern = java.util.Objects.equals(subType, "OFFCHAIN");
@@ -2469,8 +2468,7 @@ public class Hitbtc extends HitbtcApi
         //       }
         //     ]
         //
-        Map<String, Object> order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 

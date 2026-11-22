@@ -5760,7 +5760,7 @@ public class Mexc extends MexcApi
             Map<String, Object> networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
             {
-                Map<String, Object> network = (Map<String, Object>) ((((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}}));
+                Map<String, Object> network = this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
                 Map<String, Object> networkInfo = this.safeDict(network, "info", new HashMap<String, Object>() {{}});
                 networkId = this.safeString(networkInfo, "network");
             } else
@@ -5828,7 +5828,7 @@ public class Mexc extends MexcApi
         Map<String, Object> networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
         {
-            Map<String, Object> network = (Map<String, Object>) ((((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}}));
+            Map<String, Object> network = this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
             Map<String, Object> networkInfo = this.safeDict(network, "info", new HashMap<String, Object>() {{}});
             networkId = this.safeString(networkInfo, "network");
         } else

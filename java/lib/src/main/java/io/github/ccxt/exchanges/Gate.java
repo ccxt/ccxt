@@ -2798,7 +2798,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object prepareRequest(Map<String, Object> market, String type, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> prepareRequest(Map<String, Object> market, String type, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -2838,10 +2838,10 @@ public class Gate extends GateApi
                 }
                 String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 request.put("settle", settle);
-                return new ArrayList<Object>(Arrays.asList(request, this.omit(parameters, "settle")));
+                return new Pair<>(request, this.omit(parameters, "settle"));
             }
         }
-        return new ArrayList<Object>(Arrays.asList(request, parameters));
+        return new Pair<>(request, parameters);
     }
 
     public Object spotOrderPrepareRequest(Map<String, Object> market, Object trigger, Map<String, Object> parameters)
@@ -3105,9 +3105,9 @@ public class Gate extends GateApi
         {
             throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
-        var requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         Map<String, Object> response = (this.publicFuturesGetSettleContractsContract(this.extend(request, query))).join();
         //
         //    [
@@ -3185,9 +3185,9 @@ public class Gate extends GateApi
             String firstSymbol = this.safeString(symbolsNormalized, 0);
             market = this.market(firstSymbol);
         }
-        var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, "swap", parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         List<Object> response = (this.publicFuturesGetSettleContracts(this.extend(request, query))).join();
         //
         //    [
@@ -3833,9 +3833,9 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (String) null);
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
-        var requestrequestParamsVariable = this.prepareRequest(market, type, query);
-        var request = ((List<Object>) requestrequestParamsVariable).get(0);
-        var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestrequestParamsVariable = this.prepareRequest(market, type, query);
+        Map<String, Object> request = requestrequestParamsVariable.first();
+        Map<String, Object> requestParams = requestrequestParamsVariable.second();
         ((Map<String, Object>)request).put("type", "fund"); // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (!java.util.Objects.equals(since, null))
         {
@@ -3945,9 +3945,9 @@ public class Gate extends GateApi
         //         'with_id': true, // return order book ID
         //     };
         //
-        var requestqueryVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         if (!java.util.Objects.equals(limit, null))
         {
             // gateeu returns an empty book for a spot limit above 100
@@ -4081,9 +4081,9 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         List<Object> response = null;
         if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) || Boolean.TRUE.equals((this.safeBool(market, "margin", false))))
         {
@@ -4286,9 +4286,9 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
-        var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
-        var request = ((List<Object>) requestrequestParamsVariable).get(0);
-        var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
+        Map<String, Object> request = requestrequestParamsVariable.first();
+        Map<String, Object> requestParams = requestrequestParamsVariable.second();
         List<Object> response = null;
         ((Map<String, Object>)request).put("timezone", "utc0"); // default to utc
         if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -4368,9 +4368,9 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUnifiedAccount, (String) null);
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
-        var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
-        var request = ((List<Object>) requestrequestParamsVariable).get(0);
-        var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
+        Map<String, Object> request = requestrequestParamsVariable.first();
+        Map<String, Object> requestParams = requestrequestParamsVariable.second();
         var marginModerequestQueryVariable = this.getMarginMode(false, (Map<String, Object>) (requestParams));
         String marginMode = (String) ((List<Object>) marginModerequestQueryVariable).get(0);
         Map<String, Object> requestQuery = (Map<String, Object>) ((List<Object>) marginModerequestQueryVariable).get(1);
@@ -4695,14 +4695,14 @@ public class Gate extends GateApi
             return (this.fetchOptionOHLCV((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsPaginate)).join();
         }
         String price = this.safeString(paramsPaginate, "price");
-        var requestparamsRequestVariable = this.prepareRequest(market, (String) null, paramsPaginate);
-        var request = ((List<Object>) requestparamsRequestVariable).get(0);
-        var paramsRequest = ((List<Object>) requestparamsRequestVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.prepareRequest(market, (String) null, paramsPaginate);
+        Map<String, Object> request = requestparamsRequestVariable.first();
+        Map<String, Object> paramsRequest = requestparamsRequestVariable.second();
         ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
         Long maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "contract", false))))) ? 1999L : 1000L;
         Long limitValue = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
         Long untilMs = this.safeInteger(paramsRequest, "until");
-        Object paramsOmitted = this.omit(paramsRequest, "until");
+        Map<String, Object> paramsOmitted = this.omit(paramsRequest, "until");
         if (!java.util.Objects.equals(since, null))
         {
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -4744,7 +4744,7 @@ public class Gate extends GateApi
                 String contractId = ((price + "_") + marketId);
                 ((Map<String, Object>)request).put("contract", contractId);
             }
-            Object paramsContract = paramsOmitted;
+            Map<String, Object> paramsContract = paramsOmitted;
             if (Boolean.TRUE.equals(isMark) || Boolean.TRUE.equals(isIndex))
             {
                 paramsContract = this.omit(paramsOmitted, "price");
@@ -4778,9 +4778,9 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var requestparamsValueVariable = this.prepareRequest(market, (String) null, parameters);
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = this.prepareRequest(market, (String) null, parameters);
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
         List<Object> response = (this.publicOptionsGetCandlesticks(this.extend(request, paramsValue))).join();
         return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
@@ -4828,9 +4828,9 @@ public class Gate extends GateApi
         {
             throw new BadSymbol((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        var requestparamsRequestVariable = this.prepareRequest(market, (String) null, paramsPaginate);
-        var request = ((List<Object>) requestparamsRequestVariable).get(0);
-        var paramsRequest = ((List<Object>) requestparamsRequestVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.prepareRequest(market, (String) null, paramsPaginate);
+        Map<String, Object> request = requestparamsRequestVariable.first();
+        Map<String, Object> paramsRequest = requestparamsRequestVariable.second();
         if (!java.util.Objects.equals(limit, null))
         {
             ((Map<String, Object>)request).put("limit", limit);
@@ -4962,9 +4962,9 @@ public class Gate extends GateApi
         //         'to': this.seconds (), // end time in seconds, default to current time
         //     };
         //
-        var requestqueryVariable = this.prepareRequest(market, (String) null, paramsPaginate);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, (String) null, paramsPaginate);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         Long until = (Long) this.safeInteger2(paramsPaginate, "to", "until");
         if (!java.util.Objects.equals(until, null))
         {
@@ -5141,7 +5141,7 @@ public class Gate extends GateApi
             return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
         }
         String marginMode = null;
-        Object request = new HashMap<String, Object>() {{}};
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
         Object query = null;
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
@@ -5157,32 +5157,32 @@ public class Gate extends GateApi
         if (Boolean.TRUE.equals(contract))
         {
             Object contractQuery = null;
-            var requestcontractQueryVariable = this.prepareRequest(market, type, paramsMarketType);
-            request = ((List<Object>) requestcontractQueryVariable).get(0);
-            contractQuery = ((List<Object>) requestcontractQueryVariable).get(1);
+            Pair<Map<String, Object>, Map<String, Object>> requestcontractQueryVariable = this.prepareRequest(market, type, paramsMarketType);
+            request = requestcontractQueryVariable.first();
+            contractQuery = requestcontractQueryVariable.second();
             query = (((java.util.Objects.equals(type, "option")))) ? this.omit(contractQuery, "order_id") : contractQuery;
         } else
         {
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)request).put("currency_pair", market.get("id")); // Should always be set for non-trigger
+                request.put("currency_pair", market.get("id")); // Should always be set for non-trigger
             }
             var marginModequeryVariable = this.getMarginMode(false, (Map<String, Object>) (paramsMarketType));
             marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             query = ((List<Object>) marginModequeryVariable).get(1);
-            ((Map<String, Object>)request).put("account", marginMode);
+            request.put("account", marginMode);
         }
         if (!java.util.Objects.equals(limit, null))
         {
-            ((Map<String, Object>)request).put("limit", limit); // default 100, max 1000
+            request.put("limit", limit); // default 100, max 1000
         }
         if (!java.util.Objects.equals(since, null))
         {
-            ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
+            request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
         }
         if (!java.util.Objects.equals(until, null))
         {
-            ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000))));
+            request.put("to", this.parseToInt((((double) until) / ((double) 1000))));
         }
         List<Object> response = null;
         if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -6957,9 +6957,9 @@ public class Gate extends GateApi
         Boolean contract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "option"));
         if (Boolean.TRUE.equals(contract))
         {
-            var contractRequestcontractParamsVariable = this.prepareRequest(market, type, query);
-            var contractRequest = ((List<Object>) contractRequestcontractParamsVariable).get(0);
-            var contractParams = ((List<Object>) contractRequestcontractParamsVariable).get(1);
+            Pair<Map<String, Object>, Map<String, Object>> contractRequestcontractParamsVariable = this.prepareRequest(market, type, query);
+            Map<String, Object> contractRequest = contractRequestcontractParamsVariable.first();
+            Map<String, Object> contractParams = contractRequestcontractParamsVariable.second();
             HashMap<String, Object> mapLiteral20 = new HashMap<String, Object>();
             mapLiteral20.put("order_id", orderId);
             Map<String, Object> contractOrder = this.extend(contractRequest, mapLiteral20);
@@ -7144,9 +7144,9 @@ public class Gate extends GateApi
         {
             return (this.fetchOrdersByStatus("finished", symbolResolved, since, limit, paramsHistorical)).join();
         }
-        var requestparamsRequestVariable = this.prepareRequest(market, type, this.omit(paramsHistorical, "type"));
-        var request = ((List<Object>) requestparamsRequestVariable).get(0);
-        var paramsRequest = ((List<Object>) requestparamsRequestVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.prepareRequest(market, type, this.omit(paramsHistorical, "type"));
+        Map<String, Object> request = requestparamsRequestVariable.first();
+        Map<String, Object> paramsRequest = requestparamsRequestVariable.second();
         if (!java.util.Objects.equals(since, null))
         {
             ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
@@ -7997,9 +7997,9 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
         String crossLeverageLimit = this.safeString(query, "cross_leverage_limit");
         String marginMode = this.safeString(query, "marginMode", defaultMarginMode);
@@ -8256,9 +8256,9 @@ public class Gate extends GateApi
         {
             throw new BadRequest((this.id + " fetchPosition() supports contract markets only")) ;
         }
-        var requestparamsValueVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         Map<String, Object> extendedRequest = this.extend(request, paramsValue);
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
@@ -8379,9 +8379,9 @@ public class Gate extends GateApi
             type = "swap"; // default to swap
         }
         // prepareRequest leaves request empty and params untouched for options
-        var requestqueryVariable = this.prepareRequest((Map<String, Object>) null, type, paramsMarketType);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest((Map<String, Object>) null, type, paramsMarketType);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         if (java.util.Objects.equals(type, "option"))
         {
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -8501,9 +8501,9 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, parameters, (String) null);
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
-        var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
-        var request = ((List<Object>) requestrequestParamsVariable).get(0);
-        var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
+        Map<String, Object> request = requestrequestParamsVariable.first();
+        Map<String, Object> requestParams = requestrequestParamsVariable.second();
         if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "swap"))
         {
             throw new BadRequest((this.id + " fetchLeverageTiers only supports swap and future")) ;
@@ -8516,7 +8516,7 @@ public class Gate extends GateApi
         }
         Object offset = this.safeInteger(requestParams, "offset", 0);
         String contract = this.safeString(requestParams, "contract", "");
-        Object paramsOmitted = this.omit(requestParams, new ArrayList<Object>(Arrays.asList("limit", "offset")));
+        Map<String, Object> paramsOmitted = this.omit(requestParams, new ArrayList<Object>(Arrays.asList("limit", "offset")));
         ((Map<String, Object>)request).put("limit", limit);
         Map<String, Object> tiers = new HashMap<String, Object>() {{}};
         while (true)
@@ -8578,9 +8578,9 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, parameters, (String) null);
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
-        var requestrequestParamsVariable = this.prepareRequest(market, type, query);
-        var request = ((List<Object>) requestrequestParamsVariable).get(0);
-        var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestrequestParamsVariable = this.prepareRequest(market, type, query);
+        Map<String, Object> request = requestrequestParamsVariable.first();
+        Map<String, Object> requestParams = requestrequestParamsVariable.second();
         if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "swap"))
         {
             throw new BadRequest((this.id + " fetchMarketLeverageTiers only supports swap and future")) ;
@@ -9196,9 +9196,9 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, (String) null, parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         ((Map<String, Object>)request).put("change", this.numberToString(amount));
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
@@ -9520,9 +9520,9 @@ public class Gate extends GateApi
         {
             throw new NotSupported((this.id + " fetchMySettlementHistory() supports option and future markets only")) ;
         }
-        var requestqueryVariable = this.prepareRequest(market, type, paramsMarketType);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, type, paramsMarketType);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         if (!java.util.Objects.equals(limit, null))
         {
             ((Map<String, Object>)request).put("limit", limit);
@@ -9991,9 +9991,9 @@ public class Gate extends GateApi
         {
             market = this.market(symbol);
         }
-        var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
-        var request = ((List<Object>) requestqueryVariable).get(0);
-        var query = ((List<Object>) requestqueryVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestqueryVariable = this.prepareRequest(market, "swap", parameters);
+        Map<String, Object> request = requestqueryVariable.first();
+        Map<String, Object> query = requestqueryVariable.second();
         ((Map<String, Object>)request).put("dual_mode", hedged);
         return (this.privateFuturesPostSettleDualMode(this.extend(request, query))).join();
 
@@ -10813,9 +10813,9 @@ public class Gate extends GateApi
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         Long until = this.safeInteger(paramsMarketType, "until");
         Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "until");
-        var requestparamsValueVariable = this.prepareRequest(market, marketType, paramsOmitted);
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = this.prepareRequest(market, marketType, paramsOmitted);
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         if (!java.util.Objects.equals(limit, null))
         {
             ((Map<String, Object>)request).put("limit", limit);

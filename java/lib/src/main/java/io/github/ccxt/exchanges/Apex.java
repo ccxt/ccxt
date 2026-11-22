@@ -2067,7 +2067,11 @@ public class Apex extends ApexApi
         {
             request.put("endTimeExclusive", endTimeExclusive);
         }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList()));
+        if (!java.util.Objects.equals(endTimeExclusive, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
+        }
         Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted))).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -2163,7 +2167,11 @@ public class Apex extends ApexApi
         {
             request.put("endTimeExclusive", endTimeExclusive);
         }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList()));
+        if (!java.util.Objects.equals(endTimeExclusive, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
+        }
         Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, paramsOmitted))).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -2217,7 +2225,11 @@ public class Apex extends ApexApi
         {
             request.put("endTimeExclusive", endTimeExclusive);
         }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList()));
+        if (!java.util.Objects.equals(endTimeExclusive, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
+        }
         Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, paramsOmitted))).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> fundingValues = this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));

@@ -1702,7 +1702,7 @@ public class Derive extends DeriveApi
         List<Object> settlements = this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsed = this.parseSettlements(settlements, market);
         List<Object> sorted = this.sortBy(parsed, "timestamp");
-        String symbolResolved = java.util.Objects.toString((((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null, null);
+        String symbolResolved = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
 
     }

@@ -1357,12 +1357,12 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             var error = new ExchangeError(((this.id + " ") + errorMessage));
             for (var i = 0; i < messageHashes.size(); i++)
             {
-                client.reject(error, (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i)));
+                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                client.reject(error, messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                 if ((messageHash != null && client.subscriptions.containsKey(messageHash)))
                 {
                     client.subscriptions.remove((String)messageHash);

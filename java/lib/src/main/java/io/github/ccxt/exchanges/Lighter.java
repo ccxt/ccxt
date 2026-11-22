@@ -2071,8 +2071,7 @@ public class Lighter extends LighterApi
         List<Object> spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
-        Map<String, Object> first = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-        return this.parseTicker(first, market);
+        return this.parseTicker(this.safeDict(tickers, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -4325,7 +4324,7 @@ public class Lighter extends LighterApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Object url = null;
+        String url = null;
         if (java.util.Objects.equals(apiName, "root"))
         {
             String baseApiUrl = this.safeString(this.urls.get("api"), "public");

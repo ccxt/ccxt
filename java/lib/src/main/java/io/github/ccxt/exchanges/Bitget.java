@@ -5927,7 +5927,7 @@ public class Bitget extends BitgetApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
+        return this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -5969,7 +5969,7 @@ public class Bitget extends BitgetApi
             response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType))).join();
         }
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
+        return this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -11961,7 +11961,7 @@ public class Bitget extends BitgetApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < position.size(); i++)
         {
-            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), market);
+            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(position, i, new HashMap<String, Object>() {{}})), market);
             ((List<Object>)result).add(parsedPosition);
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);

@@ -1402,8 +1402,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             for (var i = 0; i < data.size(); i++)
             {
-                Map<String, Object> value = (Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(value, (Map<String, Object>) null);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
                 String symbol = this.safeString(parsed, "symbol", "");
                 symbolIds.put(symbol, true);
                 orders.append(parsed);

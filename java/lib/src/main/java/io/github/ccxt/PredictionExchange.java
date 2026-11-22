@@ -689,7 +689,7 @@ public Map<String, Object> describe()
         return joined.toUpperCase();
     }
 
-    public Object slugToMarketSymbol(String eventSlug, String marketSlug)
+    public String slugToMarketSymbol(String eventSlug, String marketSlug)
     {
         // eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
         // pass undefined — the body already collapses an absent event to just the market part.
@@ -2065,7 +2065,7 @@ public Map<String, Object> describe()
         return hex;
     }
 
-    public Object padHexAddress(String address)
+    public String padHexAddress(String address)
     {
         if (java.util.Objects.equals(address, null))
         {
@@ -2136,7 +2136,7 @@ public Map<String, Object> describe()
         return ((this.intToBase16((247L + lengthOfLength)) + lengthHex) + concatenated);
     }
 
-    public Object intToRlpHex(Object value)
+    public String intToRlpHex(Object value)
     {
         if (java.util.Objects.equals(value, null))
         {

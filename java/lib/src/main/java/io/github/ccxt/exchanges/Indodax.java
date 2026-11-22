@@ -762,10 +762,9 @@ public class Indodax extends IndodaxApi
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
             String marketId = (key == null ? null : ((String)key).replaceFirst("_", ""));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, key, new HashMap<String, Object>() {{}}), market);
             parsedTickers.put(marketId, parsed);
         }
         return this.filterByArrayTickers(parsedTickers, "symbol", symbols);

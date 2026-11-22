@@ -7523,7 +7523,7 @@ public Map<String, Object> describe()
         return new Trade(trade);
     }
 
-    public Object createCcxtTradeId(Long timestamp, String side, String amount, String price, String takerOrMaker)
+    public String createCcxtTradeId(Long timestamp, String side, String amount, String price, String takerOrMaker)
     {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         if (!java.util.Objects.equals(timestamp, null))
@@ -8999,7 +8999,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positionsArray.size(); i++)
         {
-            Map<String, Object> position = this.extend(this.parsePosition((Map<String, Object>) ((positionsArray == null || i < 0 || i >= positionsArray.size() ? null : positionsArray.get(i))), (Map<String, Object>) null), parameters);
+            Map<String, Object> position = this.extend(this.parsePosition((Map<String, Object>) (this.safeDict(positionsArray, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null), parameters);
             ((List<Object>)result).add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -10077,14 +10077,14 @@ public Map<String, Object> describe()
 
     public void throwBroadlyMatchedException(Map<String, Object> broad, String str, String message)
     {
-        Object broadKey = this.findBroadlyMatchedKey(broad, (String) (str));
+        String broadKey = this.findBroadlyMatchedKey(broad, (String) (str));
         if (!java.util.Objects.equals(broadKey, null))
         {
             Helpers.throwDynamicException((broad == null || broadKey == null ? null : broad.get(broadKey)), message);
         }
     }
 
-    public Object findBroadlyMatchedKey(Map<String, Object> broad, String errorString)
+    public String findBroadlyMatchedKey(Map<String, Object> broad, String errorString)
     {
         // a helper for matching error strings exactly vs broadly
         List<String> keys = new ArrayList<String>(broad.keySet());
@@ -10850,7 +10850,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object implodeHostname(Object url)
+    public String implodeHostname(Object url)
     {
         return this.implodeParams(url, new HashMap<String, Object>() {{
             put( "hostname", BaseExchange.this.hostname );

@@ -1413,14 +1413,15 @@ public class Bitso extends BitsoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("book", market.get("id"));
         request.put("side", side);
         request.put("type", type);
-        request.put("major", this.amountToPrecision(market.get("symbol"), amount));
+        request.put("major", this.amountToPrecision(precisionSymbol, amount));
         if (java.util.Objects.equals(type, "limit"))
         {
-            request.put("price", this.priceToPrecision(market.get("symbol"), price));
+            request.put("price", this.priceToPrecision(precisionSymbol, price));
         }
         Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
         Map<String, Object> payload = this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
@@ -1699,7 +1700,7 @@ public class Bitso extends BitsoApi
         Integer numOrders = payload.size();
         if (java.util.Objects.equals(numOrders, 1))
         {
-            return this.parseOrder((payload == null || 0 >= ((List<?>)payload).size() ? null : ((List<?>)payload).get(0)), (Map<String, Object>) null);
+            return this.parseOrder(this.safeDict(payload, 0, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
         }
         throw new OrderNotFound((((this.id + ": The order ") + id) + " not found.")) ;
 

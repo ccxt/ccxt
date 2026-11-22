@@ -1945,13 +1945,14 @@ public class Polymarket extends PolymarketApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         if ((java.util.Objects.equals(amount, null)) || (java.util.Objects.equals(price, null)))
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires both the amount and the price arguments")) ;
         }
         Long orderId = this.parseToInt(id);
-        String priceString = this.priceToPrecision(market.get("symbol"), price);
-        String quantity = this.amountToPrecision(market.get("symbol"), amount);
+        String priceString = this.priceToPrecision(precisionSymbol, price);
+        String quantity = this.amountToPrecision(precisionSymbol, amount);
         List<Object> signable = new ArrayList<Object>(Arrays.asList("modifyOrders", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(orderId, priceString, quantity))))));
         Map<String, Object> bodyOp = new HashMap<String, Object>() {{
             put( "type", "modifyOrders" );

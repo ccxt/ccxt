@@ -835,7 +835,7 @@ public class Kalshi extends KalshiApi
         {
             subtitleOrTicker = subtitle;
         }
-        Object marketSymbol = this.slugToMarketSymbol((String) (eventTicker), subtitleOrTicker);
+        String marketSymbol = this.slugToMarketSymbol((String) (eventTicker), subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
@@ -3329,7 +3329,8 @@ public class Kalshi extends KalshiApi
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         Object baseUrls = this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, "kalshi", ""));
+        String baseUrlDefault = this.safeString(baseUrls, "kalshi", "");
+        String baseUrl = this.safeString(baseUrls, apiGroup, baseUrlDefault);
         String implodedPath = (String) this.implodeParams(path, parameters);
         String url = ((baseUrl + "/") + implodedPath);
         Object query = this.omit(parameters, this.extractParams(path));

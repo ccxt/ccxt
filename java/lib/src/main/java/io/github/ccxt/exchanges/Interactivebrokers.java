@@ -1018,7 +1018,7 @@ public class Interactivebrokers extends InteractivebrokersApi
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
         {
-            return (this.ibkrGatewaySignIn(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v12 -> (Map<String, Object>) hx4J40v12; case Object hx4J40v12 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v12.getClass().getName()); })))).join();
+            return (this.ibkrGatewaySignIn(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })))).join();
         }
         String encryptionPemPath = this.safeString(this.options, "encryptionPemPath", "");
         String dhParamPemPath = this.safeString(this.options, "dhParamPemPath", "");
@@ -1192,8 +1192,8 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             // the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
             Object lostTimestamp = this.ibkrGatewayOnSessionLost();
-            Object regainDelay = this.ibkrGatewayRegainDelay();
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(regainDelay, 0))
+            Long regainDelay = this.ibkrGatewayRegainDelay();
+            if ((regainDelay == null || regainDelay <= 0))
             {
                 Object gatewayUrl = this.safeString(this.options, "gatewayUrl");
                 throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ") + gatewayUrl) + " in a browser or set options.autoRegainSession to take it back automatically, ") + this.json(response))) ;
@@ -1267,12 +1267,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @ignore
      * @returns {int} the delay in milliseconds
      */
-    public Object ibkrGatewayRegainDelay()
+    public Long ibkrGatewayRegainDelay()
     {
         Double seconds = this.safeNumber(this.options, "autoRegainSession", 0);
         if ((java.util.Objects.equals(seconds, null)) || ((seconds == null || !(seconds > 0))))
         {
-            return 0;
+            return 0L;
         }
         return this.parseToInt((seconds * 1000L));
     }
@@ -1306,14 +1306,14 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public Boolean ibkrGatewayScheduleRegain()
     {
-        Object regainDelay = this.ibkrGatewayRegainDelay();
-        if ((((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(regainDelay, 0)) || Boolean.TRUE.equals(this.safeBool(this.options, "gatewayRegainScheduled", false)))
+        Long regainDelay = this.ibkrGatewayRegainDelay();
+        if (((regainDelay == null || regainDelay <= 0)) || Boolean.TRUE.equals(this.safeBool(this.options, "gatewayRegainScheduled", false)))
         {
             return false;
         }
         Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp", this.milliseconds());
-        Object wait = Helpers.subtract(this.sum(lostTimestamp, regainDelay), this.milliseconds());
-        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(wait, 0))
+        Long wait = ((this.sum(lostTimestamp, regainDelay)) - this.milliseconds());
+        if ((wait == null || wait <= 0))
         {
             wait = regainDelay;
         }
@@ -1956,7 +1956,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             Object end = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.sum(offset, chunkSize), numDetails);
             List<String> chunk = new ArrayList<String>(Arrays.asList());
-            for (long k = ((long) (switch ((Object) (offset)) { case null -> Long.parseLong("null"); case Long hx4J40v11 -> hx4J40v11.longValue(); case Integer hx4J40v11 -> hx4J40v11.longValue(); case Double hx4J40v11 -> hx4J40v11.longValue(); case Float hx4J40v11 -> hx4J40v11.longValue(); case java.math.BigDecimal hx4J40v11 -> hx4J40v11.longValue(); case String hx4J40v11 -> Long.parseLong(hx4J40v11); case Object hx4J40v11 -> Long.parseLong(String.valueOf(hx4J40v11)); })); ((end != null && !(k >= ((Number) end).doubleValue()))); k++)
+            for (long k = ((long) (switch ((Object) (offset)) { case null -> Long.parseLong("null"); case Long hx4J40v7 -> hx4J40v7.longValue(); case Integer hx4J40v7 -> hx4J40v7.longValue(); case Double hx4J40v7 -> hx4J40v7.longValue(); case Float hx4J40v7 -> hx4J40v7.longValue(); case java.math.BigDecimal hx4J40v7 -> hx4J40v7.longValue(); case String hx4J40v7 -> Long.parseLong(hx4J40v7); case Object hx4J40v7 -> Long.parseLong(String.valueOf(hx4J40v7)); })); ((end != null && !(k >= ((Number) end).doubleValue()))); k++)
             {
                 String detailId = this.safeString(detailIds, k, "");
                 chunk.add(detailId);
@@ -2836,7 +2836,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var fields = ((List<Object>) fieldsqueryVariable).get(0);
         var query = ((List<Object>) fieldsqueryVariable).get(1);
         String fieldsString = String.join(",", (List<String>)fields);
-        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })), (Object) null)).join();
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })), (Object) null)).join();
         //
         //     [
         //         {
@@ -3273,7 +3273,12 @@ public class Interactivebrokers extends InteractivebrokersApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Long maxLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}}), "limit", 1000);
+        Long maxLimit = 1000L;
+        Long configuredLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}}), "limit");
+        if (!java.util.Objects.equals(configuredLimit, null))
+        {
+            maxLimit = configuredLimit;
+        }
         Object requestLimit = maxLimit;
         if (!java.util.Objects.equals(limit, null))
         {
@@ -3290,7 +3295,13 @@ public class Interactivebrokers extends InteractivebrokersApi
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request.put("startTime", this.ibkrFormatTime((since - (((long) duration) * 1000L))));
             request.put("direction", "1"); // forward from startTime, by default startTime is the end of the range
-            requestLimit = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(((Object) (switch ((Object) (requestLimit)) { case null -> (Object) null; case Long hx4J40v8 -> (Object) (hx4J40v8 + 1L); case Integer hx4J40v8 -> (Object) (hx4J40v8.longValue() + 1L); case Double hx4J40v8 -> (Object) (hx4J40v8 + ((double) 1L)); case String hx4J40v8 -> (Object) (hx4J40v8 + "1"); default -> (Object) null; })), maxLimit);
+            if (!java.util.Objects.equals(limit, null))
+            {
+                if ((maxLimit != null && limit < maxLimit))
+                {
+                    requestLimit = (limit + 1L);
+                }
+            }
         }
         request.put("period", this.ibkrPeriod(duration, requestLimit));
         Map<String, Object> response = (this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, parameters))).join();
@@ -3626,7 +3637,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
         var accountId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(0);
         var paramsWithoutAccoundId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(1);
-        Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+        Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
         orderRequest.put("acctId", accountId);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
@@ -3657,7 +3668,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
         var accountId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(0);
         var paramsWithoutAccoundId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(1);
-        Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+        Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
         orderRequest.put("acctId", accountId);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
@@ -3773,8 +3784,13 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         request.put("cOID", clientOrderId);
         Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty")));
-        Map<String, Object> orderTicket = this.extend(request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        List<String> queryKeys = new ArrayList<String>(query.keySet());
+        for (var i = 0; i < queryKeys.size(); i++)
+        {
+            String key = (queryKeys == null || i < 0 || i >= queryKeys.size() ? null : queryKeys.get(i));
+            request.put(key, (query == null || key == null ? null : query.get(key)));
+        }
+        return request;
     }
 
     /**
@@ -3877,7 +3893,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
         var accountId = ((List<Object>) accountIdqueryVariable).get(0);
         var query = ((List<Object>) accountIdqueryVariable).get(1);
-        Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+        Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
         orderRequest.put("acctId", accountId);
         orderRequest.put("accountId", accountId);
         orderRequest.put("orderId", id);
@@ -4822,7 +4838,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(positions, i, new HashMap<String, Object>() {{}})), market);
             if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
             {
                 ((List<Object>)result).add(position);
@@ -4925,12 +4941,11 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    public List<Object> ibkrImplodePath(String path, Map<String, Object> parameters)
+    public Object ibkrImplodePath(String path, Map<String, Object> parameters)
     {
         List<Object> segments = new ArrayList<Object>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
-        List<Object> pathParams = new ArrayList<Object>(Arrays.asList());
         List<String> imploded = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < segments.size(); i++)
         {
@@ -4938,7 +4953,6 @@ public class Interactivebrokers extends InteractivebrokersApi
             if ((segment.startsWith(((String)":"))))
             {
                 String name = (segment == null ? null : ((String)segment).substring(Math.min(1, ((String)segment).length())));
-                ((List<Object>)pathParams).add(name);
                 String value = this.safeString(parameters, name, segment);
                 imploded.add(value);
             } else
@@ -4946,7 +4960,30 @@ public class Interactivebrokers extends InteractivebrokersApi
                 imploded.add(segment);
             }
         }
-        return new ArrayList<Object>(Arrays.asList(String.join("/", (List<String>)imploded), pathParams));
+        return String.join("/", (List<String>)imploded);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    public Object ibkrPathParams(String path)
+    {
+        List<Object> segments = new ArrayList<Object>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
+        List<Object> pathParams = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < segments.size(); i++)
+        {
+            String segment = (String) (segments == null || i < 0 || i >= segments.size() ? null : segments.get(i));
+            if ((segment.startsWith(((String)":"))))
+            {
+                ((List<Object>)pathParams).add((segment == null ? null : ((String)segment).substring(Math.min(1, ((String)segment).length()))));
+            }
+        }
+        return pathParams;
     }
 
     /**
@@ -5021,13 +5058,12 @@ public class Interactivebrokers extends InteractivebrokersApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        var implodedPathpathParamsVariable = this.ibkrImplodePath((String) (path), (Map<String, Object>) (parameters));
-        var implodedPath = ((List<Object>) implodedPathpathParamsVariable).get(0);
-        var pathParams = ((List<Object>) implodedPathpathParamsVariable).get(1);
+        Object implodedPath = this.ibkrImplodePath((String) (path), (Map<String, Object>) (parameters));
         String apiBase = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Object baseUrl = Helpers.add((apiBase == null ? null : ((Map<String, Object>)this.urls.get("api")).get(apiBase)), implodedPath);
+        String apiUrl = this.safeString(this.urls.get("api"), apiBase, "");
+        String baseUrl = (apiUrl + implodedPath);
         Object url = baseUrl;
-        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, pathParams);
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.ibkrPathParams((String) (path)));
         Boolean hasQuery = query.size() > 0;
         Boolean isGetOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         String requestBody = null;
@@ -5037,12 +5073,12 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             String gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            url = Helpers.add(this.ibkrGatewayBaseUrl((String) ((apiBase == null ? null : ((Map<String, Object>)this.urls.get("api")).get(apiBase))), gatewayUrl), implodedPath);
+            url = Helpers.add(this.ibkrGatewayBaseUrl(apiUrl, gatewayUrl), implodedPath);
             if (Boolean.TRUE.equals(isGetOrDelete))
             {
                 if (Boolean.TRUE.equals(hasQuery))
                 {
-                    url = ((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + (("?" + this.urlencode(query)))); case Double hx4J40v1 -> (Object) (hx4J40v1 + 0.0); case Object hx4J40v1 -> (Object) (String.valueOf(hx4J40v1) + (("?" + this.urlencode(query)))); }));
+                    url = (url + ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -5072,7 +5108,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             Object signatureKey = ((String)this.readFile(this.options.get("signaturePemPath")));
             oauthParams.put("oauth_signature_method", "RSA-SHA256");
             Map<String, Object> authParams = this.extend(oauthParams, query);
-            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), (String) (baseUrl), authParams, accessTokenSecretHex);
+            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), baseUrl, authParams, accessTokenSecretHex);
             String signature = rsa(auth, signatureKey, sha256());
             authParams.put("oauth_signature", this.ibkrEncrypt(signature));
             requestHeaders = new HashMap<String, Object>() {{
@@ -5093,7 +5129,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 if (Boolean.TRUE.equals(hasQuery))
                 {
-                    url = ((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + (("?" + this.urlencode(query)))); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + (("?" + this.urlencode(query)))); }));
+                    url = (url + ("?" + this.urlencode(query)));
                     // the query-string params are part of the signature base string too
                     signingParams = this.extend(oauthParams, query);
                 }
@@ -5101,7 +5137,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 requestBody = this.json(query);
             }
-            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), (String) (baseUrl), signingParams, "");
+            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), baseUrl, signingParams, "");
             String signature = this.hmac(this.encode(auth), this.base64ToBinary(liveSessionToken), sha256(), "base64");
             oauthParams.put("oauth_signature", this.ibkrEncrypt(signature));
             requestHeaders = new HashMap<String, Object>() {{

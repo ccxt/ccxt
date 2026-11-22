@@ -776,7 +776,7 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> categories = (List<Object>)(this.safeList(data, "categories", new ArrayList<Object>(Arrays.asList())));
+            List<Object> categories = this.safeList(data, "categories", new ArrayList<Object>(Arrays.asList()));
             Integer categoriesLength = categories.size();
             for (var ci = 0; (categoriesLength != null && ci < categoriesLength); ci++)
             {
@@ -1268,7 +1268,7 @@ public class Predictfun extends PredictfunApi
         List<Object> topicMarkets = this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
         Integer marketCount = topicMarkets.size();
         String symbolTitle = this.titleForMarketSymbol((String) (topicSlug), (String) (title), ((long) marketCount));
-        Object marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (symbolTitle));
+        String marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (symbolTitle));
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
         Boolean active = (java.util.Objects.equals(tradingStatus, "OPEN"));

@@ -2296,7 +2296,7 @@ public class Kucoin extends KucoinApi
         List<Object> symbolsData = new ArrayList<Object>(Arrays.asList());
         if (fetchSpotMarkets)
         {
-            symbolsData = (List<Object>) this.safeList((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new ArrayList<Object>(Arrays.asList()));
+            symbolsData = (List<Object>) this.safeList(this.safeDict(responses, 0, new HashMap<String, Object>() {{}}), "data", new ArrayList<Object>(Arrays.asList()));
         }
         Long crossIndex = 0L;
         Long isolatedIndex = 0L;
@@ -2323,10 +2323,10 @@ public class Kucoin extends KucoinApi
         {
             contractIndex = nextIndex;
         }
-        Map<String, Object> crossData = (Map<String, Object>) (((Boolean.TRUE.equals(requestMarginables))) ? this.safeDict((responses == null || crossIndex == null || crossIndex.intValue() < 0 || crossIndex.intValue() >= responses.size() ? null : responses.get(crossIndex.intValue())), "data", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
+        Map<String, Object> crossData = (Map<String, Object>) (((Boolean.TRUE.equals(requestMarginables))) ? this.safeDict(this.safeDict(responses, crossIndex, new HashMap<String, Object>() {{}}), "data", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
         List<Object> crossItems = this.safeList(crossData, "items", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> crossById = this.indexBy(crossItems, "symbol");
-        Object isolatedData = ((Boolean.TRUE.equals(requestMarginables))) ? (responses == null || isolatedIndex == null || isolatedIndex.intValue() < 0 || isolatedIndex.intValue() >= responses.size() ? null : responses.get(isolatedIndex.intValue())) : new HashMap<String, Object>() {{}};
+        Map<String, Object> isolatedData = (Map<String, Object>) (((Boolean.TRUE.equals(requestMarginables))) ? this.safeDict(responses, isolatedIndex, new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
         List<Object> isolatedItems = this.safeList(isolatedData, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> isolatedById = this.indexBy(isolatedItems, "symbol");
         Map<String, Object> tickersResponse = (Map<String, Object>) (((Boolean.TRUE.equals(fetchTickersFees))) ? this.safeDict(responses, tickersIndex, new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
@@ -12658,7 +12658,7 @@ public class Kucoin extends KucoinApi
         Boolean utaOption = utaOptionparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
         Map<String, Object> response = null;
-        Map<String, Object> position = null;
+        Map<String, Object> position = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(utaOption))
         {
             request.put("accountMode", "unified");
@@ -12688,7 +12688,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            position = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            position = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         } else
         {
             response = (this.futuresPrivateGetPosition(this.extend(request, paramsUta))).join();
@@ -12736,7 +12736,7 @@ public class Kucoin extends KucoinApi
             //        }
             //    }
             //
-            position = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            position = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         return this.parsePosition(position, market);
 

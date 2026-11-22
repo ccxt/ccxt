@@ -756,7 +756,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String bidAskSymbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            bidAskSymbol = java.util.Objects.toString(market.get("symbol"), null);
+            bidAskSymbol = this.safeString(market, "symbol");
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", bidAskSymbol);

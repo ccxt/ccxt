@@ -2268,7 +2268,7 @@ public class Xt extends XtApi
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             List<Object> tickers = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTicker((tickers == null || 0 >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(0)), market);
+            return this.parseTicker(this.safeDict(tickers, 0, new HashMap<String, Object>() {{}}), market);
         }
         Map<String, Object> ticker = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         return this.parseTicker(ticker, market);
@@ -2377,7 +2377,7 @@ public class Xt extends XtApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < tickers.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), market);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

@@ -856,7 +856,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), (Map<String, Object>) null);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(order, "symbol", "");
             orders.append(order);
             client.resolve(this.orders, ("orders:" + symbol));

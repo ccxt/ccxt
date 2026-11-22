@@ -1105,7 +1105,7 @@ public class Polymarket extends PolymarketApi
                 continue;
             }
             // Market outcome (no outcome suffix)
-            Object marketSymbol = this.slugToMarketSymbol((String) (eventSlug), (String) (marketSlug));
+            String marketSymbol = this.slugToMarketSymbol((String) (eventSlug), (String) (marketSlug));
             // Build outcomes array
             List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
             for (var oi = 0; oi < outcomeLabels.size(); oi++)

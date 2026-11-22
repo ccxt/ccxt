@@ -102,7 +102,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
     }
 
-    public Object fromEr(String er, Map<String, Object> market)
+    public String fromEr(String er, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(er, null)) || (java.util.Objects.equals(market, null)))
         {

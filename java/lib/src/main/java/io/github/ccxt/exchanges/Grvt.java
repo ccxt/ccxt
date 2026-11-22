@@ -879,7 +879,8 @@ public class Grvt extends GrvtApi
         {
             return true;  // skip if builder fee is already approved
         }
-        List<CompletableFuture<?>> resultsFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos()));
+        (this.loadAccountInfos()).join();
+        List<CompletableFuture<?>> resultsFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}})));
         Object results = (CompletableFuture.allOf(resultsFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(resultsFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
         //
         // {
@@ -1396,9 +1397,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -1570,9 +1571,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -1665,9 +1666,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -1868,9 +1869,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (Boolean.TRUE.equals(useTransfersEndpoint))
         {
@@ -1940,9 +1941,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (Boolean.TRUE.equals(useTransfersEndpoint))
         {
@@ -2187,9 +2188,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -2792,7 +2793,7 @@ public class Grvt extends GrvtApi
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
             Long sizeDigits = this.parseToInt((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
             Double sizeDenominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(sizeDecLength, null)));
-            Object sizeInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.multiply(sizeDigits, sizeMultiplier), sizeDenominator);
+            Double sizeInteger = (((double) (((double) sizeDigits) * ((double) sizeMultiplier))) / ((double) sizeDenominator));
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Grvt.this.safeString(market.get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
@@ -2881,9 +2882,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -3277,9 +3278,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -3368,9 +3369,9 @@ public class Grvt extends GrvtApi
         {
             request.put("start_time", this.numberToString((since * 1000000L)));
         }
-        List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-        var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-        var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
         Map<String, Object> response = (this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
         //
         //    {
@@ -4019,15 +4020,15 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object handleUntilOptionString(String key, Map<String, Object> request, Map<String, Object> parameters, Object multiplier)
+    public Pair<Map<String, Object>, Map<String, Object>> handleUntilOptionString(String key, Map<String, Object> request, Map<String, Object> parameters, Long multiplier)
     {
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
-            request.put(key, this.numberToString(this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1)))));
-            return new ArrayList<Object>(Arrays.asList(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")))));
+            request.put(key, this.numberToString(this.parseToInt((until * (java.util.Objects.requireNonNullElse(multiplier, 1L))))));
+            return new Pair<>(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
         }
-        return new ArrayList<Object>(Arrays.asList(request, parameters));
+        return new Pair<>(request, parameters);
     }
 
     public Long requestId()

@@ -6675,6 +6675,7 @@ public class Bingx extends BingxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         String positionSide = this.safeString(parameters, "positionSide");
         if ((java.util.Objects.equals(market.get("inverse"), true)) && (java.util.Objects.equals(positionSide, null)))
         {
@@ -6686,7 +6687,7 @@ public class Bingx extends BingxApi
             amountString = this.currencyToPrecision((String) (market.get("settle")), amount, (String) null);
         } else
         {
-            amountString = this.amountToPrecision(market.get("symbol"), amount);
+            amountString = this.amountToPrecision(precisionSymbol, amount);
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));

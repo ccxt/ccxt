@@ -4123,7 +4123,7 @@ public class Poloniex extends PoloniexApi
         {
             String currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> feeInfo = this.safeDict(response, currencyId, null);
+            Map<String, Object> feeInfo = this.safeDict(feesById, currencyId, null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> currency = this.currency(code);
@@ -4138,7 +4138,7 @@ public class Poloniex extends PoloniexApi
                         String rawNetworkId = this.safeString(childChains, j, "");
                         String networkId = (rawNetworkId == null ? null : ((String)rawNetworkId).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(code, "")), ""));
                         String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
-                        Map<String, Object> networkInfo = this.safeDict(response, networkId, null);
+                        Map<String, Object> networkInfo = this.safeDict(feesById, networkId, null);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee", (Object) null);
                         Map<String, Object> withdrawObject = new HashMap<String, Object>();

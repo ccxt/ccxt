@@ -2353,15 +2353,16 @@ public class Delta extends DeltaApi
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         String orderType = (type + "_order");
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "product_id", market.get("numericId") );
-            put( "size", Delta.this.amountToPrecision(market.get("symbol"), amount) );
+            put( "size", Delta.this.amountToPrecision(precisionSymbol, amount) );
             put( "side", side );
             put( "order_type", orderType );
         }};
         if (java.util.Objects.equals(type, "limit"))
         {
-            request.put("limit_price", this.priceToPrecision(market.get("symbol"), price));
+            request.put("limit_price", this.priceToPrecision(precisionSymbol, price));
         }
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id")));

@@ -1266,14 +1266,12 @@ public class Hashkey extends HashkeyApi
             }
         }
         Map<String, Object> tradingFees = this.safeDict(this.fees, "trading", null);
-        Map<String, Object> fees = null;
+        String feeKey = "swap";
         if (Boolean.TRUE.equals(isSpot))
         {
-            fees = this.safeDict(tradingFees, "spot", null);
-        } else
-        {
-            fees = this.safeDict(tradingFees, "swap", null);
+            feeKey = "spot";
         }
+        Map<String, Object> fees = this.safeDict(tradingFees, feeKey, null);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
         mapLiteral1.put("symbol", symbol);

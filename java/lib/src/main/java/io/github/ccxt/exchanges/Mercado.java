@@ -724,14 +724,15 @@ public class Mercado extends MercadoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "coin_pair", market.get("id") );
         }};
         Map<String, Object> response = null;
         if (java.util.Objects.equals(type, "limit"))
         {
-            request.put("limit_price", this.priceToPrecision(market.get("symbol"), price));
-            request.put("quantity", this.amountToPrecision(market.get("symbol"), amount));
+            request.put("limit_price", this.priceToPrecision(precisionSymbol, price));
+            request.put("quantity", this.amountToPrecision(precisionSymbol, amount));
             if (java.util.Objects.equals(side, "buy"))
             {
                 response = (this.privatePostPlaceBuyOrder(this.extend(request, parameters))).join();
@@ -749,11 +750,11 @@ public class Mercado extends MercadoApi
                 }
                 String amountString = this.numberToString(amount);
                 String priceString = this.numberToString(price);
-                request.put("cost", this.priceToPrecision(market.get("symbol"), this.parseToNumeric(Precise.stringMul(amountString, priceString))));
+                request.put("cost", this.priceToPrecision(precisionSymbol, this.parseToNumeric(Precise.stringMul(amountString, priceString))));
                 response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();
             } else
             {
-                request.put("quantity", this.amountToPrecision(market.get("symbol"), amount));
+                request.put("quantity", this.amountToPrecision(precisionSymbol, amount));
                 response = (this.privatePostPlaceMarketSellOrder(this.extend(request, parameters))).join();
             }
         }

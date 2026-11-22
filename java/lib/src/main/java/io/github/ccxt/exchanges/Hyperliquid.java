@@ -694,10 +694,9 @@ public class Hyperliquid extends HyperliquidApi
         for (var i = 1; (dexesCount != null && i < dexesCount); i++)
         {
             // builder-deployed perp dexs start at 110000
-            Map<String, Object> dex = this.safeDict(fetchDexes, i, new HashMap<String, Object>() {{}});
             Long secondPart = ((((long) i) * 10000L) - 10000L);
             Object offset = this.sum(110000, secondPart);
-            String dexKey = this.safeString(dex, "name", "");
+            String dexKey = this.safeString(this.safeDict(fetchDexes, i, null), "name", "");
             perpDexesOffset.put(dexKey, offset);
         }
         List<Object> fetchDexesList = new ArrayList<Object>(Arrays.asList());
@@ -727,12 +726,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     break;
                 }
-                Map<String, Object> dex = this.safeDict(fetchDexes, i, new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(dex, null))
-                {
-                    continue;
-                }
-                String dexName = this.safeString(dex, "name");
+                String dexName = this.safeString(this.safeDict(fetchDexes, i, null), "name");
                 ((List<Object>)fetchDexesList).add(dexName);
             }
         }
@@ -4772,7 +4766,7 @@ public class Hyperliquid extends HyperliquidApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 

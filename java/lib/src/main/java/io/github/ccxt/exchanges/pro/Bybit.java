@@ -2536,7 +2536,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

@@ -8677,9 +8677,11 @@ public class Bybit extends BybitApi
             if (((switch ((Object)(rawPosition)) { case List<?> j39v9 -> j39v9.contains("data"); case Map<?, ?> j39v8 -> j39v8.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v7 -> j39v7.contains("is_valid"); case Map<?, ?> j39v6 -> j39v6.containsKey("is_valid"); case null, default -> false; })))
             {
                 // futures only
-                rawPosition = this.safeDict(rawPosition, "data", null);
+                ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (this.safeDict(rawPosition, "data", new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
+            } else
+            {
+                ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (this.safeDict(positions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
             }
-            ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null));
         }
         return this.filterByArrayPositions(results, "symbol", symbolsNormalized);
 
@@ -11248,26 +11250,24 @@ public class Bybit extends BybitApi
         //  ]
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
+        Double minNotional = this.parseNumber("0");
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
         {
             Map<String, Object> tier = this.safeDict(info, i, null);
             String marketId = this.safeString(tier, "symbol");
             Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
-            Double minNotional = this.parseNumber("0");
-            if ((i != 0))
-            {
-                minNotional = this.safeNumber(Helpers.GetValue(info, (((long) i) - 1L)), "riskLimitValue", (Object) null);
-            }
+            Double tierMaxNotional = this.safeNumber(tier, "riskLimitValue", (Object) null);
             HashMap<String, Object> j39v10 = new HashMap<String, Object>();
             j39v10.put("tier", this.safeInteger(tier, "id"));
             j39v10.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
             j39v10.put("currency", marketResolved.get("settle"));
             j39v10.put("minNotional", minNotional);
-            j39v10.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
+            j39v10.put("maxNotional", tierMaxNotional);
             j39v10.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
             j39v10.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
             j39v10.put("info", tier);
             ((List<Object>)tiers).add(j39v10);
+            minNotional = tierMaxNotional;
         }
         return tiers;
     }

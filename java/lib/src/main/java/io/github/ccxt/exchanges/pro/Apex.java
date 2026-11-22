@@ -915,8 +915,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> rawTrade = this.safeDict(lists, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (this.safeDict(lists, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             symbols.put((String)symbol, true);
             trades.append(parsed);
@@ -1067,8 +1066,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> rawPosition = this.safeDict(lists, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(lists, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

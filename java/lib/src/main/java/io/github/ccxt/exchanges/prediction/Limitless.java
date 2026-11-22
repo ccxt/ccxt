@@ -585,7 +585,7 @@ public class Limitless extends LimitlessApi
         Long winningOutcomeIndex = this.safeInteger(raw, "winningOutcomeIndex");
         Boolean marketResolved = (!java.util.Objects.equals(winningOutcomeIndex, null));
         String resolvedOutcome = null;
-        Object marketSymbol = this.slugToMarketSymbol((String) (groupId), (String) (slug));
+        String marketSymbol = this.slugToMarketSymbol((String) (groupId), (String) (slug));
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         Map<String, Object> collateralToken = this.safeDict(raw, "collateralToken", new HashMap<String, Object>() {{}});
@@ -3781,8 +3781,7 @@ public class Limitless extends LimitlessApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, baseUrls.get("limitless"));
+        String baseUrl = this.safeString(this.urls.get("api"), apiGroup, this.safeString(this.urls.get("api"), "limitless", ""));
         String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String querystring = this.urlencodeWithArrayRepeat(query);

@@ -187,9 +187,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 continue;
             }
-            List<Object> marketSelection = this.handleStockParams(methodName, query, market);
-            Boolean marketStock = (Boolean) this.safeBool(marketSelection, 0, false);
-            Map<String, Object> marketParams = this.safeDict(marketSelection, 1, new HashMap<String, Object>() {{}});
+            Pair<Boolean, Map<String, Object>> marketStockmarketParamsVariable = this.handleStockParams(methodName, query, market);
+            Boolean marketStock = marketStockmarketParamsVariable.first();
+            Map<String, Object> marketParams = marketStockmarketParamsVariable.second();
             Boolean isRfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
             String source = explicitSource;
             if (java.util.Objects.equals(source, null))

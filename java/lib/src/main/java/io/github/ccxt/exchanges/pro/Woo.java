@@ -1051,7 +1051,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> data = this.safeDict(message, "data", null);
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
         }})), market);
@@ -1767,8 +1767,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> rawPosition = (Map<String, Object>) ((rawPositions == null || marketId == null ? null : rawPositions.get(marketId)));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, market);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}})), market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             String marketSymbol = this.safeString(market, "symbol", "");

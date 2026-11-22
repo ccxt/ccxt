@@ -1683,7 +1683,7 @@ public class Phemex extends PhemexApi
         return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
     }
 
-    public Object fromEr(String er, Map<String, Object> market)
+    public String fromEr(String er, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(er, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -1887,7 +1887,7 @@ public class Phemex extends PhemexApi
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
-        Object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved);
+        String quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved);
         String volume = this.safeString(ticker, "volume");
         Object baseVolume = volume;
         if (java.util.Objects.equals(volume, null))
@@ -2306,11 +2306,11 @@ public class Phemex extends PhemexApi
         Long timestamp = null;
         String id = null;
         String side = null;
-        Object costString = null;
+        String costString = null;
         String type = null;
         Map<String, Object> fee = null;
-        Object feeCostString = null;
-        Object feeRateString = null;
+        String feeCostString = null;
+        String feeRateString = null;
         String feeCurrencyCode = null;
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -2881,7 +2881,7 @@ public class Phemex extends PhemexApi
         Object amount = this.fromEv(this.safeString(order, "baseQtyEv"), marketResolved);
         Object remaining = this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), marketResolved));
         Object filled = this.fromEv(this.safeString2(order, "cumBaseQtyEv", "cumBaseValueEv"), marketResolved);
-        Object cost = this.fromEr(this.safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), marketResolved);
+        String cost = this.fromEr(this.safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), marketResolved);
         Object average = this.fromEp(this.safeString(order, "avgPriceEp"), marketResolved);
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = this.safeStringLower(order, "side");
@@ -3203,7 +3203,7 @@ public class Phemex extends PhemexApi
         {
             request.put("clOrdID", clientOrderId);
         }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId"))) : parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId")));
         String triggerPrice = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "triggerPrice")));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
@@ -3546,6 +3546,7 @@ public class Phemex extends PhemexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
@@ -3564,7 +3565,7 @@ public class Phemex extends PhemexApi
         {
             if (Boolean.TRUE.equals(isStableSettled))
             {
-                request.put("priceRp", this.priceToPrecision(market.get("symbol"), price));
+                request.put("priceRp", this.priceToPrecision(precisionSymbol, price));
             } else
             {
                 request.put("priceEp", this.toEp(price, market));
@@ -3580,7 +3581,7 @@ public class Phemex extends PhemexApi
         {
             if (Boolean.TRUE.equals(isStableSettled))
             {
-                request.put("orderQtyRq", this.amountToPrecision(market.get("symbol"), amount));
+                request.put("orderQtyRq", this.amountToPrecision(precisionSymbol, amount));
             } else
             {
                 request.put("baseQtyEV", this.toEv(amount, market));
@@ -5201,8 +5202,8 @@ public class Phemex extends PhemexApi
         Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.000001);
         Object markEp = this.fromEp(this.safeString(contract, "markEp"), market);
         Object indexEp = this.fromEp(this.safeString(contract, "indexEp"), market);
-        Object fundingRateEr = this.fromEr(this.safeString(contract, "fundingRateEr"), market);
-        Object nextFundingRateEr = this.fromEr(this.safeString(contract, "predFundingRateEr"), market);
+        String fundingRateEr = this.fromEr(this.safeString(contract, "fundingRateEr"), market);
+        String nextFundingRateEr = this.fromEr(this.safeString(contract, "predFundingRateEr"), market);
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );

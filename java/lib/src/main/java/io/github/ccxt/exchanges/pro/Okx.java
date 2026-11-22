@@ -889,7 +889,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             this.tickers.put(symbol, ticker);
             newTickers.put(symbol, ticker);
         }

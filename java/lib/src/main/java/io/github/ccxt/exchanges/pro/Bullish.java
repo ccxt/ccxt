@@ -578,7 +578,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < rawOrders.size(); i++)
             {
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), (Map<String, Object>) null);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
                 orders.append(parsedOrder);
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -920,7 +920,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i))), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             positions.append(position);
             ((List<Object>)newPositions).add(position);
         }

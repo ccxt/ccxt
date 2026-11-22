@@ -411,7 +411,7 @@ public class Sxbet extends SxbetApi
         // letters+digits only so it survives shortenSlug in one atomic word)
         String hashSuffix = (marketHash == null ? null : ((String)marketHash).substring(Math.max(((String)marketHash).length() - 6, 0)));
         String marketSlug = ((this.shortenSlug((String) (outcomeOneName)) + "_") + hashSuffix);
-        Object marketSymbol = this.slugToMarketSymbol((String) (eventSlug), marketSlug);
+        String marketSymbol = this.slugToMarketSymbol((String) (eventSlug), marketSlug);
         String status = this.safeStringUpper(raw, "status");
         Boolean active = (java.util.Objects.equals(status, "ACTIVE"));
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
@@ -3443,7 +3443,7 @@ public class Sxbet extends SxbetApi
             baseUrl = groupUrl;
         }
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, this.extractParams(path)));
         Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
         Map<String, Object> headersExtended = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
@@ -3458,7 +3458,13 @@ public class Sxbet extends SxbetApi
         Boolean sendAsQuery = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
         {
-            sendAsQuery = !(((Map<?, ?>)query).containsKey("orders"));
+            if (query.containsKey("orders"))
+            {
+                sendAsQuery = false;
+            } else
+            {
+                sendAsQuery = true;
+            }
         }
         String bodyValue = null;
         if (Boolean.TRUE.equals(sendAsQuery))
@@ -3470,7 +3476,7 @@ public class Sxbet extends SxbetApi
             }
         } else
         {
-            if (((Map<String, Object>)query).size() > 0)
+            if (query.size() > 0)
             {
                 bodyValue = this.json(query);
             }

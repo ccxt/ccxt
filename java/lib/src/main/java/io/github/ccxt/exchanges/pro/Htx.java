@@ -2071,8 +2071,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             String marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);

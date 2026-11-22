@@ -323,6 +323,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         String uppercaseType = ((String)type).toUpperCase();
         if (java.util.Objects.equals(side, null))
         {
@@ -370,7 +371,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             request.put("amount", quoteAmount);
         } else
         {
-            request.put("quantity", this.amountToPrecision(market.get("symbol"), amount));
+            request.put("quantity", this.amountToPrecision(precisionSymbol, amount));
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("price", this.priceToPrecision(symbol, price));

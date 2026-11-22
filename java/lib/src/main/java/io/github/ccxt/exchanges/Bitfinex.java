@@ -2552,7 +2552,14 @@ public class Bitfinex extends BitfinexApi
                 put( "id", Bitfinex.this.parseToInt(id) );
             }};
         }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(cid, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("cid", "clientOrderId"))) : parameters;
+        Map<String, Object> paramsOmitted = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(cid, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cid", "clientOrderId")));
+        } else
+        {
+            paramsOmitted = parameters;
+        }
         List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted))).join();
         List<Object> order = this.safeList(response, 4, null);
         Map<String, Object> newOrder = new HashMap<String, Object>() {{

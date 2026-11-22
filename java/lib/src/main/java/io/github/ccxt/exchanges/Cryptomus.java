@@ -1069,7 +1069,7 @@ public class Cryptomus extends CryptomusApi
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < result.size(); i++)
         {
-            ((List<Object>)orders).add(this.parseOrder((result == null || i < 0 || i >= result.size() ? null : result.get(i)), market));
+            ((List<Object>)orders).add(this.parseOrder(this.safeDict(result, i, new HashMap<String, Object>() {{}}), market));
         }
         return orders;
 

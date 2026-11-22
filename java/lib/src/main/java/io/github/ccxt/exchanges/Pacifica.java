@@ -2153,8 +2153,9 @@ public class Pacifica extends PacificaApi
             String side = this.safeString(order, "side");
             String price = this.safeString(order, "price");
             String type = this.safeString(order, "type", "limit");
-            Map<String, Object> orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
-            orderParams.put("timestamp", timestamp);
+            Map<String, Object> orderParams = this.extend(this.safeDict(order, "params", new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }});
             String amount = this.safeString(order, "amount");
             Double amountNumber = this.parseNumber(amount);
             Double priceNumber = this.parseNumber(price);
@@ -3104,7 +3105,7 @@ public class Pacifica extends PacificaApi
         Integer lastIdx = sorted.size();
         if ((lastIdx != null && lastIdx > 0))
         {
-            return this.parseOrder((sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0)), market);
+            return this.parseOrder(this.safeDict(sorted, 0, new HashMap<String, Object>() {{}}), market);
         }
         return this.parseOrder(new HashMap<String, Object>() {{}}, market);
 
@@ -3374,7 +3375,7 @@ public class Pacifica extends PacificaApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 

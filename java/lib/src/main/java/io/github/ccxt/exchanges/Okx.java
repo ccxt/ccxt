@@ -3541,7 +3541,7 @@ public class Okx extends OkxApi
         // }
         //
         List<Object> data = this.safeList(response, "data", null);
-        return this.parseTicker(this.safeDict(data, 0, null), market);
+        return this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -8083,7 +8083,7 @@ public class Okx extends OkxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (this.safeDict(positions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
         }
         return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
 

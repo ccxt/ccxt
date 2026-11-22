@@ -1264,7 +1264,8 @@ public class Bullish extends BullishApi
     private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tradingAccountId", tradingAccountId );
@@ -1845,7 +1846,8 @@ public class Bullish extends BullishApi
     private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
         if (Boolean.TRUE.equals(paginate))
@@ -2125,7 +2127,8 @@ public class Bullish extends BullishApi
     private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
@@ -2195,7 +2198,8 @@ public class Bullish extends BullishApi
     private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2274,7 +2278,8 @@ public class Bullish extends BullishApi
     private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2330,7 +2335,8 @@ public class Bullish extends BullishApi
     private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         if (java.util.Objects.equals(symbol, null))
         {
@@ -2374,7 +2380,8 @@ public class Bullish extends BullishApi
     private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tradingAccountId", tradingAccountId );
@@ -2548,7 +2555,8 @@ public class Bullish extends BullishApi
     private Object fetchDepositsWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
@@ -2630,7 +2638,8 @@ public class Bullish extends BullishApi
     private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         // todo check this method properly
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2815,7 +2824,8 @@ public class Bullish extends BullishApi
     private Object fetchAccountsCore(Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         List<Object> response = (this.privateGetV1AccountsTradingAccounts(parameters)).join();
         //
         //     [
@@ -2928,7 +2938,8 @@ public class Bullish extends BullishApi
     private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", currency.get("id") );
@@ -3015,7 +3026,8 @@ public class Bullish extends BullishApi
     private Object fetchBalanceCore(Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tradingAccountId", tradingAccountId );
@@ -3103,7 +3115,8 @@ public class Bullish extends BullishApi
     private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tradingAccountId", tradingAccountId );
@@ -3222,7 +3235,8 @@ public class Bullish extends BullishApi
     private Object fetchTransfersCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Long maxLimit = 100L;
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
@@ -3298,7 +3312,8 @@ public class Bullish extends BullishApi
     private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         // todo check this method properly
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3406,7 +3421,8 @@ public class Bullish extends BullishApi
     private Object fetchBorrowRateHistoryCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{

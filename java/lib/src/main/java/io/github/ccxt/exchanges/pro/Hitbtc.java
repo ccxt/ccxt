@@ -1754,11 +1754,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeValue(message, "result", new HashMap<String, Object>() {{}});
-        if ((result instanceof List))
+        List<Object> rows = this.safeList(message, "result", null);
+        if (java.util.Objects.equals(rows, null))
+        {
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeDict(message, "result", new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            client.resolve(parsedOrder, messageHash);
+        } else
         {
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-            List<Object> rows = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
             Integer rowsLength = rows.size();
             for (var i = 0; (rowsLength != null && i < rowsLength); i++)
             {
@@ -1766,10 +1769,6 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
-        } else
-        {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (result), (Map<String, Object>) null);
-            client.resolve(parsedOrder, messageHash);
         }
         return message;
     }

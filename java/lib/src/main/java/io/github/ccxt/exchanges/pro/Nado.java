@@ -2107,7 +2107,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     put( "bid", Nado.this.parseX18((String) (bid)) );
                     put( "info", bbo );
                 }}, market);
-                String symbol = (String) market.get("symbol");
+                String symbol = this.safeString(market, "symbol", "");
                 result.put(symbol, ticker);
             }
         }

@@ -1915,7 +1915,7 @@ public class Deribit extends DeribitApi
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < result.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((result == null || i < 0 || i >= result.size() ? null : result.get(i)), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(result, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2157,7 +2157,11 @@ public class Deribit extends DeribitApi
             request.put("count", Math.min(limit, 1000)); // default 10
         }
         Long until = (Long) this.safeInteger2(parameters, "until", "end_timestamp");
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList()));
+        if (!java.util.Objects.equals(until, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+        }
         if (!java.util.Objects.equals(until, null))
         {
             request.put("end_timestamp", until);
@@ -2853,7 +2857,7 @@ public class Deribit extends DeribitApi
         }
         String trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
         Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
-        Map<String, Object> paramsOmitted = parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList()));
         if (Boolean.TRUE.equals(isTrailingAmountOrder))
         {
             paramsOmitted = this.omit(paramsOmitted, "trigger_offset");

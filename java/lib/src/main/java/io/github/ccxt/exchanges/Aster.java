@@ -4391,12 +4391,11 @@ public class Aster extends AsterApi
         String maintenanceMarginPercentageString = null;
         for (var i = 0; i < leverageBracket.size(); i++)
         {
-            Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString((leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i)), 0)))
             {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString((leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i)), 1);
         }
         Double notional = this.parseNumber(notionalStringAbs);
         String contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -4756,12 +4755,11 @@ public class Aster extends AsterApi
         String maintenanceMarginPercentageString = null;
         for (var i = 0; i < leverageBracket.size(); i++)
         {
-            Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString((leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i)), 0)))
             {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString((leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i)), 1);
         }
         Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");

@@ -2572,7 +2572,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
     }
 
-    public Object sbeReadUint(String frameHex, Object offset, Object length)
+    public Long sbeReadUint(String frameHex, Object offset, Object length)
     {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         String digits = "0123456789abcdef";
@@ -2588,7 +2588,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Long next = (Long) (position + 2L);
             Integer high = Helpers.getIndexOf(digits, (frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(position < 0 ? frameHex.length() + position : position, 0), frameHex.length()), Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length())), (int) Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length()))));
             Integer low = Helpers.getIndexOf(digits, (frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(middle < 0 ? frameHex.length() + middle : middle, 0), frameHex.length()), Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length())), (int) Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length()))));
-            result = this.parseToInt(this.sum(result, ((((long) high) * 16L) * factor), (((long) low) * factor)));
+            result = this.parseToInt(this.sum(result, ((((long) high) * factor) * 16L), (((long) low) * factor)));
             factor = this.parseToInt((factor * 256L));
             position = this.parseToInt(next);
         }

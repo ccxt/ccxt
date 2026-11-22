@@ -2579,7 +2579,7 @@ public class Coinbase extends CoinbaseApi
             String marketId = ((baseId + delimiter) + quoteId);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            result.put(symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
+            result.put(symbol, this.parseTicker(this.safeDict(rates, baseId, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 

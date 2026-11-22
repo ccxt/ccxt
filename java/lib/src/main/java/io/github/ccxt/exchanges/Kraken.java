@@ -1352,7 +1352,7 @@ public class Kraken extends KrakenApi
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            Object ticker = (tickers == null || id == null ? null : tickers.get(id));
+            Map<String, Object> ticker = this.safeDict(tickers, id, new HashMap<String, Object>() {{}});
             result.put(symbol, this.parseTicker(ticker, market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
@@ -2922,14 +2922,14 @@ public class Kraken extends KrakenApi
         //         }
         //     }
         //
-        Object result = this.safeDict(response, "result", new ArrayList<Object>(Arrays.asList()));
-        if (!(((Map<?, ?>)result).containsKey(id)))
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        if (!(result.containsKey(id)))
         {
             throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", id);
-        return this.parseOrder(this.extend(mapLiteral8, Helpers.GetValue(result, id)), (Map<String, Object>) null);
+        return this.parseOrder(this.extend(mapLiteral8, (result == null || id == null ? null : result.get(id))), (Map<String, Object>) null);
 
     }
 

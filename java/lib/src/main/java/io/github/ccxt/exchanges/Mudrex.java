@@ -1267,7 +1267,7 @@ public class Mudrex extends MudrexApi
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            ((List<Object>)orders).add(this.parseOrder((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market));
+            ((List<Object>)orders).add(this.parseOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
 
@@ -1375,10 +1375,9 @@ public class Mudrex extends MudrexApi
         List<Object> outPos = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> p = (Map<String, Object>) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-            String symRaw = this.safeString(p, "symbol");
+            String symRaw = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
             Map<String, Object> m = this.safeMarket(symRaw, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> pos = (Map<String, Object>) this.parsePosition(p, m);
+            Map<String, Object> pos = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rows, i, new HashMap<String, Object>() {{}})), m);
             ((List<Object>)outPos).add(pos);
         }
         return this.filterByArrayPositions(outPos, "symbol", symbols);

@@ -220,16 +220,14 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         for (var i = 0; i < obBids.size(); i++)
         {
-            List<Object> bid = this.safeList(obBids, i, null);
-            Double price = this.safeNumber(bid, 0, (Object) null);
-            Double quantity = this.safeNumber(bid, 1, (Object) null);
+            Double price = this.safeNumber((obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i)), 0, (Object) null);
+            Double quantity = this.safeNumber((obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i)), 1, (Object) null);
             bids.store(price, quantity);
         }
         for (var i = 0; i < obAsks.size(); i++)
         {
-            List<Object> ask = this.safeList(obAsks, i, null);
-            Double price = this.safeNumber(ask, 0, (Object) null);
-            Double quantity = this.safeNumber(ask, 1, (Object) null);
+            Double price = this.safeNumber((obAsks == null || i < 0 || i >= obAsks.size() ? null : obAsks.get(i)), 0, (Object) null);
+            Double quantity = this.safeNumber((obAsks == null || i < 0 || i >= obAsks.size() ? null : obAsks.get(i)), 1, (Object) null);
             asks.store(price, quantity);
         }
     }
@@ -1544,9 +1542,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
                 for (var i = 0; i < obAsks.size(); i++)
                 {
-                    List<Object> ask = this.safeList(obAsks, i, null);
-                    Double price = this.safeNumber(ask, 0, (Object) null);
-                    Double quantity = this.safeNumber(ask, 1, (Object) null);
+                    Double price = this.safeNumber((obAsks == null || i < 0 || i >= obAsks.size() ? null : obAsks.get(i)), 0, (Object) null);
+                    Double quantity = this.safeNumber((obAsks == null || i < 0 || i >= obAsks.size() ? null : obAsks.get(i)), 1, (Object) null);
                     asks.store(price, quantity);
                 }
             }
@@ -1555,9 +1552,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
                 for (var i = 0; i < obBids.size(); i++)
                 {
-                    List<Object> bid = this.safeList(obBids, i, null);
-                    Double price = this.safeNumber(bid, 0, (Object) null);
-                    Double quantity = this.safeNumber(bid, 1, (Object) null);
+                    Double price = this.safeNumber((obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i)), 0, (Object) null);
+                    Double quantity = this.safeNumber((obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i)), 1, (Object) null);
                     bids.store(price, quantity);
                 }
             }

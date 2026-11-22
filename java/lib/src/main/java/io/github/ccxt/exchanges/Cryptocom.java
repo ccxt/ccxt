@@ -4071,7 +4071,7 @@ public class Cryptocom extends CryptocomApi
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0, null)), market);
+        return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), market);
 
     }
 
@@ -4277,6 +4277,7 @@ public class Cryptocom extends CryptocomApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instrument_name", market.get("id") );
             put( "type", "MARKET" );
@@ -4289,7 +4290,7 @@ public class Cryptocom extends CryptocomApi
         }
         if (!java.util.Objects.equals(price, null))
         {
-            request.put("price", this.priceToPrecision(market.get("symbol"), price));
+            request.put("price", this.priceToPrecision(precisionSymbol, price));
         }
         Map<String, Object> response = (this.v1PrivatePostPrivateClosePosition(this.extend(request, parameters))).join();
         //
@@ -4493,7 +4494,7 @@ public class Cryptocom extends CryptocomApi
             mapLiteral6.put("api_key", this.apiKey);
             mapLiteral6.put("sig", signature);
             mapLiteral6.put("nonce", nonce);
-            requestBody = this.json(mapLiteral6);
+            String jsonBody = this.json(mapLiteral6);
             // fix issue https://github.com/ccxt/ccxt/issues/11179
             // php always encodes dictionaries as arrays
             // if an array is empty, php will put it in square brackets
@@ -4503,8 +4504,9 @@ public class Cryptocom extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                requestBody = (requestBody == null ? null : ((String)requestBody).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(arrayString, "")), java.util.regex.Matcher.quoteReplacement(java.util.Objects.toString(paramsString, ""))));
+                jsonBody = (jsonBody == null ? null : ((String)jsonBody).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(arrayString, "")), java.util.regex.Matcher.quoteReplacement(java.util.Objects.toString(paramsString, ""))));
             }
+            requestBody = jsonBody;
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};

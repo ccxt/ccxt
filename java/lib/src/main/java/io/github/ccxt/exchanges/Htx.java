@@ -8970,7 +8970,7 @@ public class Htx extends HtxApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            if (Boolean.TRUE.equals(market.get("linear")))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100L, true)).join();
             }
@@ -9571,10 +9571,13 @@ public class Htx extends HtxApi
                     {
                         bodyRequest = query;
                     }
-                    signedBody = this.json(bodyRequest);
-                    if (!Boolean.TRUE.equals(isArrayParams) && ((signedBody.length() == 2)))
+                    String bodyJson = this.json(bodyRequest);
+                    if (!Boolean.TRUE.equals(isArrayParams) && ((bodyJson.length() == 2)))
                     {
                         signedBody = "{}";
+                    } else
+                    {
+                        signedBody = bodyJson;
                     }
                     signedHeaders = new HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );
@@ -11408,7 +11411,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                ((List<Object>)result).add(this.parseSettlement((settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)), (Map<String, Object>) (market)));
+                ((List<Object>)result).add(this.parseSettlement(settlement, (Map<String, Object>) (market)));
             }
         }
         return result;

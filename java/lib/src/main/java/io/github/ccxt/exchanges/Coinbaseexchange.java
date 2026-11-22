@@ -2112,7 +2112,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             request.put("client_oid", clientOrderId);
         }
-        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid"))) : parameters;
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid")));
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -2380,7 +2380,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             request.put("end_date", this.iso8601(until));
         }
-        Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+        Map<String, Object> paramsUntil = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
         List<Object> response = (this.privateGetAccountsIdLedger(this.extend(request, paramsUntil))).join();
         List<Object> entries = this.toArray(response);
         List<Object> entriesWithCurrency = new ArrayList<Object>(Arrays.asList());

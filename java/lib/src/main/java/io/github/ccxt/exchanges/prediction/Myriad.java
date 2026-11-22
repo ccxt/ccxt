@@ -790,7 +790,7 @@ public class Myriad extends MyriadApi
         String marketSlug = this.safeString(position, "marketSlug", "");
         String outcomeTitle = this.safeString(position, "outcomeTitle", "");
         String outcome = this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
-        Object marketSymbol = this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
+        String marketSymbol = this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
         String outcomeId = this.safeString(position, "outcomeId");
         String id = ((((this.safeString(position, "networkId", "") + ":") + this.safeString(position, "marketId", "")) + "/") + this.safeString(position, "outcomeId", ""));
         Double shares = this.safeNumber(position, "shares", (Object) null);
@@ -1750,7 +1750,7 @@ public class Myriad extends MyriadApi
         String outcomeValue = this.safeString(outcomeObj, "outcome");
         String outcome = (((!java.util.Objects.equals(outcomeValue, null)))) ? outcomeValue : this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
         String marketSymbolValue = this.safeString(outcomeObj, "market");
-        Object marketSymbol = (((!java.util.Objects.equals(marketSymbolValue, null)))) ? marketSymbolValue : this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
+        String marketSymbol = (((!java.util.Objects.equals(marketSymbolValue, null)))) ? marketSymbolValue : this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
         String label = this.safeString(outcomeObj, "label");
         if (java.util.Objects.equals(label, null))
         {
@@ -2622,7 +2622,7 @@ public class Myriad extends MyriadApi
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
         // globally unique, so do NOT fall back to networkId — that would prefix every handle.
         // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
-        Object marketSymbol = this.slugToMarketSymbol((String) (eventSlug), (String) (slug));
+        String marketSymbol = this.slugToMarketSymbol((String) (eventSlug), (String) (slug));
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         Map<String, Object> tokenObj = this.safeDict(raw, "token", new HashMap<String, Object>() {{}});
         String tokenAddress = this.safeString(tokenObj, "address");

@@ -1617,7 +1617,7 @@ public class Whitebit extends WhitebitApi
         for (var i = 0; i < currencyKeys.size(); i++)
         {
             String code = (currencyKeys == null || i < 0 || i >= currencyKeys.size() ? null : currencyKeys.get(i));
-            Object currency = (currenciesData == null || code == null ? null : currenciesData.get(code));
+            Map<String, Object> currency = this.safeDict(currenciesData, code, null);
             if (java.util.Objects.equals(currency, null))
             {
                 continue;
@@ -3285,7 +3285,7 @@ public class Whitebit extends WhitebitApi
             List<Object> orders = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < orders.size(); j++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), marketNew);
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(orders, j, new HashMap<String, Object>() {{}}), marketNew);
                 ((List<Object>)results).add(this.extend(order, new HashMap<String, Object>() {{
                     put( "status", "closed" );
                 }}));

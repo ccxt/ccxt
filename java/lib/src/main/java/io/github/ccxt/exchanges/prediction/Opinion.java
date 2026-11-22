@@ -373,7 +373,7 @@ public class Opinion extends OpinionApi
         {
             effectiveEventSlug = null;
         }
-        Object marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, (String) (slug));
+        String marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, (String) (slug));
         String statusEnum = this.safeString(raw, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
@@ -1638,20 +1638,31 @@ public class Opinion extends OpinionApi
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> trades = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
         Integer tradesLength = trades.size();
+        List<Object> filled = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (tradesLength != null && i < tradesLength); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-            String tokenId = this.safeString(trade, "tokenId");
-            Long marketId = this.safeInteger(trade, "marketId");
+            String tokenId = this.safeString((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "tokenId");
+            Long marketId = this.safeInteger((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "marketId");
             if ((java.util.Objects.equals(tokenId, null)) && (!java.util.Objects.equals(marketId, null)))
             {
                 Object tradeMarket = (this.loadTradeMarket(marketId)).join();
                 Map<String, Object> info = this.safeDict(tradeMarket, "info", new HashMap<String, Object>() {{}});
-                Boolean isYes = (java.util.Objects.equals(this.safeStringLower(trade, "outcomeSideEnum"), "yes"));
-                trade.put("tokenId", ((Boolean.TRUE.equals(isYes))) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId"));
+                Boolean isYes = (java.util.Objects.equals(this.safeStringLower((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "outcomeSideEnum"), "yes"));
+                Map<String, Object> extra = new HashMap<String, Object>() {{}};
+                if (Boolean.TRUE.equals(isYes))
+                {
+                    extra.put("tokenId", this.safeString(info, "yesTokenId"));
+                } else
+                {
+                    extra.put("tokenId", this.safeString(info, "noTokenId"));
+                }
+                ((List<Object>)filled).add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), extra));
+            } else
+            {
+                ((List<Object>)filled).add((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
             }
         }
-        return this.parsePredictionTrades(trades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
+        return this.parsePredictionTrades(filled, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

@@ -1181,8 +1181,7 @@ public class Luno extends LunoApi
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            Object ticker = (tickers == null || id == null ? null : tickers.get(id));
-            result.put(symbol, this.parseTicker(ticker, market));
+            result.put(symbol, this.parseTicker(this.safeDict(tickers, id, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -1588,6 +1587,7 @@ public class Luno extends LunoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String precisionSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "pair", market.get("id") );
         }};
@@ -1599,16 +1599,16 @@ public class Luno extends LunoApi
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (java.util.Objects.equals(side, "buy"))
             {
-                request.put("counter_volume", this.amountToPrecision(market.get("symbol"), amount));
+                request.put("counter_volume", this.amountToPrecision(precisionSymbol, amount));
             } else
             {
-                request.put("base_volume", this.amountToPrecision(market.get("symbol"), amount));
+                request.put("base_volume", this.amountToPrecision(precisionSymbol, amount));
             }
             response = (this.privatePostMarketorder(this.extend(request, parameters))).join();
         } else
         {
-            request.put("volume", this.amountToPrecision(market.get("symbol"), amount));
-            request.put("price", this.priceToPrecision(market.get("symbol"), price));
+            request.put("volume", this.amountToPrecision(precisionSymbol, amount));
+            request.put("price", this.priceToPrecision(precisionSymbol, price));
             request.put("type", (((java.util.Objects.equals(side, "buy")))) ? "BID" : "ASK");
             response = (this.privatePostPostorder(this.extend(request, parameters))).join();
         }

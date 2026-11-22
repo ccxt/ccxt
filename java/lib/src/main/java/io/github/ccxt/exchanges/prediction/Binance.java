@@ -784,7 +784,7 @@ public class Binance extends BinanceApi
         String vendor = this.safeString(rawTopic, "vendor");
         String collateral = this.safeString(rawTopic, "collateral", "USDT");
         String title = this.safeString(rawMarket, "title", marketId);
-        Object marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (title));
+        String marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (title));
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
         Boolean active = (java.util.Objects.equals(tradingStatus, "OPEN"));

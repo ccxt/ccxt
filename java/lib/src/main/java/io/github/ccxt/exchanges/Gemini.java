@@ -1382,6 +1382,7 @@ public class Gemini extends GeminiApi
     private Object fetchTickerV1AndV2Core(String symbol, Map<String, Object> parameters)
     {
 
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Object tickerPromiseA = this.fetchTickerV1((String) (symbol), parameters);
         Object tickerPromiseB = this.fetchTickerV2((String) (symbol), parameters);
         var tickerAtickerBVariable = (CompletableFuture.allOf(((CompletableFuture<?>) tickerPromiseA), ((CompletableFuture<?>) tickerPromiseB)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) tickerPromiseA).join(), ((CompletableFuture<?>) tickerPromiseB).join())))).join();
