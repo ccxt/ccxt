@@ -2490,7 +2490,8 @@ export default class hitbtc extends Exchange {
         };
         if (reduceOnly !== undefined) {
             if ((resolvedMarketType !== 'swap') && (resolvedMarketType !== 'margin')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
+                const marketTypeString: string = this.safeString (market, 'type', '');
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + marketTypeString + ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
         if (reduceOnly === true) {
