@@ -6791,7 +6791,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'address': address, // only supports existing addresses in your withdraw address list
-            'currency': currency['id'].toLowerCase (),
+            'currency': this.safeStringLower (currency, 'id', ''),
         };
         if (tagValue !== undefined) {
             request['addr-tag'] = tagValue; // only for XRP?
