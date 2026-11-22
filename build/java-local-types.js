@@ -15033,15 +15033,6 @@ const PAIR_ELEMENT_TYPES = {
     'handlePostOnly': [ 'Boolean', PAIR_MAP ],
 };
 const PAIR_ACCESSORS = [ 'first', 'second' ];
-// venue-only [Str, Dict] producers with no override: every `return [a, b]` must still prove its elements
-const PAIR_VENUE_TYPES = {
-    'handleTypePostOnlyAndTimeInForce': { file: /[\\/]ts[\\/]src[\\/]deepcoin\.ts$/, types: [ 'String', PAIR_MAP ] },
-    'getInstType': { file: /[\\/]ts[\\/]src[\\/]pro[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
-    'handleProductTypeAndParams': { file: /[\\/]ts[\\/]src[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
-    'orderRequest': { file: /[\\/]ts[\\/]src[\\/]poloniex\.ts$/, types: [ PAIR_MAP, PAIR_MAP ] },
-    'getBybitType': { file: /[\\/]ts[\\/]src[\\/]bybit\.ts$/, types: [ 'String', PAIR_MAP ] },
-};
-
 function pairJavaType (types) {
     return `io.github.ccxt.types.Pair<${types[0]}, ${types[1]}>`;
 }
@@ -15055,13 +15046,9 @@ function pairMethodTypes (printer, declaration) {
     if (declaration === undefined || !ts.isMethodDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
         return undefined;
     }
-    const venue = Object.hasOwn (PAIR_VENUE_TYPES, declaration.name.text) ? PAIR_VENUE_TYPES[declaration.name.text] : undefined;
-    if (venue !== undefined) {
-        return venue.file.test (pairDeclarationFile (declaration)) ? venue.types : undefined;
-    }
     const types = Object.hasOwn (PAIR_ELEMENT_TYPES, declaration.name.text) ? PAIR_ELEMENT_TYPES[declaration.name.text] : undefined;
     if (types === undefined) {
-        return undefined;
+        return pairVenueDeclaredTypes (printer, declaration);
     }
     let current = declaration;
     try {
@@ -15080,7 +15067,7 @@ function pairMethodTypes (printer, declaration) {
 function pairCallTypes (printer, node) {
     const call = unwrapParens (node);
     if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
-        || !(Object.hasOwn (PAIR_ELEMENT_TYPES, String (call.expression.name.text)) || Object.hasOwn (PAIR_VENUE_TYPES, String (call.expression.name.text)))) {
+        || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword && !Object.hasOwn (PAIR_ELEMENT_TYPES, String (call.expression.name.text))) {
         return undefined;
     }
     let declaration;
@@ -15178,6 +15165,9 @@ function pairReturnElementProven (printer, node, element) {
     if (ts.isStringLiteralLike (value)) {
         return element === 'String' || element === 'Object';
     }
+    if (value.kind === ts.SyntaxKind.TrueKeyword || value.kind === ts.SyntaxKind.FalseKeyword) {
+        return element === 'Boolean' || element === 'Object';
+    }
     if (!ts.isIdentifier (value)) {
         return false;
     }
@@ -15197,6 +15187,88 @@ function pairReturnElementProven (printer, node, element) {
         }
     }
     return bound !== undefined && bound !== 'Object' && (pairSameType (bound, element) || element === 'Object');
+}
+
+// a venue method (no base ancestor, not async) declaring `[ Str|Bool|Dict, Dict ]` prints the Pair of those
+// slots when every own `return [a, b]` proves its elements before the body prints; else it stays Object
+const PAIR_DECLARED_SLOT_TYPES = { 'Str': 'String', 'string': 'String', 'Bool': 'Boolean', 'boolean': 'Boolean', 'Dict': PAIR_MAP };
+const PAIR_VENUE_DECLARED = new WeakMap ();
+
+function pairDeclaredSlotType (node) {
+    const text = String (node?.getText?.() ?? '').trim ();
+    return Object.hasOwn (PAIR_DECLARED_SLOT_TYPES, text) ? PAIR_DECLARED_SLOT_TYPES[text] : undefined;
+}
+
+// a binding of `const [ a, b ] = this.<pair producer> (..)` holds that producer's slot type
+function pairBindingSlotType (printer, declaration) {
+    const pattern = declaration?.parent;
+    const holder = pattern?.parent;
+    if (!ts.isBindingElement (declaration) || pattern === undefined || pattern.kind !== ts.SyntaxKind.ArrayBindingPattern
+        || holder === undefined || !ts.isVariableDeclaration (holder) || (holder.parent?.flags & ts.NodeFlags.Const) === 0) {
+        return undefined;
+    }
+    const call = unwrapParens (holder.initializer);
+    const name = call !== undefined && ts.isCallExpression (call) && ts.isPropertyAccessExpression (call.expression) ? String (call.expression.name.text) : undefined;
+    const types = name !== undefined && Object.hasOwn (PAIR_ELEMENT_TYPES, name) ? pairCallTypes (printer, call) : undefined;
+    const slot = pattern.elements.indexOf (declaration);
+    return types !== undefined && (slot === 0 || slot === 1) ? types[slot] : undefined;
+}
+
+function pairVenueReturnsProven (printer, method, types) {
+    let proven = true;
+    let count = 0;
+    const visit = (n) => {
+        if (!proven || ts.isFunctionLike (n) || ts.isClassLike (n)) {
+            return;
+        }
+        if (ts.isReturnStatement (n)) {
+            count++;
+            const value = unwrapParens (n.expression);
+            proven = value !== undefined && ts.isArrayLiteralExpression (value) && value.elements.length === 2
+                && value.elements.every ((e, i) => {
+                    const v = unwrapParens (e);
+                    if (v === undefined || v.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (v) && v.text === 'undefined')) {
+                        return false;
+                    }
+                    if (ts.isIdentifier (v)) {
+                        const d = printer.getChecker ().getSymbolAtLocation (v)?.valueDeclaration?.resolve ();
+                        if (pairBindingSlotType (printer, d) === types[i]
+                            || (d !== undefined && (ts.isVariableDeclaration (d) || ts.isParameterDeclaration (d)) && pairDeclaredSlotType (d.type) === types[i])) {
+                            return true;
+                        }
+                    }
+                    return pairReturnElementProven (printer, v, types[i]);
+                });
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    method.body?.forEachChild (visit);
+    return proven && count > 0;
+}
+
+function pairVenueDeclaredTypes (printer, declaration) {
+    if (PAIR_VENUE_DECLARED.has (declaration)) {
+        return PAIR_VENUE_DECLARED.get (declaration);
+    }
+    PAIR_VENUE_DECLARED.set (declaration, undefined);
+    let types;
+    try {
+        const type = declaration.type;
+        const file = pairDeclarationFile (declaration);
+        if (type !== undefined && ts.isTupleTypeNode (type) && type.elements.length === 2 && /ts[\\/]src[\\/]/.test (file)
+            && !/ts[\\/]src[\\/](base|test)[\\/]/.test (file) && !(declaration.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)
+            && printer.getMethodOverride (declaration) === undefined) {
+            const slots = type.elements.map (pairDeclaredSlotType);
+            if (slots[0] !== undefined && slots[1] === PAIR_MAP && pairVenueReturnsProven (printer, declaration, slots)) {
+                types = slots;
+            }
+        }
+    } catch (e) {
+        types = undefined;
+    }
+    PAIR_VENUE_DECLARED.set (declaration, types);
+    return types;
 }
 
 export function installJavaTuplePairReturns (transpiler) {
