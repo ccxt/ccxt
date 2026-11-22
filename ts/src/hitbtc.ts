@@ -1619,8 +1619,7 @@ export default class hitbtc extends Exchange {
         const addressTo = address;
         const tag = this.safeString (native, 'payment_id');
         const tagTo = tag;
-        const sender = this.safeList (native, 'senders');
-        const addressFrom = this.safeString (sender, 0);
+        const addressFrom = this.safeString (this.safeList (native, 'senders', []), 0);
         const amount = this.safeNumber (native, 'amount');
         const subType = this.safeString (transaction, 'subtype');
         const internal = subType === 'OFFCHAIN';
@@ -2101,8 +2100,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     ]
         //
-        const order = this.safeDict (response, 0, {});
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.safeDict (response, 0, {}), market);
     }
 
     /**
