@@ -1230,7 +1230,9 @@ export default class interactivebrokers extends Exchange {
         const usedCodes = Object.keys (used);
         for (let i = 0; i < usedCodes.length; i++) {
             const code = usedCodes[i];
-            result[code]['used'] = used[code];
+            const usedAccount: Dict = this.extend ({}, this.safeDict (result, code, {}));
+            usedAccount['used'] = used[code];
+            result[code] = usedAccount;
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
         if ('orders' in response) {
@@ -1238,7 +1240,9 @@ export default class interactivebrokers extends Exchange {
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
                 if ((code !== 'info') && (this.safeString (result[code], 'used') === undefined)) {
-                    result[code]['used'] = '0';
+                    const zeroAccount: Dict = this.extend ({}, this.safeDict (result, code, {}));
+                    zeroAccount['used'] = '0';
+                    result[code] = zeroAccount;
                 }
             }
         }
@@ -1357,20 +1361,22 @@ export default class interactivebrokers extends Exchange {
             if ((symbol in seen) && isContract) {
                 const info = this.safeDict (market, 'info', {});
                 const listingExchange = this.safeString2 (info, 'listingExchange', 'exchange', 'default');
-                const marketBase = this.safeString (market, 'base');
-                const marketBaseId = this.safeString (market, 'baseId');
+                const marketBase: string = this.safeString (market, 'base', '');
+                const marketBaseId: string = this.safeString (market, 'baseId', '');
                 const isFuture = this.safeBool (market, 'future', false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 const symbolParts = symbol.split ('/');
-                const quoteAndSettle = '/' + symbolParts[1];
-                let base = marketBase + '.' + listingExchange;
+                const quotePart: string = this.safeString (symbolParts, 1, '');
+                const quoteAndSettle: string = '/' + quotePart;
+                let base: string = marketBase + '.' + listingExchange;
                 if (isFuture && (marketBaseId !== marketBase)) {
                     // the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
                     base = marketBase + '.' + marketBaseId;
                 }
-                let newSymbol = base + quoteAndSettle;
+                let newSymbol: string = base + quoteAndSettle;
                 if (newSymbol in seen) {
-                    base = marketBase + '.' + this.safeString (market, 'id');
+                    const marketId: string = this.safeString (market, 'id', '');
+                    base = marketBase + '.' + marketId;
                     newSymbol = base + quoteAndSettle;
                 }
                 market = this.extend (market, {
@@ -1428,7 +1434,7 @@ export default class interactivebrokers extends Exchange {
             const secdefs = this.safeList (responses[i], 'secdef', []);
             for (let j = 0; j < secdefs.length; j++) {
                 const secdef = secdefs[j];
-                const conid = this.safeString (secdef, 'conid');
+                const conid: string = this.safeString (secdef, 'conid', '');
                 const entry = this.safeDict (plainEntries, conid);
                 entries.push (this.extend (entry, secdef));
             }
