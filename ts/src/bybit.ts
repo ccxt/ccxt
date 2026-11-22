@@ -8986,11 +8986,19 @@ export default class bybit extends Exchange {
         const lastIndex = total - 1;
         const last = this.safeDict (result, lastIndex, {});
         const cursorValue = this.safeString (first, 'nextPageCursor');
-        last['info'] = {
-            'nextPageCursor': cursorValue,
-        };
-        result[lastIndex] = last;
-        return this.toArray (result);
+        const lastRow: Dict = this.extend (last, {
+            'info': {
+                'nextPageCursor': cursorValue,
+            },
+        });
+        const rows: Dict[] = [];
+        for (let i = 0; i < lastIndex; i++) {
+            rows.push (this.safeDict (result, i, {}));
+        }
+        if (total > 0) {
+            rows.push (lastRow);
+        }
+        return this.toArray (rows);
     }
 
     /**

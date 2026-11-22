@@ -11034,7 +11034,8 @@ export default class bitget extends Exchange {
         if (since !== undefined) {
             requestUntil['startTime'] = since;
         } else {
-            requestUntil['startTime'] = this.milliseconds () - 7776000000;
+            const defaultStart = this.milliseconds () - 7776000000;
+            requestUntil['startTime'] = defaultStart;
         }
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
