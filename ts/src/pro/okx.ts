@@ -1184,9 +1184,8 @@ export default class okx extends okxRest {
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
+            const sym: string = this.safeString (symbolsAndTimeframes[i], 0, '');
+            const tf: string = this.safeString (symbolsAndTimeframes[i], 1, '');
             const marketId = this.marketId (sym);
             const interval = this.safeString (this.timeframes, tf, tf);
             const channel = 'candle' + interval;
@@ -1231,9 +1230,8 @@ export default class okx extends okxRest {
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
+            const sym: string = this.safeString (symbolsAndTimeframes[i], 0, '');
+            const tf: string = this.safeString (symbolsAndTimeframes[i], 1, '');
             const marketId = this.marketId (sym);
             const interval = this.safeString (this.timeframes, tf, tf);
             const channel = 'candle' + interval;
