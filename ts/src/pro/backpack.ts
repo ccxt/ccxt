@@ -137,9 +137,7 @@ export default class backpack extends backpackRest {
             if ((symbols === undefined) && (stock || (explicitSource === 'External') || (channel !== undefined)) && (market['stock'] !== true)) {
                 continue;
             }
-            const marketSelection = this.handleStockParams (methodName, query, market);
-            const marketStock = this.safeBool (marketSelection, 0, false);
-            const marketParams = this.safeDict (marketSelection, 1, {});
+            const [ marketStock, marketParams ] = this.handleStockParams (methodName, query, market);
             const isRfq = this.safeString (market['info'], 'marketType') === 'RFQ';
             let source = explicitSource;
             if (source === undefined) {

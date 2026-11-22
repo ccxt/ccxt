@@ -4505,7 +4505,7 @@ function handleRetypeBindingPatternBlock (printer, tupleTypes, declaration, prin
         return printed;
     }
     const elements = declaration.name.elements;
-    const printedNames = elements.map ((element) => printer.printNode (element.name, 0));
+    const printedNames = elements.map ((element) => ((element.name === undefined) ? '' : printer.printNode (element.name, 0)));
     const holderName = printedNames.join ('') + 'Variable';
     const readMarker = `((java.util.List<Object>) ${holderName}).get(`;
     if (!printed.includes (readMarker)) {
@@ -15323,8 +15323,8 @@ export function installJavaTuplePairReturns (transpiler) {
             return printed;
         }
         const elements = declaration.name.elements;
-        const names = elements.map ((e) => (ts.isOmittedExpression (e) ? '' : printer.printNode (e.name, 0)));
-        const targets = elements.map ((e) => (ts.isOmittedExpression (e) ? undefined : { binding: e }));
+        const names = elements.map ((e) => ((ts.isOmittedExpression (e) || (e.name === undefined)) ? '' : printer.printNode (e.name, 0)));
+        const targets = elements.map ((e) => ((ts.isOmittedExpression (e) || (e.name === undefined)) ? undefined : { binding: e }));
         return pairRewriteBlock (printer, printed, names.join ('') + 'Variable', types, targets);
     };
     const upstreamCustom = printer.printCustomBinaryExpressionIfAny.bind (printer);

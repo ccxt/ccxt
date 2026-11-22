@@ -460,6 +460,8 @@ class Transpiler {
             [ /this\[([a-zA-Z0-9_]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+            // a skipped destructure slot (`const [ , x ] = ..`) binds `_` in Python
+            [ /(?:let|const|var)\s\[[^\]\n]*\]/g, (m: string) => m.replace (/\[\s*,/, '[ _,').replace (/,\s*(?=,)/g, ', _') ],
             // single-slot tuple destructure `const [ x ] = self.f (...)` / `[ x ] = await this.f (...)`: the generic
             // rule below drops the brackets and binds the whole tuple to x, so pick slot 0 explicitly.
             // only declarations or a bare statement-start `[ x ] =` (never `obj[k] = v`) and only method-call right sides
@@ -1638,7 +1640,8 @@ class Transpiler {
             if (localVariablesMatches[1]) {
                 // this is a destructuring assignment like
                 // let [ a, b, c ] = 'a-b-c'.split ('-')
-                let matches = localVariablesMatches[1].trim ().split (', ') // split the destructuring assignment by comma
+                // a skipped slot (`[ , x ]`) is empty and names no variable
+                let matches = localVariablesMatches[1].split (',').map ((x: string) => x.trim ()).filter ((x: string) => x !== '')
                 matches.forEach (x => allVariables.push (x.trim ())) // trim each variable name
             } else {
                 // this is a single variable assignment
