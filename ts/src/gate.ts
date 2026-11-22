@@ -8126,7 +8126,7 @@ export default class gate extends Exchange {
         } else if (this.safeBool (market, 'option', false)) {
             response = await this.privateOptionsGetPositionClose (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
+            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
         //
         // swap and future
@@ -8623,7 +8623,7 @@ export default class gate extends Exchange {
         }
         const currency = this.currency (code);
         const request: Dict = {
-            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
+            'underlying': this.safeString (currency, 'code', '') + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts (this.extend (request, params));
         //
