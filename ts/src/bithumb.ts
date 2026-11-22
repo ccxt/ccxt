@@ -409,7 +409,7 @@ export default class bithumb extends Exchange {
 
     override amountToPrecision (symbol: Str, amount: any): Str {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, this.safeValue (market['precision'], 'amount'), DECIMAL_PLACES);
+        return this.decimalToPrecision (amount, TRUNCATE, this.safeInteger (market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     getGen2MarketId (market: Market): string {
