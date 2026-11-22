@@ -3849,7 +3849,7 @@ export default class phemex extends Exchange {
         const txid = this.safeString (transaction, 'txHash');
         const currencyId = this.safeString (transaction, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString (currencyResolved, 'code');
         const networkId = this.safeString (transaction, 'chainName');
         const timestamp = this.safeIntegerN (transaction, [ 'createdAt', 'submitedAt', 'submittedAt' ]);
         let type = this.safeStringLower (transaction, 'type');
