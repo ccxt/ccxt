@@ -1596,7 +1596,7 @@ export default class interactivebrokers extends Exchange {
         const cmeSymbols = Object.keys (cryptoCmeFutureSymbols);
         const cfeSymbols = Object.keys (cryptoCboeFutureSymbols);
         const targetSymbols = this.arraysConcat ([ coinbaseDerivSymbols, cmeSymbols, cfeSymbols ]);
-        const symbols = this.unique (targetSymbols);
+        const symbols: string[] = this.unique (targetSymbols);
         const request: Dict = {
             'symbols': symbols.join (','),
         };
