@@ -2109,8 +2109,9 @@ export default class gate extends gateRest {
                         } else {
                             marketType = parsedChannel[0];
                         }
-                        const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
-                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        const symbol: string = this.safeSymbol (payload[i], undefined, '_', marketType);
+                        const channelName: string = this.safeString (parsedChannel, 1, '');
+                        const messageHashSymbol: string = channelName + ':' + symbol;
                         if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
                             delete client.subscriptions[messageHashSymbol];
                         }
