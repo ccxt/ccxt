@@ -1155,7 +1155,7 @@ export default class bithumb extends Exchange {
                 const currencyIds = Object.keys (tickers);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const ticker = data[currencyId];
+                    const ticker: Dict = this.extend ({}, data[currencyId]);
                     const base = this.safeCurrencyCode (currencyId);
                     if (base === undefined) {
                         continue;
