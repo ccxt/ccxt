@@ -3633,9 +3633,10 @@ export default class derive extends Exchange {
             if (Precise.stringGt (used, totalUsdc)) {
                 used = totalUsdc;
             }
-            usdcAccount['used'] = used;
-            usdcAccount['free'] = Precise.stringSub (totalUsdc, used);
-            result['USDC'] = usdcAccount;
+            result['USDC'] = this.extend (usdcAccount, {
+                'used': used,
+                'free': Precise.stringSub (totalUsdc, used),
+            });
         }
         return this.safeBalance (result);
     }

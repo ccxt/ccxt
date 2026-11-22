@@ -4069,11 +4069,11 @@ export default class binance extends binanceRest {
             payload = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         }
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'editOrderWs', 'returnRateLimits', false);
-        payload['returnRateLimits'] = returnRateLimits;
+        const payloadWithLimits: Dict = this.extend (payload, { 'returnRateLimits': returnRateLimits });
         const message: Dict = {
             'id': messageHash,
             'method': (isSwap) ? 'order.modify' : 'order.cancelReplace',
-            'params': this.signParams (this.extend (payload, paramsReturnRateLimits)),
+            'params': this.signParams (this.extend (payloadWithLimits, paramsReturnRateLimits)),
         };
         const subscription: Dict = {
             'method': this.handleEditOrderWs,
