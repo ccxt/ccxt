@@ -1121,7 +1121,7 @@ export default class paradex extends Exchange {
             request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
-        const hasEnd = ('end_at' in requestUntil);
+        const hasEnd = (this.safeInteger (requestUntil, 'end_at') !== undefined);
         const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
@@ -4002,7 +4002,7 @@ export default class paradex extends Exchange {
             // rows and skip since, the range is cut to one page of rows from since
             const windowEnd = this.sum (since, pageSize * rowSpacing);
             const endAt = this.safeInteger (requestUntil, 'end_at', windowEnd) as number;
-            if (!('end_at' in requestUntil) || (endAt > windowEnd)) {
+            if ((this.safeInteger (requestUntil, 'end_at') === undefined) || (endAt > windowEnd)) {
                 requestUntil['end_at'] = windowEnd;
             }
         }

@@ -1072,7 +1072,7 @@ export default class bithumb extends Exchange {
                 if (Array.isArray (response)) {
                     tickers = response;
                 } else if (this.isDictionary (response)) {
-                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                    if ((this.safeString (response, 'market') !== undefined) || (this.safeString (response, 'trade_date') !== undefined) || (this.safeString (response, 'trade_timestamp') !== undefined)) {
                         tickers = [ response ];
                     } else {
                         const ids = Object.keys (response);
