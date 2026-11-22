@@ -24266,13 +24266,12 @@ function installH28c01GenericWatchWrappers (csharp) {
 }
 // ===== end h28-H28-C01
 // ===== h27-C03
-// async typed cores returning List<Dictionary<string, object>> (TYPED_CORES in build/csharpTranspiler.ts)
-const H27C03_ASYNC_DICT_LIST_CORES = [ 'fetchMySettlementHistory', 'fetchBorrowRateHistory' ];
-
+// async methods whose typed core return (the printer's csharpTypedCoreType) is List<Dictionary<string, object>>
 function h27C03AsyncDictListScope (csharp, declaration) {
     const scope = enclosingFunction (declaration);
-    return (scope?.kind === ts.SyntaxKind.MethodDeclaration && H27C03_ASYNC_DICT_LIST_CORES.includes (scope.name?.text)
-        && typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (scope)) ? scope : undefined;
+    return (scope?.kind === ts.SyntaxKind.MethodDeclaration && scope.name?.kind === ts.SyntaxKind.Identifier
+        && typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (scope)
+        && typeof csharp.csharpTypedCoreType === 'function' && csharp.csharpTypedCoreType (scope, scope.name.text) === 'List<Dictionary<string, object>>') ? scope : undefined;
 }
 
 // `const sorted = this.sortBy (acc, ...)` read only by `return this.filterBy*SinceLimit (sorted, ...)`
@@ -24304,6 +24303,7 @@ function h27C03Accumulator (csharp, declaration) {
     }
     let pushed = false;
     let sorted = false;
+    let returned = false;
     for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []) {
         if (use === declaration.name) {
             continue;
@@ -24316,6 +24316,13 @@ function h27C03Accumulator (csharp, declaration) {
             continue;
         }
         const parent = use.parent;
+        // a `.length` read (List<T>.Count) or a bare `return acc` of the method itself
+        if ((parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && parent.name?.text === 'length'
+                    && !(parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent))
+                || (parent?.kind === ts.SyntaxKind.ReturnStatement && parent.expression === use)) {
+            returned = returned || (parent.kind === ts.SyntaxKind.ReturnStatement);
+            continue;
+        }
         const call = parent?.parent;
         if (parent?.kind !== ts.SyntaxKind.PropertyAccessExpression || parent.expression !== use || parent.name?.text !== 'push'
                 || call?.kind !== ts.SyntaxKind.CallExpression || call.expression !== parent || call.arguments?.length !== 1
@@ -24324,7 +24331,7 @@ function h27C03Accumulator (csharp, declaration) {
         }
         pushed = true;
     }
-    return pushed && sorted;
+    return pushed && (sorted || returned);
 }
 
 function h27C03AsyncDictListDeclaration (csharp, node, printed) {
