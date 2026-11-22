@@ -893,15 +893,11 @@ export default class cryptocom extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             let symbol: Str = undefined;
-            if (Array.isArray (symbols)) {
-                const symbolsLength = symbols.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = this.safeString (symbols, 0);
-            } else {
-                symbol = symbols;
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
             }
+            symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
@@ -3311,16 +3307,12 @@ export default class cryptocom extends Exchange {
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
             let symbol: Str = undefined;
-            if (Array.isArray (symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if (symbolsLength === 1) {
-                    symbol = symbolsNormalized[0];
-                }
-            } else {
-                symbol = symbolsNormalized;
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+            }
+            if (symbolsLength === 1) {
+                symbol = symbolsNormalized[0];
             }
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
