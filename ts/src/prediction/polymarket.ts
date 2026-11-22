@@ -944,7 +944,8 @@ export default class polymarket extends Exchange {
                 }
                 const chunk: string[] = [];
                 for (let i = startIndex; i < endIndex; i++) {
-                    chunk.push (tokenIds[i]);
+                    const chunkId: string = this.safeString (tokenIds, i, '');
+                    chunk.push (chunkId);
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
