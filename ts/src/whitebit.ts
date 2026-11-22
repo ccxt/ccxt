@@ -922,7 +922,8 @@ export default class whitebit extends Exchange {
         //
         const depositWithdrawFees: Dict = {};
         const codesValue: Strings = this.marketCodes (codes);
-        const currencyIds = Object.keys (response);
+        const feesById: Dict = this.extend ({}, response);
+        const currencyIds = Object.keys (feesById);
         for (let i = 0; i < currencyIds.length; i++) {
             const entry = currencyIds[i];
             const splitEntry = entry.split (' ');
@@ -1511,7 +1512,8 @@ export default class whitebit extends Exchange {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, paramsOmitted));
                 // Search for order in executed orders response (object format)
-                const marketIds = Object.keys (response);
+                const executedById: Dict = this.extend ({}, response);
+                const marketIds = Object.keys (executedById);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket (marketId, undefined, '_');
@@ -1791,7 +1793,8 @@ export default class whitebit extends Exchange {
             return this.parseTrades (response, market, since, limit);
         } else {
             let results: List = [];
-            const keys = Object.keys (response);
+            const tradesById: Dict = this.extend ({}, response);
+            const keys = Object.keys (tradesById);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket (marketId, undefined, '_');

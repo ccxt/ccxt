@@ -1070,7 +1070,8 @@ export default class mexc extends Exchange {
             //
             //     {}
             //
-            const keys = Object.keys (spotResponse);
+            const spotResponseCopy: Dict = this.extend ({}, spotResponse);
+            const keys = Object.keys (spotResponseCopy);
             const length = keys.length;
             status = (length > 0) ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {

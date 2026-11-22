@@ -2857,7 +2857,8 @@ export default class polymarket extends Exchange {
             headersResolved['Content-Type'] = 'application/json';
         } else {
             if (method === 'GET') {
-                const keys = Object.keys (query);
+                const queryCopy: Dict = this.extend ({}, query);
+                const keys = Object.keys (queryCopy);
                 const keysLength = keys.length;
                 if (keysLength > 0) {
                     url = baseUrl + '/' + implodedPath + '?' + this.urlencode (query);
