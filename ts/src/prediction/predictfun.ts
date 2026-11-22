@@ -357,7 +357,12 @@ export default class predictfun extends Exchange {
             const tags = this.safeList (paramsValue, 'tags', []);
             const tagsLength = tags.length;
             if (tagsLength > 0) {
-                request['tagIds'] = tags.join (',');
+                const tagIds: string[] = [];
+                for (let i = 0; i < tagsLength; i++) {
+                    const tagId: string = this.safeString (tags, i, '');
+                    tagIds.push (tagId);
+                }
+                request['tagIds'] = tagIds.join (',');
             }
             postOmitKeys.push ('limit');
             const paramsCategories: Dict = this.omit (paramsValue, [ 'limit', 'tags' ]);

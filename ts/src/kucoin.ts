@@ -7814,7 +7814,7 @@ export default class kucoin extends Exchange {
                     }
                 }
             }
-            txid = txidParts[0];
+            txid = this.safeString (txidParts, 0);
         }
         let type: Str = 'deposit';
         if (txid === undefined) {
