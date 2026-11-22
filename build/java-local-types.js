@@ -5104,29 +5104,6 @@ function collectionWriteIsSameBox (printer, node, javaType) {
 
 // reject the narrowing when any use needs the local to stay `Object` (or a receiver cast
 // the narrowed type cannot satisfy).
-// receiver methods whose printed Java takes Object and is valid on either narrowed type:
-//   indexOf -> Helpers.getIndexOf(x, arg)   slice -> Helpers.slice(...)
-//   split   -> Helpers.split(x, arg)        concat -> Helpers.concat(...)
-//   toString-> String.valueOf(x)            toFixed -> toFixed(x, arg)
-const COLLECTION_SAFE_ANY_RECEIVER = new Set ([
-    'indexOf', 'slice', 'split', 'concat', 'toString', 'toFixed',
-]);
-
-// receiver methods printed as `((java.util.List<Object>) x).…` / `x.contains(…)` /
-// `Collections.reverse((java.util.List<Object>) x)` — valid on a List<Object> receiver,
-// broken on a Map. `.join` is NOT here (prints a List<String> cast — a javac ERROR on
-// List<Object>).
-const COLLECTION_SAFE_LIST_RECEIVER = new Set ([
-    'push', 'pop', 'shift', 'reverse', 'includes',
-]);
-
-function collectionReceiverIsSafe (method, javaType) {
-    if (COLLECTION_SAFE_ANY_RECEIVER.has (method)) {
-        return true;
-    }
-    return javaType === JAVA_ARRAY_TYPE && COLLECTION_SAFE_LIST_RECEIVER.has (method);
-}
-
 function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info = undefined) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
@@ -5147,13 +5124,6 @@ function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, i
         if (ts.isPropertyAccessExpression (parent)) {
             if (parent.name === n) {
                 continue; // `obj.<name>` is a member read of another object
-            }
-            if (parent.expression === n && parent.parent !== undefined
-                && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
-                const method = String (parent.name.text);
-                if (!collectionReceiverIsSafe (method, javaType)) {
-                    return false;
-                }
             }
             // other reads (`x.foo`, `x[k]`) print Object-taking helpers, `.length`
             // prints Helpers.getArrayLength(x)
@@ -5561,7 +5531,7 @@ export function publishJavaDeclaredLocalTypes (printer, resolve) {
                     return type;
                 }
             }
-            return javaDeclaredParameterType (declaration);
+            return undefined;
         };
     }
     tables.push (resolve);
@@ -9079,28 +9049,6 @@ export function javaStringParamPositions (name) {
     const fixed = JAVA_STRING_PARAM_POSITIONS[name] ?? [];
     const order = javaOrderStringPositions ()[name] ?? [];
     return order.length === 0 ? fixed : Array.from (new Set ([ ...fixed, ...order ])).sort ((a, b) => a - b);
-}
-
-// the printed signature type of a parameter: the String positions are `String`, every other printed
-// parameter `Object`; a default / optional parameter is unpacked from `Object... optionalArgs`.
-function javaDeclaredParameterType (declaration) {
-    if (declaration?.kind !== ts.SyntaxKind.Parameter) {
-        return undefined;
-    }
-    const method = declaration.parent;
-    if (method?.kind !== ts.SyntaxKind.MethodDeclaration && method?.kind !== ts.SyntaxKind.FunctionDeclaration) {
-        return undefined;
-    }
-    if (declaration.initializer !== undefined || declaration.questionToken !== undefined) {
-        return 'Object';
-    }
-    const name = method.name?.text;
-    const positions = name === undefined ? undefined : JAVA_STRING_PARAM_POSITIONS[name];
-    if (positions !== undefined && Array.isArray (method.parameters)
-        && positions.indexOf (method.parameters.indexOf (declaration)) !== -1) {
-        return 'String';
-    }
-    return 'Object';
 }
 
 export function patchJavaParamTypes (transpiler) {
@@ -19503,32 +19451,15 @@ function javaMaskedText (text) {
     return { masked, unmask: (t) => t.replace (/j31s(\d+)/g, (_, i) => strs[Number (i)]) };
 }
 
-function javaTopLevelOr (cond) {
-    const out = [];
-    let depth = 0, last = 0;
-    for (let k = 0; k < cond.length; k++) {
-        const ch = cond[k];
-        if (ch === '"') return [ cond ];
-        if (ch === '(') depth++;
-        else if (ch === ')') depth--;
-        else if (depth === 0 && cond.startsWith (' || ', k)) { out.push (longLimitStrip (cond.slice (last, k).trim ())); last = k + 4; }
-    }
-    out.push (longLimitStrip (cond.slice (last).trim ()));
-    return out;
-}
-
 function javaLongNonNullValue (ctx, value, nn) {
     if (javaPrimitiveNonNullValue (ctx, value, nn)) return true;
     const { masked, unmask } = javaMaskedText (longLimitStrip (value));
     const t = longLimitSplitTernary (masked);
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
-        // `equals(x, null) || ..` is false in the else arm only when every disjunct is false, so x is non-null there
-        const ors = javaTopLevelOr (longLimitStrip (t.cond));
         const arm = (a, isTrue) => {
             const x = longLimitStrip (unmask (a));
             if (g !== null && x === g[2] && (g[1] === '!') === isTrue && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
-            if (!isTrue && ors.length > 1 && ors.includes (`java.util.Objects.equals(${x}, null)`) && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
             return /^-?\d+L$/.test (x) || javaLongNonNullValue (ctx, x, nn);
         };
         return arm (t.whenTrue, true) && arm (t.whenFalse, false);
@@ -22728,24 +22659,6 @@ function r87j2UrlArm (printer, node) {
     return urlsReadIsString (printer, value);
 }
 
-function r87j2StringSlotUse (printer, n) {
-    const call = n.parent;
-    if (call === undefined || !ts.isCallExpression (call)) {
-        return false;
-    }
-    const at = call.arguments.indexOf (n);
-    if (at === -1 || typeof printer.javaNativeCallParameterTypes !== 'function') {
-        return false;
-    }
-    let types;
-    try {
-        types = printer.javaNativeCallParameterTypes (call);
-    } catch (e) {
-        return false;
-    }
-    return types?.[at] === 'String';
-}
-
 function r87j2UrlLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
@@ -22761,7 +22674,7 @@ function r87j2UrlLocal (printer, declaration) {
         return undefined;
     }
     const uses = (identifierIndex (scope).get (name) ?? []).filter ((n) => n !== declaration.name);
-    if (!uses.some ((n) => r87j2StringSlotUse (printer, n))) {
+    if (uses.length === 0) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
@@ -23893,31 +23806,12 @@ function r92j3NativeSumLocal (printer, declaration) {
         return false;
     }
     const init = unwrapParens (declaration.initializer);
-    if (init !== undefined && ts.isBinaryExpression (init) && init.operatorToken.kind === ts.SyntaxKind.MinusToken) {
-        return r93j3NativeLongDifference (printer, init);
-    }
     if (init === undefined || !ts.isBinaryExpression (init) || init.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
         return false;
     }
     const mine = (n) => r92j3DefaultedSafeIntegerOperand (printer, n) || r92j3DefaultedLongParamRead (printer, n);
     const longish = (n) => mine (n) || printer.javaWidenedNumericKind (unwrapParens (n)) === 'long';
     return (mine (init.left) || mine (init.right)) && longish (init.left) && longish (init.right);
-}
-
-// `const x = <int literal> - <long>`: the printer's native long subtract `(NL - y)` over a never-null
-// operand (a base parseToInt const: declared Long, throws or answers a long) is a long, so x is Long
-function r93j3NativeLongDifference (printer, init) {
-    const parseToIntConst = (n) => {
-        const bare = unwrapParens (n);
-        if (bare === undefined || !ts.isIdentifier (bare) || printer.printNode (bare, 0) !== bare.text) {
-            return false;
-        }
-        const target = printer.getChecker ().getSymbolAtLocation (bare)?.valueDeclaration?.resolve ();
-        return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
-            && (target.parent.flags & ts.NodeFlags.Const) !== 0 && enclosingFunction (target) === enclosingFunction (bare)
-            && r92j3ParseToIntCall (printer, target.initializer);
-    };
-    return r87j3IntLiteral (init.left) && parseToIntConst (init.right);
 }
 
 function r93j3NegatedLiteralInCompare (node) {
