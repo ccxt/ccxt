@@ -143,8 +143,8 @@ export default class cex extends cexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const currentSymbol = this.safeString (this.options['watchTrades'], 'symbol');
-        if (currentSymbol !== undefined && currentSymbol !== symbol) {
+        const currentSymbol: string = this.safeString (this.options['watchTrades'], 'symbol', '');
+        if (currentSymbol !== '' && currentSymbol !== symbol) {
             throw new ArgumentsRequired (this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
         const watchTradesDict: Dict = this.extend ({}, this.safeDict (this.options, 'watchTrades', {}));
