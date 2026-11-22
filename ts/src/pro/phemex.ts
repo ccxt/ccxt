@@ -328,7 +328,7 @@ export default class phemex extends phemexRest {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (paramsMarketType, 'settle') === 'USDT';
         let messageHash = 'perpetual:balance';
-        if (!usePerpetualApi) {
+        if (!usePerpetualApi && (type !== undefined)) {
             messageHash = type + ':balance';
         }
         return await this.subscribePrivate (type, messageHash, paramsMarketType);
@@ -969,7 +969,7 @@ export default class phemex extends phemexRest {
             const settle = this.safeString (paramsType, 'settle');
             if (settle === 'USDT') {
                 messageHash = 'trades:perpetual';
-            } else {
+            } else if (type !== undefined) {
                 messageHash = 'trades:' + type;
             }
         }
@@ -1144,7 +1144,7 @@ export default class phemex extends phemexRest {
         if (symbol === undefined) {
             if (isUSDTSettled) {
                 messageHash = 'orders:perpetual';
-            } else {
+            } else if (type !== undefined) {
                 messageHash = 'orders:' + type;
             }
         }

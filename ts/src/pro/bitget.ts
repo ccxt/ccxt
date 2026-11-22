@@ -1729,7 +1729,9 @@ export default class bitget extends bitgetRest {
             marketId = 'default';
         }
         if ((productType === undefined) && (type !== 'spot') && (symbolResolved === undefined)) {
-            messageHash = messageHash + ':' + subType;
+            if (subType !== undefined) {
+                messageHash = messageHash + ':' + subType;
+            }
         } else if (productType === 'USDT-FUTURES') {
             messageHash = messageHash + ':linear';
         } else if (productType === 'COIN-FUTURES') {
@@ -1744,7 +1746,7 @@ export default class bitget extends bitgetRest {
             [ instType, paramsInstType ] = this.getInstType ('watchOrders', market, uta, paramsSubType);
         }
         if (type === 'spot' && (symbolResolved !== undefined)) {
-            const resolvedSymbol: string = symbolResolved;
+            const resolvedSymbol: string = this.safeString (market, 'symbol', '');
             subscriptionHash = subscriptionHash + ':' + resolvedSymbol;
         }
         if (isTrigger === true) {
@@ -1762,8 +1764,7 @@ export default class bitget extends bitgetRest {
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchOrders', paramsInstType);
         if (marginMode !== undefined) {
             instType = 'MARGIN';
-            const marginModeValue: string = marginMode;
-            messageHash = messageHash + ':' + marginModeValue;
+            messageHash = messageHash + ':' + marginMode;
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             } else {
