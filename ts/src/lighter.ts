@@ -3490,7 +3490,8 @@ export default class lighter extends Exchange {
                 'Authorization': this.createAuth (params),
             };
         }
-        if (Object.keys (params).length > 0) {
+        const query: Dict = this.extend ({}, params);
+        if (Object.keys (query).length > 0) {
             if (method === 'POST') {
                 const multipartHeaders: Dict = {
                     'Content-Type': 'multipart/form-data',

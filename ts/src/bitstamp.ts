@@ -2857,7 +2857,8 @@ export default class bitstamp extends Exchange {
             if (typeof error === 'string') {
                 errors.push (error);
             } else if (error !== undefined) {
-                const keys = Object.keys (error);
+                const errorDict: Dict = this.extend ({}, error);
+                const keys = Object.keys (errorDict);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
                     const value = this.safeValue (error, key);

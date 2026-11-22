@@ -1078,7 +1078,8 @@ export default class bithumb extends Exchange {
                     if ((this.safeString (response, 'market') !== undefined) || (this.safeString (response, 'trade_date') !== undefined) || (this.safeString (response, 'trade_timestamp') !== undefined)) {
                         tickers = [ response ];
                     } else {
-                        const ids = Object.keys (response);
+                        const responseDict: Dict = this.extend ({}, response);
+                        const ids = Object.keys (responseDict);
                         for (let j = 0; j < ids.length; j++) {
                             const id = ids[j];
                             const ticker = this.safeDict (response, id);
