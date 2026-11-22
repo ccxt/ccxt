@@ -2653,8 +2653,7 @@ export default class paradex extends Exchange {
         const paginationCursor = this.safeString (response, 'next');
         const ordersLength = orders.length;
         if ((paginationCursor !== undefined) && (ordersLength > 0)) {
-            const first = orders[0];
-            first['next'] = paginationCursor;
+            const first: Dict = this.extend (orders[0], { 'next': paginationCursor });
             orders[0] = first;
         }
         return this.parseOrders (orders, market, since, limit);
@@ -4007,7 +4006,7 @@ export default class paradex extends Exchange {
             requestUntil['start_at'] = since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            const windowEnd = this.sum (since, pageSize * rowSpacing);
+            const windowEnd = this.sum (this.parseToInt (since), pageSize * rowSpacing);
             const endAt = this.safeInteger (requestUntil, 'end_at', windowEnd) as number;
             if ((this.safeInteger (requestUntil, 'end_at') === undefined) || (endAt > windowEnd)) {
                 requestUntil['end_at'] = windowEnd;
