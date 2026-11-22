@@ -1673,7 +1673,7 @@ export default class interactivebrokers extends Exchange {
         const promises = [];
         for (let i = 0; i < cfdExchanges.length; i++) {
             const request: Dict = {
-                'exchange': cfdExchanges[i],
+                'exchange': this.safeString (cfdExchanges, i, ''),
                 'assetClass': 'CFD',
             };
             promises.push (this.marketsEndpointCall (request, 'webapiGetV1ApiTrsrvAllConids', []));
@@ -1726,7 +1726,7 @@ export default class interactivebrokers extends Exchange {
         const searchPromises = [];
         for (let i = 0; i < bondSymbols.length; i++) {
             const searchRequest: Dict = {
-                'symbol': bondSymbols[i],
+                'symbol': this.safeString (bondSymbols, i, ''),
                 'secType': 'BOND',
             };
             searchPromises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
@@ -1838,7 +1838,7 @@ export default class interactivebrokers extends Exchange {
         const exchangesDict = this.safeDict (options, 'exchanges', {});
         const stockExchanges = this.safeList (exchangesDict, 'STK', []);
         for (let j = 0; j < stockExchanges.length; j++) {
-            const exchange = stockExchanges[j];
+            const exchange: string = this.safeString (stockExchanges, j, '');
             const stockRequest: Dict = {
                 'exchange': exchange,
                 'assetClass': 'STK',
