@@ -317,7 +317,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const ticker = await this.ibkrWatchMarketData ('ticker', symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            const tickerSymbol = ticker['symbol'] as string;
+            const tickerSymbol: string = this.safeString (ticker, 'symbol', '');
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -337,7 +337,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const ticker = await this.ibkrWatchMarketData ('bidask', symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            const tickerSymbol = ticker['symbol'] as string;
+            const tickerSymbol: string = this.safeString (ticker, 'symbol', '');
             result[tickerSymbol] = ticker;
             return result;
         }
