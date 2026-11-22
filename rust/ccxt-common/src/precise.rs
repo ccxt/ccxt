@@ -572,7 +572,6 @@ impl PreciseArg for str {
 
 #[allow(non_snake_case)]
 impl Precise {
-    fn vstr(v: &crate::Value) -> String { crate::runtime::stringify_param(v) }
     fn vopt(s: Option<String>) -> crate::Value { match s { Some(s) => crate::Value::Str(s.into()), None => crate::Value::Null } }
     fn vbool(b: Option<bool>)  -> crate::Value { match b { Some(b) => crate::Value::Bool(b), None => crate::Value::Null } }
 

@@ -1754,13 +1754,6 @@ func NewCurrency(data any) Currency {
 	}
 }
 
-func ifExists(data map[string]any, key string, fn func(val any) any) any {
-	if val, ok := data[key]; ok {
-		return fn(val)
-	}
-	return nil
-}
-
 type MarginMode struct {
 	Info       map[string]any
 	Symbol     *string
