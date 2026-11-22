@@ -1010,7 +1010,10 @@ export default class bithumb extends Exchange {
             const promises: Promise<any>[] = [];
             // the exchange rejects more than 200 market ids per request
             const maxMarketIdsOption = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
-            const maxMarketIdsPerRequest = this.parseToInt (((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let maxMarketIdsPerRequest: number = 200;
+            if ((maxMarketIdsOption !== undefined) && (maxMarketIdsOption >= 1)) {
+                maxMarketIdsPerRequest = this.parseToInt (maxMarketIdsOption);
+            }
             let marketIdsChunk: string[] = [];
             for (let i = 0; i < marketIdsLength; i++) {
                 marketIdsChunk.push (marketIds[i]);
