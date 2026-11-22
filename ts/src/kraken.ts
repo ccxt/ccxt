@@ -2134,11 +2134,11 @@ export default class kraken extends Exchange {
         const rawTrades = this.safeList (orderOmitted, 'trades', []);
         const trades: List = [];
         for (let i = 0; i < rawTrades.length; i++) {
-            const rawTrade = rawTrades[i];
-            if (typeof rawTrade === 'string') {
-                trades.push (this.safeTrade ({ 'id': rawTrade, 'order': id, 'symbol': symbol, 'info': {}}));
+            const rawTradeId = this.safeString (rawTrades, i);
+            if (rawTradeId !== undefined) {
+                trades.push (this.safeTrade ({ 'id': rawTradeId, 'order': id, 'symbol': symbol, 'info': {}}));
             } else {
-                trades.push (rawTrade);
+                trades.push (rawTrades[i]);
             }
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2500,11 +2500,11 @@ export default class kraken extends Exchange {
             throw new ArgumentsRequired (this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
         } else {
             for (let i = 0; i < orderTrades.length; i++) {
-                const orderTrade = orderTrades[i];
-                if (typeof orderTrade === 'string') {
-                    tradeIds.push (orderTrade);
+                const orderTradeId = this.safeString (orderTrades, i);
+                if (orderTradeId !== undefined) {
+                    tradeIds.push (orderTradeId);
                 } else {
-                    tradeIds.push (this.safeString (orderTrade, 'id'));
+                    tradeIds.push (this.safeString (orderTrades[i], 'id'));
                 }
             }
         }
