@@ -3420,7 +3420,8 @@ export default class cryptocom extends Exchange {
         if (Array.isArray (object)) {
             paramsKeys = object;
         } else {
-            const objectKeys = Object.keys (object);
+            const objectDict: Dict = this.extend ({}, object);
+            const objectKeys = Object.keys (objectDict);
             paramsKeys = this.sort (objectKeys);
         }
         for (let i = 0; i < (paramsKeys as string[]).length; i++) {
