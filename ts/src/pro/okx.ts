@@ -856,7 +856,7 @@ export default class okx extends okxRest {
             messageHashes.push (messageHash);
         }
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const marketType = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', market, params)[0];
+        const [ marketType ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
         let type: Str = marketType;
         if (marketType === 'spot') {

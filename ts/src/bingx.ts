@@ -2505,7 +2505,7 @@ export default class bingx extends Exchange {
             type = 'spot';
         }
         if (market !== undefined) {
-            type = market['type'];
+            type = this.safeString (market, 'type');
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, type);
         const symbol = this.safeString (marketResolved, 'symbol');
