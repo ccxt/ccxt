@@ -14840,22 +14840,6 @@ function retypeElement1Params (csharp, declaration, printed) {
 
 const DESTRUCTURING_TEMP_RE = /^([ \t]*)var ([A-Za-z_]\w*) = (.*);\n/;
 
-// a holder whose printed initializer is a `this.<name>(...)` call the collection table proves
-// returns a List<object> (the table is per-NAME: every declaration of a listed name returns
-// that box), so the hoisted cast is an identity and only the declaration's list type is left
-function listReturningHandleCall (expr) {
-    const match = /^this\.([A-Za-z_]\w*)\s*\(/.exec (expr);
-    if (match === null) {
-        return false;
-    }
-    const name = match[1];
-    if (!Object.prototype.hasOwnProperty.call (CSHARP_COLLECTION_RETURN_METHODS, name)) {
-        return false;
-    }
-    const mapped = CSHARP_COLLECTION_RETURN_METHODS[name];
-    return mapped === 'List<object>' || mapped === 'IList<object>';
-}
-
 // `var <name> = <expr>;` holder of a destructuring block whose remaining lines read
 // <name> through the exact cast this rewrite hoists: `((IList<object>)<name>)[i]`.
 // The reads prove the holder holds a List<object> box at that point, so declaring it
@@ -14873,7 +14857,7 @@ function retypeDestructuringTemp (csharp, scope, printed) {
     if (scope !== undefined && indexScope (csharp, scope).bindingNames.has ('IList')) {
         return undefined; // a local/parameter named IList would stop the type token meaning a type
     }
-    const cast = listReturningHandleCall (expr) ? '' : '(IList<object>)';
+    const cast = '(IList<object>)';
     return indent + 'IList<object> ' + name + ' = ' + cast + expr + ';\n' + rest;
 }
 
@@ -19106,11 +19090,6 @@ function retypeNullableCompareIsParameter (csharp, node) {
     return RETYPE_NULLABLE_COMPARE_METHODS.includes (declaration?.parent?.name?.text);
 }
 
-function retypeNullableCompareTsForm (left, right, core) {
-    const guards = [ left, right ].filter ((side) => side.nullable && !side.admitted).map ((side) => side.text + ' != null');
-    return '(' + guards.concat ([ core ]).join (' && ') + ')';
-}
-
 function nativeComparisonExpression (csharp, node) {
     return nativeComparisonExpressionWith (csharp, node, false);
 }
@@ -19148,9 +19127,6 @@ function nativeComparisonExpressionWith (csharp, node, fallback) {
     const core = L + ' ' + symbol + ' ' + R;
     if (!left.nullable && !right.nullable) {
         return '(' + core + ')';
-    }
-    if ((left.viaParameter && left.nullable) || (right.viaParameter && right.nullable)) {
-        return retypeNullableCompareTsForm (left, right, core);
     }
     // the lifted operator is false when either side is null; the helper's answer differs only
     // for (value, null) under `>`/`>=` and (null, *) under `<`/`<=`
