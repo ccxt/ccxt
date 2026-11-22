@@ -3851,39 +3851,6 @@ function goLighterSignerSlotReads (content: string): string {
     return lines.join ('\n');
 }
 
-// a `*string` method's return that already is the pointer: nil, or a local the body declares `*string` exactly once
-function goStringPtrReturnIsBare (body: string, expr: string): boolean {
-    if (expr === 'nil') {
-        return true;
-    }
-    const call = /^this\.(?:Safe(?:String(?:Lower|Upper)?(?:2|N)?|CurrencyCode|Symbol)|NumberToString|Iso8601)\(/.exec (expr);
-    if (call !== null) {
-        let depth = 0;
-        let quoted = false;
-        for (let i = call[0].length - 1; i < expr.length; i++) {
-            const c = expr[i];
-            if (quoted) {
-                if (c === '\\') { i++; } else if (c === '"') { quoted = false; }
-            } else if (c === '"') {
-                quoted = true;
-            } else if ((c === '(') || (c === '{') || (c === '[')) {
-                depth++;
-            } else if ((c === ')') || (c === '}') || (c === ']')) {
-                depth--;
-                if (depth === 0) {
-                    return i === expr.length - 1; // the hand-written reader already returns *string
-                }
-            }
-        }
-        return false;
-    }
-    if (!/^[A-Za-z_]\w*$/.test (expr)) {
-        return false;
-    }
-    const decls = body.match (new RegExp ('(?:\\bvar ' + expr + ' [^=\\n]*=|\\b' + expr + '(?:, \\w+)? :=|[(,] *' + expr + ' )', 'g')) ?? [];
-    return (decls.length === 1) && new RegExp ('\\bvar ' + expr + ' \\*string = ').test (body);
-}
-
 // ===== gofmt binary-operator layout =====
 // go/printer's blank rule for binary operators (nodes.go binaryExpr/cutoff/walkBinary),
 // applied to every Go line whose expressions this module can parse completely. Emitters and
@@ -5899,7 +5866,7 @@ function goNeverNilIntWrite (scope: GoArithScope, text: string, maskedText: stri
             return '*' + t;
         }
     }
-    if (/^this\.SafeInteger(2|N)?\(/.test (m) && (goNonNilIntegerInit (m) || goLiteralDefaultSafeInteger (scope, m))) {
+    if (/^this\.SafeInteger(2|N)?\(/.test (m) && goNonNilIntegerInit (m)) {
         return '*' + t;
     }
     if (/^this\.Sum\(/.test (m)) {
@@ -5972,22 +5939,6 @@ function goNeverNilIntExpr (scope: GoArithScope, t: string, m: string): boolean 
         typed = typed || (k === 'i64');
     }
     return typed;
-}
-
-// `this.SafeInteger{,2,N}(..., d)` with d a declared `int`/`int64` local: the base method boxes d, never nil
-function goLiteralDefaultSafeInteger (scope: GoArithScope, m: string): boolean {
-    const call = /^this\.SafeInteger(2|N)?\(/.exec (m);
-    if (!call || (goArithClose (m, call[0].length - 1) !== m.length - 1)) {
-        return false;
-    }
-    const spans = goArithArgs (m, call[0].length - 1, m.length - 1);
-    const want = (call[1] === '2') ? 4 : 3;
-    if (spans.length !== want) {
-        return false;
-    }
-    const def = m.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
-    const type = /^[A-Za-z_]\w*$/.test (def) ? goArithDeclaredType (scope.masked, scope.signature, def) : undefined;
-    return (type === 'int') || (type === 'int64');
 }
 
 // `*int64` pointers the closure condition proves non-nil in the given arm
@@ -15137,7 +15088,7 @@ ${caseStatements.join('\n')}
             content = content.replace (fnRegex, ((match: string) => {
                 const open = match.indexOf ('{');
                 const body = match.substring (open + 1, match.length - 1);
-                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => (goStringPtrReturnIsBare (body, expr) ? expr : 'SafeStringPtr(' + expr + ')'));
+                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => 'SafeStringPtr(' + expr + ')');
                 if ((scanned === undefined) || (scanned.total === 0)) {
                     return match;
                 }
@@ -17524,24 +17475,6 @@ function nativeDerefArgMapReads (content: string): string {
     return goRewriteEachFunc (content, /GetValue\(\w+, /.test (content), (lines, masked, start, k) => goDerefArgRewriteFunc (lines, masked, start, k, rx, head));
 }
 
-// a map[string]any local bound only to SafeDict*Map results (or nil), never aliased, in a func with no goroutine:
-// the consumer derefs the element, so the plain index answers what GetValue did (nil map / missing key -> nil)
-function goDerefArgSafeDictReceiver (maskedFunc: string, decl: any, name: string): boolean {
-    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
-        return false;
-    }
-    const n = goAccessEscape (name);
-    if (/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
-        || new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
-        return false;
-    }
-    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
-    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
-        writes.push (w[1].trim ());
-    }
-    return writes.every ((init: string) => /^(?:this\.SafeDict2?Map\(|nil$)/.test (init));
-}
-
 function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number, end: number, rx: RegExp, head: string) {
     const { maskedFunc, declOf, typeAt } = goFuncTypeAt (lines, masked, start, end);
     const receiverOk = new Map<string, boolean> ();
@@ -17561,7 +17494,7 @@ function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number
                 return all;
             }
             if (!receiverOk.has (name)) {
-                receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf) || goDerefArgSafeDictReceiver (maskedFunc, declOf (name), name));
+                receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf));
             }
             return receiverOk.get (name) ? callHead + name + '[' + key + ']' : all;
         });
@@ -17641,9 +17574,6 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
     keep.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(p,') >= 0, 'negative ' + i));
     const over = 'func (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n';
     const sd = '\tvar o map[string]any = this.SafeDictMap(p, "o")\n';
-    ok (f (d + sd + '\tvar a *string = this.NumberToString(GetValue(o, "k"))\n').indexOf ('this.NumberToString(o["k"])') >= 0, 'safe dict map receiver');
-    ok (f (d + sd + '\to = Foo()\n\tvar a *string = this.NumberToString(GetValue(o, "k"))\n').indexOf ('GetValue(o,') >= 0, 'rebound safe dict map keeps helper');
-    ok (f (d + sd + '\tvar a any = Foo(GetValue(o, "k"))\n').indexOf ('GetValue(o,') >= 0, 'non-deref consumer keeps helper');
     ok (nativeDerefArgMapReads (over + 'func (this *X) f(optionalArgs ...any) any {\n' + d + '\tvar a *string = this.SafeString(GetValue(p, "k"), "x")\n\treturn nil\n}\n').indexOf ('GetValue(p,') >= 0, 'overridden method keeps helper');
     const l = f ('\tvar s []string = Split(x, "/")\n\tvar a any = this.Market(GetValue(s, 0))\n');
     ok (l.indexOf ('if 0 >= 0 && 0 < len(s) {\n\t\t\treturn s[0]') >= 0, '[]string literal index: ' + l);
@@ -20584,18 +20514,6 @@ function goTupleSplitTop (masked: string, raw: string): string[][] {
     return (depth === 0) ? out : undefined;
 }
 
-// `head(...)` / `head{...}` where the bracket opened right after head closes at the very end
-function goTupleWholeCall (masked: string, head: number): boolean {
-    let depth = 0;
-    for (let i = head; i < masked.length; i++) {
-        depth += '({['.includes (masked[i]) ? 1 : (')}]'.includes (masked[i]) ? -1 : 0);
-        if ((depth === 0) && (i !== masked.length - 1)) {
-            return false;
-        }
-    }
-    return depth === 0;
-}
-
 // the nearest line above k (inside fn) matching rx, when its block encloses k and name is unwritten in between
 function goTupleNearestDef (ctx: any, fn: any, k: number, name: string, rx: RegExp): { m: RegExpExecArray, j: number } | undefined {
     for (let j = k - 1; j > fn.open; j--) {
@@ -20632,14 +20550,6 @@ function goTupleAsyncReceiveProducer (ctx: any, fn: any, k: number, source: stri
     }
     const hit = (result === undefined) ? undefined : goTupleNearestDef (ctx, fn, k, result, new RegExp ('^\\s*' + result + ' := <-this\\.(\\w+)Async\\('));
     return (hit === undefined) ? undefined : hit.m[1].charAt (0).toLowerCase () + hit.m[1].substring (1) + 'Body';
-}
-
-function goTupleSlotPlain (ctx: any, method: string, slot: number, depth: number): boolean {
-    const info = goTupleProducerInfo (ctx, method, depth);
-    if (info !== undefined) {
-        return (slot < info.arity) && info.plain[slot];
-    }
-    return (GO_TUPLE_PLAIN_ELEMENTS[method] || []).includes (String (slot)) && !new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + method + '\\(').test (ctx.masked.join ('\n'));
 }
 
 function goTupleSlotIdentPlain (ctx: any, fn: any, name: string, k: number, depth: number): boolean {
@@ -20722,23 +20632,8 @@ function goTupleSlotExprPlain (ctx: any, fn: any, k: number, masked: string, raw
     if (/^[A-Za-z_]\w*$/.test (masked) && (masked !== 'this')) {
         return goTupleSlotIdentPlain (ctx, fn, masked, k, depth);
     }
-    const call = /^(?:this\.|ccxt\.)?(?:Omit|OmitDict|Extend|DeepExtend|ParseToInt|GetValue)\(/.exec (masked);
-    if ((call !== null) && goTupleWholeCall (masked, call[0].length - 1)) {
-        return true;
-    }
-    const lit = /^(?:map\[string\]any|\[\]any)\{/.exec (masked);
-    if ((lit !== null) && goTupleWholeCall (masked, lit[0].length - 1)) {
-        return true;
-    }
     if (/^GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$/.test (masked)) {
         return true;
-    }
-    // `MapTyped(h[i])` / `h[i].(map[string]any)` of a plain slot is that same map
-    const slot = /^(?:MapTyped\(([A-Za-z_]\w*)\[(\d+)\]\)|([A-Za-z_]\w*)\[(\d+)\](?:\.\(map\[string\]any\))?)$/.exec (masked);
-    if (slot !== null) {
-        const holder = slot[1] ?? slot[3];
-        const method = goTupleHolderProducer (ctx, fn, holder, k);
-        return (method !== undefined) && goTupleSlotPlain (ctx, method, Number (slot[2] ?? slot[4]), depth + 1);
     }
     return false;
 }
@@ -21042,7 +20937,6 @@ function goTupleSlotReadsCheck (ok: SelfTestOk): void {
     const user = (body: string) => 'func (this *X) F(p any) any {\n' + body + '\treturn nil\n}\n';
     const run = (body: string, text: string = producer, path: string = '', reader: any = undefined) => goAsyncTupleSlotReads (text + user (body), path, reader);
     const pos = run ('\thVariable := this.P(nil, p)\n\ta := GetValue(hVariable, 0)\n\tb := GetValue(hVariable, 1)\n\tc := GetValue(hVariable, 2)\n');
-    ok (pos.includes ('b := hVariable[1]') && pos.includes ('c := hVariable[2]'), 'map and bool slots read natively: ' + pos);
     ok (pos.includes ('a := GetValue(hVariable, 0)'), 'a *string slot keeps GetValue');
     ok (run ('\thVariable := this.P(nil, p)\n\tx := GetValue(hVariable, 3)\n').includes ('GetValue(hVariable, 3)'), 'slot past the arity keeps GetValue');
     const mp = (send: string) => 'func (this *X) MAsync(p any) <-chan AsyncResult[[]map[string]any] {\n\tch := make(chan AsyncResult[[]map[string]any], 1)\n\treturn ch\n}\nfunc (this *X) mBody(ch chan AsyncResult[[]map[string]any], p any) any {\n\tdefer close(ch)\n\t' + send + '\n\treturn nil\n}\n';
@@ -21064,7 +20958,6 @@ function goTupleSlotReadsCheck (ok: SelfTestOk): void {
     const pro = 'package ccxtpro\n\ntype Y struct {\n\t*ccxt.Y\n\tbase *ccxt.Y\n}\n\n';
     const reader = (p: string) => (p === '/r/go/v4/y.go') ? rest : undefined;
     const cross = run ('\thVariable := this.P(nil, p)\n\tb := ccxt.GetValue(hVariable, 1)\n\tvar s *string = ccxt.SafeStringPtr(ccxt.GetValue(hVariable, 0))\n', pro, '/r/go/v4/pro/y.go', reader);
-    ok (cross.includes ('b := hVariable[1]') && cross.includes ('ccxt.SafeStringPtr(hVariable[0])'), 'pro file resolves its REST producer: ' + cross);
     ok (run ('\thVariable := this.P(nil, p)\n\tb := ccxt.GetValue(hVariable, 1)\n', pro, '/r/go/v4/x.go', reader).includes ('ccxt.GetValue(hVariable, 1)'), 'a REST file never reads other files');
     const proParent = 'package ccxtpro\n\ntype Y struct {\n\t*Z\n\tbase *Z\n}\n\n';
     ok (run ('\thVariable := this.P(nil, p)\n\tb := ccxt.GetValue(hVariable, 1)\n', proParent, '/r/go/v4/pro/y.go', reader).includes ('ccxt.GetValue(hVariable, 1)'), 'a pro parent chain is not resolved');
@@ -21073,12 +20966,9 @@ function goTupleSlotReadsCheck (ok: SelfTestOk): void {
         + 'func (this *X) pBody(ch chan AsyncResult[[]any], m any, optionalArgs ...any) any {\n\tdefer close(ch)\n\tvar a any = nil\n\tif m != nil {\n\t\ta = this.ParseToInt(m)\n\t}\n\n\tch <- AsyncResult[[]any]{Value: []any{this.ParseToInt(a), map[string]any{}}}\n\treturn nil\n}\n';
     const recvBody = '\tr := <-this.PAsync(p)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\thVariableRecv, _ := r.Value, r.Value != nil\n\tvar hVariable []any = hVariableRecv\n\ta := GetValue(hVariable, 0)\n\tb := GetValue(hVariable, 1)\n';
     const asyncOut = run (recvBody, asyncProducer);
-    ok (asyncOut.includes ('a := hVariable[0]') && asyncOut.includes ('b := hVariable[1]'), 'async producer received through its Recv holder reads natively: ' + asyncOut);
     ok (run (recvBody, asyncProducer.replace ('Value: []any{this.ParseToInt(a), ', 'Value: []any{this.SafeString(m, \"k\"), ')).includes ('a := GetValue(hVariable, 0)'), 'an async slot with a pointer value keeps GetValue');
     ok (goAsyncTupleSlotReads (pos) === pos, 'idempotent');
-    ok (formatGoSource ('selftest.go', producer + user ('\thVariable := this.P(nil, p)\n\tb := GetValue(hVariable, 1)\n')).includes ('b := hVariable[1]'), 'wired into formatGoSource');
     const wiredAsync = formatGoSource ('selftest.go', 'package ccxt\n\n' + asyncProducer + 'func (this *X) F(p any) any {\n' + recvBody + '\treturn b\n}\n');
-    ok (wiredAsync.includes ('b := hVariable[1]'), 'async producer slot wired into formatGoSource: ' + wiredAsync);
 }
 
 // closed non-parse `: Str` methods returning a *string on every path print *string (caller locals follow);
