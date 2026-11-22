@@ -1276,7 +1276,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const isGrouped = channelPartsLength === 5;
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            this.orderbooks[symbol] = isGrouped ? this.orderBook ({}, limit) : this.countedOrderBook ({}, limit);
+            if (isGrouped) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            } else {
+                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
+            }
         }
         const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (orderbook, 'nonce');

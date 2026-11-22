@@ -1597,7 +1597,7 @@ export default class htx extends htxRest {
         if (type !== undefined) {
             const typeParts = type.split ('-');
             side = typeParts[0];
-            type = typeParts[1];
+            type = this.safeString (typeParts, 1);
         }
         const aggressor = this.safeBool (trade, 'aggressor');
         let takerOrMaker: Str = undefined;
