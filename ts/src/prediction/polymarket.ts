@@ -1183,7 +1183,7 @@ export default class polymarket extends Exchange {
         const timestamp = this.safeInteger (bookData, 'timestamp');
         let quoteVolume: Num = undefined;
         if (market !== undefined) {
-            quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
+            quoteVolume = this.safeNumber2 (this.safeDict (market, 'info'), 'volume24hr', 'volume');
         }
         return this.safePredictionTicker ({
             'outcome': outcome,
