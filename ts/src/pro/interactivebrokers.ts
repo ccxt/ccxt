@@ -593,7 +593,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         //
         const topic = this.safeString (message, 'topic', '');
         const parts = topic.split ('+');
-        const marketId = this.safeString (parts, 1);
+        const marketId: string = this.safeString (parts, 1, '');
         const serverId = this.safeString (message, 'serverId');
         if (serverId !== undefined) {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -786,7 +786,7 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
         const [ accountId, query ] = await this.loadAccountId (params);
         const bookExchange = this.safeString (query, 'exchange');
         const url = await this.ibkrConnect ();
@@ -816,7 +816,7 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
         const [ accountId, query ] = await this.loadAccountId (params);
         const url = await this.ibkrConnect ();
         const client = this.client (url);
