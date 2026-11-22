@@ -5041,7 +5041,8 @@ export default class binance extends binanceRest {
             });
             this.tickers[symbol] = parsed;
             tickers[symbol] = parsed;
-            client.resolve (parsed, 'stock:price:' + symbol);
+            const priceSymbol: string = this.safeString (parsed, 'symbol', '');
+            client.resolve (parsed, 'stock:price:' + priceSymbol);
         }
         client.resolve (tickers, 'stock:price');
     }
@@ -5064,7 +5065,8 @@ export default class binance extends binanceRest {
             'info': message,
         });
         this.bidsasks[symbol] = parsed;
-        client.resolve (parsed, 'stock:quote:' + symbol);
+        const quoteSymbol: string = this.safeString (parsed, 'symbol', '');
+        client.resolve (parsed, 'stock:quote:' + quoteSymbol);
     }
 
     handleOptionsOrderUpdate (client: Client, message: Dict) {
