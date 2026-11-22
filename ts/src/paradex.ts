@@ -1237,7 +1237,7 @@ export default class paradex extends Exchange {
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
-                return this.market (symbols[0])['id'] as string;
+                return this.safeString (this.market (symbols[0]), 'id', '');
             }
         }
         return 'ALL';
