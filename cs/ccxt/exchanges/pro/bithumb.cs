@@ -419,7 +419,7 @@ public partial class bithumb : ccxt.bithumb
         IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("orderbook" + ":") + symbolValue);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
@@ -616,7 +616,7 @@ public partial class bithumb : ccxt.bithumb
         IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trade:" + symbolValue);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },

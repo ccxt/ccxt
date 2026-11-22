@@ -4019,7 +4019,7 @@ public partial class htx : Exchange
             untilSeconds = this.parseToInt(((double?)until / 1000));
         }
         bool isContract = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true));
-        string? marketType = ((string)(market.ContainsKey("type") ? market["type"] : null));
+        string? marketType = this.safeString(market, "type", "");
         Int64? contractLimit = ((limit != null)) ? limit : 2000; // only used for from/to calculation
         Int64? rangeLimit = limit;
         if (isContract)
@@ -4434,7 +4434,8 @@ public partial class htx : Exchange
         {
             return null;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null)).Keys);
+        IDictionary<string, object> namesByChainIds = this.safeDict(this.options, "networkNamesByChainIds", new Dictionary<string, object>() {});
+        List<object> keys = new List<object>(namesByChainIds.Keys);
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
@@ -4454,7 +4455,8 @@ public partial class htx : Exchange
         {
             return ((string?)((object)(base.networkCodeToId(networkCode))));
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null)).Keys);
+        IDictionary<string, object> chainIdsByNames = this.safeDict(this.options, "networkChainIdsByNames", new Dictionary<string, object>() {});
+        List<object> keys = new List<object>(chainIdsByNames.Keys);
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {

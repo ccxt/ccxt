@@ -3049,14 +3049,14 @@ public partial class bingx : Exchange
         string? lastQty = this.safeString(ticker, "lastQty");
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        object type = "swap";
+        string? type = "swap";
         if ((lastQty == null))
         {
             type = "spot";
         }
         if ((market != null))
         {
-            type = getValue(market, "type");
+            type = this.safeString(market, "type");
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, type);
         string? symbol = this.safeString(marketResolved, "symbol");
@@ -6762,9 +6762,9 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data));
     }
 
-    public virtual object parseParams(IDictionary<string, object> parameters)
+    public virtual Dictionary<string, object> parseParams(IDictionary<string, object> parameters)
     {
-        object copied = this.clone(parameters);
+        Dictionary<string, object> copied = this.extend(new Dictionary<string, object>() {}, parameters);
         Dictionary<string, object> sortedParams = this.keysort(parameters);
         List<object> rawKeys = new List<object>(sortedParams.Keys);
         int rawKeysLength = rawKeys.Count;
@@ -6785,7 +6785,7 @@ public partial class bingx : Exchange
                     arrStr = arrStr + arrayElement.ToString();
                 }
                 arrStr = arrStr + "]";
-                ((IDictionary<string,object>)copied)[(string)key] = arrStr;
+                copied[(string)key] = arrStr;
             }
         }
         return copied;
@@ -7523,7 +7523,7 @@ public partial class bingx : Exchange
         {
             this.checkRequiredCredentials();
             bool isJsonContentType = (((type == "subAccount") || (type == "account/transfer")) && ((method == "POST")));
-            object parsedParams = null;
+            Dictionary<string, object> parsedParams = null;
             string? encodeRequest = null;
             if (isJsonContentType)
             {

@@ -792,7 +792,6 @@ public partial class kalshi : PredictionExchange
         };
         // Build outcomes
         List<object> outcomeLabels = new List<object>() {"YES", "NO"};
-        List<object> outcomeIds = new List<object>() {ticker, (ticker == null ? null : ticker + "-NO")};
         List<object> outcomes = new List<object>() {};
         string? resolvedOutcome = null;
         for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
@@ -814,9 +813,15 @@ public partial class kalshi : PredictionExchange
             // reassigned local into the anonymous inner class it emits for a map literal)
             bool? winner = winnerRaw;
             int? settleFraction = settleFractionRaw;
+            string outcomeSuffix = "";
+            if (oi > 0)
+            {
+                outcomeSuffix = "-NO";
+            }
+            string? outcomeId = ((string)(ticker == null ? null : ticker + outcomeSuffix));
             outcomes.Add(new Dictionary<string, object>() {
-                { "id", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
-                { "outcomeId", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
+                { "id", outcomeId },
+                { "outcomeId", outcomeId },
                 { "outcome", outcomeHandle },
                 { "market", marketSymbol },
                 { "label", label },

@@ -1478,9 +1478,10 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        IDictionary<string, object> paramsOrdType = (customType == "best") ? this.omit(parameters, new List<object>() {"ordType", "ord_type"}) : parameters;
+        IDictionary<string, object> paramsOrdType = parameters;
         if (customType == "best")
         {
+            paramsOrdType = this.omit(paramsOrdType, new List<object>() {"ordType", "ord_type"});
             request["ord_type"] = "best";
             if ((side == "buy"))
             {

@@ -1262,7 +1262,8 @@ public partial class kraken : Exchange
                 Dictionary<string, object> market = this.market(symbol);
                 if ((this.safeBool(market, "active", false) == true))
                 {
-                    marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+                    string? marketId = this.safeString(market, "id", "");
+                    marketIds.Add(marketId);
                 }
             }
             request["pair"] = String.Join(",", marketIds.ToArray());
@@ -1275,7 +1276,7 @@ public partial class kraken : Exchange
         {
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
             result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
         }
@@ -1751,7 +1752,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? id = this.safeString(market, "id");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", id },
         };
@@ -2727,7 +2728,7 @@ public partial class kraken : Exchange
         if ((clientOrderId != null))
         {
             request["userref"] = clientOrderId;
-            query = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
+            query = this.omit(query, new List<object>() {"userref", "clientOrderId"});
         }
         Dictionary<string, object> response = await this.privatePostQueryOrders(this.extend(request, query));
         //
@@ -2823,7 +2824,8 @@ public partial class kraken : Exchange
         for (int i = 0; i < numTradeIds; i++)
         {
             batch.Add((tradeIds != null && i < tradeIds.Count ? tradeIds[i] : null));
-            if ((batchSize == null || (batch?.Count ?? 0) >= batchSize))
+            int batchLength = (batch?.Count ?? 0);
+            if ((batchSize == null || batchLength >= batchSize))
             {
                 batches.Add(batch);
                 batch = new List<object>() {};
@@ -3839,7 +3841,7 @@ public partial class kraken : Exchange
         string? address = this.safeString(depositAddress, "address");
         string? tag = this.safeString(depositAddress, "tag");
         Dictionary<string, object> currencyResolved = this.safeCurrency(null, currency);
-        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
+        string? code = this.safeString(currencyResolved, "code");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },

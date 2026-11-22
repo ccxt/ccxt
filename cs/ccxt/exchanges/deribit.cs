@@ -1847,7 +1847,7 @@ public partial class deribit : Exchange
         object sinceResolved = null;
         if ((since != null))
         {
-            sinceResolved = mathMax((since - 1), 0);
+            sinceResolved = Math.Max((since.Value - 1), 0);
         }
         if ((since == null))
         {
@@ -2692,7 +2692,7 @@ public partial class deribit : Exchange
         IDictionary<string, object> paramsOmitted = parameters;
         if (isTrailingAmountOrder)
         {
-            paramsOmitted = this.omit(parameters, "trigger_offset");
+            paramsOmitted = this.omit(paramsOmitted, "trigger_offset");
         }
         if (isTrailingAmountOrder)
         {

@@ -411,7 +411,7 @@ public partial class cex : ccxt.cex
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(data));
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        string? symbol = this.safeString(ticker, "symbol");
         if ((symbol == null))
         {
             return;

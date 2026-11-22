@@ -1048,7 +1048,7 @@ public partial class bit2c : Exchange
         string? id = null;
         string? price = null;
         string? amount = null;
-        object orderId = null;
+        string? orderId = null;
         Dictionary<string, object> fee = null;
         object side = null;
         string? makerOrTaker = null;
@@ -1070,7 +1070,11 @@ public partial class bit2c : Exchange
             tradeMarket = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), marketByPair);
             bool? isMaker = this.safeBool(trade, "isMaker", false);
             makerOrTaker = isMaker == true ? "maker" : "taker";
-            orderId = isMaker == true ? (reference_parts != null && 2 < reference_parts.Count ? reference_parts[2] : null) : (reference_parts != null && 1 < reference_parts.Count ? reference_parts[1] : null);
+            orderId = this.safeString(reference_parts, 1);
+            if ((isMaker == true))
+            {
+                orderId = this.safeString(reference_parts, 2);
+            }
             Int64? action = this.safeInteger(trade, "action");
             if ((action == 0))
             {

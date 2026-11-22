@@ -1347,7 +1347,7 @@ public partial class paradex : Exchange
         for (int i = 0; i < (loadedFees?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(loadedFees[i]);
-            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
+            string? symbol = this.safeString(fee, "symbol");
             result[(string)symbol] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -1521,7 +1521,7 @@ public partial class paradex : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                return ((string)getValue(this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null)), "id"));
+                return this.safeString(this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null)), "id", "");
             }
         }
         return "ALL";
@@ -1640,7 +1640,7 @@ public partial class paradex : Exchange
         string? last = this.safeString(ticker, "last_traded_price");
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "created_at");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -2049,7 +2049,7 @@ public partial class paradex : Exchange
         Int64? timestamp = this.safeInteger(interest, "created_at");
         string? marketId = this.safeString(interest, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "openInterestAmount", this.safeString(interest, "open_interest") },
@@ -2262,7 +2262,7 @@ public partial class paradex : Exchange
         }
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -3117,8 +3117,9 @@ public partial class paradex : Exchange
         int ordersLength = orders.Count;
         if (((paginationCursor != null)) && (ordersLength > 0))
         {
-            IDictionary<string, object> first = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
-            first["next"] = paginationCursor;
+            Dictionary<string, object> first = this.extend((orders != null && 0 < orders.Count ? orders[0] : null), new Dictionary<string, object>() {
+                { "next", paginationCursor },
+            });
             ((List<object>)orders)[Convert.ToInt32(0)] = first;
         }
         return this.parseOrders(orders, market, since, limit);
@@ -3442,7 +3443,7 @@ public partial class paradex : Exchange
         //
         string? marketId = this.safeString(position, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringLower(position, "side");
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         string? quantity = Precise.stringAbs(this.safeString(position, "size"));
@@ -4277,7 +4278,7 @@ public partial class paradex : Exchange
         //
         string? marketId = this.safeString(greeks, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "option");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(greeks, "created_at");
         IDictionary<string, object> greeksData = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
@@ -4644,7 +4645,7 @@ public partial class paradex : Exchange
             requestUntil["start_at"] = since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            Int64 windowEnd = this.sum(since, (pageSize * rowSpacing));
+            Int64 windowEnd = this.sum(this.parseToInt(since), (pageSize * rowSpacing));
             Int64? endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
             if (((this.safeInteger(requestUntil, "end_at") == null)) || (endAt > windowEnd))
             {

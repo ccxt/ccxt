@@ -1909,7 +1909,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "stock", false);
         bool? stock = stockparamsStockVariable.Item1;
         IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
@@ -2185,7 +2185,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         parameters["callerMethodName"] = "watchOHLCV";
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, parameters);
     }
@@ -3953,7 +3953,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190119 && ((hxArr190119 is IList<object>) || (hxArr190119.GetType().IsGenericType && hxArr190119.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190163 && ((hxArr190163 is IList<object>) || (hxArr190163.GetType().IsGenericType && hxArr190163.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -4655,11 +4655,13 @@ public partial class binance : ccxt.binance
         (bool?, IDictionary<string, object>) returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams(parameters, "editOrderWs", "returnRateLimits", false);
         bool? returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.Item1;
         IDictionary<string, object> paramsReturnRateLimits = (returnRateLimitsparamsReturnRateLimitsVariable.Item2);
-        payload["returnRateLimits"] = returnRateLimits;
+        Dictionary<string, object> payloadWithLimits = this.extend(payload, new Dictionary<string, object>() {
+            { "returnRateLimits", returnRateLimits },
+        });
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", isSwap ? "order.modify" : "order.cancelReplace" },
-            { "params", this.signParams(this.extend(payload, paramsReturnRateLimits)) },
+            { "params", this.signParams(this.extend(payloadWithLimits, paramsReturnRateLimits)) },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "method", this.handleEditOrderWs },
@@ -5735,7 +5737,8 @@ public partial class binance : ccxt.binance
             });
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
             tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
-            client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:price:" + symbol));
+            string? priceSymbol = this.safeString(ccxt.BaseExchange.FromTicker(parsed), "symbol", "");
+            client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:price:" + priceSymbol));
         }
         client.resolve(tickers, "stock:price");
     }
@@ -5760,7 +5763,8 @@ public partial class binance : ccxt.binance
             { "info", message },
         });
         this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
-        client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:quote:" + symbol));
+        string? quoteSymbol = this.safeString(ccxt.BaseExchange.FromTicker(parsed), "symbol", "");
+        client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:quote:" + quoteSymbol));
     }
 
     public virtual void handleOptionsOrderUpdate(WebSocketClient client, Dictionary<string, object> message)
@@ -5813,7 +5817,8 @@ public partial class binance : ccxt.binance
             }
             string? absQty = Precise.stringAbs(rawQty);
             string executionType = "NEW";
-            if (fills.Count > 0)
+            int fillsLength = fills.Count;
+            if (fillsLength > 0)
             {
                 executionType = "TRADE";
             }

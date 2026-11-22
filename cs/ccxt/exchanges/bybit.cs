@@ -4384,7 +4384,7 @@ public partial class bybit : Exchange
             marketType = this.safeString(market, "type");
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? amountString = this.safeStringN(trade, new List<object>() {"execQty", "orderQty", "size"});
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
         string? costString = this.safeString(trade, "execValue");
@@ -5171,7 +5171,7 @@ public partial class bybit : Exchange
             marketType = isContract ? "contract" : "spot";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -9832,7 +9832,7 @@ public partial class bybit : Exchange
         for (int i = 0; i < fees.Count; i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
-            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
+            string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -10697,7 +10697,7 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)getValue(entry, j))["id"] = id;
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             tiers[(string)symbol] = this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market);
         }
         return tiers;

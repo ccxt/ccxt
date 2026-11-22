@@ -2495,6 +2495,7 @@ public partial class myriad : PredictionExchange
         // effectively-final copy for the market object literal below (reassigned in the loop)
         string? marketResolvedOutcome = resolvedOutcome;
         string compositeId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
+        string compositeBaseId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "id", compositeId },
             { "market", marketSymbol },
@@ -2503,7 +2504,7 @@ public partial class myriad : PredictionExchange
             { "base", slug },
             { "quote", quoteCurrency },
             { "settle", null },
-            { "baseId", (networkId == null ? null : networkId + ":" + marketId) },
+            { "baseId", compositeBaseId },
             { "quoteId", quoteCurrency },
             { "settleId", null },
             { "type", "prediction" },
@@ -2786,7 +2787,8 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < outcomes.Count; i++)
         {
             IDictionary<string, object> o = this.safeDict(outcomes, i);
-            if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
+            string? entryOutcomeId = this.safeString(o, "outcomeId", this.safeString(o, "id"));
+            if ((entryOutcomeId == outcomeId))
             {
                 double? priceValue = this.safeNumber(o, "price");
                 double? changeValue = this.safeNumber(o, "priceChange24h");
@@ -2950,7 +2952,8 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < outcomes.Count; i++)
         {
             IDictionary<string, object> o = this.safeDict(outcomes, i);
-            if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
+            string? entryOutcomeId = this.safeString(o, "outcomeId", this.safeString(o, "id"));
+            if ((entryOutcomeId == outcomeId))
             {
                 double? price = this.safeNumber(o, "price");
                 if ((price != null))
@@ -3401,10 +3404,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154598_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154598_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154598_0, hxauTask154598_1);
-            List<object> responses = new List<object> { hxauTask154598_0.Result, hxauTask154598_1.Result };
+            var hxauTask154809_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154809_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154809_0, hxauTask154809_1);
+            List<object> responses = new List<object> { hxauTask154809_0.Result, hxauTask154809_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3425,10 +3428,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155576_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155576_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155576_0, hxauTask155576_1);
-                List<object> listResponses = new List<object> { hxauTask155576_0.Result, hxauTask155576_1.Result };
+                var hxauTask155787_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155787_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155787_0, hxauTask155787_1);
+                List<object> listResponses = new List<object> { hxauTask155787_0.Result, hxauTask155787_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3442,10 +3445,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156359_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156359_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156359_0, hxauTask156359_1);
-                List<object> responses = new List<object> { hxauTask156359_0.Result, hxauTask156359_1.Result };
+                var hxauTask156570_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156570_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156570_0, hxauTask156570_1);
+                List<object> responses = new List<object> { hxauTask156570_0.Result, hxauTask156570_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
@@ -4048,12 +4051,12 @@ public partial class myriad : PredictionExchange
         List<object> resolvedSymbols = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome(this.safeString(outcomes, i, ""));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? networkId = this.safeString(info, "networkId", "");
             string? marketId = this.safeString(info, "marketId", "");
             string channel = ((("prices:" + networkId) + ":") + marketId);
-            resolvedSymbols.Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
+            resolvedSymbols.Add(this.safeOutcomeSymbol(this.safeString(outcomes, i, ""), outcomeObj));
             if (!(seenChannels.ContainsKey(channel)))
             {
                 seenChannels[(string)channel] = true;

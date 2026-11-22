@@ -376,9 +376,10 @@ public partial class bullish : ccxt.bullish
         };
         ccxt.OrderBook parsed = this.parseOrderBook(snapshot, symbol, timestamp);
         List<object> sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new List<object>() {});
-        if (sequenceNumberRange.Count > 0)
+        int sequenceNumberRangeLength = sequenceNumberRange.Count;
+        if (sequenceNumberRangeLength > 0)
         {
-            int lastIndex = (sequenceNumberRange.Count - 1);
+            int lastIndex = (sequenceNumberRangeLength - 1);
             parsed.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(sequenceNumberRange, lastIndex));
         }
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsed));

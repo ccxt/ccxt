@@ -967,6 +967,7 @@ public partial class coinbase : ccxt.coinbase
             return;
         }
         List<object> marketIds = new List<object>() {};
+        Dictionary<string, object> seenMarketIds = new Dictionary<string, object>() {};
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -988,8 +989,9 @@ public partial class coinbase : ccxt.coinbase
                 string? marketId = this.safeString(responseOrder, "product_id");
                 if ((marketId != null))
                 {
-                    if (!((marketIds != null && marketId != null && marketIds.Contains(marketId))))
+                    if (!(((marketId != null) && seenMarketIds.ContainsKey(marketId))))
                     {
+                        seenMarketIds[(string)marketId] = true;
                         marketIds.Add(marketId);
                     }
                 }

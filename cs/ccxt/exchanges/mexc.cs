@@ -6268,7 +6268,7 @@ public partial class mexc : Exchange
         IDictionary<string, object> paramsOmitted = parameters;
         if (isIsolatedMargin)
         {
-            paramsOmitted = this.omit(parameters, "symbol");
+            paramsOmitted = this.omit(paramsOmitted, "symbol");
         }
         Dictionary<string, object> response = await this.spotPrivatePostCapitalTransfer(this.extend(request, paramsOmitted));
         //

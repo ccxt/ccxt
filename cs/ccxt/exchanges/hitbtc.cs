@@ -1128,7 +1128,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsOmitted = parameters;
         if (((network != null)) && ((code == "USDT")))
         {
-            paramsOmitted = this.omit(parameters, "network");
+            paramsOmitted = this.omit(paramsOmitted, "network");
         }
         Dictionary<string, object> response = await this.privatePostWalletCryptoAddress(this.extend(request, paramsOmitted));
         //
@@ -1172,7 +1172,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsOmitted = parameters;
         if (((network != null)) && ((code == "USDT")))
         {
-            paramsOmitted = this.omit(parameters, "network");
+            paramsOmitted = this.omit(paramsOmitted, "network");
         }
         List<object> response = await this.privateGetWalletCryptoAddress(this.extend(request, paramsOmitted));
         //

@@ -3562,7 +3562,8 @@ public partial class limitless : PredictionExchange
         List<object> wanted = new List<object>() {};
         for (int i = 0; i < (tags?.Count ?? 0); i++)
         {
-            wanted.Add(((string)(tags != null && i < tags.Count ? tags[i] : null)).ToLower());
+            string? tag = this.safeString(tags, i, "");
+            wanted.Add(tag.ToLower());
         }
         List<object> categoryIds = new List<object>() {};
         int categoriesLength = (categories?.Count ?? 0);

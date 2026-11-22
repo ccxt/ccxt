@@ -3410,7 +3410,7 @@ public partial class woo : Exchange
             string? currencyId = this.safeString(parts, 1, firstPart);
             if (partsLength > 2)
             {
-                currencyId = (currencyId == null ? null : currencyId + ("_" + this.safeString(parts, 2, "")));
+                currencyId = ((this.safeString(parts, 1, "") + "_") + this.safeString(parts, 2, ""));
             }
             return this.safeCurrency(currencyId);
         }

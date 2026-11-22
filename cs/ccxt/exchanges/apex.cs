@@ -1311,7 +1311,7 @@ public partial class apex : Exchange
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -1623,7 +1623,8 @@ public partial class apex : Exchange
         string? subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
         List<object> subAccounts = this.safeList(spotAccount, "subAccounts", new List<object>() {});
         string? nonce = "0";
-        if (subAccounts.Count > 0)
+        int subAccountsLength = subAccounts.Count;
+        if (subAccountsLength > 0)
         {
             nonce = this.safeString((subAccounts != null && 0 < subAccounts.Count ? subAccounts[0] : null), "nonce", "0");
         }
@@ -2149,7 +2150,7 @@ public partial class apex : Exchange
         // }
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         Int64? timestamp = this.safeInteger(position, "updatedTime");

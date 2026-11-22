@@ -915,7 +915,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
-                string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
+                string? code = this.safeString(parsed, "code", "");
                 result[(string)code] = parsed;
             }
         }
@@ -1410,7 +1410,7 @@ public partial class toobit : Exchange
             takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -2929,7 +2929,8 @@ public partial class toobit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(response, "symbol"), market);
         Dictionary<string, object> fee = this.parseTradingFee(response, marketResolved);
-        result[(string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null)] = fee;
+        string? feeSymbol = this.safeString(marketResolved, "symbol", "");
+        result[(string)feeSymbol] = fee;
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
@@ -3024,7 +3025,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,currencyCode, since, limit));
     }
 
-    public virtual object parseTransactionWithType(IDictionary<string, object> transaction, IDictionary<string, object>? currency = null, string? transactType = null)
+    public virtual Dictionary<string, object> parseTransactionWithType(IDictionary<string, object> transaction, IDictionary<string, object>? currency = null, string? transactType = null)
     {
         Dictionary<string, object> result = this.parseTransaction(transaction, currency);
         if ((transactType != null))

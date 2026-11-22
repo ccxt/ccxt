@@ -670,6 +670,7 @@ public partial class phemex : ccxt.phemex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -685,7 +686,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
+            { "params", new List<object>() {marketId} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
@@ -719,6 +720,7 @@ public partial class phemex : ccxt.phemex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -734,7 +736,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
+            { "params", new List<object>() {marketId} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
@@ -766,6 +768,7 @@ public partial class phemex : ccxt.phemex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -781,7 +784,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null), this.safeInteger(this.timeframes, timeframeVar)} },
+            { "params", new List<object>() {marketId, this.safeInteger(this.timeframes, timeframeVar)} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
@@ -829,8 +832,10 @@ public partial class phemex : ccxt.phemex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        bool isUsdtSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
+        bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
+        bool isUsdtSwap = ((isSwap == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
         string name = "trade";
         if (isUsdtSwap)
         {
@@ -840,7 +845,7 @@ public partial class phemex : ccxt.phemex
             { "topic", "trades" },
             { "symbols", new List<object>() {symbolValue} },
         };
-        return await this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new List<object>() {(market.ContainsKey("id") ? market["id"] : null)}, subscription, parameters);
+        return await this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new List<object>() {marketId}, subscription, parameters);
     }
 
     /**
@@ -862,8 +867,10 @@ public partial class phemex : ccxt.phemex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        bool isUsdtSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
+        bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
+        bool isUsdtSwap = ((isSwap == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
         string name = "kline";
         if (isUsdtSwap)
         {
@@ -874,7 +881,7 @@ public partial class phemex : ccxt.phemex
             { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbolValue, timeframeVar}} },
         };
         // phemex drops only the given interval when it is sent along with the symbol
-        List<object> marketParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), this.safeInteger(this.timeframes, timeframeVar)};
+        List<object> marketParams = new List<object>() {marketId, this.safeInteger(this.timeframes, timeframeVar)};
         return await this.unSubscribePublic((name + ".unsubscribe"), ((("kline:" + (timeframeVar)) + ":") + symbolValue), marketParams, subscription, parameters);
     }
 

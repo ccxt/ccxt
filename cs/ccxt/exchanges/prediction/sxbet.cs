@@ -290,7 +290,8 @@ public partial class sxbet : PredictionExchange
             }
             paginationKey = this.safeString(result, "nextKey");
             page = (page + 1);
-            Int64? collectedLength = this.parseToInt((rawMarkets?.Count ?? 0));
+            int rawMarketsCount = (rawMarkets?.Count ?? 0);
+            Int64? collectedLength = this.parseToInt(rawMarketsCount);
             if ((pageMarketsLength < pageSize) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
             {
                 break;
@@ -532,7 +533,7 @@ public partial class sxbet : PredictionExchange
             }
             rawMarkets = filtered;
         }
-        Dictionary<string, object> grouped = new Dictionary<string, object>() {};
+        Dictionary<string, List<object>> grouped = new Dictionary<string, List<object>>() {};
         List<object> order = new List<object>() {};
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
@@ -651,7 +652,7 @@ public partial class sxbet : PredictionExchange
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object fixtureId, object rawMarkets)
+    public virtual Dictionary<string, object> parseEvent(object fixtureId, IList<object> rawMarkets)
     {
         List<object> marketsList = new List<object>() {};
         bool anyActive = false;
@@ -659,10 +660,10 @@ public partial class sxbet : PredictionExchange
         string? teamOneName = null;
         string? teamTwoName = null;
         string? leagueLabel = null;
-        int rawMarketsLength = getArrayLength(rawMarkets);
+        int rawMarketsLength = rawMarkets?.Count ?? 0;
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            IDictionary<string, object> raw = ((IDictionary<string, object>)getValue(rawMarkets, i));
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             object parsed = this.parseSxbetMarket(raw);
             if ((parsed == null))
             {

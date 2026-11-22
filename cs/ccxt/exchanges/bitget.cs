@@ -3909,7 +3909,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> parsedMarket = this.parseMarket(market);
             if (((parsedMarket != null)) && (this.safeBool(parsedMarket, "spot", false) == true))
             {
-                string? marketId = ((string)(parsedMarket != null && parsedMarket.ContainsKey("id") ? parsedMarket["id"] : null));
+                string? marketId = this.safeString(parsedMarket, "id", "");
                 IDictionary<string, object> instrument = this.safeDict(spotInstruments, marketId);
                 if ((instrument != null))
                 {

@@ -1089,7 +1089,7 @@ public partial class bittrade : Exchange
         {
             string? marketId = this.safeString(tickers[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             ccxt.Ticker ticker = this.parseTicker(tickers[i], market);
             ticker.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
             ticker.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));

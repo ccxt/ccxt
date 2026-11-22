@@ -3853,7 +3853,7 @@ public partial class aster : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amountValue },
         };
-        string? code = ((string)(market.ContainsKey("quote") ? market["quote"] : null));
+        string? code = this.safeString(market, "quote");
         Dictionary<string, object> response = await this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters));
         //
         //     {

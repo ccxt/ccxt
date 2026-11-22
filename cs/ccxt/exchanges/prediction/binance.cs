@@ -528,7 +528,7 @@ public partial class binance : PredictionExchange
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "query", (queries != null && qi < queries.Count ? queries[qi] : null) },
+                { "query", this.safeString(queries, qi) },
             };
             request["topK"] = limitResolved;
             List<object> response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));
@@ -1116,7 +1116,8 @@ public partial class binance : PredictionExchange
             string? outcome = this.safeStringUpper(order, "outcome");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? marketName = this.safeString(market, "market", marketId);
-            outcomeObjResolved = this.safeOutcome((marketName == null ? null : marketName + ":" + outcome));
+            string? outcomeKey = ((string)(marketName == null ? null : marketName + ":" + outcome));
+            outcomeObjResolved = this.safeOutcome(outcomeKey);
         }
         string? side = this.safeStringLower(order, "side");
         Int64? timestamp = this.safeInteger(order, "createTime");
@@ -1696,7 +1697,8 @@ public partial class binance : PredictionExchange
             string? outcome = this.safeStringUpper(trade, "outcome");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? marketName = this.safeString(market, "market", marketId);
-            outcomeObjResolved = this.safeOutcome((marketName == null ? null : marketName + ":" + outcome));
+            string? outcomeKey = ((string)(marketName == null ? null : marketName + ":" + outcome));
+            outcomeObjResolved = this.safeOutcome(outcomeKey);
         }
         Int64? timestamp = this.safeInteger(trade, "createTime");
         string? filled = this.safeString(trade, "filledShareQty");

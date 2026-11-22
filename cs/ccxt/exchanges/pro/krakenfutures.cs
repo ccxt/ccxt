@@ -915,7 +915,8 @@ public partial class krakenfutures : ccxt.krakenfutures
                 {
                     string? stringOrderCost = this.numberToString((previousFee != null && previousFee.ContainsKey("cost") ? previousFee["cost"] : null));
                     string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
-                    ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    previousFee["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    previousOrder["fee"] = previousFee;
                 }
                 // update the newUpdates count
                 orders.append(ccxt.BaseExchange.FromOrder(this.safeOrder(previousOrder)));

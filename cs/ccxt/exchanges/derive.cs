@@ -4060,9 +4060,10 @@ public partial class derive : Exchange
             {
                 used = totalUsdc;
             }
-            usdcAccount["used"] = used;
-            usdcAccount["free"] = Precise.stringSub(totalUsdc, used);
-            result["USDC"] = usdcAccount;
+            result["USDC"] = this.extend(usdcAccount, new Dictionary<string, object>() {
+                { "used", used },
+                { "free", Precise.stringSub(totalUsdc, used) },
+            });
         }
         return this.safeBalance(result);
     }

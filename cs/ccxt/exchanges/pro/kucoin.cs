@@ -942,7 +942,7 @@ public partial class kucoin : ccxt.kucoin
         if (topic.IndexOf("contractMarket", StringComparison.Ordinal) < 0)
         {
             List<object> parts = topic.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-            string? marketId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+            string? marketId = this.safeString(parts, 1);
             Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
             string? symbol = this.safeString(marketResolved, "symbol");
             IDictionary<string, object> data = this.safeDict(ticker, "data", new Dictionary<string, object>() {});
@@ -2550,7 +2550,7 @@ public partial class kucoin : ccxt.kucoin
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (!((order != null && order.ContainsKey("average") ? order["average"] : null) == null))
+            if (!(this.safeNumber(order, "average") == null))
             {
                 parsed["average"] = this.safeNumber(order, "average");
                 parsed["cost"] = this.safeNumber(order, "cost");
@@ -2889,7 +2889,7 @@ public partial class kucoin : ccxt.kucoin
         }
         string? order = this.safeString(trade, "orderId");
         Int64? timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
-        string? feeCurrency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
+        string? feeCurrency = this.safeString(marketResolved, "quote");
         string? feeRate = this.safeString(trade, "feeRate");
         string? feeCost = this.safeString(trade, "fee");
         return this.safeTrade(new Dictionary<string, object>() {

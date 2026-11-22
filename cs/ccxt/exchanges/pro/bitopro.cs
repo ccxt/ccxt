@@ -121,7 +121,7 @@ public partial class bitopro : ccxt.bitopro
         //
         string? marketId = this.safeString(message, "pair");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(message, "event");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -191,7 +191,7 @@ public partial class bitopro : ccxt.bitopro
         //
         string? marketId = this.safeString(message, "pair");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(message, "event");
         List<object> rawData = this.safeList(message, "data", new List<object>() {});
         IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawData, market));
@@ -443,7 +443,7 @@ public partial class bitopro : ccxt.bitopro
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(message, "event");
         Dictionary<string, object> result = ccxt.BaseExchange.FromTicker(this.parseTicker(message, market));
         result["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object

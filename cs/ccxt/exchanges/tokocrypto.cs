@@ -1617,14 +1617,6 @@ public partial class tokocrypto : Exchange
         {
             request["endTime"] = until;
         }
-        object response = null;
-        if (this.isNativeMarket(market))
-        {
-            response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
-        } else
-        {
-            response = await this.binanceGetKlines(this.extend(request, paramsOmitted));
-        }
         //
         // binanceGetKlines
         //
@@ -1658,12 +1650,10 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1659492212507
         //     }
         //
-        object data = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> data = new List<object>() {};
+        if (this.isNativeMarket(market))
         {
-            data = response;
-        } else
-        {
+            Dictionary<string, object> response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
             List<object> dataList = this.safeList(response, "data");
             if ((dataList != null))
             {
@@ -1673,6 +1663,9 @@ public partial class tokocrypto : Exchange
                 IDictionary<string, object> dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 data = this.safeList(dataDict, "list", new List<object>() {});
             }
+        } else
+        {
+            data = await this.binanceGetKlines(this.extend(request, paramsOmitted));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limitValue));
     }

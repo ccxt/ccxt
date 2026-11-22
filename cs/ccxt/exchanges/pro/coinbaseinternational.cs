@@ -624,8 +624,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position["side"] = "long";
-                object shortPosition = this.clone(position);
-                ((IDictionary<string,object>)shortPosition)["side"] = "short";
+                Dictionary<string, object> shortPosition = this.extend(position, new Dictionary<string, object>() {
+                    { "side", "short" },
+                });
                 ccxt.pro.BaseCache.appendTo(this.positions, shortPosition);
             }
             ccxt.pro.BaseCache.appendTo(this.positions, position);
@@ -1076,7 +1077,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49725 && ((hxArr49725 is IList<object>) || (hxArr49725.GetType().IsGenericType && hxArr49725.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49698 && ((hxArr49698 is IList<object>) || (hxArr49698.GetType().IsGenericType && hxArr49698.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -1483,7 +1484,13 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = isGrouped ? this.orderBook(new Dictionary<string, object>() {}, limit) : this.countedOrderBook(new Dictionary<string, object>() {}, limit);
+            if (isGrouped)
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            } else
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
+            }
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(orderbook, "nonce");

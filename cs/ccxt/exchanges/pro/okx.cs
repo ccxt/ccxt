@@ -953,13 +953,14 @@ public partial class okx : ccxt.okx
             messageHashes.Add(messageHash);
         }
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
-        string? marketType = ((string)this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters)[0]);
+        IList<object> marketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
+        string? marketType = (string)marketTypeVariable[0];
         string channel = "liquidation-orders";
         string? type = marketType;
-        if (marketType == "spot")
+        if ((marketType == "spot"))
         {
             type = "SWAP";
-        } else if (marketType == "future")
+        } else if ((marketType == "future"))
         {
             type = "futures";
         }
@@ -1303,7 +1304,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54564 && ((hxArr54564 is IList<object>) || (hxArr54564.GetType().IsGenericType && hxArr54564.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54565 && ((hxArr54565 is IList<object>) || (hxArr54565.GetType().IsGenericType && hxArr54565.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1359,7 +1360,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57034 && ((hxArr57034 is IList<object>) || (hxArr57034.GetType().IsGenericType && hxArr57034.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57035 && ((hxArr57035 is IList<object>) || (hxArr57035.GetType().IsGenericType && hxArr57035.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1800,7 +1801,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> depths = new Dictionary<string, object>() {
             { "bbo-tbt", 1 },
             { "books", 400 },
@@ -1819,7 +1820,7 @@ public partial class okx : ccxt.okx
                 // reset the existing orderbook instead of replacing it: a consumer
                 // holds a reference to the old object and would never see updates
                 // after a re-subscription snapshot
-                if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+                if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
@@ -1839,7 +1840,7 @@ public partial class okx : ccxt.okx
             }
         } else if (action == "update")
         {
-            if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
             {
                 ccxt.pro.IOrderBook updatedBook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < data.Count; i++)
@@ -1862,7 +1863,7 @@ public partial class okx : ccxt.okx
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in ((WebSocketClient)client).subscriptions)
             if (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
             {
-                if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+                if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
@@ -2490,7 +2491,8 @@ public partial class okx : ccxt.okx
                 stored.append(order);
                 string? symbol = this.safeString(order, "symbol", "");
                 Dictionary<string, object> market = this.market(symbol);
-                marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+                string? marketId = this.safeString(market, "id", "");
+                marketIds.Add(marketId);
             }
             client.resolve(stored, channel);
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)

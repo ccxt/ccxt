@@ -2731,7 +2731,7 @@ public partial class kucoin : Exchange
     public async virtual Task<bool> loadMigrationStatus(bool? force = null)
     {
         force ??= false;
-        if (!(this.options.ContainsKey("hf")) || (((this.options != null && this.options.ContainsKey("hf") ? this.options["hf"] : null) == null)) || force == true)
+        if (!(this.options.ContainsKey("hf")) || ((this.safeBool(this.options, "hf") == null)) || force == true)
         {
             Dictionary<string, object> result = await this.privateGetHfAccountsOpened();
             this.options["hf"] = this.safeBool(result, "data");
@@ -4828,7 +4828,7 @@ public partial class kucoin : Exchange
             } else if (marginMode == "cross")
             {
                 IDictionary<string, object> marginModes = this.safeDict(this.options, "marginModes", new Dictionary<string, object>() {});
-                request["tradeType"] = (marginMode != null && marginModes.ContainsKey(marginMode) ? marginModes[marginMode] : null);
+                request["tradeType"] = this.safeString(marginModes, marginMode);
             }
         } else if (isMarginOrder)
         {
@@ -6132,7 +6132,7 @@ public partial class kucoin : Exchange
         if ((marginMode != null))
         {
             IDictionary<string, object> marginModes = this.safeDict(this.options, "marginModes", new Dictionary<string, object>() {});
-            request["tradeType"] = (marginModes != null && marginMode != null && marginModes.ContainsKey(marginMode) ? marginModes[marginMode] : null);
+            request["tradeType"] = this.safeString(marginModes, marginMode);
             if ((marginMode == "isolated") && (trigger == true))
             {
                 throw new BadRequest ((this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;

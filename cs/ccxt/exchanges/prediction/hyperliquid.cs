@@ -1958,15 +1958,8 @@ public partial class hyperliquid : PredictionExchange
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object trades = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            trades = response;
-        } else if (!(response is string))
-        {
-            trades = this.toArray(response);
-        }
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(this.toArray(trades), outcomeObj, since, limit));
+        List<object> trades = this.infoList(response);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
     }
 
     /**
@@ -2017,17 +2010,10 @@ public partial class hyperliquid : PredictionExchange
             request["endTime"] = until;
         }
         object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
-        object fills = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            fills = response;
-        } else if (!(response is string))
-        {
-            fills = this.toArray(response);
-        }
+        List<object> fills = this.infoList(response);
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        IList<object> parsedTrades = this.parsePredictionTrades(this.toArray(fills), null);
+        IList<object> parsedTrades = this.parsePredictionTrades(fills, null);
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit));
     }
 
@@ -2633,7 +2619,7 @@ public partial class hyperliquid : PredictionExchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("type"))))
+        if (((IDictionary<string, object>)config).ContainsKey("byType"))
         {
             string? type = this.safeString(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];

@@ -2459,7 +2459,7 @@ public partial class xt : Exchange
             marketType = hasSpotKeys ? "spot" : "contract";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? open = this.safeString(ticker, "o");
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -6127,7 +6127,8 @@ public partial class xt : Exchange
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[(string)((this.safeString(breakEntry, "symbol", "") + "_") + this.safeString(breakEntry, "positionSide", ""))] = breakEntry;
+            string breakKey = ((this.safeString(breakEntry, "symbol", "") + "_") + this.safeString(breakEntry, "positionSide", ""));
+            breakBySymbolSide[(string)breakKey] = breakEntry;
         }
         return breakBySymbolSide;
     }

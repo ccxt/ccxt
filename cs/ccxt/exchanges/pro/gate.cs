@@ -1299,7 +1299,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? marketId = this.safeString(market, "id", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageType = this.getTypeByMarket(market);
@@ -1519,7 +1519,7 @@ public partial class gate : ccxt.gate
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsed[i]);
             cachedTrades.append(trade);
-            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
+            string? symbol = this.safeString(trade, "symbol");
             if ((symbol != null))
             {
                 marketIds[(string)symbol] = true;
@@ -1911,12 +1911,12 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> marketResolved = this.market(symbol);
             market = marketResolved;
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string? type = null;
         object query = null;
@@ -2385,8 +2385,9 @@ public partial class gate : ccxt.gate
                             marketType = ((string)(parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null));
                         }
                         string? symbol = this.safeSymbol(payload[i], null, "_", marketType);
-                        string? messageHashSymbol = ((string)((object)((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null) == null ? null : (parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null) + ":" + symbol)));
-                        if (((messageHashSymbol != null)) && (((messageHashSymbol != null) && (client.subscriptions != null && messageHashSymbol != null && client.subscriptions.ContainsKey(messageHashSymbol)))))
+                        string channelName = this.safeString(parsedChannel, 1, "");
+                        string messageHashSymbol = ((channelName + ":") + symbol);
+                        if (((messageHashSymbol != null)) && ((client.subscriptions != null && messageHashSymbol != null && client.subscriptions.ContainsKey(messageHashSymbol))))
                         {
                             ((IDictionary<string,object>)client.subscriptions).Remove(messageHashSymbol);
                         }

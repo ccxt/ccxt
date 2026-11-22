@@ -3672,8 +3672,9 @@ public partial class okx : Exchange
         //         "0" // candlestick state
         //     ]
         //
-        string? type = ((string)this.handleMarketTypeAndParams("fetchOHLCV", market, null)[0]);
-        int volumeIndex = (type == "spot") ? 5 : 6;
+        IList<object> typeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOHLCV", market, null);
+        string? type = (string)typeVariable[0];
+        int volumeIndex = ((type == "spot")) ? 5 : 6;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
 

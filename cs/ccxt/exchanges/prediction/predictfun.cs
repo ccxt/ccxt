@@ -389,7 +389,8 @@ public partial class predictfun : PredictionExchange
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             List<object> tags = this.safeList(paramsValue, "tags", new List<object>() {});
-            if (tags.Count > 0)
+            int tagsLength = tags.Count;
+            if (tagsLength > 0)
             {
                 request["tagIds"] = String.Join(",", tags.ToArray());
             }
@@ -3676,7 +3677,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3672_32) ? cachedValue3672_32 : null);
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3673_32) ? cachedValue3673_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {

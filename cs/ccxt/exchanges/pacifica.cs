@@ -1200,7 +1200,7 @@ public partial class pacifica : Exchange
             IDictionary<string, object> setting = ((IDictionary<string, object>)(settings != null && i < settings.Count ? settings[i] : null));
             string? marketId = this.safeString(setting, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             settingsBySymbol[(string)symbol] = setting;
         }
         return settingsBySymbol;

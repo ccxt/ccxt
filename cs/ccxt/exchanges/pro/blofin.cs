@@ -979,23 +979,23 @@ public partial class blofin : ccxt.blofin
             {
                 string? current = ((string)symbols[i]);
                 IDictionary<string, object> market = null;
-                object channel = channelName;
+                string? interval = "";
                 if (isOHLCV)
                 {
                     market = this.market(current);
                     string? tf = this.safeString(this.safeList(symbolsArray, i), 1, "");
-                    string? interval = this.safeString(this.timeframes, tf, tf);
-                    channel = ((object)(channel == null ? null : channel + interval));
+                    interval = this.safeString(this.timeframes, tf, tf);
                 } else
                 {
                     market = this.market(current);
                 }
+                string channel = (("" + (channelName)) + interval);
                 Dictionary<string, object> topic = new Dictionary<string, object>() {
                     { "channel", channel },
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                 };
                 rawSubscriptions.Add(topic);
-                messageHashes.Add(((object)(channel == null ? null : channel + ":" + this.safeString(market, "symbol", ""))));
+                messageHashes.Add(((channel + ":") + this.safeString(market, "symbol", "")));
             }
         } else
         {
@@ -1055,19 +1055,19 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbols, i));
-            object channel = channelName;
+            string? interval = "";
             if (isOHLCV)
             {
                 string? tf = this.safeString(this.safeList(symbolsArray, i), 1, "");
-                string? interval = this.safeString(this.timeframes, tf, tf);
-                channel = (channel + interval);
+                interval = this.safeString(this.timeframes, tf, tf);
             }
+            string channel = (channelName + interval);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
                 { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             };
             topics.Add(topic);
-            messageHashes.Add(((("unsubscribe:" + (channel)) + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
+            messageHashes.Add(((("unsubscribe:" + channel) + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },

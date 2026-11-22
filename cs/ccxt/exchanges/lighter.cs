@@ -1216,7 +1216,8 @@ public partial class lighter : Exchange
             Int64 groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
             for (int i = 0; i < totalOrderRequests; i++)
             {
-                if ((this.safeInteger((orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null), "order_expiry") == -1))
+                Int64? legExpiry = this.safeInteger((orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null), "order_expiry", 0);
+                if ((legExpiry == -1))
                 {
                     ((IDictionary<string,object>)(orderRequests != null && i < orderRequests.Count ? orderRequests[i] : null))["order_expiry"] = groupOrderExpiry;
                 }

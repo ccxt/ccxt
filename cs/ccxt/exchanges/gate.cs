@@ -5839,7 +5839,8 @@ public partial class gate : Exchange
             }
         }
         object priceResolved = price;
-        if (isMarketOrder && ((contract == true)))
+        bool zeroPrice = isMarketOrder && ((contract == true));
+        if (zeroPrice)
         {
             priceResolved = 0;
         }
@@ -5885,7 +5886,7 @@ public partial class gate : Exchange
                     request["price"] = "0"; // set to 0 for market orders
                 } else
                 {
-                    request["price"] = (isEqual(priceResolved, 0)) ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    request["price"] = zeroPrice ? "0" : this.priceToPrecision(symbol, priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -5999,7 +6000,7 @@ public partial class gate : Exchange
                     initial["price"] = "0";
                 } else
                 {
-                    initial["price"] = (isEqual(priceResolved, 0)) ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    initial["price"] = zeroPrice ? "0" : this.priceToPrecision(symbol, priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -7596,7 +7597,7 @@ public partial class gate : Exchange
         IDictionary<string, object> query = parameters;
         if (isMarginTransfer)
         {
-            query = this.omit(parameters, "symbol");
+            query = this.omit(query, "symbol");
         }
         Dictionary<string, object> response = await this.privateWalletPostTransfers(this.extend(request, query));
         //

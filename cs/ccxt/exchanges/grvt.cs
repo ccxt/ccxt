@@ -3748,8 +3748,8 @@ public partial class grvt : Exchange
         string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         string privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.hash(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, null);
-        request["signature"] = new Dictionary<string, object>() {
-            { "signer", ((signerAddress == null)) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress },
+        Dictionary<string, object> signatureEntry = new Dictionary<string, object>() {
+            { "signer", null },
             { "r", this.formatSignatureRS((signature != null && signature.ContainsKey("r") ? signature["r"] : null)) },
             { "s", this.formatSignatureRS((signature != null && signature.ContainsKey("s") ? signature["s"] : null)) },
             { "v", this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)) },
@@ -3757,6 +3757,14 @@ public partial class grvt : Exchange
             { "nonce", (requestSignature != null && requestSignature.ContainsKey("nonce") ? requestSignature["nonce"] : null) },
             { "chain_id", (requestSignature != null && requestSignature.ContainsKey("chain_id") ? requestSignature["chain_id"] : null) },
         };
+        if ((signerAddress == null))
+        {
+            signatureEntry["signer"] = this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero));
+        } else
+        {
+            signatureEntry["signer"] = signerAddress;
+        }
+        request["signature"] = signatureEntry;
         return ((Dictionary<string, object>)((object)(request)));
     }
 

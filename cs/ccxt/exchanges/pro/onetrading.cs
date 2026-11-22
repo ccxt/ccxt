@@ -1468,7 +1468,11 @@ public partial class onetrading : ccxt.onetrading
             subscription[(string)marketId] = true;
         }
         request["type"] = type;
-        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("channels") ? request["channels"] : null), 0))["instrument_codes"] = new List<object>(subscription.Keys);
+        List<object> instrumentCodes = new List<object>(subscription.Keys);
+        Dictionary<string, object> channel = this.extend(this.safeDict(this.safeList(request, "channels", new List<object>() {}), 0, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+            { "instrument_codes", instrumentCodes },
+        });
+        request["channels"] = new List<object>() {channel};
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
     }
 

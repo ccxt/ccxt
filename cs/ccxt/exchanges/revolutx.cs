@@ -1321,7 +1321,7 @@ public partial class revolutx : Exchange
      * @param {boolean} singleLeg whether the order has only this leg
      * @returns {object} the leg request
      */
-    public virtual object createTriggerLegRequest(object symbol, object type, object price, string? triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
+    public virtual Dictionary<string, object> createTriggerLegRequest(object symbol, object type, object price, string? triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
     {
         string? legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
         if ((legTriggerPrice == null))

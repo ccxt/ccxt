@@ -645,7 +645,8 @@ public partial class mexc : ccxt.mexc
         object ohlcv = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            string spotChannel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+            string? spotTimeframeId = this.safeString(timeframes, timeframeVar, "");
+            string spotChannel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + spotTimeframeId);
             ohlcv = await this.watchSpotPublic(spotChannel, messageHash, parameters);
         } else
         {
@@ -2063,7 +2064,8 @@ public partial class mexc : ccxt.mexc
         if ((this.safeBool(market, "spot", false) == true))
         {
             url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
-            string channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+            string? spotTimeframeId = this.safeString(timeframes, timeframeVar, "");
+            string channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + spotTimeframeId);
             parameters["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else

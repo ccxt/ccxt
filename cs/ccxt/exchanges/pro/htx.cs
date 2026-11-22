@@ -1740,7 +1740,7 @@ public partial class htx : ccxt.htx
         //
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         Dictionary<string, object> marketValue = marketResolved;
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? tradeId = this.safeString(trade, "tradeId");
         string? price = this.safeString(trade, "tradePrice");
         string? amount = this.safeString(trade, "tradeVolume");
@@ -1752,7 +1752,7 @@ public partial class htx : ccxt.htx
         {
             List<object> typeParts = type.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             side = ((string)(typeParts != null && 0 < typeParts.Count ? typeParts[0] : null));
-            type = ((string)(typeParts != null && 1 < typeParts.Count ? typeParts[1] : null));
+            type = this.safeString(typeParts, 1);
         }
         bool? aggressor = this.safeBool(trade, "aggressor");
         string? takerOrMaker = null;
@@ -1850,9 +1850,13 @@ public partial class htx : ccxt.htx
         if (isV5Linear)
         {
             IDictionary<string, object> v5Market = null;
-            if (((symbolsNormalized != null)) && (((symbolsNormalized?.Count ?? 0) == 1)))
+            if ((symbolsNormalized != null))
             {
-                v5Market = market;
+                int symbolsNormalizedLength = (symbolsNormalized?.Count ?? 0);
+                if ((symbolsNormalizedLength == 1))
+                {
+                    v5Market = market;
+                }
             }
             List<object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);
@@ -3037,7 +3041,7 @@ public partial class htx : ccxt.htx
             {
                 string? contractCode = this.safeString(message, "contract_code");
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
-                if ((data is IList<object> hxList122675))
+                if ((data is IList<object> hxList122822))
                 {
                     List<object> dataList = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; i < dataList.Count; i++)

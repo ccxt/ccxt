@@ -1071,7 +1071,7 @@ public partial class paradex : ccxt.paradex
             {
                 return;
             }
-            if (!isEqual(nonce, this.sum(storedNonce, 1)))
+            if ((storedNonce + 1 != nonce))
             {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored["nonce"] = null;
@@ -1418,8 +1418,13 @@ public partial class paradex : ccxt.paradex
             };
         } else
         {
-            request = this.subscribeRequest(channel);
-            ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["markets"] = missing;
+            Dictionary<string, object> subscribeParams = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "markets", missing },
+            };
+            request = this.extend(this.subscribeRequest(channel), new Dictionary<string, object>() {
+                { "params", subscribeParams },
+            });
             subscribeHashes.Add(scopedHash);
         }
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
@@ -2028,7 +2033,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? channel = this.safeString(parameters, "channel");
         ccxt.Ticker ticker = this.parseTicker(data, market);
         this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);

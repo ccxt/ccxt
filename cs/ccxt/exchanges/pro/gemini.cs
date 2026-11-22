@@ -195,7 +195,7 @@ public partial class gemini : ccxt.gemini
             }
         }
         stored.append(ccxt.BaseExchange.FromTrade(trade));
-        string messageHash = ("trades:" + symbol);
+        string messageHash = ("trades:" + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", ""));
         client.resolve(stored, messageHash);
     }
 

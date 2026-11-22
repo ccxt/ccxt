@@ -2900,7 +2900,8 @@ public partial class bitstamp : Exchange
             // dt (destination tag) is embedded into the address field
             List<object> addressParts = addressRaw.Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(addressParts, 0);
-            if (addressParts.Count > 1)
+            int addressPartsLength = addressParts.Count;
+            if (addressPartsLength > 1)
             {
                 tag = this.safeString(addressParts, 1);
             }

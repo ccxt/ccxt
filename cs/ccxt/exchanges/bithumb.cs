@@ -601,7 +601,7 @@ public partial class bithumb : Exchange
                 {
                     List<object> parts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+                    baseId = this.safeString(parts, 1);
                     quoteId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
                     bs = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);

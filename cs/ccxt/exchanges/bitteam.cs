@@ -2189,7 +2189,7 @@ public partial class bitteam : Exchange
         //
         string? marketId = this.safeString(trade, "pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString2(trade, "id", "trade_id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "quantity", "base_volume");

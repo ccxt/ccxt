@@ -352,7 +352,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(entry, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         List<object> rawData = this.safeList(entry, "levels", new List<object>() {});
         Dictionary<string, object> data = new Dictionary<string, object>() {
             { "bids", this.safeList(rawData, 0, new List<object>() {}) },
@@ -360,7 +360,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
         Int64? timestamp = this.safeInteger(entry, "time");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
-        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -724,7 +724,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 string? name = ((string)keys[i]);
                 string? marketId = this.coinToMarketId(name);
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+                string? symbol = this.safeString(market, "symbol", "");
                 ccxt.Ticker ticker = this.parseWsTicker(new Dictionary<string, object>() {
                     { "price", this.safeNumber(mids, name) },
                 }, market);
@@ -769,7 +769,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(data, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> ctx = this.safeDict(data, "ctx", new Dictionary<string, object>() {});
         ccxt.Ticker ticker = this.parseWsTicker(ctx, market);
         this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
@@ -833,7 +833,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)data[i]);
             ccxt.Trade parsed = this.parseWsTrade(rawTrade);
-            string? symbol = parsed.symbol;
+            string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
             symbols[(string)symbol] = true;
             trades.append(ccxt.BaseExchange.FromTrade(parsed));
         }
@@ -1012,8 +1012,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(first, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
+        string? symbol = this.safeString(market, "symbol", "");
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);

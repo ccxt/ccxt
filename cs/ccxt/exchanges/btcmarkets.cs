@@ -1138,7 +1138,7 @@ public partial class btcmarkets : Exchange
         IDictionary<string, object> paramsTriggerPrice = parameters;
         if (triggerPriceIsRequired)
         {
-            paramsTriggerPrice = this.omit(parameters, "triggerPrice");
+            paramsTriggerPrice = this.omit(paramsTriggerPrice, "triggerPrice");
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsTriggerPrice, "clientOrderId");
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, paramsOmitted));

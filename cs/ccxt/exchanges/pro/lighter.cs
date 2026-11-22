@@ -185,9 +185,9 @@ public partial class lighter : ccxt.lighter
         List<object> parts = channel.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -224,7 +224,7 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("order_book/" + this.safeString(market, "id", "")) },
         };
@@ -250,7 +250,7 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("order_book/" + this.safeString(market, "id", "")) },
         };
@@ -355,7 +355,7 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " watchTicker() is only supported for swap markets")) ;
@@ -384,7 +384,7 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " unWatchTicker() is only supported for swap markets")) ;
@@ -649,7 +649,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = channel.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -1068,7 +1068,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = channel.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         object stored = this.safeValue(this.liquidations, symbol);
         if ((stored == null))
         {

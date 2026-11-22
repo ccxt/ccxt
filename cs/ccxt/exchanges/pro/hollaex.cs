@@ -408,7 +408,8 @@ public partial class hollaex : ccxt.hollaex
             rawOrders = new List<object>() {dataDict};
         }
         // usually the first message is an empty array
-        if (((rawOrders?.Count ?? 0) == 0))
+        int rawOrdersLength = (rawOrders?.Count ?? 0);
+        if ((rawOrdersLength == 0))
         {
             return;
         }

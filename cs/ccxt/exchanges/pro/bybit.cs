@@ -1445,7 +1445,11 @@ public partial class bybit : ccxt.bybit
         object m = this.safeValue(trade, "m");
         if ((side == null))
         {
-            side = ((m is true)) ? "buy" : "sell";
+            side = "sell";
+            if ((m is true))
+            {
+                side = "buy";
+            }
         } else
         {
             // spot private
@@ -2028,7 +2032,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88510 && ((hxArr88510 is IList<object>) || (hxArr88510.GetType().IsGenericType && hxArr88510.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88561 && ((hxArr88561 is IList<object>) || (hxArr88561.GetType().IsGenericType && hxArr88561.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2718,7 +2722,7 @@ public partial class bybit : ccxt.bybit
                 string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
                 if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
                 {
-                    newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
+                    newTopics.Add(this.safeString(topics, i, ""));
                 }
             }
         } else

@@ -2462,7 +2462,7 @@ public partial class digifinex : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument for swap markets")) ;
             }
-            string? marketSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? marketSymbol = this.safeString(market, "symbol", "");
             List<object> orders = new List<object>() {};
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {

@@ -4742,7 +4742,7 @@ public partial class binance : Exchange
             {
                 throw new ExchangeError ((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
+            string? code = this.safeString(parsed, "code", "");
             if ((parsed == null))
             {
                 throw new ExchangeError ((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -5839,27 +5839,27 @@ public partial class binance : Exchange
             query = this.omit(query, "symbols");
             if ((paramSymbols != null))
             {
-                object symbols = "";
                 if (((paramSymbols is IList<object>) || (paramSymbols.GetType().IsGenericType && paramSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
+                    string symbols = "";
                     string? mid = this.marketId(this.safeString(paramSymbols, 0));
                     if ((mid != null))
                     {
-                        symbols = mid;
+                        symbols = symbols + mid;
                     }
                     for (int i = 1; i < paramSymbols.Count; i++)
                     {
                         string? id = this.marketId(this.safeString(paramSymbols, i));
                         if ((id != null))
                         {
-                            symbols = add(symbols, ("," + id));
+                            symbols = symbols + ("," + id);
                         }
                     }
+                    request["symbols"] = symbols;
                 } else
                 {
-                    symbols = paramSymbols;
+                    request["symbols"] = paramSymbols;
                 }
-                request["symbols"] = symbols;
             }
             response = await this.sapiGetMarginIsolatedAccount(this.extend(request, query));
         } else if ((type == "margin") || (marginMode == "cross"))
@@ -9158,6 +9158,7 @@ public partial class binance : Exchange
         {
             return parameters;
         }
+        Dictionary<string, object> generated = new Dictionary<string, object>() {};
         if (((path is "order")) || ((path is "sor/order")) || ((path is "order/cancelReplace")) || ((path is "um/order")) || ((path is "cm/order")) || ((path is "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
@@ -9165,7 +9166,7 @@ public partial class binance : Exchange
             string? clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if ((clientOrderId == null))
             {
-                ((IDictionary<string,object>)parameters)[clientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                generated[(string)clientOrderIdKey] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "algoOrder")) || ((path is "um/algo/order")))
         {
@@ -9173,7 +9174,7 @@ public partial class binance : Exchange
             string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
             if ((clientAlgoId == null))
             {
-                ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api, path);
+                generated["clientAlgoId"] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "cm/conditional/order")) || ((path is "um/conditional/order")))
         {
@@ -9181,7 +9182,7 @@ public partial class binance : Exchange
             string? newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
             if ((newClientStrategyId == null))
             {
-                ((IDictionary<string,object>)parameters)["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
+                generated["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
             }
         } else if ((path is "equity/order/place"))
         {
@@ -9189,7 +9190,7 @@ public partial class binance : Exchange
             string? equityClientOrderId = this.safeString(parameters, "clientOrderId");
             if ((equityClientOrderId == null))
             {
-                ((IDictionary<string,object>)parameters)["clientOrderId"] = this.generateClientOrderId(null, api, path);
+                generated["clientOrderId"] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "order/oco")) || ((path is "margin/order/oco")) || ((path is "orderList/oco")) || ((path is "orderList/oto")) || ((path is "orderList/otoco")) || ((path is "orderList/opo")) || ((path is "orderList/opoco")))
         {
@@ -9211,7 +9212,7 @@ public partial class binance : Exchange
                 string? currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if ((currentClientOrderId == null))
                 {
-                    ((IDictionary<string,object>)parameters)[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                    generated[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
                 }
             }
         } else if ((path is "batchOrders"))
@@ -9235,7 +9236,8 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)parameters)["batchOrders"] = checkedBatchOrders;
             }
         }
-        return parameters;
+        Dictionary<string, object> withIds = this.extend(parameters, generated);
+        return withIds;
     }
 
     /**
@@ -11843,7 +11845,7 @@ public partial class binance : Exchange
         List<object> data = new List<object>() {};
         for (int i = 0; i < rows; i++)
         {
-            List<object> logs = this.safeList((results != null && i < results.Count ? results[i] : null), "userAssetDribbletDetails", new List<object>() {});
+            List<object> logs = this.safeList(this.safeDict(results, i), "userAssetDribbletDetails", new List<object>() {});
             for (int j = 0; j < logs.Count; j++)
             {
                 data.Add(this.extend(logs[j], new Dictionary<string, object>() {
@@ -13118,7 +13120,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? type = ((string)(market.ContainsKey("type") ? market["type"] : null));
+        string? type = this.safeString(market, "type", "");
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -16028,7 +16030,13 @@ public partial class binance : Exchange
                     int origclientorderidlistLength = origclientorderidlist.Count;
                     if (orderidlistLength > 0)
                     {
-                        query = ((((query + "&") + "orderidlist=%5B") + String.Join("%2C", orderidlist.ToArray())) + "%5D");
+                        List<object> orderIdStrings = new List<object>() {};
+                        for (int i = 0; i < orderidlistLength; i++)
+                        {
+                            string? orderIdString = this.safeString(orderidlist, i, "");
+                            orderIdStrings.Add(orderIdString);
+                        }
+                        query = ((((query + "&") + "orderidlist=%5B") + String.Join("%2C", orderIdStrings.ToArray())) + "%5D");
                     }
                     if (origclientorderidlistLength > 0)
                     {
@@ -16276,7 +16284,8 @@ public partial class binance : Exchange
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if ((limit != null) && (limit <= this.safeInteger(entry, 0, 0)))
+                Int64? entryLimit = this.safeInteger(entry, 0, 0);
+                if ((limit != null) && (limit == null || limit <= entryLimit))
                 {
                     return this.safeInteger(entry, 1);
                 }
