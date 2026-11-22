@@ -6115,29 +6115,25 @@ function splitLongRustLines(content: string, max = 400): string {
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
 // Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
 const RUST_TUPLE_FN_CORE = String.raw`(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type`;
-// venue methods ts/src declares `[Dict, Dict]` (or its Promise) at every declaration of the name: the `dict_` pair rows
-function rustDeclaredDictPairFns(): string[] {
-    const pair = new Set<string>(), other = new Set<string>();
+// venue methods ts/src declares `[X, Dict]` (or its Promise) at every declaration of the name, with the slot-0 family of X
+// (Dict, Str/string, Bool, int/Int); the base readers matched by RUST_TUPLE_FN_CORE keep their own family
+function rustDeclaredPairFns(): Array<[string, string]> {
+    const fam = new Map<string, string>(), other = new Set<string>();
+    const slot0: { [t: string]: string } = { Dict: 'dict_', Str: 'string_', string: 'string_', Bool: 'bool_', int: 'integer_', Int: 'integer_' };
     for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
         let files: string[] = [];
         try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
-        for (const f of files) for (const m of (readTsIndexSource(`${dir}/${f}`) ?? '').matchAll(/\n {4}(?:async )?(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\s*\n/g)) (/^(?:Promise<)?\[\s*Dict,\s*Dict\s*\]>?$/.test(m[2]) ? pair : other).add(toSnakeCase(m[1]));
+        for (const f of files) for (const m of (readTsIndexSource(`${dir}/${f}`) ?? '').matchAll(/\n {4}(?:async )?(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\s*\n/g)) {
+            const n = toSnakeCase(m[1]), t = /^(?:Promise<)?\[\s*(\w+),\s*Dict\s*\]>?$/.exec(m[2]);
+            const k = t === null ? undefined : slot0[t[1]];
+            if (k === undefined || (fam.has(n) && fam.get(n) !== k)) other.add(n); else fam.set(n, k);
+        }
     }
-    return [...pair].filter((n) => !other.has(n)).sort();
+    const core = new RegExp(`^${RUST_TUPLE_FN_CORE}$`);
+    return [...fam].filter(([n]) => !other.has(n) && !core.test(n)).sort((a, b) => (a[0] < b[0] ? -1 : 1));
 }
 // venue request/option helpers answering a `[slot 0, Dict]` pair: [name, slot-0 family key of RUST_OPTION_TUPLE_SLOT0]
-const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
-    ['handle_api_key_index', 'integer_'],
-    ['handle_account_index', 'integer_'],
-    ['get_margin_mode', ''],
-    ['handle_derive_subaccount_id', 'integer_'],
-    ['handle_derive_wallet_address', 'string_'],
-    ['handle_origin_and_single_address', 'string_'],
-    ['handle_public_address', ''],
-    ['get_inst_type', 'string_'],
-    ['handle_hf_and_params', 'bool_'],
-    ...rustDeclaredDictPairFns().map((n): [string, string] => [n, 'dict_']),
-];
+const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = rustDeclaredPairFns();
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 // venue methods ts/src declares `[S, S, Dict]` (S a string type) at every declaration: `(Value, Value, Dict)`
 function rustDeclaredStrStrDictFns(): string[] {
