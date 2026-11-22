@@ -6607,6 +6607,9 @@ export function csharpTypeOfValue (csharp, node, context) {
         if (side !== undefined) {
             return side.type;
         }
+        if (listBucketMapStringKeyRead (csharp, node, context)) {
+            return 'List<object>';
+        }
         break;
     }
     case ts.SyntaxKind.NewExpression: {
@@ -22229,9 +22232,14 @@ function listBucketMapIsRetyped90c7 (csharp, scope, map) {
             const isWrite = holder.parent?.kind === ts.SyntaxKind.BinaryExpression && holder.parent.left === holder;
             const isLocalInit = holder.parent?.kind === ts.SyntaxKind.VariableDeclaration && holder.parent.initializer === holder
                 && holder.parent.name?.kind === ts.SyntaxKind.Identifier && holder.parent.parent?.declarations?.length === 1 && holder.parent.type === undefined;
+            // `m[k].push (v)` and a call argument `f (m[k])` read the List<object> value in place
+            const isPush = holder.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && holder.parent.expression === holder && holder.parent.name?.text === 'push'
+                && holder.parent.parent?.kind === ts.SyntaxKind.CallExpression && holder.parent.parent.expression === holder.parent;
+            const isArgument = holder.parent?.kind === ts.SyntaxKind.CallExpression && holder.parent.arguments.indexOf (holder) >= 0;
             const key = stripParens (parent.argumentExpression);
             const keyType = (key?.kind === ts.SyntaxKind.Identifier) ? csharpTypeOfValue (csharp, key, ctx) : undefined;
-            if ((!isWrite && !isLocalInit) || (isLocalInit && keyType !== 'string' && keyType !== 'string?')) {
+            const stringKey = keyType === 'string' || keyType === 'string?';
+            if ((!isWrite && !isLocalInit && !isPush && !isArgument) || ((isLocalInit || isArgument) && !stringKey)) {
                 ok = false;
                 break;
             }
@@ -22239,6 +22247,26 @@ function listBucketMapIsRetyped90c7 (csharp, scope, map) {
     }
     listBucketMapRetyped90c7.set (map, ok);
     return ok;
+}
+
+// `m[k]` with a string key on a retyped bucket map: the printed read is the List<object> value or null
+function listBucketMapStringKeyRead (csharp, node, context) {
+    const receiver = stripParens (node.expression);
+    const key = stripParens (node.argumentExpression);
+    let holder = node;
+    while (holder.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        holder = holder.parent;
+    }
+    // a `const g = m[k]` local keeps its own rule (listBucketMapReadLocal87c7)
+    if (holder.parent?.kind !== ts.SyntaxKind.CallExpression || holder.parent.arguments.indexOf (holder) < 0) {
+        return false;
+    }
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || key?.kind !== ts.SyntaxKind.Identifier || !listBucketMapWriteReceiver90c7 (csharp, receiver)) {
+        return false;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node));
+    const keyType = csharpTypeOfValue (csharp, key, context ?? { scope, stack: new Set (), depth: 0 });
+    return keyType === 'string' || keyType === 'string?';
 }
 
 // a write receiver that names a retyped bucket map (decided on the map's declaration node):
