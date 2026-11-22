@@ -704,7 +704,7 @@ export default class hollaex extends Exchange {
             const ticker = this.safeDict (tickers, key, {});
             const marketId = this.safeString (ticker, 'symbol', key);
             const market = this.safeMarket (marketId, undefined, '-');
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             result[symbol] = this.extend (this.parseTicker (ticker, market), params);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);

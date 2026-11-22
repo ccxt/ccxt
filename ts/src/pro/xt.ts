@@ -910,7 +910,7 @@ export default class xt extends xtRest {
             const cv = this.safeString (data, 'cv');
             const isSpot = cv !== undefined;
             const ticker = this.parseTicker (data);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -1006,7 +1006,7 @@ export default class xt extends xtRest {
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker (tickerData);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -1571,7 +1571,7 @@ export default class xt extends xtRest {
         }
         const stored = this.myTrades;
         const parsedTrade = this.parseTrade (data);
-        const tradeSymbol = parsedTrade['symbol'];
+        const tradeSymbol = this.safeString (parsedTrade, 'symbol');
         if (tradeSymbol === undefined) {
             return;
         }

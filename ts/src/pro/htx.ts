@@ -1586,7 +1586,7 @@ export default class htx extends htxRest {
         //
         const marketResolved = this.safeMarket (undefined, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const tradeId = this.safeString (trade, 'tradeId');
         const price = this.safeString (trade, 'tradePrice');
         const amount = this.safeString (trade, 'tradeVolume');

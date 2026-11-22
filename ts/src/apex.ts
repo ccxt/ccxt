@@ -1207,7 +1207,7 @@ export default class apex extends Exchange {
         const clientOrderId = this.safeString (order, 'clientId');
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
@@ -1964,7 +1964,7 @@ export default class apex extends Exchange {
         // }
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const side = this.safeStringLower (position, 'side');
         const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
