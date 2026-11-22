@@ -1163,7 +1163,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict) {
         // spot update
         // {
         //        "closed":[
@@ -1322,29 +1322,32 @@ export default class phemex extends phemexRest {
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         let trades: List = [];
         const parsedOrders: Dict[] = [];
-        if (('closed' in message) || ('fills' in message) || ('open' in message)) {
-            const closed = this.safeList (message, 'closed', []);
-            const open = this.safeList (message, 'open', []);
+        const ordersDict: Dict = this.safeDict2 (message, 'orders', 'orders_p', {});
+        if (('closed' in ordersDict) || ('fills' in ordersDict) || ('open' in ordersDict)) {
+            const closed = this.safeList (ordersDict, 'closed', []);
+            const open = this.safeList (ordersDict, 'open', []);
             const orders: Dict[] = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;
             }
-            trades = this.safeList (message, 'fills', []);
+            trades = this.safeList (ordersDict, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
                 const parsedOrder = this.parseOrder (rawOrder);
                 parsedOrders.push (parsedOrder);
             }
         } else {
-            const messageLength = message.length;
-            if (messageLength === 0) {
+            const updates = this.safeList (message, 'orders_p', []);
+            const updatesLength = updates.length;
+            if (updatesLength === 0) {
                 return;
             }
-            for (let i = 0; i < messageLength; i++) {
-                const update = message[i];
+            for (let i = 0; i < updatesLength; i++) {
+                const update = updates[i];
                 const action = this.safeString (update, 'action');
                 if ((action !== undefined) && (action !== 'Cancel')) {
                     // order + trade info together
@@ -1681,8 +1684,7 @@ export default class phemex extends phemexRest {
             return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
-            const orders = this.safeDict2 (message, 'orders', 'orders_p', {});
-            this.handleOrders (client, orders);
+            this.handleOrders (client, message);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {
             let type: Str = 'spot';

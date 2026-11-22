@@ -4,7 +4,7 @@ import deriveRest from '../derive.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, List, int } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -522,7 +522,7 @@ export default class derive extends deriveRest {
         //
         //
         const params = this.safeDict (message, 'params');
-        const data = this.safeDict (params, 'data', {});
+        const data = this.safeList (params, 'data', []);
         const topic = this.safeString (params, 'channel', '');
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
@@ -533,7 +533,7 @@ export default class derive extends deriveRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (limit);
         }
-        for (let i = 0; i < (data as List).length; i++) {
+        for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
             tradesArray.append (trade);
         }
