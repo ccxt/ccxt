@@ -981,8 +981,7 @@ class luno(Exchange, ImplicitAPI):
             id = ids[i]
             market = self.safe_market(id)
             symbol = self.safe_string(market, 'symbol', '')
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+            result[symbol] = self.parse_ticker(self.safe_dict(tickers, id, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1297,6 +1296,7 @@ class luno(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'pair': market['id'],
         }
@@ -1306,13 +1306,13 @@ class luno(Exchange, ImplicitAPI):
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
+                request['counter_volume'] = self.amount_to_precision(precisionSymbol, amount)
             else:
-                request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
+                request['base_volume'] = self.amount_to_precision(precisionSymbol, amount)
             response = self.privatePostMarketorder(self.extend(request, params))
         else:
-            request['volume'] = self.amount_to_precision(market['symbol'], amount)
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['volume'] = self.amount_to_precision(precisionSymbol, amount)
+            request['price'] = self.price_to_precision(precisionSymbol, price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
             response = self.privatePostPostorder(self.extend(request, params))
         if response is None:

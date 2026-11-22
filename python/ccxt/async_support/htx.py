@@ -6708,7 +6708,7 @@ class htx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            if market['linear']:
+            if self.safe_bool(market, 'linear', False):
                 return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100)
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50)
         request = {
@@ -7225,9 +7225,11 @@ class htx(Exchange, ImplicitAPI):
                         bodyRequest = params
                     else:
                         bodyRequest = query
-                    signedBody = self.json(bodyRequest)
-                    if not isArrayParams and (len(signedBody) == 2):
+                    bodyJson = self.json(bodyRequest)
+                    if not isArrayParams and (len(bodyJson) == 2):
                         signedBody = '{}'
+                    else:
+                        signedBody = bodyJson
                     signedHeaders = {
                         'Content-Type': 'application/json',
                     }
@@ -8945,7 +8947,7 @@ class htx(Exchange, ImplicitAPI):
                     parsedSettlement = self.parse_settlement(item, market)
                     result.append(self.extend(parsedSettlement, timestampDetails))
             else:
-                result.append(self.parse_settlement(settlements[i], market))
+                result.append(self.parse_settlement(settlement, market))
         return result
 
     def parse_settlement(self, settlement: dict, market: Market) -> dict:

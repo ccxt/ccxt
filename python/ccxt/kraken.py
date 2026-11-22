@@ -1128,7 +1128,7 @@ class kraken(Exchange, ImplicitAPI):
             id = ids[i]
             market = self.safe_market(id)
             symbol = self.safe_string(market, 'symbol', '')
-            ticker = tickers[id]
+            ticker = self.safe_dict(tickers, id, {})
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
@@ -2328,7 +2328,7 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_dict(response, 'result', [])
+        result = self.safe_dict(response, 'result', {})
         if not (id in result):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(self.extend({'id': id}, result[id]))

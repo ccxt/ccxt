@@ -1670,8 +1670,7 @@ class pacifica(Exchange, ImplicitAPI):
             side = self.safe_string(order, 'side')
             price = self.safe_string(order, 'price')
             type = self.safe_string(order, 'type', 'limit')
-            orderParams = self.safe_dict(order, 'params', {})
-            orderParams['timestamp'] = timestamp
+            orderParams = self.extend(self.safe_dict(order, 'params', {}), {'timestamp': timestamp})
             amount = self.safe_string(order, 'amount')
             amountNumber = self.parse_number(amount)
             priceNumber = self.parse_number(price)
@@ -2369,7 +2368,7 @@ class pacifica(Exchange, ImplicitAPI):
         sorted = self.sort_by(data, 'history_id', True)
         lastIdx = len(sorted)
         if lastIdx > 0:
-            return self.parse_order(sorted[0], market)
+            return self.parse_order(self.safe_dict(sorted, 0, {}), market)
         return self.parse_order({}, market)
 
     def parse_order_status(self, status: Str) -> Str:
@@ -2599,7 +2598,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_position(data[i], None))
+            result.append(self.parse_position(self.safe_dict(data, i, {}), None))
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:

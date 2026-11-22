@@ -110,8 +110,8 @@ class lighter(ccxt.async_support.lighter):
 
     async def subscribe_private(self, messageHash: str, params: dict = {}):
         await self.preLoadLighterLibrary()
-        params['auth'] = self.createAuth(params)
-        return await self.subscribe_public(messageHash, params)
+        request = self.extend(params, {'auth': self.createAuth(params)})
+        return await self.subscribe_public(messageHash, request)
 
     def handle_delta(self, bookside: object, delta: object):
         price = self.safe_float(delta, 'price')
@@ -1263,7 +1263,7 @@ class lighter(ccxt.async_support.lighter):
             market = self.safe_market(marketId)
             orders = self.safe_list(data, marketId, [])
             for j in range(0, len(orders)):
-                order = self.parse_order(orders[j], market)
+                order = self.parse_order(self.safe_dict(orders, j, {}), market)
                 stored.append(order)
                 symbol = self.safe_string(order, 'symbol')
                 if symbol is not None:

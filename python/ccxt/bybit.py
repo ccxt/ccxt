@@ -6501,8 +6501,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
             rawPosition = positions[i]
             if ('data' in rawPosition) and ('is_valid' in rawPosition):
                 # futures only
-                rawPosition = self.safe_dict(rawPosition, 'data')
-            results.append(self.parse_position(rawPosition))
+                results.append(self.parse_position(self.safe_dict(rawPosition, 'data', {})))
+            else:
+                results.append(self.parse_position(self.safe_dict(positions, i, {})))
         return self.filter_by_array_positions(results, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -8521,23 +8522,23 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #  ]
         #
         tiers = []
+        minNotional = self.parse_number('0')
         for i in range(0, len(info)):
             tier = self.safe_dict(info, i)
             marketId = self.safe_string(tier, 'symbol')
             marketResolved = self.safe_market(marketId, market, None, 'contract')
-            minNotional = self.parse_number('0')
-            if i != 0:
-                minNotional = self.safe_number(info[i - 1], 'riskLimitValue')
+            tierMaxNotional = self.safe_number(tier, 'riskLimitValue')
             tiers.append({
                 'tier': self.safe_integer(tier, 'id'),
                 'symbol': self.safe_symbol(marketId, marketResolved),
                 'currency': marketResolved['settle'],
                 'minNotional': minNotional,
-                'maxNotional': self.safe_number(tier, 'riskLimitValue'),
+                'maxNotional': tierMaxNotional,
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),
                 'info': tier,
             })
+            minNotional = tierMaxNotional
         return tiers
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:

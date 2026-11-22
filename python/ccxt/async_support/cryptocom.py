@@ -3097,7 +3097,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
-        return self.parse_position(self.safe_dict(data, 0), market)
+        return self.parse_position(self.safe_dict(data, 0, {}), market)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -3252,6 +3252,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'instrument_name': market['id'],
             'type': 'MARKET',
@@ -3261,7 +3262,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if type is not None:
             request['type'] = type
         if price is not None:
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['price'] = self.price_to_precision(precisionSymbol, price)
         response = await self.v1PrivatePostPrivateClosePosition(self.extend(request, params))
         #
         #    {
@@ -3417,7 +3418,7 @@ class cryptocom(Exchange, ImplicitAPI):
             payload = path + nonce + self.apiKey + strSortKey + nonce
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             paramsKeysLength = len(paramsKeys)
-            requestBody = self.json({
+            jsonBody = self.json({
                 'id': nonce,
                 'method': path,
                 'params': params,
@@ -3433,7 +3434,8 @@ class cryptocom(Exchange, ImplicitAPI):
             if paramsKeysLength == 0:
                 paramsString = '{}'
                 arrayString = '[]'
-                requestBody = requestBody.replace(arrayString, paramsString)
+                jsonBody = jsonBody.replace(arrayString, paramsString)
+            requestBody = jsonBody
             requestHeaders = {
                 'Content-Type': 'application/json',
             }

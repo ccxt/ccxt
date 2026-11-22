@@ -1369,18 +1369,17 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_value(message, 'result', {})
-        if isinstance(result, list):
+        rows = self.safe_list(message, 'result')
+        if rows is None:
+            parsedOrder = self.parse_ws_order(self.safe_dict(message, 'result', {}))
+            client.resolve(parsedOrder, messageHash)
+        else:
             parsedOrders = []
-            rows = self.safe_list(message, 'result', [])
             rowsLength = len(rows)
             for i in range(0, rowsLength):
                 parsedOrder = self.parse_ws_order(rows[i])
                 parsedOrders.append(parsedOrder)
             client.resolve(parsedOrders, messageHash)
-        else:
-            parsedOrder = self.parse_ws_order(result)
-            client.resolve(parsedOrder, messageHash)
         return message
 
     def handle_message(self, client: Client, message: dict):

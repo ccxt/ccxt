@@ -3911,7 +3911,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_ticker(data[0], market)
+        return self.parse_ticker(self.safe_dict(data, 0, {}), market)
 
     async def fetch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -3937,7 +3937,7 @@ class bitget(Exchange, ImplicitAPI):
             request['productType'] = productType
             response = await self.publicMixGetV2MixMarketSymbolPrice(self.extend(request, paramsProductType))
         data = self.safe_list(response, 'data', [])
-        return self.parse_ticker(data[0], market)
+        return self.parse_ticker(self.safe_dict(data, 0, {}), market)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -8738,7 +8738,7 @@ class bitget(Exchange, ImplicitAPI):
             position = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(position)):
-            parsedPosition = self.parse_position(position[i], market)
+            parsedPosition = self.parse_position(self.safe_dict(position, i, {}), market)
             result.append(parsedPosition)
         symbolsNormalized = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)

@@ -557,13 +557,14 @@ class mercado(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'coin_pair': market['id'],
         }
         response = None
         if type == 'limit':
-            request['limit_price'] = self.price_to_precision(market['symbol'], price)
-            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+            request['limit_price'] = self.price_to_precision(precisionSymbol, price)
+            request['quantity'] = self.amount_to_precision(precisionSymbol, amount)
             if side == 'buy':
                 response = await self.privatePostPlaceBuyOrder(self.extend(request, params))
             else:
@@ -574,10 +575,10 @@ class mercado(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
                 amountString = self.number_to_string(amount)
                 priceString = self.number_to_string(price)
-                request['cost'] = self.price_to_precision(market['symbol'], self.parse_to_numeric(Precise.string_mul(amountString, priceString)))
+                request['cost'] = self.price_to_precision(precisionSymbol, self.parse_to_numeric(Precise.string_mul(amountString, priceString)))
                 response = await self.privatePostPlaceMarketBuyOrder(self.extend(request, params))
             else:
-                request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+                request['quantity'] = self.amount_to_precision(precisionSymbol, amount)
                 response = await self.privatePostPlaceMarketSellOrder(self.extend(request, params))
         # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({

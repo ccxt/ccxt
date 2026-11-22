@@ -414,7 +414,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol: Str, amount: object) -> Str:
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, self.safe_value(market['precision'], 'amount'), DECIMAL_PLACES)
+        return self.decimal_to_precision(amount, TRUNCATE, self.safe_integer(market['precision'], 'amount'), DECIMAL_PLACES)
 
     def get_gen2_market_id(self, market: Market) -> str:
         marketId = self.safe_string(market, 'id')

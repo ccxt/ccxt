@@ -1538,11 +1538,12 @@ class polymarket(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         if (amount is None) or (price is None):
             raise ArgumentsRequired(self.id + ' editOrder() requires both the amount and the price arguments')
         orderId = self.parse_to_int(id)
-        priceString = self.price_to_precision(market['symbol'], price)
-        quantity = self.amount_to_precision(market['symbol'], amount)
+        priceString = self.price_to_precision(precisionSymbol, price)
+        quantity = self.amount_to_precision(precisionSymbol, amount)
         signable = ['modifyOrders', [[orderId, priceString, quantity]]]
         bodyOp = {
             'type': 'modifyOrders',

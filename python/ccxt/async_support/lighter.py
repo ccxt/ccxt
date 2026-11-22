@@ -1526,8 +1526,7 @@ class lighter(Exchange, ImplicitAPI):
         spotTickers = self.safe_list(response, 'spot_order_book_details', [])
         swapTickers = self.safe_list(response, 'order_book_details', [])
         tickers = self.array_concat(spotTickers, swapTickers)
-        first = self.safe_dict(tickers, 0, {})
-        return self.parse_ticker(first, market)
+        return self.parse_ticker(self.safe_dict(tickers, 0, {}), market)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

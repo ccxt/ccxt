@@ -686,8 +686,7 @@ class apex(ccxt.async_support.apex):
         trades = self.myTrades
         symbols = {}
         for i in range(0, len(lists)):
-            rawTrade = self.safe_dict(lists, i, {})
-            parsed = self.parse_ws_trade(rawTrade)
+            parsed = self.parse_ws_trade(self.safe_dict(lists, i, {}))
             symbol = self.safe_string(parsed, 'symbol')
             symbols[symbol] = True
             trades.append(parsed)
@@ -802,8 +801,7 @@ class apex(ccxt.async_support.apex):
         cache = self.positions
         newPositions = []
         for i in range(0, len(lists)):
-            rawPosition = self.safe_dict(lists, i, {})
-            position = self.parse_position(rawPosition)
+            position = self.parse_position(self.safe_dict(lists, i, {}))
             side = self.safe_string(position, 'side')
             # hacky solution to handle closing positions
             # without crashing, we should handle this properly later

@@ -1577,8 +1577,7 @@ class hitbtc(Exchange, ImplicitAPI):
         addressTo = address
         tag = self.safe_string(native, 'payment_id')
         tagTo = tag
-        sender = self.safe_list(native, 'senders')
-        addressFrom = self.safe_string(sender, 0)
+        addressFrom = self.safe_string(self.safe_list(native, 'senders', []), 0)
         amount = self.safe_number(native, 'amount')
         subType = self.safe_string(transaction, 'subtype')
         internal = subType == 'OFFCHAIN'
@@ -2017,8 +2016,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        order = self.safe_dict(response, 0, {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.safe_dict(response, 0, {}), market)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

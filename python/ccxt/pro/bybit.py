@@ -1956,7 +1956,7 @@ class bybit(ccxt.async_support.bybit):
         rawOrders = self.safe_list(message, 'data', [])
         symbols = {}
         for i in range(0, len(rawOrders)):
-            parsed = self.parse_order(rawOrders[i])
+            parsed = self.parse_order(self.safe_dict(rawOrders, i, {}))
             # if (isSpot) {
             #     parsed = this.parseWsSpotOrder (rawOrders[i]);
             # } else {

@@ -126,9 +126,7 @@ class backpack(ccxt.async_support.backpack):
             market = self.market(normalized[i])
             if (symbols is None) and (stock or (explicitSource == 'External') or (channel is not None)) and (market['stock'] is not True):
                 continue
-            marketSelection = self.handleStockParams(methodName, query, market)
-            marketStock = self.safe_bool(marketSelection, 0, False)
-            marketParams = self.safe_dict(marketSelection, 1, {})
+            marketStock, marketParams = self.handleStockParams(methodName, query, market)
             isRfq = self.safe_string(market['info'], 'marketType') == 'RFQ'
             source = explicitSource
             if source is None:

@@ -2656,7 +2656,7 @@ class phemex(Exchange, ImplicitAPI):
                 request['clOrdID'] = brokerId + self.uuid16()
         else:
             request['clOrdID'] = clientOrderId
-        paramsOmitted = self.omit(params, ['clOrdID', 'clientOrderId']) if (clientOrderId is not None) else params
+        paramsOmitted = self.omit(params, ['clOrdID', 'clientOrderId'])
         triggerPrice = self.safe_string_n(paramsOmitted, ['stopPx', 'stopPrice', 'triggerPrice'])
         if triggerPrice is not None:
             if isStableSettled:
@@ -2891,6 +2891,7 @@ class phemex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'symbol': market['id'],
         }
@@ -2904,7 +2905,7 @@ class phemex(Exchange, ImplicitAPI):
             request['orderID'] = id
         if price is not None:
             if isStableSettled:
-                request['priceRp'] = self.price_to_precision(market['symbol'], price)
+                request['priceRp'] = self.price_to_precision(precisionSymbol, price)
             else:
                 request['priceEp'] = self.to_ep(price, market)
         # Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
@@ -2914,7 +2915,7 @@ class phemex(Exchange, ImplicitAPI):
             request['baseQtyEV'] = finalQty
         elif amount is not None:
             if isStableSettled:
-                request['orderQtyRq'] = self.amount_to_precision(market['symbol'], amount)
+                request['orderQtyRq'] = self.amount_to_precision(precisionSymbol, amount)
             else:
                 request['baseQtyEV'] = self.to_ev(amount, market)
         triggerPrice = self.safe_string_n(paramsOmitted2, ['triggerPrice', 'stopPx', 'stopPrice'])

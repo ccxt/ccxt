@@ -248,6 +248,7 @@ class poloniex(ccxt.async_support.poloniex):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         uppercaseType = type.upper()
         if side is None:
             raise ArgumentsRequired(self.id + ' createOrderWs() side is required')
@@ -281,7 +282,7 @@ class poloniex(ccxt.async_support.poloniex):
                 quoteAmount = self.cost_to_precision(symbol, amount)
             request['amount'] = quoteAmount
         else:
-            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+            request['quantity'] = self.amount_to_precision(precisionSymbol, amount)
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
         orders = await self.trade_request('createOrder', self.extend(request, paramsOmitted))

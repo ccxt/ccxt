@@ -5715,6 +5715,7 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         positionSide = self.safe_string(params, 'positionSide')
         if (market['inverse'] is True) and (positionSide is None):
             raise ArgumentsRequired(self.id + ' setMargin() requires a positionSide parameter for Coin-M markets')
@@ -5722,7 +5723,7 @@ class bingx(Exchange, ImplicitAPI):
         if market['inverse'] is True:
             amountString = self.currency_to_precision(market['settle'], amount)
         else:
-            amountString = self.amount_to_precision(market['symbol'], amount)
+            amountString = self.amount_to_precision(precisionSymbol, amount)
         request = {
             'symbol': market['id'],
             'amount': amountString,

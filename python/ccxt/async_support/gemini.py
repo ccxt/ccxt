@@ -983,6 +983,7 @@ class gemini(Exchange, ImplicitAPI):
         return self.parse_ticker(response, market)
 
     async def fetch_ticker_v1_and_v2(self, symbol: str, params: dict = {}) -> Ticker:
+        await self.load_markets()
         tickerPromiseA = self.fetch_ticker_v1(symbol, params)
         tickerPromiseB = self.fetch_ticker_v2(symbol, params)
         tickerA, tickerB = await asyncio.gather(*[tickerPromiseA, tickerPromiseB])

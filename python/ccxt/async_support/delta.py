@@ -1997,10 +1997,11 @@ class delta(Exchange, ImplicitAPI):
         await self.load_markets()
         orderType = type + '_order'
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'product_id': market['numericId'],
             # 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size': self.amount_to_precision(market['symbol'], amount),
+            'size': self.amount_to_precision(precisionSymbol, amount),
             'side': side,
             'order_type': orderType,
             # 'client_order_id': 'string',
@@ -2009,7 +2010,7 @@ class delta(Exchange, ImplicitAPI):
             # 'reduce_only': 'false', // 'true',
         }
         if type == 'limit':
-            request['limit_price'] = self.price_to_precision(market['symbol'], price)
+            request['limit_price'] = self.price_to_precision(precisionSymbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is not None:

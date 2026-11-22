@@ -892,7 +892,7 @@ class mudrex(Exchange, ImplicitAPI):
             market = self.market(symbol)
         orders = []
         for i in range(0, len(rows)):
-            orders.append(self.parse_order(rows[i], market))
+            orders.append(self.parse_order(self.safe_dict(rows, i, {}), market))
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -958,10 +958,9 @@ class mudrex(Exchange, ImplicitAPI):
         rows = self.to_array(data)
         outPos = []
         for i in range(0, len(rows)):
-            p = rows[i]
-            symRaw = self.safe_string(p, 'symbol')
+            symRaw = self.safe_string(rows[i], 'symbol')
             m = self.safe_market(symRaw)
-            pos = self.parse_position(p, m)
+            pos = self.parse_position(self.safe_dict(rows, i, {}), m)
             outPos.append(pos)
         return self.filter_by_array_positions(outPos, 'symbol', symbols)
 

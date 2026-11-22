@@ -1680,8 +1680,7 @@ class htx(ccxt.async_support.htx):
         positionsByMarginMode = {}
         timestamp = self.safe_integer(message, 'ts')
         for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
-            position = self.parse_position(rawPosition)
+            position = self.parse_position(self.safe_dict(rawPositions, i, {}))
             position['timestamp'] = timestamp
             position['datetime'] = self.iso8601(timestamp)
             marginMode = self.safe_string_lower(position, 'marginMode', defaultMarginMode)

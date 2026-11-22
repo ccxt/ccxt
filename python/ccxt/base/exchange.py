@@ -5823,7 +5823,7 @@ class BaseExchange(object):
         positionsArray = self.to_array(positions)
         result = []
         for i in range(0, len(positionsArray)):
-            position = self.extend(self.parse_position(positionsArray[i]), params)
+            position = self.extend(self.parse_position(self.safe_dict(positionsArray, i, {})), params)
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 

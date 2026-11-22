@@ -3268,7 +3268,7 @@ class poloniex(Exchange, ImplicitAPI):
         for i in range(0, len(responseKeys)):
             currencyId = responseKeys[i]
             code = self.safe_currency_code(currencyId)
-            feeInfo = self.safe_dict(response, currencyId)
+            feeInfo = self.safe_dict(feesById, currencyId)
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
                 currency = self.currency(code)
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, currency)
@@ -3280,7 +3280,7 @@ class poloniex(Exchange, ImplicitAPI):
                         rawNetworkId = self.safe_string(childChains, j, '')
                         networkId = rawNetworkId.replace(code, '')
                         networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-                        networkInfo = self.safe_dict(response, networkId)
+                        networkInfo = self.safe_dict(feesById, networkId)
                         networkObject = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
                         withdrawObject = {'fee': withdrawFee, 'percentage': None}

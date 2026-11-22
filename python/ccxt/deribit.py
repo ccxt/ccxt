@@ -1426,7 +1426,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         tickers = {}
         for i in range(0, len(result)):
-            ticker = self.parse_ticker(result[i])
+            ticker = self.parse_ticker(self.safe_dict(result, i, {}))
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 tickers[symbol] = ticker
@@ -1615,7 +1615,9 @@ class deribit(Exchange, ImplicitAPI):
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
         until = self.safe_integer_2(params, 'until', 'end_timestamp')
-        paramsOmitted = self.omit(params, ['until']) if (until is not None) else params
+        paramsOmitted = self.omit(params, [])
+        if until is not None:
+            paramsOmitted = self.omit(params, ['until'])
         if until is not None:
             request['end_timestamp'] = until
         response = None
@@ -2192,7 +2194,7 @@ class deribit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
         isTrailingAmountOrder = trailingAmount is not None
-        paramsOmitted = params
+        paramsOmitted = self.omit(params, [])
         if isTrailingAmountOrder:
             paramsOmitted = self.omit(paramsOmitted, 'trigger_offset')
         if isTrailingAmountOrder:

@@ -444,7 +444,7 @@ class bullish(ccxt.async_support.bullish):
             orders = self.orders
             symbols = {}
             for i in range(0, len(rawOrders)):
-                parsedOrder = self.parse_order(rawOrders[i])
+                parsedOrder = self.parse_order(self.safe_dict(rawOrders, i, {}))
                 orders.append(parsedOrder)
                 symbol = self.safe_string(parsedOrder, 'symbol')
                 if symbol is not None:
@@ -699,7 +699,7 @@ class bullish(ccxt.async_support.bullish):
         positions = self.positions
         newPositions = []
         for i in range(0, len(rawPositions)):
-            position = self.parse_position(rawPositions[i])
+            position = self.parse_position(self.safe_dict(rawPositions, i, {}))
             positions.append(position)
             newPositions.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')

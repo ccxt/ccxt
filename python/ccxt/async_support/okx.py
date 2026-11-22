@@ -2425,7 +2425,7 @@ class okx(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_list(response, 'data')
-        return self.parse_ticker(self.safe_dict(data, 0), market)
+        return self.parse_ticker(self.safe_dict(data, 0, {}), market)
 
     async def fetch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -6081,7 +6081,7 @@ class okx(Exchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
+            result.append(self.parse_position(self.safe_dict(positions, i, {})))
         return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols))
 
     async def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:

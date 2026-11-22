@@ -538,7 +538,7 @@ class aster(ccxt.async_support.aster):
         timestamp = self.safe_integer(message, 'T')
         bidAskSymbol = None
         if market is not None:
-            bidAskSymbol = market['symbol']
+            bidAskSymbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,

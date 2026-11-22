@@ -1137,14 +1137,15 @@ class bitso(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'book': market['id'],
             'side': side,
             'type': type,
-            'major': self.amount_to_precision(market['symbol'], amount),
+            'major': self.amount_to_precision(precisionSymbol, amount),
         }
         if type == 'limit':
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['price'] = self.price_to_precision(precisionSymbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         payload = self.safe_dict(response, 'payload', {})
         id = self.safe_string(payload, 'oid')
@@ -1344,7 +1345,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         numOrders = len(payload)
         if numOrders == 1:
-            return self.parse_order(payload[0])
+            return self.parse_order(self.safe_dict(payload, 0, {}))
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:

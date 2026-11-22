@@ -2072,7 +2072,7 @@ class coinbase(Exchange, ImplicitAPI):
             marketId = baseId + delimiter + quoteId
             market = self.safe_market(marketId, None, delimiter)
             symbol = self.safe_string(market, 'symbol', '')
-            result[symbol] = self.parse_ticker(rates[baseId], market)
+            result[symbol] = self.parse_ticker(self.safe_dict(rates, baseId, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_tickers_v3(self, symbols: Strings = None, params: dict = {}) -> Tickers:

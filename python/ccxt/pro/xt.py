@@ -165,14 +165,12 @@ class xt(ccxt.async_support.xt):
         bids = orderbook['bids']
         asks = orderbook['asks']
         for i in range(0, len(obBids)):
-            bid = self.safe_list(obBids, i)
-            price = self.safe_number(bid, 0)
-            quantity = self.safe_number(bid, 1)
+            price = self.safe_number(obBids[i], 0)
+            quantity = self.safe_number(obBids[i], 1)
             bids.store(price, quantity)
         for i in range(0, len(obAsks)):
-            ask = self.safe_list(obAsks, i)
-            price = self.safe_number(ask, 0)
-            quantity = self.safe_number(ask, 1)
+            price = self.safe_number(obAsks[i], 0)
+            quantity = self.safe_number(obAsks[i], 1)
             asks.store(price, quantity)
         # this.handleBidAsks (storedBids, bids);
         # this.handleBidAsks (storedAsks, asks);
@@ -1136,16 +1134,14 @@ class xt(ccxt.async_support.xt):
             if obAsks is not None:
                 asks = orderbook['asks']
                 for i in range(0, len(obAsks)):
-                    ask = self.safe_list(obAsks, i)
-                    price = self.safe_number(ask, 0)
-                    quantity = self.safe_number(ask, 1)
+                    price = self.safe_number(obAsks[i], 0)
+                    quantity = self.safe_number(obAsks[i], 1)
                     asks.store(price, quantity)
             if obBids is not None:
                 bids = orderbook['bids']
                 for i in range(0, len(obBids)):
-                    bid = self.safe_list(obBids, i)
-                    price = self.safe_number(bid, 0)
-                    quantity = self.safe_number(bid, 1)
+                    price = self.safe_number(obBids[i], 0)
+                    quantity = self.safe_number(obBids[i], 1)
                     bids.store(price, quantity)
             timestamp = self.safe_integer(data, 't')
             orderbook['nonce'] = self.safe_integer_2(data, 'i', 'u')

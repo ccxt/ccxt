@@ -627,7 +627,7 @@ class okx(ccxt.async_support.okx):
         data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
-            ticker = self.parse_ticker(data[i])
+            ticker = self.parse_ticker(self.safe_dict(data, i, {}))
             self.tickers[symbol] = ticker
             newTickers[symbol] = ticker
         if channel is not None:

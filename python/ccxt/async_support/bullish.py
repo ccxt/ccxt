@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bullish import ImplicitAPI
-import asyncio
 import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
@@ -1025,7 +1024,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.tradingAccountId]: the trading account id to fetch trades for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         request = {
             'tradingAccountId': tradingAccountId,
@@ -1477,7 +1477,8 @@ class bullish(Exchange, ImplicitAPI):
         :param bool [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         paginate = self.safe_bool(params, 'paginate', False)
         if paginate:
@@ -1669,7 +1670,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.traidingAccountId]: the trading account id(mandatory parameter)
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         market = None
         if symbol is not None:
@@ -1728,7 +1730,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['traidingAccountId']: the trading account id(mandatory parameter)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         market = self.market(symbol)
         request = {
@@ -1784,7 +1787,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         market = self.market(symbol)
         request = {
@@ -1821,7 +1825,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.traidingAccountId]: the trading account id(mandatory parameter)
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1854,7 +1859,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['traidingAccountId']: the trading account id(mandatory parameter)
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         request = {
             'tradingAccountId': tradingAccountId,
@@ -2004,7 +2010,8 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         request = {}
         requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, params)
         until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
@@ -2069,7 +2076,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['network']: network for withdraw(mandatory)
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         # todo check this method properly
         currency = self.currency(code)
         request = {
@@ -2213,7 +2221,8 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         response = await self.privateGetV1AccountsTradingAccounts(params)
         #
         #     [
@@ -2315,7 +2324,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.network]: network for deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         currency = self.currency(code)
         request = {
             'symbol': currency['id'],
@@ -2379,7 +2389,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.code]: unified currency code, default is None
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         request = {
             'tradingAccountId': tradingAccountId,
@@ -2445,7 +2456,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['tradingAccountId']: the trading account id
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         request = {
             'tradingAccountId': tradingAccountId,
@@ -2551,7 +2563,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['tradingAccountId']: the trading account id
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         maxLimit = 100
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
@@ -2606,7 +2619,8 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         # todo check this method properly
         currency = self.currency(code)
         request = {
@@ -2695,7 +2709,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['tradingAccountId']: the trading account id
         :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        await asyncio.gather(*[self.load_markets(), self.handle_token()])
+        await self.load_markets()
+        await self.handle_token()
         tradingAccountId = await self.load_account(params)
         currency = self.currency(code)
         request = {

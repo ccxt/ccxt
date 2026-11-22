@@ -689,14 +689,11 @@ class blofin(ccxt.async_support.blofin):
         data = self.safe_list(message, 'data')
         newPositions = []
         for i in range(0, len(data)):
-            position = self.parse_ws_position(self.safe_dict(data, i, {}))
+            position = self.parse_position(self.safe_dict(data, i, {}))
             newPositions.append(position)
             cache.append(position)
             if channelName is not None:
                 client.resolve(position, channelName + ':' + self.safe_string(position, 'symbol', ''))
-
-    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
-        return self.parse_position(position, market)
 
     async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """

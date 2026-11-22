@@ -2485,7 +2485,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if groupUrl is not None:
             baseUrl = groupUrl
         url = baseUrl + '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend({}, self.omit(params, self.extract_params(path)))
         existingHeaders = {}
         headersExtended = self.extend({
             'Accept': 'application/json',
@@ -2497,7 +2497,10 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         sendAsQuery = (method == 'GET')
         if method == 'DELETE':
-            sendAsQuery = not ('orders' in query)
+            if 'orders' in query:
+                sendAsQuery = False
+            else:
+                sendAsQuery = True
         bodyValue = None
         if sendAsQuery:
             querystring = self.urlencode(query)

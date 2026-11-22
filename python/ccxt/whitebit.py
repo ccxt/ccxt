@@ -1197,7 +1197,7 @@ class whitebit(Exchange, ImplicitAPI):
         currencyKeys = list(currenciesData.keys())
         for i in range(0, len(currencyKeys)):
             code = currencyKeys[i]
-            currency = currenciesData[code]
+            currency = self.safe_dict(currenciesData, code)
             if currency is None:
                 # Skip invalid currency silently
                 continue
@@ -2434,7 +2434,7 @@ class whitebit(Exchange, ImplicitAPI):
             marketNew = self.safe_market(marketId, None, '_')
             orders = self.safe_list(response, marketId, [])
             for j in range(0, len(orders)):
-                order = self.parse_order(orders[j], marketNew)
+                order = self.parse_order(self.safe_dict(orders, j, {}), marketNew)
                 results.append(self.extend(order, {'status': 'closed'}))
         sorted = self.sort_by(results, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)

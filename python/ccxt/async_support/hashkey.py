@@ -1102,11 +1102,10 @@ class hashkey(Exchange, ImplicitAPI):
                 minLeverage = self.parse_to_int(Precise.string_div('1', maxInitialMargin))
                 maxLeverage = self.parse_to_int(Precise.string_div('1', minInitialMargin))
         tradingFees = self.safe_dict(self.fees, 'trading')
-        fees = None
+        feeKey = 'swap'
         if isSpot:
-            fees = self.safe_dict(tradingFees, 'spot')
-        else:
-            fees = self.safe_dict(tradingFees, 'swap')
+            feeKey = 'spot'
+        fees = self.safe_dict(tradingFees, feeKey)
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,

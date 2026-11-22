@@ -981,7 +981,9 @@ class backpack(Exchange, ImplicitAPI):
         stock, query = self.handle_option_bool_and_params(params, methodName, 'stock', defaultStock)
         if (market is not None) and stock and not self.safe_bool(market, 'stock', False):
             raise BadSymbol(self.id + ' ' + methodName + '() requires a stock market')
-        return [stock, query]
+        if stock is True:
+            return [True, query]
+        return [False, query]
 
     async def fetch_securities(self, params: dict = {}) -> list[dict]:
         """
@@ -1013,8 +1015,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('fetchStockIndicativeQuote', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('fetchStockIndicativeQuote', params, market)
         if market['stock'] is not True:
             raise BadSymbol(self.id + ' fetchStockIndicativeQuote() requires a stock market')
         if (side != 'buy') and (side != 'sell'):
@@ -1173,8 +1174,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.rfq_conversion_market(fromCode, toCode)
-        selection = self.handle_stock_params('createConvertTrade', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('createConvertTrade', params, market)
         quoteId = self.safe_string(query, 'quoteId')
         if quoteId is not None:
             acceptParams = self.omit(query, ['quoteId', 'price', 'baseAmount', 'clientOrderId'])
@@ -1242,9 +1242,8 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [market]: resolved market
         :returns dict: market data parameters
         """
-        selection = self.handle_stock_params(methodName, params, market)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stockValue, query = self.handle_stock_params(methodName, params, market)
+        stock = (stockValue is True)
         request = self.extend({}, query)
         source = self.safe_string(query, 'source')
         marketInfo = self.safe_dict(market, 'info', {})
@@ -1464,8 +1463,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('fetchOrderBook', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('fetchOrderBook', params, market)
         source = self.safe_string(query, 'source', 'Venue')
         if (source != 'Venue') or (self.safe_string(market['info'], 'marketType') == 'RFQ'):
             raise NotSupported(self.id + ' fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices')
@@ -1740,8 +1738,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('fetchTrades', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('fetchTrades', params, market)
         if (self.safe_string(query, 'source', 'Venue') != 'Venue') or (self.safe_string(market['info'], 'marketType') == 'RFQ'):
             raise NotSupported(self.id + ' fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills')
         request = {
@@ -1785,9 +1782,8 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = self.safe_string(market, 'id')
-        selection = self.handle_stock_params('fetchMyTrades', params, market)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stockValue, query = self.handle_stock_params('fetchMyTrades', params, market)
+        stock = (stockValue is True)
         rfq = self.safe_bool(query, 'rfq', False) or (self.safe_string(self.safe_dict(market, 'info'), 'marketType') == 'RFQ')
         aggregate = stock and (market is None) and not rfq
         if rfq and (market is not None) and (self.safe_string(market['info'], 'marketType') != 'RFQ'):
@@ -2304,9 +2300,8 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('createOrder', params, market)
-        query = self.safe_dict(selection, 1, {})
-        orderParams = self.extend(query, {'stock': self.safe_bool(selection, 0, False)})
+        stock, query = self.handle_stock_params('createOrder', params, market)
+        orderParams = self.extend(query, {'stock': stock})
         if self.safe_string(market['info'], 'marketType') == 'RFQ':
             rfqResponse = await self.create_rfq_order(symbol, type, side, amount, price, orderParams)
             rfqOrder = self.safe_dict({'order': rfqResponse}, 'order')
@@ -2335,8 +2330,8 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('createRfqOrder', params, market)
-        paramsResolved = self.safe_dict(selection, 1, {})
+        _, rfqParams = self.handle_stock_params('createRfqOrder', params, market)
+        paramsResolved = rfqParams
         if self.safe_string(market['info'], 'marketType') != 'RFQ':
             raise BadSymbol(self.id + ' createRfqOrder() requires an RFQ market')
         if (type != 'market') and (type != 'limit'):
@@ -2410,8 +2405,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('acceptRfqQuote', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('acceptRfqQuote', params, market)
         if self.safe_string(market['info'], 'marketType') != 'RFQ':
             raise BadSymbol(self.id + ' acceptRfqQuote() requires an RFQ market')
         request = {'rfqId': id, 'quoteId': quoteId}
@@ -2468,8 +2462,7 @@ class backpack(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        selection = self.handle_stock_params('createOrder', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('createOrder', params, market)
         if self.safe_string(market['info'], 'marketType') == 'RFQ':
             raise NotSupported(self.id + ' createOrders() does not support RFQ batches; use createOrder()')
         request = {
@@ -2563,9 +2556,8 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = self.safe_string(market, 'id')
-        selection = self.handle_stock_params('fetchOpenOrders', params, market)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stockValue, query = self.handle_stock_params('fetchOpenOrders', params, market)
+        stock = (stockValue is True)
         rfq = self.safe_bool(query, 'rfq', False) or (self.safe_string(self.safe_dict(market, 'info'), 'marketType') == 'RFQ')
         if rfq and (market is not None) and (self.safe_string(market['info'], 'marketType') != 'RFQ'):
             raise BadSymbol(self.id + ' fetchOpenOrders() rfq requires an RFQ market symbol')
@@ -2600,8 +2592,7 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrder() requires a symbol argument')
         market = self.market(symbol)
-        selection = self.handle_stock_params('fetchOpenOrder', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('fetchOpenOrder', params, market)
         if self.safe_string(market['info'], 'marketType') == 'RFQ':
             rfqResponse = await self.privateGetApiV1Rfqs(self.extend(query, {'symbol': market['id'], 'rfqId': id}))
             for i in range(0, len(rfqResponse)):
@@ -2634,8 +2625,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        selection = self.handle_stock_params('fetchOrder', params, market)
-        query = self.safe_dict(selection, 1, {})
+        stockSelected, query = self.handle_stock_params('fetchOrder', params, market)
         rfq = self.safe_string(market['info'], 'marketType') == 'RFQ'
         request = {'symbol': market['id']}
         if rfq:
@@ -2651,7 +2641,7 @@ class backpack(Exchange, ImplicitAPI):
             order = self.parse_order(self.safe_dict(response, i, {}), market)
             if self.safe_string(order, 'id') == id:
                 return order
-        openOrderParams = self.extend(query, {'stock': self.safe_bool(selection, 0, False)})
+        openOrderParams = self.extend(query, {'stock': stockSelected})
         return await self.fetch_open_order(id, symbol, openOrderParams)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -2673,8 +2663,7 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        selection = self.handle_stock_params('cancelOrder', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('cancelOrder', params, market)
         if self.safe_string(market['info'], 'marketType') == 'RFQ':
             clientOrderId = self.safe_integer(query, 'clientOrderId')
             rfqRequest = {}
@@ -2708,8 +2697,7 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         market = self.market(symbol)
-        selection = self.handle_stock_params('cancelAllOrders', params, market)
-        query = self.safe_dict(selection, 1, {})
+        _, query = self.handle_stock_params('cancelAllOrders', params, market)
         if self.safe_string(market['info'], 'marketType') == 'RFQ':
             raise NotSupported(self.id + ' cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()')
         request = {
@@ -2745,9 +2733,8 @@ class backpack(Exchange, ImplicitAPI):
             request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
-        selection = self.handle_stock_params('fetchOrders', params, market)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stockValue, query = self.handle_stock_params('fetchOrders', params, market)
+        stock = (stockValue is True)
         rfq = self.safe_bool(query, 'rfq', False) or (self.safe_string(self.safe_dict(market, 'info'), 'marketType') == 'RFQ')
         if rfq and (market is not None) and (self.safe_string(market['info'], 'marketType') != 'RFQ'):
             raise BadSymbol(self.id + ' fetchOrders() rfq requires an RFQ market symbol')

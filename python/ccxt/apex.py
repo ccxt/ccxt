@@ -1657,7 +1657,9 @@ class apex(Exchange, ImplicitAPI):
         endTimeExclusive = self.safe_integer_n(params, ['endTime', 'endTimeExclusive', 'until'])
         if endTimeExclusive is not None:
             request['endTimeExclusive'] = endTimeExclusive
-        paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until']) if (endTimeExclusive is not None) else params
+        paramsOmitted = self.omit(params, [])
+        if endTimeExclusive is not None:
+            paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until'])
         response = self.privateGetV3HistoryOrders(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
@@ -1720,7 +1722,9 @@ class apex(Exchange, ImplicitAPI):
         endTimeExclusive = self.safe_integer_n(params, ['endTime', 'endTimeExclusive', 'until'])
         if endTimeExclusive is not None:
             request['endTimeExclusive'] = endTimeExclusive
-        paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until']) if (endTimeExclusive is not None) else params
+        paramsOmitted = self.omit(params, [])
+        if endTimeExclusive is not None:
+            paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until'])
         response = self.privateGetV3Fills(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
@@ -1755,7 +1759,9 @@ class apex(Exchange, ImplicitAPI):
         endTimeExclusive = self.safe_integer_n(params, ['endTime', 'endTimeExclusive', 'until'])
         if endTimeExclusive is not None:
             request['endTimeExclusive'] = endTimeExclusive
-        paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until']) if (endTimeExclusive is not None) else params
+        paramsOmitted = self.omit(params, [])
+        if endTimeExclusive is not None:
+            paramsOmitted = self.omit(params, ['endTime', 'endTimeExclusive', 'until'])
         response = self.privateGetV3Funding(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
         fundingValues = self.safe_list(data, 'fundingValues', [])

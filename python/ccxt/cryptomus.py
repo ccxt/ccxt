@@ -851,7 +851,7 @@ class cryptomus(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         orders = []
         for i in range(0, len(result)):
-            orders.append(self.parse_order(result[i], market))
+            orders.append(self.parse_order(self.safe_dict(result, i, {}), market))
         return orders
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:

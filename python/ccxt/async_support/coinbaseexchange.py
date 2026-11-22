@@ -1630,7 +1630,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['id'] = id
         else:
             request['client_oid'] = clientOrderId
-        paramsOmitted = self.omit(params, ['clientOrderId', 'client_oid']) if (clientOrderId is not None) else params
+        paramsOmitted = self.omit(params, ['clientOrderId', 'client_oid'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1822,7 +1822,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         until = self.safe_integer_2(params, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
-        paramsUntil = self.omit(params, ['until']) if (until is not None) else params
+        paramsUntil = self.omit(params, ['until'])
         response = await self.privateGetAccountsIdLedger(self.extend(request, paramsUntil))
         entries = self.to_array(response)
         entriesWithCurrency = []

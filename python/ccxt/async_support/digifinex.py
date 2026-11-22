@@ -2049,11 +2049,10 @@ class digifinex(Exchange, ImplicitAPI):
         symbolsById = {}
         marketType = None
         for i in range(0, len(orders)):
-            order = orders[i]
-            id = self.safe_string(order, 'id')
+            id = self.safe_string(orders[i], 'id')
             if id is None:
                 raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires an id for each order')
-            symbol = self.safe_string(order, 'symbol')
+            symbol = self.safe_string(orders[i], 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires a symbol for each order')
             market = self.market(symbol)
@@ -3257,9 +3256,9 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'list', [])
         result = None
         for i in range(0, len(data)):
-            entry = data[i]
-            if self.safe_string(entry, 'currency') == code:
-                result = entry
+            entryCurrency = self.safe_string(data[i], 'currency', '')
+            if entryCurrency == code:
+                result = data[i]
         currency = self.currency(code)
         return self.parse_borrow_rate(result, currency)
 
@@ -3641,7 +3640,7 @@ class digifinex(Exchange, ImplicitAPI):
         positions = self.safe_list(response, positionRequest, [])
         result = []
         for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i], market))
+            result.append(self.parse_position(self.safe_dict(positions, i, {}), market))
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
@@ -3731,7 +3730,7 @@ class digifinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             dataRequest = 'data'
         data = self.safe_list(response, dataRequest, [])
-        position = self.parse_position(data[0], market)
+        position = self.parse_position(self.safe_dict(data, 0, {}), market)
         if marketType == 'swap':
             return position
         else:

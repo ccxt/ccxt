@@ -3430,10 +3430,9 @@ class aster(Exchange, ImplicitAPI):
         notionalStringAbs = Precise.string_abs(notionalString)
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
-            bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(leverageBracket[i], 0)):
                 break
-            maintenanceMarginPercentageString = self.safe_string(bracket, 1)
+            maintenanceMarginPercentageString = self.safe_string(leverageBracket[i], 1)
         notional = self.parse_number(notionalStringAbs)
         contractsAbs = Precise.string_abs(self.safe_string(position, 'positionAmt'))
         contracts = self.parse_number(contractsAbs)
@@ -3700,10 +3699,9 @@ class aster(Exchange, ImplicitAPI):
         leverageBracket = self.safe_list(leverageBrackets, symbol, [])
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
-            bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(leverageBracket[i], 0)):
                 break
-            maintenanceMarginPercentageString = self.safe_string(bracket, 1)
+            maintenanceMarginPercentageString = self.safe_string(leverageBracket[i], 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
         unrealizedPnl = self.parse_number(unrealizedPnlString)

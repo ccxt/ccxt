@@ -1866,7 +1866,7 @@ class paradex(ccxt.async_support.paradex):
             next = position + 2
             high = digits.find(frameHex[position:middle])
             low = digits.find(frameHex[middle:next])
-            result = self.parse_to_int(self.sum(result, high * 16 * factor, low * factor))
+            result = self.parse_to_int(self.sum(result, high * factor * 16, low * factor))
             factor = self.parse_to_int(factor * 256)
             position = self.parse_to_int(next)
         # an exact integer below 2^32, parseToInt keeps it and types the return as an integer

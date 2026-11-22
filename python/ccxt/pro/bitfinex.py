@@ -1063,8 +1063,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             if snapshotLength == 0:
                 return
             for i in range(0, len(data)):
-                value = data[i]
-                parsed = self.parse_ws_order(value)
+                parsed = self.parse_ws_order(data[i])
                 symbol = self.safe_string(parsed, 'symbol', '')
                 symbolIds[symbol] = True
                 orders.append(parsed)

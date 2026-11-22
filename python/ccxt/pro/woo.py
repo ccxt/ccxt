@@ -762,7 +762,7 @@ class woo(ccxt.async_support.woo):
         data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade = self.parse_ws_trade(self.extend(data, {'timestamp': timestamp}), market)
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
@@ -1315,8 +1315,7 @@ class woo(ccxt.async_support.woo):
         for i in range(0, len(postitionsIds)):
             marketId = postitionsIds[i]
             market = self.safe_market(marketId)
-            rawPosition = rawPositions[marketId]
-            position = self.parse_position(rawPosition, market)
+            position = self.parse_position(self.safe_dict(rawPositions, marketId, {}), market)
             newPositions.append(position)
             cache.append(position)
             marketSymbol = self.safe_string(market, 'symbol', '')

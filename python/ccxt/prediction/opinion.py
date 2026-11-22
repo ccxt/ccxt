@@ -1219,16 +1219,23 @@ class opinion(PredictionExchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'list', [])
         tradesLength = len(trades)
+        filled = []
         for i in range(0, tradesLength):
-            trade = trades[i]
-            tokenId = self.safe_string(trade, 'tokenId')
-            marketId = self.safe_integer(trade, 'marketId')
+            tokenId = self.safe_string(trades[i], 'tokenId')
+            marketId = self.safe_integer(trades[i], 'marketId')
             if (tokenId is None) and (marketId is not None):
                 tradeMarket = await self.load_trade_market(marketId)
                 info = self.safe_dict(tradeMarket, 'info', {})
-                isYes = (self.safe_string_lower(trade, 'outcomeSideEnum') == 'yes')
-                trade['tokenId'] = self.safe_string(info, 'yesTokenId') if isYes else self.safe_string(info, 'noTokenId')
-        return self.parse_prediction_trades(trades, outcomeObj, since, limit)
+                isYes = (self.safe_string_lower(trades[i], 'outcomeSideEnum') == 'yes')
+                extra = {}
+                if isYes:
+                    extra['tokenId'] = self.safe_string(info, 'yesTokenId')
+                else:
+                    extra['tokenId'] = self.safe_string(info, 'noTokenId')
+                filled.append(self.extend(trades[i], extra))
+            else:
+                filled.append(trades[i])
+        return self.parse_prediction_trades(filled, outcomeObj, since, limit)
 
     async def load_trade_market(self, marketId: int) -> Market:
         """

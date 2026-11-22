@@ -1006,7 +1006,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         #
         messageHash = self.safe_string(message, 'subscription')
         data = self.safe_list(message, 'data', [])
-        positionBalances = self.safe_list(data[0], 'position_balances', [])
+        positionBalances = self.safe_list(self.safe_dict(data, 0), 'position_balances', [])
         self.balance['info'] = data
         for i in range(0, len(positionBalances)):
             balance = self.safe_dict(positionBalances, i)

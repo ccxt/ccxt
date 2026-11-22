@@ -582,7 +582,8 @@ class grvt(Exchange, ImplicitAPI):
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
         if approvedBuilderFee:
             return True  # skip if builder fee is already approved
-        results = await asyncio.gather(*[self.privateTradingPostFullV1GetAuthorizedBuilders(), self.load_account_infos()])
+        await self.load_account_infos()
+        results = await asyncio.gather(*[self.privateTradingPostFullV1GetAuthorizedBuilders()])
         #
         # {
         #     "results": [{

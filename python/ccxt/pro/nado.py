@@ -1500,7 +1500,7 @@ class nado(ccxt.async_support.nado):
                     'bid': self.parseX18(bid),
                     'info': bbo,
                 }, market)
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 result[symbol] = ticker
         return result
 

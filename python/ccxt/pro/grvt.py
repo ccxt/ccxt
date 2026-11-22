@@ -769,17 +769,13 @@ class grvt(ccxt.async_support.grvt):
         #
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
-        data = self.safe_dict(message, 'feed')
-        position = self.parse_ws_position(data)
+        data = self.safe_dict(message, 'feed', {})
+        position = self.parse_position(data)
         self.positions.append(position)
         newPositions = []
         newPositions.append(position)
         client.resolve(newPositions, 'positions::' + self.safe_string(position, 'symbol', ''))
         client.resolve(newPositions, 'positions')
-
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
-        # same as REST api
-        return self.parse_position(position, market)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

@@ -1761,7 +1761,7 @@ class kucoin(Exchange, ImplicitAPI):
         responses = promises
         symbolsData = []
         if fetchSpotMarkets:
-            symbolsData = self.safe_list(responses[0], 'data', [])
+            symbolsData = self.safe_list(self.safe_dict(responses, 0, {}), 'data', [])
         crossIndex = 0
         isolatedIndex = 0
         tickersIndex = 0
@@ -1779,10 +1779,10 @@ class kucoin(Exchange, ImplicitAPI):
             nextIndex = nextIndex + 1
         if fetchContractMarkets:
             contractIndex = nextIndex
-        crossData = self.safe_dict(responses[crossIndex], 'data', {}) if (requestMarginables) else {}
+        crossData = self.safe_dict(self.safe_dict(responses, crossIndex, {}), 'data', {}) if (requestMarginables) else {}
         crossItems = self.safe_list(crossData, 'items', [])
         crossById = self.index_by(crossItems, 'symbol')
-        isolatedData = responses[isolatedIndex] if (requestMarginables) else {}
+        isolatedData = self.safe_dict(responses, isolatedIndex, {}) if (requestMarginables) else {}
         isolatedItems = self.safe_list(isolatedData, 'data', [])
         isolatedById = self.index_by(isolatedItems, 'symbol')
         tickersResponse = self.safe_dict(responses, tickersIndex, {}) if fetchTickersFees else {}
@@ -9900,7 +9900,7 @@ class kucoin(Exchange, ImplicitAPI):
         uta = self.is_uta_enabled()
         utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchPosition', 'uta', uta)
         response: dict
-        position = None
+        position = {}
         if utaOption:
             request['accountMode'] = 'unified'
             response = self.utaPrivateGetAccountModePositionOpenList(self.extend(request, paramsUta))

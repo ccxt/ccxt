@@ -1012,12 +1012,12 @@ class polymarket(ccxt.async_support.polymarket):
         if errorMessage is not None:
             error = ExchangeError(self.id + ' ' + errorMessage)
             for i in range(0, len(messageHashes)):
-                client.reject(error, messageHashes[i])
+                messageHash = messageHashes[i]
+                client.reject(error, messageHash)
                 # clearing the awaited hash lets a later call resend, and a
                 # failed subscribe must also clear the shared hash the base
                 # watch registered - a failed unsubscribe keeps the live
                 # subscription untouched instead
-                messageHash = messageHashes[i]
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
                 if action == 'sub':

@@ -1248,7 +1248,7 @@ class derive(Exchange, ImplicitAPI):
         settlements = self.safe_list(result, 'settlements', [])
         parsed = self.parse_settlements(settlements, market)
         sorted = self.sort_by(parsed, 'timestamp')
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
 
     def parse_settlement(self, settlement: dict, market: Market = None) -> dict:

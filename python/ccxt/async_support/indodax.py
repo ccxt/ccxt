@@ -637,10 +637,9 @@ class indodax(Exchange, ImplicitAPI):
         parsedTickers = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            rawTicker = tickers[key]
             marketId = key.replace('_', '')
             market = self.safe_market(marketId)
-            parsed = self.parse_ticker(rawTicker, market)
+            parsed = self.parse_ticker(self.safe_dict(tickers, key, {}), market)
             parsedTickers[marketId] = parsed
         return self.filter_by_array_tickers(parsedTickers, 'symbol', symbols)
 

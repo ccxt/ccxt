@@ -1751,7 +1751,7 @@ class xt(Exchange, ImplicitAPI):
         #
         if self.safe_bool(market, 'spot', False):
             tickers = self.safe_list(response, 'result', [])
-            return self.parse_ticker(tickers[0], market)
+            return self.parse_ticker(self.safe_dict(tickers, 0, {}), market)
         ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
@@ -1835,7 +1835,7 @@ class xt(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i], market)
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), market)
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker

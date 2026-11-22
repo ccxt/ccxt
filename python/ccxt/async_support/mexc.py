@@ -4696,7 +4696,7 @@ class mexc(Exchange, ImplicitAPI):
             networkUnified = self.network_id_to_code(networkCode, code)
             networks = self.safe_dict(currency, 'networks', {})
             if (networkUnified is not None) and (networkUnified in networks):
-                network = {} if (networkUnified is None) else self.safe_dict(networks, networkUnified, {})
+                network = self.safe_dict(networks, networkUnified, {})
                 networkInfo = self.safe_dict(network, 'info', {})
                 networkId = self.safe_string(networkInfo, 'network')
             else:
@@ -4745,7 +4745,7 @@ class mexc(Exchange, ImplicitAPI):
         networkUnified = self.network_id_to_code(networkCode, code)
         networks = self.safe_dict(currency, 'networks', {})
         if (networkUnified is not None) and (networkUnified in networks):
-            network = {} if (networkUnified is None) else self.safe_dict(networks, networkUnified, {})
+            network = self.safe_dict(networks, networkUnified, {})
             networkInfo = self.safe_dict(network, 'info', {})
             networkId = self.safe_string(networkInfo, 'network')
         else:

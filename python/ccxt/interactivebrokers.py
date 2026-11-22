@@ -2271,7 +2271,10 @@ class interactivebrokers(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        maxLimit = self.safe_integer(self.safe_dict(self.options, 'fetchOHLCV', {}), 'limit', 1000)
+        maxLimit = 1000
+        configuredLimit = self.safe_integer(self.safe_dict(self.options, 'fetchOHLCV', {}), 'limit')
+        if configuredLimit is not None:
+            maxLimit = configuredLimit
         requestLimit = maxLimit
         if limit is not None:
             requestLimit = min(limit, maxLimit)
@@ -2285,7 +2288,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
             # and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request['startTime'] = self.ibkr_format_time(since - duration * 1000)
             request['direction'] = '1'  # forward from startTime, by default startTime is the end of the range
-            requestLimit = min(requestLimit + 1, maxLimit)
+            if limit is not None:
+                if limit < maxLimit:
+                    requestLimit = limit + 1
         request['period'] = self.ibkr_period(duration, requestLimit)
         response = self.webapiGetV1ApiIserverMarketdataHistory(self.extend(request, params))
         #
@@ -2690,8 +2695,11 @@ class interactivebrokers(Exchange, ImplicitAPI):
             clientOrderId = 'ccxt' + self.uuid22()
         request['cOID'] = clientOrderId
         query = self.omit(params, ['triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty'])
-        orderTicket = self.extend(request, query)  # typed local, so the go transpiler returns a dict
-        return orderTicket
+        queryKeys = list(query.keys())
+        for i in range(0, len(queryKeys)):
+            key = queryKeys[i]
+            request[key] = query[key]
+        return request
 
     def ibkr_handle_order_replies(self, response: object, methodName: str) -> dict:
         """
@@ -3491,7 +3499,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         positions = response if isinstance(response, list) else []
         result = []
         for i in range(0, len(positions)):
-            position = self.parse_position(positions[i], market)
+            position = self.parse_position(self.safe_dict(positions, i, {}), market)
             if Precise.string_gt(self.safe_string(position, 'contracts', '0'), '0'):
                 result.append(position)
         return result
@@ -3565,27 +3573,40 @@ class interactivebrokers(Exchange, ImplicitAPI):
             'oauth_token': consumerAccessToken,
         }
 
-    def ibkr_implode_path(self, path: str, params: dict) -> list:
+    def ibkr_implode_path(self, path: str, params: dict) -> str:
         """
         replaces the ':name' path parameters of the webapi endpoints with the matching values of params
  @ignore
         :param str path: the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
         :param dict params: the request params, the path params are read from here
-        :returns Array: the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+        :returns str: the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
         """
         segments = path.split('/')
-        pathParams = []
         imploded = []
         for i in range(0, len(segments)):
             segment = segments[i]
             if segment.startswith(':'):
                 name = segment[1:]
-                pathParams.append(name)
                 value = self.safe_string(params, name, segment)
                 imploded.append(value)
             else:
                 imploded.append(segment)
-        return ['/'.join(imploded), pathParams]
+        return '/'.join(imploded)
+
+    def ibkr_path_params(self, path: str) -> list[str]:
+        """
+        the names of the ':name' path parameters of a webapi endpoint
+ @ignore
+        :param str path: the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+        :returns str[]: the names of the path params, e.g. ['accountId']
+        """
+        segments = path.split('/')
+        pathParams = []
+        for i in range(0, len(segments)):
+            segment = segments[i]
+            if segment.startswith(':'):
+                pathParams.append(segment[1:])
+        return pathParams
 
     def ibkr_gateway_base_url(self, baseUrl: str, gatewayUrl: str) -> str:
         """
@@ -3636,11 +3657,12 @@ class interactivebrokers(Exchange, ImplicitAPI):
         return useGatewayOption or (not hasLiveSessionToken and not oauthConfigured and not isLiveSessionTokenRequest)
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
-        implodedPath, pathParams = self.ibkr_implode_path(path, params)
+        implodedPath = self.ibkr_implode_path(path, params)
         apiBase = api[0]
-        baseUrl = self.urls['api'][apiBase] + implodedPath
+        apiUrl = self.safe_string(self.urls['api'], apiBase, '')
+        baseUrl = apiUrl + implodedPath
         url = baseUrl
-        query = self.omit(params, pathParams)
+        query = self.omit(params, self.ibkr_path_params(path))
         hasQuery = len(query) > 0
         isGetOrDelete = (method == 'GET') or (method == 'DELETE')
         requestBody = None
@@ -3649,7 +3671,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         if self.ibkr_is_gateway_request(path):
             # the client portal gateway holds the authenticated session, requests are sent unsigned
             gatewayUrl = self.safe_string(self.options, 'gatewayUrl')
-            url = self.ibkr_gateway_base_url(self.urls['api'][apiBase], gatewayUrl) + implodedPath
+            url = self.ibkr_gateway_base_url(apiUrl, gatewayUrl) + implodedPath
             if isGetOrDelete:
                 if hasQuery:
                     url += '?' + self.urlencode(query)

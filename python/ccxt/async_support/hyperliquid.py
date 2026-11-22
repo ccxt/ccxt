@@ -585,10 +585,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         dexesCount = len(fetchDexes)
         for i in range(1, dexesCount):
             # builder-deployed perp dexs start at 110000
-            dex = self.safe_dict(fetchDexes, i, {})
             secondPart = i * 10000 - 10000
             offset = self.sum(110000, secondPart)
-            dexKey = self.safe_string(dex, 'name', '')
+            dexKey = self.safe_string(self.safe_dict(fetchDexes, i), 'name', '')
             perpDexesOffset[dexKey] = offset
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
@@ -610,10 +609,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             for i in range(1, maxIteration):
                 if i >= fetchDexesLength:
                     break
-                dex = self.safe_dict(fetchDexes, i, {})
-                if dex is None:
-                    continue
-                dexName = self.safe_string(dex, 'name')
+                dexName = self.safe_string(self.safe_dict(fetchDexes, i), 'name')
                 fetchDexesList.append(dexName)
         rawPromises = []
         for i in range(0, len(fetchDexesList)):
@@ -3713,7 +3709,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'assetPositions', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_position(data[i]))
+            result.append(self.parse_position(self.safe_dict(data, i, {})))
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:

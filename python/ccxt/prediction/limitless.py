@@ -2899,8 +2899,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
+        baseUrl = self.safe_string(self.urls['api'], apiGroup, self.safe_string(self.urls['api'], 'limitless', ''))
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         querystring = self.urlencode_with_array_repeat(query)
