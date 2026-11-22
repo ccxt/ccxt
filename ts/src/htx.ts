@@ -3926,22 +3926,18 @@ export default class htx extends Exchange {
     }
 
     parseMarginBalanceHelper (balance: Dict, code: string, result: Dict): Dict {
-        let account: NullableDict = undefined;
+        let account: Dict = this.account ();
         if (code in result) {
-            account = this.safeDict (result, code);
-        } else {
-            account = this.account ();
+            account = this.safeDict (result, code, {});
         }
-        if (account === undefined) {
-            throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
-        }
+        const updates: Dict = {};
         if (this.safeString (balance, 'type') === 'trade') {
-            account['free'] = this.safeString (balance, 'balance');
+            updates['free'] = this.safeString (balance, 'balance');
         }
         if (this.safeString (balance, 'type') === 'frozen') {
-            account['used'] = this.safeString (balance, 'balance');
+            updates['used'] = this.safeString (balance, 'balance');
         }
-        return account;
+        return this.extend (account, updates);
     }
 
     async fetchSpotOrdersByStates (states: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -7273,8 +7269,7 @@ export default class htx extends Exchange {
             const cursor = this.safeString (data, 'current_page');
             const result: Dict[] = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
-                const entry = result[i];
-                entry['current_page'] = cursor;
+                const entry = this.extend (result[i], { 'current_page': cursor });
                 const marketId = this.safeString (entry, 'contract_code');
                 const symbolInner = this.safeSymbol (marketId);
                 const timestamp = this.safeInteger (entry, 'funding_time');
