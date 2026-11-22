@@ -1628,12 +1628,14 @@ class xt extends xt$1["default"] {
         return message;
     }
     handleUnSubscription(client, subscription) {
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const messageHashes = this.safeStringList(subscription, ['messageHashes']);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let j = 0; j < messageHashes.length; j++) {
-            const unsubHash = messageHashes[j];
-            const subHash = subMessageHashes[j];
-            this.cleanUnsubscription(client, subHash, unsubHash);
+        if (messageHashes !== undefined) {
+            for (let j = 0; j < messageHashes.length; j++) {
+                const unsubHash = messageHashes[j];
+                const subHash = subMessageHashes[j];
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }

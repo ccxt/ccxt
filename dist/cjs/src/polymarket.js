@@ -2801,7 +2801,8 @@ class polymarket extends polymarket$1["default"] {
         }
         else {
             if (method === 'GET') {
-                const keys = Object.keys(query);
+                const queryCopy = this.extend({}, query);
+                const keys = Object.keys(queryCopy);
                 const keysLength = keys.length;
                 if (keysLength > 0) {
                     url = baseUrl + '/' + implodedPath + '?' + this.urlencode(query);

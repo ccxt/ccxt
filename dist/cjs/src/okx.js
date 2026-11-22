@@ -5722,7 +5722,8 @@ class okx extends okx$1["default"] {
             return this.safeDict(response, codeNetwork);
         }
         // if the network is not specified, return the first address
-        const keys = Object.keys(response);
+        const responseDict = this.extend({}, response);
+        const keys = Object.keys(responseDict);
         const first = this.safeString(keys, 0, '');
         return this.safeDict(response, first);
     }
@@ -6376,7 +6377,8 @@ class okx extends okx$1["default"] {
             for (let i = 0; i < symbols.length; i++) {
                 const entry = symbols[i];
                 const market = this.market(entry);
-                marketIds.push(market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                marketIds.push(marketId);
             }
             const marketIdsLength = marketIds.length;
             if (marketIdsLength > 0) {

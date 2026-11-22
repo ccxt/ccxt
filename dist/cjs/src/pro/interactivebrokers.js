@@ -314,7 +314,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const ticker = await this.ibkrWatchMarketData('ticker', symbols, params);
         if (this.newUpdates) {
             const result = {};
-            const tickerSymbol = ticker['symbol'];
+            const tickerSymbol = this.safeString(ticker, 'symbol', '');
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -333,7 +333,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const ticker = await this.ibkrWatchMarketData('bidask', symbols, params);
         if (this.newUpdates) {
             const result = {};
-            const tickerSymbol = ticker['symbol'];
+            const tickerSymbol = this.safeString(ticker, 'symbol', '');
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -498,7 +498,8 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol = this.safeString(market, 'symbol', '');
+        const historyMarketId = this.safeString(market, 'id', '');
         const url = await this.ibkrConnect();
         const client = this.client(url);
         const messageHash = 'ohlcv::' + unifiedSymbol + '::' + timeframe;
@@ -508,7 +509,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const [marketDataRequest, query] = this.ibkrMarketDataRequest(market['id'], params);
         await this.ibkrSubscribe(client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
         // the history, it seeds the candles
-        const historyHash = 'smh::' + market['id'] + '::' + timeframe;
+        const historyHash = 'smh::' + historyMarketId + '::' + timeframe;
         if (!(historyHash in client.subscriptions)) {
             if (!(unifiedSymbol in this.ohlcvs)) {
                 this.ohlcvs[unifiedSymbol] = {};
@@ -529,7 +530,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
                 // no 'format', the bars carry the "t" timestamp only with the default format
             };
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            const request = 'smh+' + market['id'] + '+' + this.json(this.keysort(this.extend(historyRequest, query)));
+            const request = 'smh+' + historyMarketId + '+' + this.json(this.keysort(this.extend(historyRequest, query)));
             await this.ibkrSubscribe(client, historyHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration });
         }
         const ohlcv = await future;
@@ -552,10 +553,11 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol = this.safeString(market, 'symbol', '');
+        const historyMarketId = this.safeString(market, 'id', '');
         const url = await this.ibkrConnect();
         const client = this.client(url);
-        const subHashes = ['ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + market['id'] + '::' + timeframe];
+        const subHashes = ['ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + historyMarketId + '::' + timeframe];
         const subscription = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [[unifiedSymbol, timeframe]],
@@ -739,8 +741,16 @@ class interactivebrokers extends interactivebrokers$1["default"] {
                 stored.append([candleTimestamp, price, price, price, price, size]);
             }
             else {
-                const high = Math.max(candle[2], price);
-                const low = Math.min(candle[3], price);
+                let high = price;
+                const prevHigh = this.safeNumber(candle, 2);
+                if ((prevHigh !== undefined) && (price !== undefined) && (prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let low = price;
+                const prevLow = this.safeNumber(candle, 3);
+                if ((prevLow !== undefined) && (price !== undefined) && (price > prevLow)) {
+                    low = prevLow;
+                }
                 const volume = this.sum(candle[5], size);
                 stored.append([candleTimestamp, candle[1], high, low, price, volume]);
             }
@@ -1175,7 +1185,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         for (let i = 0; i < args.length; i++) {
             const rawTrade = args[i];
             const trade = this.parseTrade(rawTrade);
-            const tradeTimestamp = trade['timestamp'];
+            const tradeTimestamp = this.safeInteger(trade, 'timestamp');
             if ((threshold !== undefined) && (tradeTimestamp !== undefined) && (tradeTimestamp < threshold)) {
                 continue;
             }

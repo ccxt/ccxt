@@ -1219,7 +1219,7 @@ export default class paradex extends paradexRest {
             subscribeHashes.push(subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
                 missing.push(marketId);
-                missingHashes.push(messageHashes[i]);
+                missingHashes.push(this.safeString(messageHashes, i, ''));
             }
         }
         const missingLength = missing.length;
@@ -1311,7 +1311,8 @@ export default class paradex extends paradexRest {
         const newBidAsk = await this.subscribeChannels(url, messageHashes, channels, params);
         if (this.newUpdates) {
             const result = {};
-            result[newBidAsk['symbol']] = newBidAsk;
+            const bidAskSymbol = this.safeString(newBidAsk, 'symbol', '');
+            result[bidAskSymbol] = newBidAsk;
             return result;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);

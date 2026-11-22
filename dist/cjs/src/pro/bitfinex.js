@@ -970,12 +970,14 @@ class bitfinex extends bitfinex$1["default"] {
         const subMessageHash = this.safeString(client.subscriptions, unSubChannel, '');
         const subscription = this.safeDict(client.subscriptions, 'unsubscribe:' + subMessageHash);
         delete client.subscriptions[unSubChannel];
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const messageHashes = this.safeStringList(subscription, ['messageHashes']);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const subHash = subMessageHashes[i];
-            this.cleanUnsubscription(client, subHash, messageHash);
+        if (messageHashes !== undefined) {
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription(client, subHash, messageHash);
+            }
         }
         this.cleanCache(subscription);
         return true;

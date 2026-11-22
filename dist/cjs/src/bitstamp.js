@@ -1169,7 +1169,8 @@ class bitstamp extends bitstamp$1["default"] {
         // resolved in the key scan below, falling back to the passed market
         let marketResolved = market;
         if (market === undefined) {
-            const keys = Object.keys(trade);
+            const tradeCopy = this.extend({}, trade);
+            const keys = Object.keys(tradeCopy);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf('_') >= 0) {
@@ -1180,7 +1181,7 @@ class bitstamp extends bitstamp$1["default"] {
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (marketResolved === undefined) {
+        if (this.safeString(marketResolved, 'id') === undefined) {
             marketResolved = this.getMarketFromTrade(trade);
         }
         const feeCostString = this.safeString(trade, 'fee');
@@ -1524,7 +1525,7 @@ class bitstamp extends bitstamp$1["default"] {
         const feesList = this.toArray(fees);
         for (let i = 0; i < feesList.length; i++) {
             const fee = this.parseTradingFee(feesList[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString(fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -2412,7 +2413,7 @@ class bitstamp extends bitstamp$1["default"] {
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if (market === undefined) {
+            if (this.safeString(market, 'id') === undefined) {
                 market = this.getMarketFromTrade(item);
             }
             const direction = (this.safeString(parsedTrade, 'side') === 'buy') ? 'in' : 'out';
@@ -2834,7 +2835,8 @@ class bitstamp extends bitstamp$1["default"] {
                 errors$1.push(error);
             }
             else if (error !== undefined) {
-                const keys = Object.keys(error);
+                const errorDict = this.extend({}, error);
+                const keys = Object.keys(errorDict);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
                     const value = this.safeValue(error, key);

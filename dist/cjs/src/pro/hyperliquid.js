@@ -1354,9 +1354,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         let symbolsNormalized = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (hasSymbols && (symbolsNormalized !== undefined)) {
-            messageHash += '::' + symbolsNormalized.join(',');
+            const joinParts = [];
+            for (let si = 0; si < symbolsNormalized.length; si++) {
+                const symbolEntry = this.safeString(symbolsNormalized, si, '');
+                joinParts.push(symbolEntry);
+            }
+            messageHash += '::' + joinParts.join(',');
         }
         const url = this.urls['api']['ws']['public'];
         const subscription = {

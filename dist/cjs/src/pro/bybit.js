@@ -2447,7 +2447,8 @@ class bybit extends bybit$1["default"] {
                 const recordedTopics = this.safeList(existing, 'topics', []);
                 const recordedLength = recordedTopics.length;
                 for (let j = 0; j < recordedLength; j++) {
-                    subscribedTopics[recordedTopics[j]] = true;
+                    const recordedTopic = this.safeString(recordedTopics, j, '');
+                    subscribedTopics[recordedTopic] = true;
                 }
             }
             for (let i = 0; i < topicsLength; i++) {
@@ -2817,13 +2818,15 @@ class bybit extends bybit$1["default"] {
                 if (reqId !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList(subscription, 'messageHashes', []);
+                const messageHashes = this.safeStringList(subscription, ['messageHashes']);
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-                for (let j = 0; j < messageHashes.length; j++) {
-                    const unsubHash = messageHashes[j];
-                    const subHash = this.safeString(subMessageHashes, j);
-                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
-                    this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
+                if (messageHashes !== undefined) {
+                    for (let j = 0; j < messageHashes.length; j++) {
+                        const unsubHash = messageHashes[j];
+                        const subHash = this.safeString(subMessageHashes, j);
+                        const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
+                        this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
+                    }
                 }
                 this.cleanCache(subscription);
             }

@@ -1972,11 +1972,12 @@ export default class phemex extends Exchange {
                 priceString = this.safeString(trade, 'execPriceRp');
                 amountString = this.safeString(trade, 'execQtyRq');
                 costString = this.safeString(trade, 'execValueRv');
-                feeCostString = this.omitZero(this.safeString(trade, 'execFeeRv'));
+                const execFeeRv = this.omitZero(this.safeString(trade, 'execFeeRv'));
                 feeRateString = this.safeString(trade, 'feeRateRr');
-                if (feeCostString !== undefined) {
+                if (execFeeRv !== undefined) {
                     const currencyId = this.safeString(trade, 'currency');
                     feeCurrencyCode = this.safeCurrencyCode(currencyId);
+                    feeCostString = execFeeRv;
                 }
                 else {
                     const ptFeeRv = this.omitZero(this.safeString(trade, 'ptFeeRv'));
@@ -2012,9 +2013,10 @@ export default class phemex extends Exchange {
                     }
                 }
                 else {
-                    feeCostString = this.safeString(trade, 'ptFeeRv');
-                    if (feeCostString !== undefined) {
+                    const ptFeeRvString = this.safeString(trade, 'ptFeeRv');
+                    if (ptFeeRvString !== undefined) {
                         feeCurrencyCode = 'PT';
+                        feeCostString = ptFeeRvString;
                     }
                 }
             }

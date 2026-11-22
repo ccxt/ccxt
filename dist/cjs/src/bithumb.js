@@ -1075,7 +1075,8 @@ class bithumb extends bithumb$1["default"] {
                         tickers = [response];
                     }
                     else {
-                        const ids = Object.keys(response);
+                        const responseDict = this.extend({}, response);
+                        const ids = Object.keys(responseDict);
                         for (let j = 0; j < ids.length; j++) {
                             const id = ids[j];
                             const ticker = this.safeDict(response, id);
@@ -3317,7 +3318,8 @@ class bithumb extends bithumb$1["default"] {
         return this.milliseconds();
     }
     urlencodeWithArrayBrackets(query) {
-        const keys = Object.keys(query);
+        const queryCopy = this.extend({}, query);
+        const keys = Object.keys(queryCopy);
         let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

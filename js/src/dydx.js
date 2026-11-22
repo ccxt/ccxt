@@ -1602,8 +1602,7 @@ export default class dydx extends Exchange {
         let goodTillBlockTime = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
-        const subAccountId = 0;
-        const [subAccountIdOption] = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
+        const [subAccountIdOption] = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', 0);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder(this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
@@ -1687,8 +1686,7 @@ export default class dydx extends Exchange {
         if (clientOrderIds === undefined) {
             throw new NotSupported(this.id + ' cancelOrders only support clientOrderIds.');
         }
-        const subAccountId = 0;
-        const [subAccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'cancelOrders', 'subAccountId', subAccountId);
+        const [subAccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'cancelOrders', 'subAccountId', 0);
         let goodTillBlock = this.safeInteger(paramsSubAccountId, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight();
@@ -2146,7 +2144,8 @@ export default class dydx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, params = {}) {
-        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        const tag = this.safeString(params, 'tag');
+        const paramsWithdrawTag = this.omit(params, 'tag');
         if (code !== 'USDC') {
             throw new NotSupported(this.id + ' withdraw() only support USDC');
         }

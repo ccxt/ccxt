@@ -1555,7 +1555,8 @@ class htx extends htx$1["default"] {
         [types, paramsTypes] = this.handleOptionAndParams(params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
         const promises = [];
-        const keys = Object.keys(types);
+        const typesDict = this.extend({}, types);
+        const keys = Object.keys(typesDict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (this.safeBool(types, key, false)) {
@@ -3074,8 +3075,8 @@ class htx extends htx$1["default"] {
         };
         const priceType = this.safeString2(paramsPaginate, 'priceType', 'price');
         const paramsOmitted = this.omit(paramsPaginate, ['priceType', 'price']);
-        const [untilParam, paramsUntil] = this.handleParamInteger(paramsOmitted, 'until');
-        const until = this.safeInteger(paramsOmitted, 'until', untilParam);
+        const until = this.safeInteger(paramsOmitted, 'until');
+        const paramsUntil = this.omit(paramsOmitted, 'until');
         let untilSeconds = undefined;
         if (until !== undefined) {
             untilSeconds = this.parseToInt(until / 1000);

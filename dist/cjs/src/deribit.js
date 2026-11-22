@@ -994,7 +994,7 @@ class deribit extends deribit$1["default"] {
                 else if (!isComboMarket) {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
-                        symbol = symbol + '-' + this.yymmdd(expiry, '');
+                        symbol = symbol + ('-' + this.yymmdd(expiry, ''));
                         if (option) {
                             strike = this.safeNumber(market, 'strike');
                             optionType = this.safeString(market, 'option_type');

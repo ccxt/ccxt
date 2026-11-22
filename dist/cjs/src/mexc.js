@@ -1069,7 +1069,8 @@ class mexc extends mexc$1["default"] {
             //
             //     {}
             //
-            const keys = Object.keys(spotResponse);
+            const spotResponseCopy = this.extend({}, spotResponse);
+            const keys = Object.keys(spotResponseCopy);
             const length = keys.length;
             status = (length > 0) ? this.json(response) : 'ok';
         }

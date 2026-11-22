@@ -1133,8 +1133,9 @@ class paradex extends paradex$1["default"] {
         else {
             const endAtRaw = this.safeInteger(requestUntil, 'end_at', this.milliseconds());
             const endAt = this.parseToInt(endAtRaw);
+            const startAt = endAt - (windowLength - 1);
             requestUntil['end_at'] = endAt;
-            requestUntil['start_at'] = endAt - (windowLength - 1);
+            requestUntil['start_at'] = startAt;
         }
         const response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
@@ -1402,7 +1403,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const rates = await this.fetchFundingRates([market['symbol']], params);
+        const rates = await this.fetchFundingRates([this.safeString(market, 'symbol', '')], params);
         const rate = this.safeDict(rates, market['symbol']);
         if (rate === undefined) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);
@@ -2233,9 +2234,8 @@ class paradex extends paradex$1["default"] {
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         request = this.omit(request, ['instruction', 'client_id', 'flags', 'recv_window']);
-        request['order_id'] = id;
-        request['id'] = id;
-        request = await this.signOrderRequest(request, true);
+        const editRequest = this.extend(request, { 'order_id': id, 'id': id });
+        request = await this.signOrderRequest(editRequest, true);
         const response = await this.privatePutOrdersOrderId(request);
         //
         //     {
@@ -2816,7 +2816,7 @@ class paradex extends paradex$1["default"] {
                 matching.push(data[i]);
             }
         }
-        const positions = this.parsePositions(matching, [market['symbol']]);
+        const positions = this.parsePositions(matching, [this.safeString(market, 'symbol', '')]);
         return this.safeDict(positions, 0, {});
     }
     /**
@@ -3971,7 +3971,7 @@ class paradex extends paradex$1["default"] {
         const next = this.safeString(response, 'next');
         const rates = [];
         for (let i = 0; i < results.length; i++) {
-            const rate = results[i];
+            const rate = this.extend({}, results[i]);
             if (next !== undefined) {
                 rate['next'] = next; // the cursor helper reads it from info, the last page has none
             }

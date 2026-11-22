@@ -2073,8 +2073,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             data += '00';
         }
         else {
+            const vaultHex = vaultAddress.toLowerCase();
             data += '01';
-            data += vaultAddress;
+            data += vaultHex;
         }
         return this.hash(this.base16ToBinary(data), sha3_js.keccak_256, 'binary');
     }

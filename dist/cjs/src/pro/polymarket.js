@@ -706,12 +706,9 @@ class polymarket extends polymarket$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data');
-        let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
-        }
-        else {
+        const data = this.safeDict(message, 'data');
+        const rows = [];
+        if (data !== undefined) {
             rows.push(data);
         }
         const rowsLength = rows.length;
@@ -1131,7 +1128,7 @@ class polymarket extends polymarket$1["default"] {
                 }
             }
             for (let i = 0; i < messageHashes.length; i++) {
-                this.cleanUnsubscription(client, subMessageHashes[i], messageHashes[i]);
+                this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i]);
             }
         }
     }

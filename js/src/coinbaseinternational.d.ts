@@ -147,7 +147,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalanceList(response: any): Balances;
+    parseBalanceList(response: any, summaries: Dict[]): Balances;
     /**
      * @method
      * @name coinbaseinternational#fetchTransfers

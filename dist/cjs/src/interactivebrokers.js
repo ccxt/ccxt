@@ -641,9 +641,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         if (this.safeBool(this.options, 'useGateway', false)) {
             return await this.ibkrGatewaySignIn(params);
         }
-        const encryptionPemPath = this.safeString(this.options, 'encryptionPemPath');
-        const dhParamPemPath = this.safeString(this.options, 'dhParamPemPath');
-        if (!encryptionPemPath || !dhParamPemPath) {
+        const encryptionPemPath = this.safeString(this.options, 'encryptionPemPath', '');
+        const dhParamPemPath = this.safeString(this.options, 'dhParamPemPath', '');
+        if ((encryptionPemPath === '') || (dhParamPemPath === '')) {
             throw new errors.ArgumentsRequired(this.id + ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details');
         }
         this.ibkrCheckOauthCredentials();
@@ -668,7 +668,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         //         "live_session_token_expiration": 1714661586311
         //     }
         //
-        const dhResponse = this.safeString(response, 'diffie_hellman_response');
+        const dhResponse = this.safeString(response, 'diffie_hellman_response', '');
         const sharedSecret = this.modPow(this.convertToBigInt('0x' + dhResponse), dhRandom, dhPrime);
         const liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), legacy_js.sha1, 'base64');
         const check = this.hmac(this.encode(this.options['consumer_key']), this.base64ToBinary(liveSessionToken), legacy_js.sha1, 'hex');
@@ -1055,8 +1055,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     async fetchBalance(params = {}) {
         await this.authenticate();
         const [accountId, accountQuery] = await this.loadAccountId(params);
-        const [withPositions, positionsQuery] = this.handleOptionAndParams(accountQuery, 'fetchBalance', 'positions', true);
-        const [withOpenOrders, query] = this.handleOptionAndParams(positionsQuery, 'fetchBalance', 'openOrders', true);
+        const accountParams = this.extend({}, accountQuery);
+        const [withPositions, positionsQuery] = this.handleOptionBoolAndParams(accountParams, 'fetchBalance', 'positions', true);
+        const [withOpenOrders, query] = this.handleOptionBoolAndParams(positionsQuery, 'fetchBalance', 'openOrders', true);
         const request = {
             'accountId': accountId,
         };
@@ -1223,7 +1224,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const usedCodes = Object.keys(used);
         for (let i = 0; i < usedCodes.length; i++) {
             const code = usedCodes[i];
-            result[code]['used'] = used[code];
+            const usedAccount = this.extend({}, this.safeDict(result, code, {}));
+            usedAccount['used'] = used[code];
+            result[code] = usedAccount;
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
         if ('orders' in response) {
@@ -1231,7 +1234,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
                 if ((code !== 'info') && (this.safeString(result[code], 'used') === undefined)) {
-                    result[code]['used'] = '0';
+                    const zeroAccount = this.extend({}, this.safeDict(result, code, {}));
+                    zeroAccount['used'] = '0';
+                    result[code] = zeroAccount;
                 }
             }
         }
@@ -1345,12 +1350,13 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             if ((symbol in seen) && isContract) {
                 const info = this.safeDict(market, 'info', {});
                 const listingExchange = this.safeString2(info, 'listingExchange', 'exchange', 'default');
-                const marketBase = this.safeString(market, 'base');
-                const marketBaseId = this.safeString(market, 'baseId');
+                const marketBase = this.safeString(market, 'base', '');
+                const marketBaseId = this.safeString(market, 'baseId', '');
                 const isFuture = this.safeBool(market, 'future', false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 const symbolParts = symbol.split('/');
-                const quoteAndSettle = '/' + symbolParts[1];
+                const quotePart = this.safeString(symbolParts, 1, '');
+                const quoteAndSettle = '/' + quotePart;
                 let base = marketBase + '.' + listingExchange;
                 if (isFuture && (marketBaseId !== marketBase)) {
                     // the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
@@ -1358,7 +1364,8 @@ class interactivebrokers extends interactivebrokers$1["default"] {
                 }
                 let newSymbol = base + quoteAndSettle;
                 if (newSymbol in seen) {
-                    base = marketBase + '.' + this.safeString(market, 'id');
+                    const marketId = this.safeString(market, 'id', '');
+                    base = marketBase + '.' + marketId;
                     newSymbol = base + quoteAndSettle;
                 }
                 market = this.extend(market, {
@@ -1415,7 +1422,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             const secdefs = this.safeList(responses[i], 'secdef', []);
             for (let j = 0; j < secdefs.length; j++) {
                 const secdef = secdefs[j];
-                const conid = this.safeString(secdef, 'conid');
+                const conid = this.safeString(secdef, 'conid', '');
                 const entry = this.safeDict(plainEntries, conid);
                 entries.push(this.extend(entry, secdef));
             }
@@ -1667,10 +1674,13 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const detailMarkets = await this.fetchSecWithDetails(entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         const result = [];
+        const detailMarketsLength = detailMarkets.length;
         for (let i = 0; i < cfdExchanges.length; i++) {
-            for (let j = 0; j < detailMarkets.length; j++) {
+            const cfdExchange = this.safeString(cfdExchanges, i, '');
+            for (let j = 0; j < detailMarketsLength; j++) {
                 const detail = detailMarkets[j];
-                if (this.safeString(detail, 'listingExchange') === cfdExchanges[i]) {
+                const listingExchange = this.safeString(detail, 'listingExchange', '');
+                if (listingExchange === cfdExchange) {
                     result.push(detail);
                 }
             }
@@ -1721,7 +1731,8 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const filterParts = [];
         for (let i = 0; i < filterIds.length; i++) {
             const filterId = filterIds[i];
-            filterParts.push(filterId + ':' + this.safeString(bondFilters, filterId));
+            const filterValue = this.safeString(bondFilters, filterId, '');
+            filterParts.push(filterId + ':' + filterValue);
         }
         const filterPartsLength = filterParts.length;
         const contractPromises = [];
@@ -1781,10 +1792,15 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = this.extend({}, markets[i]);
-            let symbol = this.safeString(market, 'symbol');
+            let symbol = this.safeString(market, 'symbol', '');
             if (symbol in seen) {
-                const base = this.safeString(market, 'base') + '-' + this.safeString(market, 'id');
-                symbol = base + '.' + this.safeString(market['info'], 'exchange', 'SMART') + '/' + this.safeString(market, 'quote');
+                const marketBase = this.safeString(market, 'base', '');
+                const marketId = this.safeString(market, 'id', '');
+                const marketQuote = this.safeString(market, 'quote', '');
+                const marketInfo = this.safeDict(market, 'info', {});
+                const listingExchange = this.safeString(marketInfo, 'exchange', 'SMART');
+                const base = marketBase + '-' + marketId;
+                symbol = base + '.' + listingExchange + '/' + marketQuote;
                 market = this.extend(market, {
                     'symbol': symbol,
                     'base': base,
@@ -2202,11 +2218,11 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             return false;
         }
         const fieldIds = (readyFields === undefined) ? ['31', '84', '86'] : readyFields;
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+        const numFields = fieldIds.length;
+        for (let i = 0; i < numItems; i++) {
             let found = false;
-            for (let j = 0; j < fieldIds.length; j++) {
-                if (this.safeString(item, fieldIds[j]) !== undefined) {
+            for (let j = 0; j < numFields; j++) {
+                if (this.safeString(response[i], fieldIds[j]) !== undefined) {
                     found = true;
                     break;
                 }
@@ -2479,7 +2495,10 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         const market = this.market(symbol);
         const maxLimit = this.safeInteger(this.safeDict(this.options, 'fetchOHLCV', {}), 'limit', 1000);
-        let requestLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        let requestLimit = maxLimit;
+        if (limit !== undefined) {
+            requestLimit = Math.min(limit, maxLimit);
+        }
         const duration = this.parseTimeframe(timeframe);
         const request = {
             'conid': market['id'],
@@ -2944,6 +2963,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const options = this.safeDict(this.options, 'createOrder', {});
         const autoConfirm = this.safeBool(options, 'autoConfirmOrderReplies', true);
         const maxReplies = this.safeInteger(options, 'maxReplies', 10);
+        const errorPrefix = this.id + ' ' + methodName + '() ';
         let current = response;
         for (let i = 0; i <= maxReplies; i++) {
             if (!Array.isArray(current)) {
@@ -2953,7 +2973,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
                 //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 //
                 const text = this.safeString(current, 'text');
-                throw new errors.InvalidOrder(this.id + ' ' + methodName + '() rejected: ' + text);
+                throw new errors.InvalidOrder(errorPrefix + 'rejected: ' + text);
             }
             const first = this.safeDict(current, 0, {});
             const orderId = this.safeString2(first, 'order_id', 'orderId');
@@ -2969,10 +2989,10 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             const messages = this.safeList(first, 'message', []);
             const message = messages.join(' ');
             if (replyId === undefined) {
-                throw new errors.InvalidOrder(this.id + ' ' + methodName + '() unexpected response: ' + this.json(current));
+                throw new errors.InvalidOrder(errorPrefix + 'unexpected response: ' + this.json(current));
             }
             if (!autoConfirm) {
-                throw new errors.InvalidOrder(this.id + ' ' + methodName + '() requires confirmation (reply id ' + replyId + '): ' + message);
+                throw new errors.InvalidOrder(errorPrefix + 'requires confirmation (reply id ' + replyId + '): ' + message);
             }
             const replyRequest = {
                 'replyId': replyId,
@@ -2980,7 +3000,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             };
             current = await this.webapiPostV1ApiIserverReplyReplyId(replyRequest);
         }
-        throw new errors.InvalidOrder(this.id + ' ' + methodName + '() exceeded options.createOrder.maxReplies order reply confirmations');
+        throw new errors.InvalidOrder(errorPrefix + 'exceeded options.createOrder.maxReplies order reply confirmations');
     }
     /**
      * @method
@@ -3214,10 +3234,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const parsed = this.parseOrders(orders, market, undefined, undefined);
         const result = [];
         for (let i = 0; i < parsed.length; i++) {
-            const order = parsed[i];
-            const status = order['status'];
+            const status = this.safeString(parsed[i], 'status');
             if ((status === 'closed') || (status === 'canceled')) {
-                result.push(order);
+                result.push(parsed[i]);
             }
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -3610,7 +3629,8 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         return this.parse8601(parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset);
     }
     parseTrade(trade, market = undefined) {
-        if ('qty' in trade) {
+        const transactionQty = this.safeString(trade, 'qty');
+        if (transactionQty !== undefined) {
             //
             // pa/transactions
             //
@@ -3849,9 +3869,11 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const parts = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            parts.push(key + '="' + sorted[key] + '"');
+            const value = this.safeString(sorted, key, '');
+            parts.push(key + '="' + value + '"');
         }
-        return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join(', ');
+        const realm = this.safeString(this.options, 'realm', '');
+        return 'OAuth realm="' + realm + '", ' + parts.join(', ');
     }
     ibkrOauthBase(consumerKey, consumerAccessToken) {
         return {
@@ -3873,15 +3895,20 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     ibkrImplodePath(path, params) {
         const segments = path.split('/');
         const pathParams = [];
+        const imploded = [];
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             if (segment.startsWith(':')) {
                 const name = segment.slice(1);
                 pathParams.push(name);
-                segments[i] = this.safeString(params, name, segment);
+                const value = this.safeString(params, name, segment);
+                imploded.push(value);
+            }
+            else {
+                imploded.push(segment);
             }
         }
-        return [segments.join('/'), pathParams];
+        return [imploded.join('/'), pathParams];
     }
     /**
      * @method

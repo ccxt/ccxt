@@ -844,7 +844,7 @@ class bitrue extends bitrue$1["default"] {
             types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString(types, i, '');
             if (marketType === 'spot') {
                 promisesRaw.push(this.spotV1PublicGetExchangeInfo(params));
             }
@@ -1647,7 +1647,8 @@ class bitrue extends bitrue$1["default"] {
         //     }
         //
         const data = {};
-        data[market['id']] = response;
+        const tickerKey = this.safeString(market, 'id', '');
+        data[tickerKey] = response;
         return this.parseTickers(data, symbolsNormalized);
     }
     /**
@@ -1742,7 +1743,8 @@ class bitrue extends bitrue$1["default"] {
                 continue;
             }
             const market = this.safeMarket(marketId);
-            tickers[market['id']] = ticker;
+            const tickerKey = this.safeString(market, 'id', '');
+            tickers[tickerKey] = ticker;
         }
         return this.parseTickers(tickers, symbolsNormalized);
     }

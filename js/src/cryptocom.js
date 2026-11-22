@@ -2176,7 +2176,8 @@ export default class cryptocom extends Exchange {
                 return this.safeDict(depositAddresses, network);
             }
         }
-        const keys = Object.keys(depositAddresses);
+        const addressesCopy = this.extend({}, depositAddresses);
+        const keys = Object.keys(addressesCopy);
         return this.safeDict(depositAddresses, this.safeString(keys, 0));
     }
     /**
@@ -3410,7 +3411,8 @@ export default class cryptocom extends Exchange {
             paramsKeys = object;
         }
         else {
-            const objectKeys = Object.keys(object);
+            const objectDict = this.extend({}, object);
+            const objectKeys = Object.keys(objectDict);
             paramsKeys = this.sort(objectKeys);
         }
         for (let i = 0; i < paramsKeys.length; i++) {

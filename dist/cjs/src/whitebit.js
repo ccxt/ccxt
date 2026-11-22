@@ -916,7 +916,8 @@ class whitebit extends whitebit$1["default"] {
         //
         const depositWithdrawFees = {};
         const codesValue = this.marketCodes(codes);
-        const currencyIds = Object.keys(response);
+        const feesById = this.extend({}, response);
+        const currencyIds = Object.keys(feesById);
         for (let i = 0; i < currencyIds.length; i++) {
             const entry = currencyIds[i];
             const splitEntry = entry.split(' ');
@@ -1501,7 +1502,8 @@ class whitebit extends whitebit$1["default"] {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted));
                 // Search for order in executed orders response (object format)
-                const marketIds = Object.keys(response);
+                const executedById = this.extend({}, response);
+                const marketIds = Object.keys(executedById);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket(marketId, undefined, '_');
@@ -1783,7 +1785,8 @@ class whitebit extends whitebit$1["default"] {
         }
         else {
             let results = [];
-            const keys = Object.keys(response);
+            const tradesById = this.extend({}, response);
+            const keys = Object.keys(tradesById);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket(marketId, undefined, '_');

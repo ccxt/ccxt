@@ -891,7 +891,7 @@ export default class polymarket extends Exchange {
                 const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
                 const ccxtMarketsLength = ccxtMarkets.length;
                 for (let i = 0; i < ccxtMarketsLength; i++) {
-                    const mkt = ccxtMarkets[i];
+                    const mkt = this.safeDict(ccxtMarkets, i);
                     if (mkt === undefined) {
                         throw new ExchangeError(this.id + ' fetchOutcome() could not resolve mkt');
                     }
@@ -950,7 +950,7 @@ export default class polymarket extends Exchange {
                 const rawMarkets = (response !== undefined) ? response : [];
                 const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
                 for (let i = 0; i < ccxtMarkets.length; i++) {
-                    const mkt = ccxtMarkets[i];
+                    const mkt = this.safeDict(ccxtMarkets, i);
                     if (mkt === undefined) {
                         throw new ExchangeError(this.id + ' fetchOutcomes() could not resolve mkt');
                     }
@@ -1278,8 +1278,12 @@ export default class polymarket extends Exchange {
             }
         }
         else {
-            const barCount = (limit !== undefined) ? limit : 100;
-            startS = this.parseToInt(nowS - (barCount * fidelityMin * 60));
+            if (limit !== undefined) {
+                startS = this.parseToInt(nowS - (limit * fidelityMin * 60));
+            }
+            else {
+                startS = this.parseToInt(nowS - (100 * fidelityMin * 60));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -2492,7 +2496,7 @@ export default class polymarket extends Exchange {
                 }
             }
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
-                const m = ccxtMarkets[mi];
+                const m = this.safeDict(ccxtMarkets, mi);
                 if (m === undefined) {
                     throw new ExchangeError(this.id + ' fetchEvents() missing m');
                 }
@@ -3195,8 +3199,8 @@ export default class polymarket extends Exchange {
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
+        const bids = this.safeList(orderbook, 'bids', []);
+        const asks = this.safeList(orderbook, 'asks', []);
         let bestBid = undefined;
         let bestBidVolume = undefined;
         let bidsLength = 0;

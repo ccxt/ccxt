@@ -3168,7 +3168,7 @@ class lighter extends lighter$1["default"] {
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
-            'initial_margin_fraction': this.parseToInt(10000 / this.parseToInt(leverage)),
+            'initial_margin_fraction': this.parseToInt(10000 / leverage),
             'margin_mode': (marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
@@ -3441,7 +3441,8 @@ class lighter extends lighter$1["default"] {
                 'Authorization': this.createAuth(params),
             };
         }
-        if (Object.keys(params).length > 0) {
+        const query = this.extend({}, params);
+        if (Object.keys(query).length > 0) {
             if (method === 'POST') {
                 const multipartHeaders = {
                     'Content-Type': 'multipart/form-data',

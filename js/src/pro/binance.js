@@ -765,7 +765,7 @@ export default class binance extends binanceRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
-        let type = firstMarket['type'];
+        let type = this.safeString(firstMarket, 'type', '');
         if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
         }
@@ -847,7 +847,7 @@ export default class binance extends binanceRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
-        let type = firstMarket['type'];
+        let type = this.safeString(firstMarket, 'type', '');
         if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
         }
@@ -1247,12 +1247,14 @@ export default class binance extends binanceRest {
         return message;
     }
     handleUnSubscription(client, subscription) {
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const messageHashes = this.safeStringList(subscription, ['messageHashes']);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let j = 0; j < messageHashes.length; j++) {
-            const unsubHash = messageHashes[j];
-            const subHash = subMessageHashes[j];
-            this.cleanUnsubscription(client, subHash, unsubHash);
+        if (messageHashes !== undefined) {
+            for (let j = 0; j < messageHashes.length; j++) {
+                const unsubHash = messageHashes[j];
+                const subHash = subMessageHashes[j];
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }
@@ -1289,7 +1291,7 @@ export default class binance extends binanceRest {
         const [name, paramsName] = this.handleOptionStringAndParams(params, 'watchTradesForSymbols', 'name', 'trade');
         const paramsOmitted = this.omit(paramsName, 'callerMethodName');
         const firstMarket = this.market(symbolsNormalized[0]);
-        let type = firstMarket['type'];
+        let type = this.safeString(firstMarket, 'type', '');
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
@@ -1380,7 +1382,7 @@ export default class binance extends binanceRest {
         const [name, paramsName] = this.handleOptionStringAndParams(params, 'watchTradesForSymbols', 'name', 'trade');
         const paramsOmitted = this.omit(paramsName, 'callerMethodName');
         const firstMarket = this.market(symbolsNormalized[0]);
-        let type = firstMarket['type'];
+        let type = this.safeString(firstMarket, 'type', '');
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';

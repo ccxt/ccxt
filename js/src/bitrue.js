@@ -845,7 +845,7 @@ export default class bitrue extends Exchange {
             types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString(types, i, '');
             if (marketType === 'spot') {
                 promisesRaw.push(this.spotV1PublicGetExchangeInfo(params));
             }
@@ -1648,7 +1648,8 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = {};
-        data[market['id']] = response;
+        const tickerKey = this.safeString(market, 'id', '');
+        data[tickerKey] = response;
         return this.parseTickers(data, symbolsNormalized);
     }
     /**
@@ -1743,7 +1744,8 @@ export default class bitrue extends Exchange {
                 continue;
             }
             const market = this.safeMarket(marketId);
-            tickers[market['id']] = ticker;
+            const tickerKey = this.safeString(market, 'id', '');
+            tickers[tickerKey] = ticker;
         }
         return this.parseTickers(tickers, symbolsNormalized);
     }

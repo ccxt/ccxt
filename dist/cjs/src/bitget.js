@@ -8363,13 +8363,14 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const symbol = this.safeString(params, 'symbol');
-        let paramsOmitted = this.omit(params, 'symbol');
+        const paramsNoSymbol = this.omit(params, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         let marketType = undefined;
-        [marketType, paramsOmitted] = this.handleMarketTypeAndParams('fetchLedger', market, paramsOmitted);
+        let paramsOmitted = undefined;
+        [marketType, paramsOmitted] = this.handleMarketTypeAndParams('fetchLedger', market, paramsNoSymbol);
         let uta = undefined;
         [uta, paramsOmitted] = await this.handleUTAAndParams(paramsOmitted, 'fetchLedger', false);
         let paginate = false;
@@ -11162,7 +11163,8 @@ class bitget extends bitget$1["default"] {
             requestUntil['startTime'] = since;
         }
         else {
-            requestUntil['startTime'] = this.milliseconds() - 7776000000;
+            const defaultStart = this.milliseconds() - 7776000000;
+            requestUntil['startTime'] = defaultStart;
         }
         if (limit !== undefined) {
             requestUntil['limit'] = limit;

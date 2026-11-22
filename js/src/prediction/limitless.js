@@ -311,16 +311,11 @@ export default class limitless extends Exchange {
             const m = this.parseMarket(raw);
             markets.push(m);
             if ((eventKey !== undefined) && (eventKey !== '')) {
-                if (!(eventKey in eventGroups)) {
-                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
-                }
-                const eventGroup = eventGroups[eventKey];
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+                const eventGroup = this.safeDict(eventGroups, eventKey, { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] });
                 const groupMarkets = eventGroup['markets'];
                 groupMarkets.push(m);
                 eventGroup['markets'] = groupMarkets;
+                eventGroups[eventKey] = eventGroup;
             }
         }
         const eventsDict = {};
@@ -3004,16 +2999,11 @@ export default class limitless extends Exchange {
             }
             this.markets[m['market']] = m;
             if ((eventKey !== undefined) && (eventKey !== '')) {
-                if (!(eventKey in eventGroups)) {
-                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
-                }
-                const eventGroup = eventGroups[eventKey];
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+                const eventGroup = this.safeDict(eventGroups, eventKey, { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] });
                 const groupMarkets = eventGroup['markets'];
                 groupMarkets.push(m);
                 eventGroup['markets'] = groupMarkets;
+                eventGroups[eventKey] = eventGroup;
             }
         }
         const result = [];

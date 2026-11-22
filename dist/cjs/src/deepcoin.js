@@ -589,7 +589,8 @@ class deepcoin extends deepcoin$1["default"] {
     }
     setMarkets(markets, currencies = undefined) {
         const result = super.setMarkets(markets, currencies);
-        const symbols = Object.keys(result);
+        const resultCopy = this.extend({}, result);
+        const symbols = Object.keys(resultCopy);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.safeDict(result, symbol, {});

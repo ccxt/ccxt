@@ -1048,12 +1048,14 @@ class coinbase extends coinbase$1["default"] {
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict(this.options, 'unSubscription', {});
-            const messageHashes = this.safeList(unSubObject, 'messageHashes', []);
+            const messageHashes = this.safeStringList(unSubObject, ['messageHashes']);
             const subMessageHashes = this.safeList(unSubObject, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const subHash = subMessageHashes[i];
-                this.cleanUnsubscription(client, subHash, messageHash);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const messageHash = messageHashes[i];
+                    const subHash = subMessageHashes[i];
+                    this.cleanUnsubscription(client, subHash, messageHash);
+                }
             }
             this.cleanCache(unSubObject);
         }

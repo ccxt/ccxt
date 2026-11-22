@@ -1934,12 +1934,14 @@ class weex extends weex$1["default"] {
         const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
         if (unsubscribe) {
             const subHashIsPrefix = this.safeBool(subscription, 'subHashIsPrefix', false);
-            const messageHashes = this.safeList(subscription, 'messageHashes', []);
+            const messageHashes = this.safeStringList(subscription, ['messageHashes']);
             const subHashes = this.safeList(subscription, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const unSubHash = this.safeString(messageHashes, i);
-                const subHash = this.safeString(subHashes, i);
-                this.cleanUnsubscription(client, subHash, unSubHash, subHashIsPrefix);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const unSubHash = this.safeString(messageHashes, i);
+                    const subHash = this.safeString(subHashes, i);
+                    this.cleanUnsubscription(client, subHash, unSubHash, subHashIsPrefix);
+                }
             }
             this.cleanCache(subscription);
         }

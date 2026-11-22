@@ -1188,7 +1188,7 @@ class btse extends btse$1["default"] {
             const entry = this.safeDict(data, i);
             const marketId = this.safeString(entry, 'symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             if (symbolsNormalized === undefined || this.inArray(symbol, symbolsNormalized)) {
                 const levels = this.safeList(entry, 'riskLimits', []);
                 const tiers = [];

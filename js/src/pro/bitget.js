@@ -1164,7 +1164,8 @@ export default class bitget extends bitgetRest {
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         const result = this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
-        if (this.handleOption('watchTrades', 'ignoreDuplicates', true) === true) {
+        const [ignoreDuplicates] = this.handleOptionBoolAndParams({}, 'watchTrades', 'ignoreDuplicates', true);
+        if (ignoreDuplicates) {
             let filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, 'timestamp');
             return filtered;
@@ -1760,7 +1761,10 @@ export default class bitget extends bitgetRest {
             instType = 'UTA';
             channel = 'order';
         }
-        subscriptionHash = subscriptionHash + ':' + instType;
+        let subscriptionHashInst = subscriptionHash + ':';
+        if (instType !== undefined) {
+            subscriptionHashInst = subscriptionHashInst + instType;
+        }
         const args = {
             'instType': instType,
         };
@@ -1776,7 +1780,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = instId;
         }
-        const orders = await this.watchPrivate(uta, messageHash, subscriptionHash, args, paramsRequest);
+        const orders = await this.watchPrivate(uta, messageHash, subscriptionHashInst, args, paramsRequest);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit(symbolResolved, limit);

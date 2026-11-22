@@ -161,7 +161,8 @@ class deepcoin extends deepcoin$1["default"] {
         return await this.watch(url, unsubHash, this.deepExtend(request, params), unsubHash, subscriptionExtended);
     }
     async watchPrivate(messageHash, params = {}) {
-        const listenKey = await this.authenticate();
+        await this.authenticate();
+        const listenKey = this.safeString(this.options, 'listenKey', '');
         return await this.watch(this.safeString(this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, undefined, 'private', params);
     }
     async authenticate(params = {}) {
@@ -1085,7 +1086,8 @@ class deepcoin extends deepcoin$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const listenKey = await this.authenticate();
+        await this.authenticate();
+        const listenKey = this.safeString(this.options, 'listenKey', '');
         const symbolsNormalized = this.marketSymbols(symbols);
         const messageHash = 'positions';
         const messageHashes = [];

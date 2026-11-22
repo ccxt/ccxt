@@ -1154,9 +1154,8 @@ class okx extends okx$1["default"] {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
+            const sym = this.safeString(symbolsAndTimeframes[i], 0, '');
+            const tf = this.safeString(symbolsAndTimeframes[i], 1, '');
             const marketId = this.marketId(sym);
             const interval = this.safeString(this.timeframes, tf, tf);
             const channel = 'candle' + interval;
@@ -1200,9 +1199,8 @@ class okx extends okx$1["default"] {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
+            const sym = this.safeString(symbolsAndTimeframes[i], 0, '');
+            const tf = this.safeString(symbolsAndTimeframes[i], 1, '');
             const marketId = this.marketId(sym);
             const interval = this.safeString(this.timeframes, tf, tf);
             const channel = 'candle' + interval;

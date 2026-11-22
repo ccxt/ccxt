@@ -707,12 +707,9 @@ export default class polymarket extends polymarketRest {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data');
-        let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
-        }
-        else {
+        const data = this.safeDict(message, 'data');
+        const rows = [];
+        if (data !== undefined) {
             rows.push(data);
         }
         const rowsLength = rows.length;
@@ -1132,7 +1129,7 @@ export default class polymarket extends polymarketRest {
                 }
             }
             for (let i = 0; i < messageHashes.length; i++) {
-                this.cleanUnsubscription(client, subMessageHashes[i], messageHashes[i]);
+                this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i]);
             }
         }
     }

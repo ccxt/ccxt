@@ -7278,11 +7278,12 @@ class bingx extends bingx$1["default"] {
                     const arrayElement = value[j];
                     const isString = (typeof arrayElement === 'string');
                     if (isString) {
+                        const elementStr = this.safeString(value, j, '');
                         if (j > 0) {
-                            arrStr += ',' + '"' + arrayElement.toString() + '"';
+                            arrStr += ',' + '"' + elementStr + '"';
                         }
                         else {
-                            arrStr = '"' + arrayElement.toString() + '"';
+                            arrStr = '"' + elementStr + '"';
                         }
                     }
                     else {

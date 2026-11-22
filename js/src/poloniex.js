@@ -2897,8 +2897,11 @@ export default class poloniex extends Exchange {
      */
     async createDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        const paramsValue = extraParams;
+        const prepared = this.prepareRequestForDepositAddress(code, params);
+        const request = this.safeDict(prepared, 'request');
+        const paramsValue = this.safeDict(prepared, 'query');
+        const currency = this.currency(code);
+        const networkEntry = this.safeDict(prepared, 'networkEntry');
         const response = await this.privatePostWalletsAddress(this.extend(request, paramsValue));
         //
         //     {
@@ -2918,8 +2921,11 @@ export default class poloniex extends Exchange {
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        const paramsValue = extraParams;
+        const prepared = this.prepareRequestForDepositAddress(code, params);
+        const request = this.safeDict(prepared, 'request');
+        const paramsValue = this.safeDict(prepared, 'query');
+        const currency = this.currency(code);
+        const networkEntry = this.safeDict(prepared, 'networkEntry');
         const response = await this.privateGetWalletsAddresses(this.extend(request, paramsValue));
         //
         //     {
@@ -2957,7 +2963,12 @@ export default class poloniex extends Exchange {
         const request = {
             'currency': exchangeNetworkId,
         };
-        return [request, query, currency, networkEntry];
+        return {
+            'request': request,
+            'query': query,
+            'currency': currency,
+            'networkEntry': networkEntry,
+        };
     }
     parseDepositAddressSpecial(response, currency, networkEntry) {
         let address = this.safeString(response, 'address');

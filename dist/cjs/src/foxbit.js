@@ -2027,7 +2027,8 @@ class foxbit extends foxbit$1["default"] {
         let query = '';
         let signatureQuery = '';
         if (method === 'GET') {
-            const paramKeys = Object.keys(paramsOmitted);
+            const paramsCopy = this.extend({}, paramsOmitted);
+            const paramKeys = Object.keys(paramsCopy);
             const paramKeysLength = paramKeys.length;
             const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {

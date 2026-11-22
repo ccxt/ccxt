@@ -404,7 +404,8 @@ export default class bingx extends bingxRest {
             limitResolved = trades.getLimit(symbolValue, limit);
         }
         const result = this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
-        if (this.handleOption('watchTrades', 'ignoreDuplicates', true) === true) {
+        const [ignoreDuplicates] = this.handleOptionBoolAndParams({}, 'watchTrades', 'ignoreDuplicates', true);
+        if (ignoreDuplicates) {
             let filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, 'timestamp');
             return filtered;

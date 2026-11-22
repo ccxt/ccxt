@@ -3440,7 +3440,8 @@ class pacifica extends pacifica$1["default"] {
         if (subAccountPrivateKey === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const [timestamp, paramsTimestamp] = this.handleParamInteger(paramsSubAccountPrivateKey, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(paramsSubAccountPrivateKey, 'timestamp', this.milliseconds());
+        const paramsTimestamp = this.omit(paramsSubAccountPrivateKey, 'timestamp');
         const [expiryWindow, paramsExpiryWindow] = this.handleOptionIntegerAndParams2(paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
             'timestamp': timestamp,
@@ -3681,7 +3682,8 @@ class pacifica extends pacifica$1["default"] {
     sortJsonKeys(value) {
         if (this.isDictionary(value)) {
             const result = {};
-            const keys = Object.keys(value);
+            const valueCopy = this.extend({}, value);
+            const keys = Object.keys(valueCopy);
             const sortedKeys = this.sort(keys);
             for (let i = 0; i < sortedKeys.length; i++) {
                 const key = this.safeString(sortedKeys, i, '');

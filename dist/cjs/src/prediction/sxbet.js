@@ -1892,7 +1892,7 @@ class sxbet extends sxbet$1["default"] {
         const hasApiKey = !this.isEmptyString(this.apiKey);
         if (!hasApiKey) {
             for (let i = 0; i < hashesLength; i++) {
-                const marketHash = hashesOrder[i];
+                const marketHash = this.safeString(hashesOrder, i, '');
                 const snapshot = await this.fetchSxbetBookSnapshot(marketHash);
                 rowsByHash[marketHash] = this.parseSxbetSnapshotBestOdds(snapshot);
             }
@@ -2397,7 +2397,7 @@ class sxbet extends sxbet$1["default"] {
             const refreshed = this.applySxbetWsSnapshot(rows[i]);
             const refreshedLength = refreshed.length;
             for (let j = 0; j < refreshedLength; j++) {
-                const sym = refreshed[j];
+                const sym = this.safeString(refreshed, j, '');
                 client.resolve(this.safeValue(this.orderbooks, sym), 'orderbook::' + sym);
             }
         }
@@ -2423,7 +2423,9 @@ class sxbet extends sxbet$1["default"] {
         const client = this.client(url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym) === undefined) {
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
+        const cachedTicker = this.safeDict(cachedTickers, sym);
+        if (cachedTicker === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription

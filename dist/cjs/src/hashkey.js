@@ -1918,7 +1918,10 @@ class hashkey extends hashkey$1["default"] {
             'coin': currency['id'],
         };
         const [networkCodeInParams, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        const networkCode = (networkCodeInParams === undefined) ? this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), code, this.safeString(this.options, 'defaultNetwork')) : networkCodeInParams;
+        let networkCode = networkCodeInParams;
+        if (networkCode === undefined) {
+            networkCode = this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), code, this.safeString(this.options, 'defaultNetwork'));
+        }
         request['chainType'] = this.networkCodeToId(networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode));
         //

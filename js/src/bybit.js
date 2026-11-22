@@ -8978,11 +8978,19 @@ export default class bybit extends Exchange {
         const lastIndex = total - 1;
         const last = this.safeDict(result, lastIndex, {});
         const cursorValue = this.safeString(first, 'nextPageCursor');
-        last['info'] = {
-            'nextPageCursor': cursorValue,
-        };
-        result[lastIndex] = last;
-        return this.toArray(result);
+        const lastRow = this.extend(last, {
+            'info': {
+                'nextPageCursor': cursorValue,
+            },
+        });
+        const rows = [];
+        for (let i = 0; i < lastIndex; i++) {
+            rows.push(this.safeDict(result, i, {}));
+        }
+        if (total > 0) {
+            rows.push(lastRow);
+        }
+        return this.toArray(rows);
     }
     /**
      * @method
@@ -10160,12 +10168,9 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort(query);
                 const auth = this.rawencode(sortedQuery, true);
-                let signature = undefined;
+                let signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 if (this.secret.indexOf('PRIVATE KEY') > -1) {
                     signature = rsa(auth, this.secret, sha256);
-                }
-                else {
-                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 }
                 if (method === 'POST') {
                     const isSpot = baseUrl.indexOf('spot') >= 0;

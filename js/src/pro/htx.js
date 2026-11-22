@@ -2253,12 +2253,14 @@ export default class htx extends htxRest {
         }
     }
     handleUnSubscription(client, subscription) {
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const messageHashes = this.safeStringList(subscription, ['messageHashes']);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const unsubHash = messageHashes[i];
-            const subHash = subMessageHashes[i];
-            this.cleanUnsubscription(client, subHash, unsubHash);
+        if (messageHashes !== undefined) {
+            for (let i = 0; i < messageHashes.length; i++) {
+                const unsubHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }

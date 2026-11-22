@@ -570,7 +570,11 @@ class kalshi extends kalshi$1["default"] {
             const eventParts = eventTicker.split('-');
             const eventPartsLength = eventParts.length;
             if (eventPartsLength > 1) {
-                const seriesParts = this.arraySlice(eventParts, 0, eventPartsLength - 1);
+                const seriesParts = [];
+                for (let si = 0; si < eventPartsLength - 1; si++) {
+                    const seriesPart = this.safeString(eventParts, si, '');
+                    seriesParts.push(seriesPart);
+                }
                 seriesTicker = seriesParts.join('-');
             }
         }
@@ -899,7 +903,7 @@ class kalshi extends kalshi$1["default"] {
         //     }
         //
         const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper(market, 'label', this.safeStringUpper(market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper(market, 'label', this.safeStringUpper(this.safeDict(market, 'info'), 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601(this.safeString(raw, 'updated_time'));
         const outcome = this.safeString(outcomeObj, 'outcome');

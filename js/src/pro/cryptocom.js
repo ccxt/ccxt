@@ -427,7 +427,9 @@ export default class cryptocom extends cryptocomRest {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(this.safeDict(parsedTrades, j));
         }
-        const channelReplaced = channel.replace('.' + marketId, '');
+        const channelName = this.safeString(message, 'channel', '');
+        const marketIdName = this.safeString(message, 'instrument_name', '');
+        const channelReplaced = channelName.replace('.' + marketIdName, '');
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -1458,12 +1460,14 @@ export default class cryptocom extends cryptocomRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList(subscription, 'messageHashes', []);
+                const messageHashes = this.safeStringList(subscription, ['messageHashes']);
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-                for (let j = 0; j < messageHashes.length; j++) {
-                    const unsubHash = messageHashes[j];
-                    const subHash = subMessageHashes[j];
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                if (messageHashes !== undefined) {
+                    for (let j = 0; j < messageHashes.length; j++) {
+                        const unsubHash = messageHashes[j];
+                        const subHash = subMessageHashes[j];
+                        this.cleanUnsubscription(client, subHash, unsubHash);
+                    }
                 }
                 this.cleanCache(subscription);
             }

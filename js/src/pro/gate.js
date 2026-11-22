@@ -285,8 +285,8 @@ export default class gate extends gateRest {
         const channel = messageType + '.order_cancel';
         const url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
-        request['order_id'] = id.toString();
-        const res = await this.requestPrivate(url, this.extend(request, requestParams), channel);
+        const orderRequest = this.extend(request, { 'order_id': id.toString() });
+        const res = await this.requestPrivate(url, this.extend(orderRequest, requestParams), channel);
         return this.parseOrder(res, market);
     }
     /**
@@ -2157,12 +2157,14 @@ export default class gate extends gateRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList(subscription, 'messageHashes', []);
+                const messageHashes = this.safeStringList(subscription, ['messageHashes']);
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-                for (let j = 0; j < messageHashes.length; j++) {
-                    const unsubHash = messageHashes[j];
-                    const subHash = subMessageHashes[j];
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                if (messageHashes !== undefined) {
+                    for (let j = 0; j < messageHashes.length; j++) {
+                        const unsubHash = messageHashes[j];
+                        const subHash = subMessageHashes[j];
+                        this.cleanUnsubscription(client, subHash, unsubHash);
+                    }
                 }
                 this.cleanCache(subscription);
             }
@@ -2477,11 +2479,8 @@ export default class gate extends gateRest {
             }
         }
         const idArray = [this.uid];
-        const payloadWithUid = (payload === undefined) ? idArray : this.arrayConcat(idArray, payload);
-        let payloadValue = payload;
-        if (requiresUid) {
-            payloadValue = payloadWithUid;
-        }
+        const noPayload = (payload === undefined);
+        const payloadWithUid = noPayload ? idArray : this.arrayConcat(idArray, payload);
         const time = this.seconds();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString();
@@ -2499,8 +2498,11 @@ export default class gate extends gateRest {
             'event': event,
             'auth': auth,
         };
-        if (payloadValue !== undefined) {
-            request['payload'] = payloadValue;
+        if (requiresUid) {
+            request['payload'] = payloadWithUid;
+        }
+        else if (!noPayload) {
+            request['payload'] = payload;
         }
         const client = this.client(url);
         if (!(messageHash in client.subscriptions)) {

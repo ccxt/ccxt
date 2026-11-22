@@ -1886,19 +1886,21 @@ class kucoin extends kucoin$1["default"] {
         }
         const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
         if (isUnSub) {
-            const messageHashes = this.safeList(subscription, 'messageHashes', []);
+            const messageHashes = this.safeStringList(subscription, ['messageHashes']);
             const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = this.safeString(messageHashes, i);
-                const subHash = this.safeString(subMessageHashes, i);
-                this.cleanUnsubscription(client, subHash, messageHash);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const messageHash = this.safeString(messageHashes, i);
+                    const subHash = this.safeString(subMessageHashes, i);
+                    this.cleanUnsubscription(client, subHash, messageHash);
+                }
             }
             const topic = this.safeString(subscription, 'topic');
             if (topic === 'fundingRate') {
                 // todo: add fundingRate topic to cleanCache
                 const symbols = this.safeList(subscription, 'symbols', []);
                 for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
+                    const symbol = this.safeString(symbols, i, '');
                     if (symbol in this.fundingRates) {
                         delete this.fundingRates[symbol];
                     }
@@ -2918,7 +2920,7 @@ class kucoin extends kucoin$1["default"] {
         }
         const url = await this.getUtaUrl();
         const client = this.client(url);
-        this.setPositionsCache(client, utaOption);
+        this.setPositionsCache(client, utaOption === true);
         const fetchPositionSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;

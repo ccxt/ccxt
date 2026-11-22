@@ -7322,33 +7322,34 @@ export default class binance extends Exchange {
         if (method !== 'POST') {
             return params;
         }
+        const generated = {};
         if ((path === 'order') || (path === 'sor/order') || (path === 'order/cancelReplace') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             const clientOrderId = this.safeString2(params, 'clientOrderId', 'newClientOrderId');
             if (clientOrderId === undefined) {
-                params[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                generated[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'algoOrder') || (path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             const clientAlgoId = this.safeString(params, 'clientAlgoId');
             if (clientAlgoId === undefined) {
-                params['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
+                generated['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             const newClientStrategyId = this.safeString(params, 'newClientStrategyId');
             if (newClientStrategyId === undefined) {
-                params['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
+                generated['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if (path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             const equityClientOrderId = this.safeString(params, 'clientOrderId');
             if (equityClientOrderId === undefined) {
-                params['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
+                generated['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
@@ -7367,7 +7368,7 @@ export default class binance extends Exchange {
                 const currentClientOrderIdKey = clientOrderIdKeys[i];
                 const currentClientOrderId = this.safeString(params, currentClientOrderIdKey);
                 if (currentClientOrderId === undefined) {
-                    params[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                    generated[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
                 }
             }
         }
@@ -7388,7 +7389,8 @@ export default class binance extends Exchange {
                 params['batchOrders'] = checkedBatchOrders;
             }
         }
-        return params;
+        const withIds = this.extend(params, generated);
+        return withIds;
     }
     /**
      * @method
@@ -13706,7 +13708,8 @@ export default class binance extends Exchange {
                     const origclientorderidlist = this.safeList2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', []);
                     extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList']);
                     if ('symbol' in extendedParams) {
-                        extendedParams['symbol'] = this.encodeURIComponent(this.safeString(extendedParams, 'symbol', ''));
+                        const encodedSymbol = this.encodeURIComponent(this.safeString(extendedParams, 'symbol', ''));
+                        extendedParams['symbol'] = encodedSymbol;
                     }
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
@@ -13937,7 +13940,11 @@ export default class binance extends Exchange {
         return this.safeNumber(config, 'cost', 1);
     }
     async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
-        const response = await this.fetch2(path, api, method, params, config);
+        // generate the client order ids once, so a retry inside fetch2 signs the same ids
+        const route = { 'path': path, 'method': method };
+        const requestPath = this.safeString(route, 'path', '');
+        const requestMethod = this.safeString(route, 'method', '');
+        const response = await this.fetch2(requestPath, api, requestMethod, this.handleClientOrderId(params, api[0], requestPath, requestMethod), config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api[0] === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
