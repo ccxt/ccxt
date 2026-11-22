@@ -734,8 +734,6 @@ export default class bullish extends bullishRest {
         let symbolsNormalized = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols (symbols);
-        }
-        if (hasSymbols && (symbolsNormalized !== undefined)) {
             messageHash += '::' + symbolsNormalized.join (',');
         }
         const request: Dict = {

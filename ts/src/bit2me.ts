@@ -1143,14 +1143,12 @@ export default class bit2me extends Exchange {
             if (triggerPrice !== undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
             }
-            let quoteAmount: Str = undefined;
             if (cost !== undefined) {
-                quoteAmount = cost;
+                request['amount'] = this.costToPrecision (symbol, cost);
+                request['amountInQuote'] = true;
             } else if ((side === 'buy') && (price !== undefined)) {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
-            }
-            if (quoteAmount !== undefined) {
+                const quoteAmount = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
                 request['amount'] = this.costToPrecision (symbol, quoteAmount);
                 request['amountInQuote'] = true;
             } else {
