@@ -1053,12 +1053,12 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "convert_to_big_int_custom" => self.convert_to_big_int_custom(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_signed_request" => Value::Dict(self.create_signed_request(&mut { let __m = args.get(0).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
+                "create_signed_request" => crate::Value::Dict(self.create_signed_request(&mut { let __m = args.get(0).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
-                "default_signature" => self.default_signature(),
-                "eip_definitions" => self.eip_definitions(),
-                "eip_domain_data" => Value::Dict(self.eip_domain_data()),
-                "eip_message_for_order" => self.eip_message_for_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
+                "default_signature" => crate::Value::Dict(self.default_signature()),
+                "eip_definitions" => crate::Value::Dict(self.eip_definitions()),
+                "eip_domain_data" => crate::Value::Dict(self.eip_domain_data()),
+                "eip_message_for_order" => crate::Value::Dict(self.eip_message_for_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref())),
                 "fee_amount_multiplier" => self.fee_amount_multiplier(),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
@@ -1884,8 +1884,8 @@ impl Grvt {
     Value::Null
 }
 
-    pub fn eip_definitions(&self) -> Value {
-        return Value::Map({
+    pub fn eip_definitions(&self) -> crate::value::Dict {
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("EIP712_ORDER_TYPE".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2166,8 +2166,6 @@ impl Grvt {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub fn uses_private_key(&self) -> bool {
@@ -2263,7 +2261,7 @@ impl Grvt {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), walletAddress.map(Value::from).unwrap_or(Value::Null));
-                m.insert("signature".to_string(), self.default_signature());
+                m.insert("signature".to_string(), Value::Dict(self.default_signature()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Dict(self.create_signed_request(&mut request, "EIP712_WALLETLOGIN_TYPE", &[])), &[params]);
@@ -2331,7 +2329,7 @@ impl Grvt {
                         m.insert("builder_account_id".to_string(), self.safe_string_k(&self.options, "builder", &[]));
                         m.insert("max_futures_fee_rate".to_string(), self.safe_string_k(&self.options, "builderRate", &[]));
                         m.insert("max_spot_fee_rate".to_string(), self.safe_string_k(&self.options, "builderRate", &[]));
-                        m.insert("signature".to_string(), self.default_signature());
+                        m.insert("signature".to_string(), Value::Dict(self.default_signature()));
                     m
                 });
                 let __ws_arg_2 = self.extend(Value::Dict(self.create_signed_request(&mut request, "EIP712_BUILDER_APPROVAL_TYPE", &[])), &[params]);
@@ -3298,7 +3296,7 @@ if _try_result.is_err() {
                 m.insert("to_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_sub_account_id", &[toSubAccount.map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[])));
-                m.insert("signature".to_string(), self.default_signature());
+                m.insert("signature".to_string(), Value::Dict(self.default_signature()));
                 m.insert("transfer_type".to_string(), Value::Str("STANDARD".into()));
                 m.insert("transfer_metadata".to_string(), Value::Null);
             m
@@ -3428,7 +3426,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " withdraw() requires a network parameter")));
         }
-        let mut withdrawSignature: indexmap::IndexMap<String, Value> = self.default_signature().as_map().cloned().unwrap_or_default();
+        let mut withdrawSignature: indexmap::IndexMap<String, Value> = Value::Dict(self.default_signature()).as_map().cloned().unwrap_or_default();
         withdrawSignature.insert("chain_id".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3526,7 +3524,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("sub_account_id".to_string(), subAccountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("time_in_force".to_string(), Value::Null);
                 m.insert("legs".to_string(), Value::from(vec![Value::Map(orderLeg)]));
-                m.insert("signature".to_string(), self.default_signature());
+                m.insert("signature".to_string(), Value::Dict(self.default_signature()));
                 m.insert("metadata".to_string(), Value::Map(orderMetadata.clone()));
                 m.insert("is_market".to_string(), Value::Bool(isMarketOrder));
                 m.insert("post_only".to_string(), Value::Bool(false));
@@ -3704,17 +3702,17 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn eip_message_for_order(&self, mut order: Value, structureType: Option<&str>) -> Value {
+    pub fn eip_message_for_order(&self, mut order: Value, structureType: Option<&str>) -> crate::value::Dict {
         let __order_empty = indexmap::IndexMap::new();
         let order = order.as_map().unwrap_or(&__order_empty);
         let priceMultiplier: i64 = 1000000000;
-        let orderLegs: crate::value::List = order.key_list("legs");
+        let orderLegs: Vec<crate::value::Dict> = crate::value::dict_rows(order.key_list("legs"));
         let mut legs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orderLegs.len() as i64) } {
-            let leg: crate::value::Dict = self.safe_dict_t(&orderLegs, Value::Int(i));
+            let leg: crate::value::Dict = orderLegs.get(i as usize).cloned().unwrap_or_default();
             let mut market: crate::types::Market = (match self.market((crate::value::KeyRead::key_read(&&leg, "instrument")).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let precisionValue: i64 = self.precision_from_string(self.safe_string_k(crate::value::KeyRead::key_read(&&market, "precision"), "base", &[]));
             let sizeMultiplier: f64 = f64::powf(10.0, (precisionValue as f64));
@@ -3772,9 +3770,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             returnValue.insert("builderFee".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(self.fee_amount_multiplier())), &(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
                 Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0".into()) })))));
         }
-        return Value::Map(returnValue);
-
-    Value::Null
+        return std::sync::Arc::new(returnValue);
 }
 
 /*
@@ -4629,8 +4625,6 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("chainId".to_string(), (if self.isSandboxModeEnabled.as_bool() == Some(true) { Value::Int(326) } else { Value::Int(325) }));
     m
 });
-
-    Default::default()
 }
 
     pub fn fee_amount_multiplier(&self) -> Value {
@@ -4681,7 +4675,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m
             });
         }  else if (structureType == "EIP712_ORDER_TYPE") || (structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") {
-            messageData = self.eip_message_for_order(Value::Map(request.clone()), Some(structureType));
+            messageData = Value::Dict(self.eip_message_for_order(Value::Map(request.clone()), Some(structureType)));
         }  else if (structureType == "EIP712_BUILDER_APPROVAL_TYPE") {
             let amountMultiplier: Value = self.convert_to_big_int_custom(self.fee_amount_multiplier());
             messageData = Value::Map({
@@ -4704,26 +4698,30 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             });
         }
         let domainData: crate::value::Dict = self.eip_domain_data();
-        let definitions: indexmap::IndexMap<String, Value> = self.eip_definitions().as_map().cloned().unwrap_or_default();
+        let definitions: indexmap::IndexMap<String, Value> = Value::Dict(self.eip_definitions()).as_map().cloned().unwrap_or_default();
         let ethEncodedMessage: crate::value::Bytes = self.eth_encode_structured_data(Value::Dict(domainData), definitions.get(Some(structureType).unwrap_or("")).cloned().unwrap_or(Value::Null), messageData);
         let usesPrivKey: bool = self.uses_private_key(); // py transpiler needs this line separated
         let secretOrPrivkey: Option<String> = (if usesPrivKey { self.privateKey.as_str().map(str::to_owned) } else { self.secret.as_str().map(str::to_owned) });
         let privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey.map(Value::from).unwrap_or(Value::Null));
         let signature: crate::value::Dict = ecdsa(Value::from(self.hash(&ethEncodedMessage, "keccak", &[Value::Str("hex".into())])), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
-        request.insert("signature".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("signer".to_string(), (if (signerAddress == Value::Null) { self.eth_get_address_from_private_key(Value::Str(format!("{}{}", "0x", privateKeyWithoutZero).into()), &[]) } else { signerAddress }));
-        m.insert("r".to_string(), self.format_signature_rs((crate::value::KeyRead::key_read(&&signature, "r")).as_str().unwrap_or_default()));
-        m.insert("s".to_string(), self.format_signature_rs((crate::value::KeyRead::key_read(&&signature, "s")).as_str().unwrap_or_default()));
-        m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
-        m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
-        m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
-        m.insert("chain_id".to_string(), requestSignature.get("chain_id").cloned().unwrap_or(Value::Null));
-    m
-}));
+        let mut signatureEntry: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("signer".to_string(), Value::Null);
+                m.insert("r".to_string(), self.format_signature_rs((crate::value::KeyRead::key_read(&&signature, "r")).as_str().unwrap_or_default()));
+                m.insert("s".to_string(), self.format_signature_rs((crate::value::KeyRead::key_read(&&signature, "s")).as_str().unwrap_or_default()));
+                m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
+                m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
+                m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
+                m.insert("chain_id".to_string(), requestSignature.get("chain_id").cloned().unwrap_or(Value::Null));
+            m
+        });
+        if (signerAddress == Value::Null) {
+            signatureEntry.insert("signer".into(), self.eth_get_address_from_private_key(Value::Str(format!("{}{}", "0x", privateKeyWithoutZero).into()), &[]));
+        }  else {
+            signatureEntry.insert("signer".into(), signerAddress);
+        }
+        request.insert("signature".into(), Value::Map(signatureEntry));
         return std::sync::Arc::new(request.clone());
-
-    Default::default()
 }
 
     pub fn format_signature_rs(&self, value: &str) -> Value {
@@ -4737,10 +4735,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn default_signature(&self) -> Value {
+    pub fn default_signature(&self) -> crate::value::Dict {
         let expirationSeconds: i64 = self.safe_integer_k(&self.options, "expirationSeconds", &[Value::Int(30)]).as_i64().unwrap_or(30);
         let expiration: i64 = ((((self.milliseconds()) * 1000000)) + ((((1000000 * expirationSeconds)) * 1000)));
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("signer".to_string(), Value::Str("".into()));
         m.insert("r".to_string(), Value::Str("".into()));
@@ -4751,8 +4749,6 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("chain_id".to_string(), (if self.isSandboxModeEnabled.as_bool() == Some(true) { Value::Str("326".into()) } else { Value::Str("325".into()) }));
     m
 });
-
-    Value::Null
 }
 
     pub fn handle_until_option_string(&self, key: &str, mut request: Value, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {

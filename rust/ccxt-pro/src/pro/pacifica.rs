@@ -87,7 +87,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "wrap_as_post_action" => Value::Dict(self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "wrap_as_post_action" => crate::Value::Dict(self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -141,7 +141,6 @@ impl Pacifica {
             "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_tickers" => { crate::exchange_stubs::enqueue_spawn("watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "wrap_as_post_action" => Value::Dict(self.wrap_as_post_action(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null))),
             _ => crate::Value::Null,
         }
     }
@@ -515,7 +514,7 @@ impl Pacifica {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, "cancelOrders() requires a \"symbol\" argument!")));
         }
-        let request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&params]).into_dict();
+        let request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&params]);
         let isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1203,12 +1202,12 @@ impl Pacifica {
         // }
         //
         let mut parsedTickers: Vec<Value> = Vec::new();
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let info: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1265,7 +1264,7 @@ impl Pacifica {
             let m = indexmap::IndexMap::new();
             m
         });
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let dataLength: i64 = data.len() as i64;
         if (dataLength == 0) {
             return;
@@ -1274,7 +1273,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
@@ -1878,7 +1877,7 @@ impl Pacifica {
         //     }
         //   ]
         // }
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1896,7 +1895,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (data.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
             self.orders.append(Value::from(&order));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -2183,8 +2182,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         return std::sync::Arc::new(payload);
-
-    Default::default()
 }
 
     pub fn handle_ws_post(&self, client: &Value, message: &Value) {

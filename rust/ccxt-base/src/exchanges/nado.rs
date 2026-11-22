@@ -2518,12 +2518,12 @@ impl Nado {
         //     }
         //
         let mut closedOrders: Vec<Value> = Vec::new();
-        let orders: crate::value::List = self.safe_list_k_t(&response, "orders");
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "orders"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             if self.is_archive_order_closed(Value::from(&order)).as_bool() == Some(true) {
                 closedOrders.push(self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2693,7 +2693,7 @@ impl Nado {
         //         ]
         //     }
         //
-        let matches: crate::value::List = self.safe_list_k_t(&response, "matches");
+        let matches: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "matches"));
         let txs: crate::value::List = self.safe_list_k_t(&response, "txs");
         let txsBySubmission: crate::value::Dict = self.index_by(Value::Arr(txs), Value::Str("submission_idx".into()));
         let mut trades: Vec<Value> = Vec::new();
@@ -2701,9 +2701,9 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (matches.len() as i64) } {
-            let match_val: crate::value::Dict = self.safe_dict_t(&matches, Value::Int(i));
+            let match_val: crate::value::Dict = matches.get(i as usize).cloned().unwrap_or_default();
             let submissionIdx: Option<String> = self.safe_string_k_opt(&match_val, "submission_idx", &[]);
-            let tx: crate::value::Dict = self.safe_dict_t(&txsBySubmission, submissionIdx.map(Value::from).unwrap_or(Value::Null));
+            let tx: crate::value::Dict = (if let Some(Value::Dict(__m)) = txsBySubmission.get(submissionIdx.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             trades.push(self.extend(tx, &[&match_val]));
         }
         }
@@ -2908,14 +2908,14 @@ impl Nado {
         //         ]
         //     }
         //
-        let events: crate::value::List = self.safe_list_k_t(&response, "events");
+        let events: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "events"));
         let txs: crate::value::List = self.safe_list_k_t(&response, "txs");
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (events.len() as i64) } {
-            let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
+            let event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or_default();
             let submissionIdx: Option<String> = self.safe_string_k_opt(&event, "submission_idx", &[]);
             let mut tx: Value = Value::Map({
                 let m = indexmap::IndexMap::new();
@@ -3012,14 +3012,14 @@ impl Nado {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let positions: crate::value::List = self.safe_list_k_t(&data, "perp_balances");
+        let positions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "perp_balances"));
         let products: crate::value::List = self.safe_list_k_t(&data, "perp_products");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
+            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or_default();
             let balance: crate::value::Dict = self.safe_dict_k_t(&position, "balance");
             let amount: Option<String> = self.safe_string_k_opt(&balance, "amount", &[]);
             if (amount.is_none()) || crate::precise::Precise::stringEquals(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -3155,9 +3155,9 @@ impl Nado {
         let pairsRequest: crate::value::List = self.gateway_v2_public_get_pairs(&[&params]).await.unwrap_or_default();
         let assetsRequest: crate::value::List = self.gateway_v2_public_get_assets(&[&params]).await.unwrap_or_default();
         let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(symbolsRequest), Value::Arr(pairsRequest), Value::Arr(assetsRequest)])).await;
-        let symbols: crate::value::List = self.safe_list_t(&responses, Value::Int(0));
-        let pairs: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
-        let assets: crate::value::List = self.safe_list_t(&responses, Value::Int(2));
+        let symbols: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(0)));
+        let pairs: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(1)));
+        let assets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(2)));
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         let mut pairsById: indexmap::IndexMap<String, Value> = ({
@@ -3168,7 +3168,7 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (pairs.len() as i64) } {
-            let rawPair: crate::value::Dict = self.safe_dict_t(&pairs, Value::Int(i));
+            let rawPair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or_default();
             let pairProductId: Option<String> = self.safe_string_k_opt(&rawPair, "product_id", &[]);
             if (pairProductId.is_some()) {
                 pairsById.insert(pairProductId.as_deref().unwrap_or("null").to_string(), Value::Dict(rawPair));
@@ -3183,7 +3183,7 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (assets.len() as i64) } {
-            let rawAsset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+            let rawAsset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
             let assetProductId: Option<String> = self.safe_string_k_opt(&rawAsset, "product_id", &[]);
             if (assetProductId.is_some()) {
                 assetsById.insert(assetProductId.as_deref().unwrap_or("null").to_string(), Value::Dict(rawAsset));
@@ -3198,7 +3198,7 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (assets.len() as i64) } {
-            let rawAsset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+            let rawAsset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
             let assetSymbol: Option<String> = self.safe_string_k_opt(&rawAsset, "symbol", &[]);
             let assetCode: Option<String> = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).as_deref(), None);
             if (assetCode.is_none()) {
@@ -3223,7 +3223,7 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbols.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&symbols, Value::Int(i));
+            let market: crate::value::Dict = symbols.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "product_id", &[]);
             let pair: crate::value::Dict = self.safe_dict_t(&pairsById, Value::from(id.as_deref()));
             let asset: crate::value::Dict = self.safe_dict_t(&assetsById, Value::from(id.as_deref()));
@@ -3525,7 +3525,7 @@ impl Nado {
         //         }
         //     }
         //
-        let data: crate::value::Dict = self.safe_dict_t(&response, tickerId.map(Value::from).unwrap_or(Value::Null));
+        let data: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(tickerId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -3734,7 +3734,7 @@ impl Nado {
         //         }
         //     }
         //
-        let data: crate::value::Dict = self.safe_dict_t(&response, tickerId.map(Value::from).unwrap_or(Value::Null));
+        let data: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(tickerId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &data, Some(&market));
         Value::Null
         }).await?))

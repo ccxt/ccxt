@@ -742,7 +742,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
                         m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                     m
                 });
-                let mut auth: Value = Value::Str("".into());
+                let mut auth: Option<String> = Some("".to_string());
                 if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                     requestHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                     if hasQuery {
@@ -751,10 +751,10 @@ impl crate::exchange::DerivedExchange for Bithumb {
                     }
                 }  else if hasQuery {
                     auth = self.urlencode_with_array_brackets(&query);
-                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), auth);
+                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), auth.as_deref().unwrap_or("null"));
                 }
                 if hasQuery {
-                    std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(self.hash(self.encode(auth), "sha512", &[])));
+                    std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), "sha512", &[])));
                     std::sync::Arc::make_mut(&mut request).insert("query_hash_alg".into(), Value::Str("SHA512".into()));
                 }
                 let token: String = jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
@@ -891,7 +891,6 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
-                "urlencode_with_array_brackets" => self.urlencode_with_array_brackets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1715,9 +1714,9 @@ impl Bithumb {
                 let mut base: Option<String> = None;
                 let mut quote: Option<String> = None;
                 if (marketId.is_some()) {
-                    let parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+                    let parts: crate::value::List = crate::value::List::new(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+                    baseId = self.safe_string_opt(&parts, Value::Int(1), &[]);
                     quoteId = parts.get(0).and_then(Value::as_str).map(str::to_owned);
                     base = self.safe_currency_code(baseId.as_deref(), None);
                     quote = self.safe_currency_code(quoteId.as_deref(), None);
@@ -1814,7 +1813,7 @@ impl Bithumb {
                     let m = indexmap::IndexMap::new();
                     m
                 })]).as_map().cloned().unwrap_or_default();
-                let extension: crate::value::Dict = self.safe_dict_t(&quoteCurrencies, Value::from(quote.as_deref()));
+                let extension: crate::value::Dict = (if let Some(Value::Dict(__m)) = quoteCurrencies.get(quote.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                 let currencyIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
@@ -4363,7 +4362,7 @@ impl Bithumb {
 }
 
 
-    pub fn urlencode_with_array_brackets(&self, query: impl Into<crate::Value>) -> Value {
+    pub fn urlencode_with_array_brackets(&self, query: impl Into<crate::Value>) -> Option<String> {
         let query: Value = query.into();
         let mut keys: Vec<&str> = query.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut result: String = "".to_string();
@@ -4401,9 +4400,7 @@ impl Bithumb {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return Some(result);
 }
 
 

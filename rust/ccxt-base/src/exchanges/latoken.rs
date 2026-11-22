@@ -391,7 +391,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         let code: Option<String> = self.safe_currency_code(tag.as_deref(), None);
         let currencyType: Option<String> = self.safe_string_k_opt(&currency, "type", &[]);
         let isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
-        let bindings: crate::value::List = self.safe_list_k_t(&currency, "bindings");
+        let bindings: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&currency, "bindings"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -400,7 +400,7 @@ impl crate::exchange::DerivedExchange for Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (bindings.len() as i64) } {
-            let binding: crate::value::Dict = self.safe_dict_t(&bindings, Value::Int(i));
+            let binding: crate::value::Dict = bindings.get(i as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&binding, "providerName", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
@@ -1426,8 +1426,8 @@ impl Latoken {
             // the exchange shows them inverted
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
-            let baseCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, Value::from(baseId.as_deref()));
-            let quoteCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, Value::from(quoteId.as_deref()));
+            let baseCurrency: crate::value::Dict = (if let Some(Value::Dict(__m)) = currenciesById.get(baseId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
+            let quoteCurrency: crate::value::Dict = (if let Some(Value::Dict(__m)) = currenciesById.get(quoteId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let baseCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k_o(&baseCurrency, "info");
             let quoteCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k_o(&quoteCurrency, "info");
             if (baseCurrencyInfo.is_some()) && (quoteCurrencyInfo.is_some()) {
@@ -1761,15 +1761,15 @@ impl Latoken {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        let rawAsks: crate::value::List = self.safe_list_k_t(&response, "ask");
-        let rawBids: crate::value::List = self.safe_list_k_t(&response, "bid");
+        let rawAsks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "ask"));
+        let rawBids: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "bid"));
         let mut asks: Vec<Value> = Vec::new();
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rawAsks.len() as i64) } {
-            let askEntry: crate::value::Dict = self.safe_dict_t(&rawAsks, Value::Int(i));
+            let askEntry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or_default();
             let askQuantity: Option<String> = self.safe_string_k_opt(&askEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(Value::Dict(askEntry));
@@ -1780,7 +1780,7 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rawBids.len() as i64) } {
-            let bidEntry: crate::value::Dict = self.safe_dict_t(&rawBids, Value::Int(i));
+            let bidEntry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or_default();
             let bidQuantity: Option<String> = self.safe_string_k_opt(&bidEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(Value::Dict(bidEntry));

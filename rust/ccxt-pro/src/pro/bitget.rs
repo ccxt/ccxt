@@ -2085,13 +2085,13 @@ impl Bitget {
             CacheStore::put(&mut self.positionsByType, &instType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&instType);
-        let rawPositions: crate::value::List = message.key_list("data");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string2_opt(&rawPosition, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), Some(&market));
@@ -3027,7 +3027,7 @@ impl Bitget {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCache::new(Value::from(limit)));
         }
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let length: i64 = data.len() as i64;
         let messageHash: String = "myTrades".to_string();
         let arg: crate::value::Dict = message.key_dict("arg");
@@ -3036,7 +3036,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < length } {
-            let trade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let mut market: Option<crate::types::Market> = None;
             if (instType.as_deref() == Some("uta")) {
                 // UTA fills carry the product in 'category'; resolve the matching
@@ -3244,12 +3244,12 @@ impl Bitget {
         //
         let arg: crate::value::Dict = __pro_message.key_dict("arg");
         let instType: Option<String> = self.safe_string_lower_k_opt(&arg, "instType", &[]);
-        let data: crate::value::List = __pro_message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (data.len() as i64) } {
-            let rawBalance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawBalance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (instType.as_deref() == Some("uta")) {
                 let coins: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawBalance, "coin"));
                 {

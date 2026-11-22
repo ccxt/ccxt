@@ -113,8 +113,8 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1MarketKlines` implicit endpoint.
-    pub async fn public_get_open_v1_market_klines(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_open_v1_market_klines".into()), optional_args).await
+    pub async fn public_get_open_v1_market_klines(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("public_get_open_v1_market_klines", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1OrdersDetail` implicit endpoint.

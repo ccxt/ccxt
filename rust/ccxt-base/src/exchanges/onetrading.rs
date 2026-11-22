@@ -675,8 +675,8 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_private_trading_fees" => self.fetch_private_trading_fees(&args[..].iter().collect::<Vec<_>>()).await,
-                "fetch_public_trading_fees" => self.fetch_public_trading_fees(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_private_trading_fees" => crate::Value::Dict(self.fetch_private_trading_fees(&args[..].iter().collect::<Vec<_>>()).await),
+                "fetch_public_trading_fees" => crate::Value::Dict(self.fetch_public_trading_fees(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -685,7 +685,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_fee_tiers" => Value::Dict(self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_fee_tiers" => crate::Value::Dict(self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1375,9 +1375,9 @@ impl Onetrading {
             method = self.safe_string_k_opt(&options, "method", &[&Value::Str("fetchPrivateTradingFees".into())]);
         }
         if (method.as_deref() == Some("fetchPrivateTradingFees")) {
-            return self.fetch_private_trading_fees(&[&Value::from(&paramsOmitted)]).await;
+            return Value::Dict(self.fetch_private_trading_fees(&[&Value::from(&paramsOmitted)]).await);
         }  else if (method.as_deref() == Some("fetchPublicTradingFees")) {
-            return self.fetch_public_trading_fees(&[&Value::Dict(paramsOmitted)]).await;
+            return Value::Dict(self.fetch_public_trading_fees(&[&Value::Dict(paramsOmitted)]).await);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTradingFees() does not support ").into()), method.as_deref().unwrap_or("null")).into()), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")));
         }
@@ -1385,7 +1385,7 @@ impl Onetrading {
         }).await?))
     }
 
-    pub async fn fetch_public_trading_fees(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_public_trading_fees(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1475,12 +1475,10 @@ impl Onetrading {
 }));
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
-    pub async fn fetch_private_trading_fees(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_private_trading_fees(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1559,9 +1557,7 @@ impl Onetrading {
 }));
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
     pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
@@ -1588,8 +1584,6 @@ impl Onetrading {
         m.insert("taker".to_string(), Value::from(takerFees));
     m
 });
-
-    Default::default()
 }
 
 

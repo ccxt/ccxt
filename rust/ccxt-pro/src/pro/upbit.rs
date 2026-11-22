@@ -548,7 +548,7 @@ impl Upbit {
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         let trade: crate::value::Dict = self.parse_trade(message, None);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         if (symbol.is_none()) {
             return;
         }

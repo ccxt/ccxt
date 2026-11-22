@@ -171,11 +171,11 @@ impl crate::exchange::DerivedExchange for Bitbns {
             amountString = self.safe_string_k_opt(&trade, "base_volume", &[]);
             costString = self.safe_string_k_opt(&trade, "quote_volume", &[]);
         }
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         let feeCostString: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
         if (feeCostString.is_some()) {
-            let feeCurrencyCode: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "quote").as_str().map(str::to_owned);
+            let feeCurrencyCode: Option<String> = self.safe_string_k_opt(&marketResolved, "quote", &[]);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));

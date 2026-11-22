@@ -108,14 +108,14 @@ impl crate::exchange::DerivedExchange for Bingx {
         let lastQty: Option<String> = self.safe_string_k_opt(&ticker, "lastQty", &[]);
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        let mut type_var: Value = Value::Str("swap".into());
+        let mut type_var: Option<String> = Some("swap".to_string());
         if (lastQty.is_none()) {
-            type_var = Value::Str("spot".into());
+            type_var = Some("spot".to_string());
         }
         if (market.is_some()) {
-            type_var = crate::value::KeyRead::key_read(&market, "type");
+            type_var = self.safe_string_k_opt(&market, "type", &[]);
         }
-        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, type_var]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, type_var.map(Value::from).unwrap_or(Value::Null)]);
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let open: Option<String> = self.safe_string_k_opt(&ticker, "openPrice", &[]);
         let high: Option<String> = self.safe_string_k_opt(&ticker, "highPrice", &[]);
@@ -1805,7 +1805,7 @@ impl crate::exchange::DerivedExchange for Bingx {
                 let mut __for_first_6: bool = true;
                 while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < networksLength } {
                 let networkCode: String = self.safe_string(&networkCodes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let network: crate::value::Dict = self.safe_dict_t(&networks, Value::from(networkCode.as_str()));
+                let network: crate::value::Dict = (if let Some(Value::Dict(__m)) = networks.get(networkCode.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
                 networkFees.insert(networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -8304,7 +8304,10 @@ impl Bingx {
 
     pub fn parse_params(&self, params: impl Into<crate::Value>) -> Value {
         let params: Value = params.into();
-        let mut copied: Value = self.clone_value(params.clone());
+        let mut copied: Value = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&params]);
         let sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
         let rawKeys: Vec<Value> = Value::Array(sortedParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let rawKeysLength: i64 = rawKeys.len() as i64;

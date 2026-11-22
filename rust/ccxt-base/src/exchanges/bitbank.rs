@@ -1209,7 +1209,7 @@ impl Bitbank {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let pairs: crate::value::List = self.safe_list_k_t(&data, "pairs");
+        let pairs: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "pairs"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -1218,7 +1218,7 @@ impl Bitbank {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (pairs.len() as i64) } {
-            let pair: crate::value::Dict = self.safe_dict_t(&pairs, Value::Int(i));
+            let pair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&pair, "name", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

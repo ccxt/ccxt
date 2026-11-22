@@ -1400,7 +1400,7 @@ if _try_result.is_err() {
         //                                ↑                 ↑
         //
         let versions: crate::value::Dict = self.safe_dict_k_t(&self.options, "versions");
-        let apiVersions: crate::value::Dict = self.safe_dict_t(&versions, Value::from(apiName.as_deref()));
+        let apiVersions: crate::value::Dict = (if let Some(Value::Dict(__m)) = versions.get(apiName.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let methodVersions: crate::value::Dict = self.safe_dict_t(&apiVersions, &method);
         let defaultVersion: Option<String> = self.safe_string_opt(&methodVersions, &path, &[&self.options.get("version").cloned().unwrap_or(Value::Null)]);
         let version: Option<String> = self.safe_string_k_opt(&params, "version", &[&defaultVersion]);
@@ -1577,7 +1577,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_borrow_interest" => crate::types::IntoRaw::into_raw(self.fetch_borrow_interest(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_borrow_rate_histories" => self.fetch_borrow_rate_histories(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_borrow_rate_histories" => crate::Value::Dict(self.fetch_borrow_rate_histories(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_borrow_rate_history" => self.fetch_borrow_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_contract_balance" => self.fetch_contract_balance(&args[..].iter().collect::<Vec<_>>()).await,
@@ -1656,7 +1656,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "parse_balance_helper" => Value::Dict(self.parse_balance_helper(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_borrow_rate_histories" => self.parse_borrow_rate_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64)),
+                "parse_borrow_rate_histories" => crate::Value::Dict(self.parse_borrow_rate_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64))),
                 "parse_contract_order" => Value::Dict(self.parse_contract_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_contract_ticker" => Value::Dict(self.parse_contract_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_contract_trade" => Value::Dict(self.parse_contract_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4981,7 +4981,7 @@ impl Kucoin {
                 continue;
             }
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            let ticker: crate::value::Dict = self.safe_dict_t(&tickersById, Value::from(id.as_deref()));
+            let ticker: crate::value::Dict = (if let Some(Value::Dict(__m)) = tickersById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let makerFeeRate: Option<String> = self.safe_string_k_opt(&ticker, "makerFeeRate", &[]);
             let takerFeeRate: Option<String> = self.safe_string_k_opt(&ticker, "takerFeeRate", &[]);
             let makerCoefficient: Option<String> = self.safe_string_k_opt(&ticker, "makerCoefficient", &[]);
@@ -5142,12 +5142,12 @@ impl Kucoin {
         //    }
         //
         let mut result: Vec<Value> = Vec::new();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let expiry: Option<i64> = self.safe_integer_k(&market, "expireDate", &[]).as_i64();
             let mut future: bool = (self.safe_string_k(&market, "nextFundingRateTime", &[]) == Value::Null);
@@ -5489,7 +5489,7 @@ impl Kucoin {
  */
     pub async fn load_migration_status(&mut self, optional_args: &[&Value]) -> Value {
         let force: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        if !(self.options.contains_key("hf")) || (self.options.get("hf").cloned().unwrap_or(Value::Null) == Value::Null) || force {
+        if !(self.options.contains_key("hf")) || (self.safe_bool_k(&self.options, "hf", &[]) == Value::Null) || force {
             let result: crate::value::Dict = self.private_get_hf_accounts_opened(&[]).await.unwrap_or_default();
             { let __be_tmp = self.safe_bool_k(&result, "data", &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("hf".into(), __be_tmp); } }
         }
@@ -7551,11 +7551,8 @@ impl Kucoin {
             if (marginMode.as_deref() == Some("isolated")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder does not support isolated margin for stop orders")));
             }  else if (marginMode.as_deref() == Some("cross")) {
-                let marginModes: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "marginModes", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-                request.insert("tradeType".into(), marginModes.get(marginMode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                let marginModes: crate::value::Dict = self.safe_dict_k_t(&self.options, "marginModes");
+                request.insert("tradeType".into(), self.safe_string(&marginModes, Value::from(marginMode.as_deref()), &[]));
             }
         }  else if isMarginOrder {
             if (marginMode.as_deref() == Some("isolated")) {
@@ -8910,21 +8907,18 @@ impl Kucoin {
         let paramsHf: crate::value::Dict = hfparamsHfVariable.1;
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsHf, &["stop", "trigger"], &[]);
         let marginModequeryVariable = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".into()), &[&Value::Dict(paramsOmitted)]);
-        let marginMode: Value = marginModequeryVariable.0;
+        let marginMode: Option<String> = marginModequeryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = marginModequeryVariable.1;
-        let isMarginOrders: bool = marginMode != Value::Null;
+        let isMarginOrders: bool = marginMode.is_some();
         if (symbol != Value::Null) {
             request.insert("symbol".into(), self.market_id(symbol.as_str()));
         }  else if (!trigger) && isMarginOrders {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument for margin non-trigger orders")));
         }
-        if (marginMode != Value::Null) {
-            let marginModes: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "marginModes", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-            request.insert("tradeType".into(), marginModes.get(marginMode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
-            if (marginMode.as_str() == Some("isolated")) && trigger {
+        if (marginMode.is_some()) {
+            let marginModes: crate::value::Dict = self.safe_dict_k_t(&self.options, "marginModes");
+            request.insert("tradeType".into(), self.safe_string(&marginModes, &marginMode, &[]));
+            if (marginMode.as_deref() == Some("isolated")) && trigger {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cancelAllOrders does not support isolated margin for stop orders")));
             }
         }
@@ -12281,12 +12275,12 @@ impl Kucoin {
             }
         }  else if cross {
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-            let accounts: crate::value::List = self.safe_list_k_t(&data, "accounts");
+            let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "accounts"));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (accounts.len() as i64) } {
-                let balance: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
+                let balance: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or_default();
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                 let codeInner: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 if (codeInner.is_some()) {
@@ -13274,7 +13268,7 @@ impl Kucoin {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
-    pub async fn fetch_borrow_rate_histories(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_borrow_rate_histories(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let codes = get_arg(optional_args, 0, Value::Null);
         let since = get_arg(optional_args, 1, Value::Null);
         let limit = get_arg(optional_args, 2, Value::Null);
@@ -13326,8 +13320,6 @@ impl Kucoin {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rows: crate::value::List = self.safe_list_k_t(&data, "items");
         return self.parse_borrow_rate_histories(&rows, codes, since.as_i64(), limit.as_i64());
-
-    Value::Null
 }
 
 /*
@@ -13398,7 +13390,7 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn parse_borrow_rate_histories(&self, response: impl Into<crate::Value>, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_borrow_rate_histories(&self, response: impl Into<crate::Value>, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> crate::value::Dict {
         let response: Value = response.into();
         //
         //     [
@@ -13439,9 +13431,7 @@ impl Kucoin {
             { let __be_tmp = Value::Arr(self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), code.as_deref(), since, limit, &[])); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
-        return Value::Map(borrowRateHistories);
-
-    Value::Null
+        return std::sync::Arc::new(borrowRateHistories);
 }
 
 /*
@@ -14179,13 +14169,13 @@ impl Kucoin {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
             let isFundingIndex: bool = (marketId.is_some()) && (marketId.as_deref().unwrap_or_default().starts_with("."));

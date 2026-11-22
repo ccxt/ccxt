@@ -644,13 +644,13 @@ impl Poloniex {
         //    }
         //
         let messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None);
             std::sync::Arc::make_mut(&mut orders).push(Value::Dict(parsedOrder));
         }
@@ -1678,7 +1678,7 @@ impl Poloniex {
         //        ]
         //    }
         //
-        let data: crate::value::List = __pro_message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
         let mut newTickers: Value = Value::Map({
             let m = indexmap::IndexMap::new();
             m
@@ -1687,7 +1687,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let item: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let item: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&item, "symbol", &[]);
             if (marketId.is_some()) {
                 let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(item), None);

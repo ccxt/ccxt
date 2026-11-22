@@ -1626,9 +1626,9 @@ impl Btcmarkets {
         if (clientOrderId.is_some()) {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsTriggerPrice: crate::value::Dict = params.clone().into_dict();
+        let mut paramsTriggerPrice: crate::value::Dict = params.into_dict();
         if triggerPriceIsRequired {
-            paramsTriggerPrice = self.omit_t(params, Value::Str("triggerPrice".into()), &[]);
+            paramsTriggerPrice = self.omit_t(&paramsTriggerPrice, Value::Str("triggerPrice".into()), &[]);
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]);
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);

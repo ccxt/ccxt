@@ -874,12 +874,12 @@ impl crate::exchange::DerivedExchange for Mexc {
             let m = indexmap::IndexMap::new();
             m
         });
-        let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "networkList");
+        let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "networkList"));
         {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
+            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string2_opt(&chain, Value::Str("netWork".into()), Value::Str("network".into()), &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (network.is_some()) {
@@ -1460,8 +1460,8 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transaction_fee" => self.parse_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "parse_transaction_fees" => self.parse_transaction_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "parse_transaction_fee" => crate::Value::Dict(self.parse_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
+                "parse_transaction_fees" => crate::Value::Dict(self.parse_transaction_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -3686,13 +3686,13 @@ impl Mexc {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "symbols");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "symbols"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);
@@ -3843,13 +3843,13 @@ impl Mexc {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
@@ -5915,13 +5915,13 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.fetch_account_helper(marketType.as_deref(), &query).await.into_dict();
-        let data: crate::value::List = self.safe_list_k_t(&response, "balances");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
-            let account: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let account: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string2_opt(&account, Value::Str("asset".into()), Value::Str("currency".into()), &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             result.push(Value::Map({
@@ -6609,13 +6609,13 @@ impl Mexc {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let resultList: crate::value::List = self.safe_list_k_t(&data, "resultList");
+        let resultList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "resultList"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (resultList.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(i));
+            let entry: crate::value::Dict = resultList.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6779,13 +6779,13 @@ impl Mexc {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let result: crate::value::List = self.safe_list_k_t(&data, "resultList");
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "resultList"));
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let symbolInner: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
@@ -7561,9 +7561,9 @@ impl Mexc {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
-        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if isIsolatedMargin {
-            paramsOmitted = self.omit_t(params, Value::Str("symbol".into()), &[]);
+            paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("symbol".into()), &[]);
         }
         let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.spot_private_post_capital_transfer(&[&__ws_arg_57]).await.unwrap_or_default();
@@ -7772,12 +7772,12 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::List = self.spot_private_get_capital_config_getall(&[&params]).await.unwrap_or_default();
-        return self.parse_transaction_fees(&response, &[&codes]);
+        return Value::Dict(self.parse_transaction_fees(&response, &[&codes]));
 
     Value::Null
 }
 
-    pub fn parse_transaction_fees(&self, response: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub fn parse_transaction_fees(&self, response: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::Dict {
         let response: Value = response.into();
         let codes = get_arg(optional_args, 0, Value::Null);
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
@@ -7793,11 +7793,11 @@ impl Mexc {
             let currency: crate::types::Currency = self.safe_currency(currencyId.as_deref(), None);
             let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
             if (codes == Value::Null) || (self.in_array(&code, &codes)) {
-                withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_transaction_fee(Value::Dict(entry), &[&crate::Value::from(Some(&currency))]));
+                withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_transaction_fee(Value::Dict(entry), &[&crate::Value::from(Some(&currency))])));
             }
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawFees));
         m.insert("deposit".to_string(), Value::Map({
@@ -7807,11 +7807,9 @@ impl Mexc {
         m.insert("info".to_string(), response);
     m
 });
-
-    Value::Null
 }
 
-    pub fn parse_transaction_fee(&self, mut transaction: Value, optional_args: &[&Value]) -> Value {
+    pub fn parse_transaction_fee(&self, mut transaction: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let currency = get_arg(optional_args, 0, Value::Null);
         let __transaction_empty = indexmap::IndexMap::new();
         let transaction = transaction.as_map().unwrap_or(&__transaction_empty);
@@ -7857,9 +7855,7 @@ impl Mexc {
             result.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(fee));
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*

@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "get_subscription_request" => Value::Dict(self.get_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "get_subscription_request" => crate::Value::Dict(self.get_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -104,7 +104,6 @@ impl Blofin {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "get_subscription_request" => Value::Dict(self.get_subscription_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))),
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_funding_rate" => { self.handle_funding_rate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1384,15 +1383,15 @@ impl Blofin {
                 while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let current: Option<String> = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: Option<crate::types::Market> = None;
-                let mut channel: String = channelName.to_string();
+                let mut interval: Option<String> = Some("".to_string());
                 if isOHLCV {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                     let tf: String = self.safe_string(self.safe_list(&symbolsArray, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
-                    channel = format!("{}{}", channel, interval.as_deref().unwrap_or("null"));
+                    interval = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
                 }  else {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
+                let channel: String = format!("{}{}", Value::Str(format!("{}{}", "", Value::from(channelName)).into()), interval.as_deref().unwrap_or("null"));
                 let topic: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("channel".to_string(), Value::from(channel.as_str()));
@@ -1465,12 +1464,12 @@ impl Blofin {
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut channel: String = channelName.to_string();
+            let mut interval: Option<String> = Some("".to_string());
             if isOHLCV {
                 let tf: String = self.safe_string(self.safe_list(&symbolsArray, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
-                channel = format!("{}{}", channel, interval.as_deref().unwrap_or("null"));
+                interval = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
             }
+            let channel: String = format!("{}{}", Value::from(channelName), interval.as_deref().unwrap_or("null"));
             let topic: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), Value::from(channel.as_str()));
@@ -1542,8 +1541,6 @@ impl Blofin {
         m.insert("args".to_string(), args);
     m
 });
-
-    Default::default()
 }
 
     pub fn handle_text_message(&self, mut client: Value, mut message: Value) {

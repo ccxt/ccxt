@@ -385,12 +385,12 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
             let m = indexmap::IndexMap::new();
             m
         });
-        let supportedNetworks: crate::value::List = self.safe_list_k_t(&rawCurrency, "supported_networks");
+        let supportedNetworks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "supported_networks"));
         {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (supportedNetworks.len() as i64) } {
-            let network: crate::value::Dict = self.safe_dict_t(&supportedNetworks, Value::Int(j));
+            let network: crate::value::Dict = supportedNetworks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&network, "id", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -3258,7 +3258,7 @@ impl Coinbaseexchange {
         }
         let currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
         let accountsByCurrencyId: crate::value::Dict = self.safe_dict_k_t(&self.options, "coinbaseAccountsByCurrencyId");
-        let account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyId, Value::from(currencyId.as_deref()));
+        let account: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = accountsByCurrencyId.get(currencyId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (account.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}{}{}{}{}", self.id, " createDepositAddress() could not find currency code ", code, " with id = ", currencyId.map(Value::from).unwrap_or(Value::Null), " in this.options['coinbaseAccountsByCurrencyId']")));
         }

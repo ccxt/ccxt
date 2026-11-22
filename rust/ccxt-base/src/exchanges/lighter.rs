@@ -1805,8 +1805,8 @@ impl Lighter {
             accountIndex = self.safe_string_opt(&res, Value::Int(0), &[]);
         }
         let auths: crate::value::Dict = self.safe_dict_k_t(&self.options, "auths");
-        let accountAuths: crate::value::Dict = self.safe_dict_t(&auths, Value::from(accountIndex.as_deref()));
-        let cachedAuth: crate::value::Dict = self.safe_dict_t(&accountAuths, Value::from(apiKeyIndex.as_deref()));
+        let accountAuths: crate::value::Dict = (if let Some(Value::Dict(__m)) = auths.get(accountIndex.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
+        let cachedAuth: crate::value::Dict = (if let Some(Value::Dict(__m)) = accountAuths.get(apiKeyIndex.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let cachedDeadline: Option<i64> = self.safe_integer_k(&cachedAuth, "deadline", &[]).as_i64();
         let minimumRemaining: i64 = self.safe_integer_k(&self.options, "authDeadlineMinimumRemaining", &[Value::Int(60)]).as_i64().unwrap_or(60);
         if (cachedDeadline.is_some()) && (true) && (((if let Some(__l) = cachedDeadline { Some(__l - minimumRemaining) } else { None })) >= Some((self.seconds()))) {
@@ -2349,7 +2349,8 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_1: bool = true;
                 while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < totalOrderRequests } {
-                if (self.safe_integer_k(orderRequests.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "order_expiry", &[]).as_f64() == Value::Int(-1).as_f64()) {
+                let legExpiry: i64 = self.safe_integer_k(orderRequests.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "order_expiry", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                if (legExpiry == -1) {
                     add_element_to_object(get_value_mut(&mut orderRequests, &Value::Int(i)), &Value::Str("order_expiry".into()), Value::from(groupOrderExpiry));
                 }
             }

@@ -1089,7 +1089,7 @@ impl crate::exchange_generated::ExchangeBase for Deribit {
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_volatility_history" => self.parse_volatility_history(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_volatility_history" => self.parse_volatility_history(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2613,12 +2613,12 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (instrumentsResponses.len() as i64) } {
-            let instrumentsResult: crate::value::List = self.safe_list_k_t(instrumentsResponses.get(i as usize).cloned().unwrap_or(Value::Null), "result");
+            let instrumentsResult: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(instrumentsResponses.get(i as usize).cloned().unwrap_or(Value::Null), "result"));
             {
                                 let mut k: i64 = 0;
                 let mut __for_first_1: bool = true;
                 while { if !__for_first_1 { k += 1; } __for_first_1 = false; k < (instrumentsResult.len() as i64) } {
-                let market: crate::value::Dict = self.safe_dict_t(&instrumentsResult, Value::Int(k));
+                let market: crate::value::Dict = instrumentsResult.get(k as usize).cloned().unwrap_or_default();
                 let kind: Option<String> = self.safe_string_k_opt(&market, "kind", &[]);
                 let isSpot: bool = kind.as_deref() == Some("spot");
                 let id: Option<String> = self.safe_string_k_opt(&market, "instrument_name", &[]);
@@ -3418,7 +3418,7 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let fees: crate::value::List = self.safe_list_k_t(&result, "fees");
+        let fees: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "fees"));
         let mut perpetualFee: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3435,7 +3435,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (fees.len() as i64) } {
-            let feeEntry: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(i));
+            let feeEntry: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or_default();
             let instrumentType: Option<String> = self.safe_string_k_opt(&feeEntry, "instrument_type", &[]);
             if (instrumentType.as_deref() == Some("future")) {
                 futureFee = ({
@@ -3926,9 +3926,9 @@ impl Deribit {
         }
         let trailingAmount: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]);
         let isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if isTrailingAmountOrder {
-            paramsOmitted = self.omit_t(params, Value::Str("trigger_offset".into()), &[]);
+            paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("trigger_offset".into()), &[]);
         }
         if isTrailingAmountOrder {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
@@ -4639,10 +4639,7 @@ impl Deribit {
     Value::Null
 }
 
-    pub fn parse_volatility_history(&self, volatility: impl Into<crate::Value>) -> Value {
-        let mut volatility: Value = volatility.into();
-        let __volatility_empty = indexmap::IndexMap::new();
-        let volatility = volatility.as_map().unwrap_or(&__volatility_empty);
+    pub fn parse_volatility_history(&self, volatility: &indexmap::IndexMap<String, Value>) -> Value {
         //
         //     {
         //         "jsonrpc": "2.0",

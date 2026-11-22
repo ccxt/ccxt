@@ -1106,7 +1106,7 @@ impl Apex {
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (lists.len() as i64) } {
             let rawTrade: crate::value::Dict = self.safe_dict_t(&lists, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             self.myTrades.append(Value::Dict(parsed));
         }
@@ -1173,7 +1173,7 @@ impl Apex {
                 let m = indexmap::IndexMap::new();
                 m
             })]), None);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             self.orders.append(Value::Dict(parsed));
         }

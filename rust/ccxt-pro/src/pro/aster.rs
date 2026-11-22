@@ -2217,13 +2217,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         })).as_map().cloned().unwrap_or_default();
         balance.insert("info".into(), message.clone());
         let messageValue: crate::value::Dict = self.safe_dict_k_or(&message, "a", &message);
-        let B: crate::value::List = self.safe_list_k_t(&messageValue, "B");
+        let B: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&messageValue, "B"));
         let wallet: String = self.safe_string_k(&self.options, "wallet", &[Value::Str("wb".into())]).as_str().unwrap_or("wb").to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (B.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&B, Value::Int(i));
+            let entry: crate::value::Dict = B.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "a", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2386,13 +2386,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let data: crate::value::Dict = message.key_dict("a");
-        let rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "P"));
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None);
             let timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));

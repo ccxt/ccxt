@@ -70,7 +70,8 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                 "parse_trading_order" => Value::Dict(self.parse_trading_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null))),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "watch_many" => self.watch_many(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "watch_many" => self.watch_many(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &mut { let __m = args.get(1).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
+                    __m }, args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -364,7 +365,7 @@ impl Onetrading {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let subscriptionHash: String = "MARKET_TICKER".to_string();
         let messageHash: String = format!("{}{}", "ticker.", symbolValue);
-        let request: indexmap::IndexMap<String, Value> = ({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
@@ -375,7 +376,7 @@ impl Onetrading {
 })]));
             m
         });
-        return self.watch_many(messageHash.as_str(), Value::Map(request), subscriptionHash.as_str(), &[&Value::from(vec![Value::from(symbolValue)]), &params]).await;
+        return self.watch_many(messageHash.as_str(), &mut request, subscriptionHash.as_str(), &[&Value::from(vec![Value::from(symbolValue)]), &params]).await;
         Value::Null
         }).await?))
     }
@@ -407,7 +408,7 @@ impl Onetrading {
         let symbolsList: Value = (if (symbolsNormalized == Value::Null) { Value::from(vec![]) } else { symbolsNormalized });
         let subscriptionHash: String = "MARKET_TICKER".to_string();
         let messageHash: String = "tickers".to_string();
-        let request: indexmap::IndexMap<String, Value> = ({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
@@ -418,7 +419,7 @@ impl Onetrading {
 })]));
             m
         });
-        let tickers: Value = self.watch_many(messageHash.as_str(), Value::Map(request), subscriptionHash.as_str(), &[&symbolsList, &params]).await;
+        let tickers: Value = self.watch_many(messageHash.as_str(), &mut request, subscriptionHash.as_str(), &[&symbolsList, &params]).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
@@ -443,13 +444,13 @@ impl Onetrading {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        let tickers: crate::value::List = message.key_list("ticker_updates");
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("ticker_updates"));
         let datetime: Option<String> = (match message.get("time") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (tickers.len() as i64) } {
-            let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
+            let ticker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
@@ -602,7 +603,7 @@ impl Onetrading {
         if (limit.is_some()) {
             depth = limit;
         }
-        let request: indexmap::IndexMap<String, Value> = ({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
@@ -613,7 +614,7 @@ impl Onetrading {
 })]));
             m
         });
-        let mut orderbook: Value = self.watch_many(messageHash.as_str(), Value::Map(request), subscriptionHash.as_str(), &[&Value::from(vec![Value::from(symbolValue)]), &params]).await;
+        let mut orderbook: Value = self.watch_many(messageHash.as_str(), &mut request, subscriptionHash.as_str(), &[&Value::from(vec![Value::from(symbolValue)]), &params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1669,7 +1670,7 @@ impl Onetrading {
     Value::Null
 }
 
-    pub async fn watch_many(&mut self, messageHash: &str, mut request: Value, subscriptionHash: &str, optional_args: &[&Value]) -> Value {
+    pub async fn watch_many(&mut self, messageHash: &str, request: &mut indexmap::IndexMap<String, Value>, subscriptionHash: &str, optional_args: &[&Value]) -> Value {
         let symbols = get_arg(optional_args, 0, Value::from(vec![]));
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1724,10 +1725,20 @@ impl Onetrading {
             add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
         }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::from(type_var)); }
-        add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("channels".into())), &Value::Int(0)), &Value::Str("instrument_codes".into()), object_keys(&subscription));
-        let __ws_arg_1 = self.deep_extend(request, &[params]);
-        return self.watch(url.as_deref(), messageHash, __ws_arg_1, &Value::from(subscriptionHash), subscription).await;
+        request.insert("type".into(), Value::from(type_var));
+        let instrumentCodes: Value = object_keys(&subscription);
+        let __ws_arg_1 = self.safe_dict(self.safe_list(&*request, Value::Str("channels".into()), &[Value::from(vec![])]), Value::Int(0), &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]);
+        let channel: crate::value::Dict = self.extend_t(__ws_arg_1, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("instrument_codes".to_string(), instrumentCodes);
+            m
+        })]);
+        request.insert("channels".into(), Value::from(vec![Value::Dict(channel)]));
+        let __ws_arg_2 = self.deep_extend(Value::Map(request.clone()), &[params]);
+        return self.watch(url.as_deref(), messageHash, __ws_arg_2, &Value::from(subscriptionHash), subscription).await;
 
     Value::Null
 }
@@ -1750,8 +1761,8 @@ impl Onetrading {
                     m.insert("api_token".to_string(), self.apiKey.clone());
                 m
             });
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
+            let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+            self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

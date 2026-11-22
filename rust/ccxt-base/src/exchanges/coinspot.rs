@@ -191,7 +191,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
                     let mut __for_first_0: bool = true;
                     while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (currencyIdsList.len() as i64) } {
                     let currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
-                    let balance: crate::value::Dict = self.safe_dict_t(&currencies, Value::from(currencyId.as_deref()));
+                    let balance: crate::value::Dict = (if let Some(Value::Dict(__m)) = currencies.get(currencyId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                     let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                     let mut account: crate::value::Dict = self.account();
                     std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
@@ -1248,7 +1248,7 @@ impl Coinspot {
         //         }
         //     }
         //
-        let ticker: crate::value::Dict = self.safe_dict_t(&prices, Value::from(id));
+        let ticker: crate::value::Dict = (if let Some(Value::Dict(__m)) = prices.get(id.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

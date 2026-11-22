@@ -586,9 +586,10 @@ impl Bullish {
         });
         let mut parsed: crate::value::Dict = self.parse_order_book(Value::Map(snapshot), Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
         let sequenceNumberRange: crate::value::List = self.safe_list_k_t(&data, "sequenceNumberRange");
-        if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
-            let lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), self.safe_integer(&sequenceNumberRange, lastIndex, &[]));
+        let sequenceNumberRangeLength: i64 = sequenceNumberRange.len() as i64;
+        if sequenceNumberRangeLength > 0 {
+            let lastIndex: i64 = (sequenceNumberRangeLength - 1);
+            std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), self.safe_integer(&sequenceNumberRange, Value::from(lastIndex), &[]));
         }
         orderbook.reset(Value::Dict(parsed));
         let __resolved_orderbook = Value::from(&orderbook);

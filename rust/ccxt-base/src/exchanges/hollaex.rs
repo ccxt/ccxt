@@ -78,7 +78,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.parse8601(self.safe_string2(&ticker, Value::Str("time".into()), Value::Str("timestamp".into()), &[]));
         let close: Option<String> = self.safe_string_k_opt(&ticker, "close", &[]);
         return Some(self.safe_ticker(Value::Map({
@@ -134,7 +134,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let datetime: Option<String> = self.safe_string_k_opt(&trade, "timestamp", &[]);
         let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
@@ -336,7 +336,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (networkIds.len() as i64) } {
             let networkId: Option<&str> = networkIds.get(j as usize).and_then(Value::as_str);
-            let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(&rawNetworks, Value::from(networkId.as_deref()));
+            let mut networkEntry: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = rawNetworks.get(networkId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
@@ -1295,7 +1295,7 @@ impl Hollaex {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut market: Option<crate::value::Dict> = self.safe_dict_o(&pairs, Value::from(key.as_deref()));
+            let mut market: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = pairs.get(key.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let baseId: Option<String> = self.safe_string_k_opt(&market, "pair_base", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "pair_2", &[]);
             let upperBaseId: Option<String> = baseId.as_deref().map(str::to_uppercase);
@@ -1504,7 +1504,7 @@ impl Hollaex {
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
+            let orderbook: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp)])));
@@ -1660,9 +1660,9 @@ impl Hollaex {
             let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::from(key.as_deref()));
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[&Value::from(key.as_deref())]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let __ws_arg_2 = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.extend(__ws_arg_2, &[&params]));
+            result.insert(symbol, self.extend(__ws_arg_2, &[&params]));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbols]);

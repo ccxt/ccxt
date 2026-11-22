@@ -866,6 +866,7 @@ impl Phemex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id();
         let isSwap: bool = (market).swap;
@@ -881,7 +882,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), Value::from(requestId));
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(marketId)]));
             m
         });
         let request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
@@ -925,6 +926,7 @@ impl Phemex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id();
         let isSwap: bool = (market).swap;
@@ -940,7 +942,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), Value::from(requestId));
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(marketId)]));
             m
         });
         let request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
@@ -983,6 +985,7 @@ impl Phemex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id();
         let isSwap: bool = (market).swap;
@@ -998,7 +1001,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), Value::from(requestId));
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref()), self.safe_integer(&self.timeframes, timeframe, &[])]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(marketId), self.safe_integer(&self.timeframes, timeframe, &[])]));
             m
         });
         let request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
@@ -1067,8 +1070,10 @@ impl Phemex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
-        let isUsdtSwap: bool = ((market).swap) && (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let isSwap: bool = (market).swap;
+        let isUsdtSwap: bool = (isSwap == true) && (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
         let mut name: String = "trade".to_string();
         if isUsdtSwap {
             name = "trade_p".to_string();
@@ -1079,7 +1084,7 @@ impl Phemex {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
             m
         });
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from((market).id.as_deref())]), Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from(marketId)]), Value::Map(subscription), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1110,8 +1115,10 @@ impl Phemex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
-        let isUsdtSwap: bool = ((market).swap) && (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let isSwap: bool = (market).swap;
+        let isUsdtSwap: bool = (isSwap == true) && (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
         let mut name: String = "kline".to_string();
         if isUsdtSwap {
             name = "kline_p".to_string();
@@ -1123,7 +1130,7 @@ impl Phemex {
             m
         });
         // phemex drops only the given interval when it is sent along with the symbol
-        let marketParams: crate::value::List = std::sync::Arc::new(vec![Value::from((market).id.as_deref()), self.safe_integer(&self.timeframes, &timeframe, &[])]);
+        let marketParams: crate::value::List = std::sync::Arc::new(vec![Value::from(marketId), self.safe_integer(&self.timeframes, &timeframe, &[])]);
         return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), &marketParams, Value::Map(subscription), &[&params]).await;
         Value::Null
         }).await?))

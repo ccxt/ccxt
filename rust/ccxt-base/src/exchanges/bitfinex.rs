@@ -850,8 +850,6 @@ impl crate::exchange::DerivedExchange for Bitfinex {
                 self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, Value::from(feedback));
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
             }
-        }  else if (response.as_str() == Some("")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " returned empty response")));
         }
         if (code.as_f64() == Some(429.0)) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
@@ -922,7 +920,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "is_fiat" => self.is_fiat(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_currencies_custom" => self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_currencies_custom" => crate::Value::Dict(self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency_custom" => self.parse_currency_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2387,12 +2385,12 @@ impl Bitfinex {
         }
         }
         let ids: crate::value::List = self.safe_list_t(&response, Value::Int(0));
-        return self.parse_currencies_custom(&ids, Value::Map(indexed), Value::Map(indexedNetworks));
+        return Value::Dict(self.parse_currencies_custom(&ids, Value::Map(indexed), Value::Map(indexedNetworks)));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_currencies_custom(&self, ids: impl Into<crate::Value>, indexed: impl Into<crate::Value>, indexedNetworks: impl Into<crate::Value>) -> Value {
+    pub fn parse_currencies_custom(&self, ids: impl Into<crate::Value>, indexed: impl Into<crate::Value>, indexedNetworks: impl Into<crate::Value>) -> crate::value::Dict {
         let ids: Value = ids.into();
         let indexed: Value = indexed.into();
         let indexedNetworks: Value = indexedNetworks.into();
@@ -2422,9 +2420,7 @@ impl Bitfinex {
             result.insert(code, Value::Dict(parsed));
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
     pub fn parse_currency_custom(&self, mut id: Value, mut indexed: Value, mut indexedNetworks: Value) -> Value {
@@ -4255,7 +4251,7 @@ impl Bitfinex {
         let networkParam: Option<String> = self.safe_string_k_opt(&params, "network", &[&code]);
         let network: Option<String> = self.safe_string_opt(&self.networkAliases, Value::from(networkParam.as_deref()), &[&networkParam]);
         let currencyNetworks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
-        let currencyNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, network.map(Value::from).unwrap_or(Value::Null));
+        let currencyNetwork: crate::value::Dict = (if let Some(Value::Dict(__m)) = currencyNetworks.get(network.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let networkId: Option<String> = self.safe_string_k_opt(&currencyNetwork, "id", &[]);
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() could not find a network for '").into()), code).into()), "'. You can specify it by providing the 'network' value inside params")));
@@ -4745,7 +4741,7 @@ impl Bitfinex {
         let network: Option<String> = self.safe_string_opt(&self.networkAliases, Value::from(networkParam.as_deref()), &[&networkParam]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         let currencyNetworks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
-        let currencyNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, network.map(Value::from).unwrap_or(Value::Null));
+        let currencyNetwork: crate::value::Dict = (if let Some(Value::Dict(__m)) = currencyNetworks.get(network.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let networkId: Option<String> = self.safe_string_k_opt(&currencyNetwork, "id", &[]);
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " withdraw() could not find a network for '").into()), code).into()), "'. You can specify it by providing the 'network' value inside params")));

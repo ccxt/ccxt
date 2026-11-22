@@ -1346,13 +1346,13 @@ impl Modetrade {
         let dataIsArray: bool = matches!(&data, Value::Arr(_));
         if dataIsArray {
             // algoexecutionreport
-            let dataList: crate::value::List = message.key_list("data");
+            let dataList: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
             let dataListLength: i64 = dataList.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_2: bool = true;
                 while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < dataListLength } {
-                let order: crate::value::Dict = self.safe_dict_t(&dataList, Value::Int(i));
+                let order: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or_default();
                 let tradeIdStr: Option<String> = self.safe_string_k_opt(&data, "tradeId", &[]);
                 let tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
                 if (tradeId.is_some()) {

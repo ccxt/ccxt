@@ -658,7 +658,8 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             // dt (destination tag) is embedded into the address field
             let addressParts: crate::value::List = crate::value::List::new(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
             address = self.safe_string_opt(&addressParts, Value::Int(0), &[]);
-            if ((addressParts.len() as i64) as f64) > ((1i64) as f64) {
+            let addressPartsLength: i64 = addressParts.len() as i64;
+            if addressPartsLength > 1 {
                 tag = self.safe_string_opt(&addressParts, Value::Int(1), &[]);
             }
         }
@@ -910,7 +911,8 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "construct_currency_object" => self.construct_currency_object(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null)),
+                "construct_currency_object" => crate::Value::Dict(self.construct_currency_object(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or(crate::Value::Null),
+                    args.get(5).cloned().unwrap_or(crate::Value::Null))),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -955,9 +957,9 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => Value::Dict(self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_trading_fees" => Value::Dict(self.parse_trading_fees(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_trading_fees" => crate::Value::Dict(self.parse_trading_fees(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transaction_fees" => self.parse_transaction_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "parse_transaction_fees" => crate::Value::Dict(self.parse_transaction_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2895,7 +2897,7 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn construct_currency_object(&self, id: Option<&str>, code: Option<&str>, name: Option<&str>, precision: Option<i64>, mut minCost: Value, originalPayload: impl Into<crate::Value>) -> Value {
+    pub fn construct_currency_object(&self, id: Option<&str>, code: Option<&str>, name: Option<&str>, precision: Option<i64>, mut minCost: Value, originalPayload: impl Into<crate::Value>) -> crate::value::Dict {
         let originalPayload: Value = originalPayload.into();
         let mut currencyType: String = "crypto".to_string();
         let description: Value = self.describe();
@@ -2906,7 +2908,7 @@ impl Bitstamp {
             currencyType = "fiat".to_string();
         }
         let tickSize: Option<f64> = self.parse_number(self.parse_precision(&[Value::from(self.number_to_string(Value::from(precision)))]), &[]).as_f64();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(id));
         m.insert("code".to_string(), Value::from(code));
@@ -2952,8 +2954,6 @@ impl Bitstamp {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub async fn fetch_markets_from_cache(&mut self, optional_args: &[Value]) -> crate::value::List {
@@ -3057,11 +3057,11 @@ impl Bitstamp {
             let cost: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             if (base.is_some()) && !(matches!(base.as_deref(), Some(__k) if result.contains_key(__k))) {
                 let baseDecimals: Option<i64> = self.safe_integer_k(&market, "base_decimals", &[]).as_i64();
-                result.insert(base.as_deref().unwrap_or("null").to_string(), self.construct_currency_object(baseId.as_deref(), base.as_deref(), baseDescription.as_deref(), baseDecimals, Value::Null, &market));
+                result.insert(base.as_deref().unwrap_or("null").to_string(), Value::Dict(self.construct_currency_object(baseId.as_deref(), base.as_deref(), baseDescription.as_deref(), baseDecimals, Value::Null, &market)));
             }
             if (quote.is_some()) && !(matches!(quote.as_deref(), Some(__k) if result.contains_key(__k))) {
                 let counterDecimals: Option<i64> = self.safe_integer_k(&market, "counter_decimals", &[]).as_i64();
-                result.insert(quote.as_deref().unwrap_or("null").to_string(), self.construct_currency_object(quoteId.as_deref(), quote.as_deref(), quoteDescription.as_deref(), counterDecimals, self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), &market));
+                result.insert(quote.as_deref().unwrap_or("null").to_string(), Value::Dict(self.construct_currency_object(quoteId.as_deref(), quote.as_deref(), quoteDescription.as_deref(), counterDecimals, self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), &market)));
             }
         }
         }
@@ -3553,8 +3553,6 @@ impl Bitstamp {
         }
         }
         return std::sync::Arc::new(result);
-
-    Default::default()
 }
 
 /*
@@ -3604,12 +3602,12 @@ impl Bitstamp {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: Value = self.call_method(Value::Str("private_post_fees_withdrawal".into()), &[&params]).await;
-        return self.parse_transaction_fees(response, &[]);
+        return Value::Dict(self.parse_transaction_fees(response, &[]));
 
     Value::Null
 }
 
-    pub fn parse_transaction_fees(&self, mut response: Value, optional_args: &[&Value]) -> Value {
+    pub fn parse_transaction_fees(&self, mut response: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let codes = get_arg(optional_args, 0, Value::Null);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -3641,9 +3639,7 @@ impl Bitstamp {
             }
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*

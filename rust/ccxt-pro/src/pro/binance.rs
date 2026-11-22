@@ -2382,7 +2382,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let stockparamsStockVariable = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
         let stock: bool = stockparamsStockVariable.0 == Some(true);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.1;
@@ -2689,7 +2689,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![Value::from(symbolValue), timeframe])])).to_str_vec_vec(), params).await);
         Value::Null
@@ -5352,12 +5352,16 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let returnRateLimitsparamsReturnRateLimitsVariable = self.handle_option_bool_and_params(params, Value::Str("editOrderWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]);
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.0;
         let paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.1;
-        payload.insert("returnRateLimits".into(), returnRateLimits.map_or(Value::Null, Value::Bool));
+        let payloadWithLimits: crate::value::Dict = self.extend_t(Value::Map(payload), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("returnRateLimits".to_string(), returnRateLimits.map_or(Value::Null, Value::Bool));
+            m
+        })]);
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), (if (isSwap) { Value::Str("order.modify".into()) } else { Value::Str("order.cancelReplace".into()) }));
-                let __ws_arg_27 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
+                let __ws_arg_27 = self.extend(payloadWithLimits, &[&paramsReturnRateLimits]);
                 m.insert("params".to_string(), self.sign_params(&[&__ws_arg_27]));
             m
         });
@@ -6527,7 +6531,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }), None));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
             tickers.insert(crate::runtime::stringify_param(&symbol), parsed.clone());
-            client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:price:", symbol).into())));
+            let priceSymbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:price:", priceSymbol).into())));
         }
         }
         client.resolve(Value::Map(tickers), "stock:price");
@@ -6555,7 +6560,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             m
         }), None));
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
-        client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:quote:", symbol).into())));
+        let quoteSymbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:quote:", quoteSymbol).into())));
 }
 
     pub fn handle_options_order_update(&mut self, client: &Value, message: &Value) {
@@ -6610,7 +6616,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }
             let absQty: Option<String> = crate::precise::Precise::stringAbs(&rawQty).as_str().map(str::to_owned);
             let mut executionType: String = "NEW".to_string();
-            if ((fills.len() as i64) as f64) > ((0i64) as f64) {
+            let fillsLength: i64 = fills.len() as i64;
+            if fillsLength > 0 {
                 executionType = "TRADE".to_string();
             }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect

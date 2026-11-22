@@ -150,7 +150,6 @@ impl crate::exchange::DerivedExchange for Kalshi {
         });
         // Build outcomes
         let outcomeLabels: crate::value::List = std::sync::Arc::new(vec![Value::Str("YES".into()), Value::Str("NO".into())]);
-        let outcomeIds: crate::value::List = std::sync::Arc::new(vec![Value::from(ticker.as_deref()), Value::Str(format!("{}{}", ticker.as_deref().unwrap_or("null"), "-NO").into())]);
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcome: Option<String> = None;
         {
@@ -172,10 +171,15 @@ impl crate::exchange::DerivedExchange for Kalshi {
             // reassigned local into the anonymous inner class it emits for a map literal)
             let winner: Value = winnerRaw.map(Value::from).unwrap_or(Value::Null);
             let settleFraction: Option<i64> = settleFractionRaw;
+            let mut outcomeSuffix: String = "".to_string();
+            if oi > 0 {
+                outcomeSuffix = "-NO".to_string();
+            }
+            let outcomeId: String = format!("{}{}", ticker.as_deref().unwrap_or("null"), outcomeSuffix);
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), outcomeIds.get(oi as usize).cloned().unwrap_or(Value::Null));
-                    m.insert("outcomeId".to_string(), outcomeIds.get(oi as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(outcomeId.as_str()));
+                    m.insert("outcomeId".to_string(), Value::from(outcomeId));
                     m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                     m.insert("label".to_string(), Value::from(label.as_deref()));
@@ -758,7 +762,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_settlement" => Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "resolve_event_series_tickers" => Value::Arr(self.resolve_event_series_tickers(&args[..].iter().collect::<Vec<_>>()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sorted_orders" => self.sorted_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
@@ -1404,13 +1408,13 @@ impl Kalshi {
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
             let response: crate::value::Dict = self.kalshi_public_get_markets(&[&__ws_arg_0]).await.unwrap_or_default();
-            let rawMarkets: crate::value::List = self.safe_list_k_t(&response, "markets");
+            let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "markets"));
             let rawMarketsLength: i64 = rawMarkets.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_3: bool = true;
                 while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawMarkets.len() as i64) } {
-                let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
+                let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or_default();
                 let parsed: Vec<Value> = self.parse_binary_market_to_outcomes(Value::from(&raw)).as_array().cloned().unwrap_or_default();
                 let eventTicker: Option<String> = self.safe_string_k_opt(&raw, "event_ticker", &[]);
                 let eventTitle: Option<String> = self.safe_string_k_opt(&raw, "title", &[&Value::from(eventTicker.as_deref())]);
@@ -2082,12 +2086,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             chunk = std::sync::Arc::new(Vec::new());
             let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             let response: crate::value::Dict = self.kalshi_public_get_markets(&[&__ws_arg_3]).await.unwrap_or_default();
-            let rawMarkets: crate::value::List = self.safe_list_k_t(&response, "markets");
+            let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "markets"));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (rawMarkets.len() as i64) } {
-                let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
+                let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or_default();
                 let mut marketTicker: Option<String> = self.safe_string_k_opt(&raw, "ticker", &[]);
                 if (marketTicker.is_none()) || !(matches!(marketTicker.as_deref(), Some(__k) if outcomesByTicker.contains_key(__k))) {
                     continue;
@@ -2340,13 +2344,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
-        let candles: crate::value::List = self.safe_list_k_t(&response, "candlesticks");
+        let candles: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "candlesticks"));
         let mut usableCandles: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (candles.len() as i64) } {
-            let candle: crate::value::Dict = self.safe_dict_t(&candles, Value::Int(i));
+            let candle: crate::value::Dict = candles.get(i as usize).cloned().unwrap_or_default();
             let priceObj: crate::value::Dict = self.safe_dict_k_t(&candle, "price");
             let openPrice: Option<f64> = self.safe_number_k(&priceObj, "open_dollars", &[]).as_f64();
             let previousPrice: Option<f64> = self.safe_number_k(&priceObj, "previous_dollars", &[]).as_f64();
@@ -2410,13 +2414,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.kalshi_public_get_markets_trades(&[&__ws_arg_6]).await.unwrap_or_default();
-        let trades: crate::value::List = self.safe_list_k_t(&response, "trades");
+        let trades: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "trades"));
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (trades.len() as i64) } {
-            let trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
+            let trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or_default();
             let tradeTicker: Option<String> = self.safe_string2_opt(&trade, Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]);
             if (tradeTicker.is_none()) || (tradeTicker == ticker) {
                 filteredTrades.push(Value::Dict(trade));
@@ -2769,8 +2773,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("pnl".to_string(), Value::from(pnl));
     m
 });
-
-    Default::default()
 }
 
 /*
@@ -3239,14 +3241,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("ticker".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "ticker", &[]));
         }
         let restingResponse: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[&Value::Map(request)]).await.unwrap_or_default();
-        let restingOrders: crate::value::List = self.safe_list_k_t(&restingResponse, "orders");
+        let restingOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&restingResponse, "orders"));
         let restingOrdersLength: i64 = restingOrders.len() as i64;
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_26: bool = true;
             while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < restingOrdersLength } {
-            let restingOrder: crate::value::Dict = self.safe_dict_t(&restingOrders, Value::Int(i));
+            let restingOrder: crate::value::Dict = restingOrders.get(i as usize).cloned().unwrap_or_default();
             let orderId: Option<String> = self.safe_string_k_opt(&restingOrder, "order_id", &[]);
             if (orderId.is_some()) {
                 let __ws_arg_14 = self.extend(Value::Map({

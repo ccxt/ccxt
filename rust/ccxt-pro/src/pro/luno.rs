@@ -99,7 +99,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
         Box::pin(async move {
             match method {
                 "custom_parse_bid_ask" => Value::Arr(self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
-                "custom_parse_order_book" => self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "custom_parse_order_book" => crate::Value::Dict(self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_order_book_bids_asks" => Value::Arr(self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
@@ -121,7 +121,6 @@ impl Luno {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "custom_parse_bid_ask" => Value::Arr(self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
-            "custom_parse_order_book" => self.custom_parse_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -272,7 +271,7 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let rawTrades: crate::value::List = message.key_list("trade_updates");
+        let rawTrades: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("trade_updates"));
         let length: i64 = rawTrades.len() as i64;
         if (length == 0) {
             return;
@@ -291,7 +290,7 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawTrades.len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
+            let rawTrade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or_default();
             let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_trade(self, &rawTrade, Some(&market)).unwrap_or_default();
             stored.append(Value::Dict(trade));
         }
@@ -410,7 +409,7 @@ impl Luno {
             }
         }
         if (asks.is_some()) {
-            let snapshot: crate::value::Dict = self.custom_parse_order_book(message.clone(), Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]).into_dict();
+            let snapshot: crate::value::Dict = self.custom_parse_order_book(message.clone(), Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             self.handle_book_delta(Value::from(&orderbook), message);
@@ -422,7 +421,7 @@ impl Luno {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn custom_parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[&Value]) -> Value {
+    pub fn custom_parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let timestamp = get_arg(optional_args, 0, Value::Null);
         let bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
         let asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
@@ -431,7 +430,7 @@ impl Luno {
         let countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
         let bids: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(&orderbook, bidsKey, &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         let asks: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, &[Value::from(vec![])]), &[priceKey, amountKey, countOrIdKey]);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("bids".to_string(), self.sort_by(Value::Arr(bids), Value::Int(0), &[Value::Bool(true)]));
@@ -441,8 +440,6 @@ impl Luno {
         m.insert("nonce".to_string(), Value::Null);
     m
 });
-
-    Value::Null
 }
 
     pub fn parse_order_book_bids_asks(&self, bidasks: impl Into<crate::Value>, optional_args: &[Value]) -> crate::value::List {
@@ -526,12 +523,12 @@ impl Luno {
         let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
-        let tradeUpdates: crate::value::List = self.safe_list_k_t(&message, "trade_updates");
+        let tradeUpdates: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&message, "trade_updates"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (tradeUpdates.len() as i64) } {
-            let tradeUpdate: crate::value::Dict = self.safe_dict_t(&tradeUpdates, Value::Int(i));
+            let tradeUpdate: crate::value::Dict = tradeUpdates.get(i as usize).cloned().unwrap_or_default();
             let makerOrderId: Option<String> = self.safe_string_k_opt(&tradeUpdate, "maker_order_id", &[]);
             let tradedAmount: Option<String> = self.safe_string_k_opt(&tradeUpdate, "base", &[]);
             if (makerOrderId.is_some()) && (tradedAmount.is_some()) {

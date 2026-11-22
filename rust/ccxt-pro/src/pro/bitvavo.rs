@@ -427,13 +427,13 @@ impl Bitvavo {
         //
         self.handle_bid_ask(client, message);
         let event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let tickers: crate::value::List = __pro_message.key_list("data");
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (tickers.len() as i64) } {
-            let data: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
+            let data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&data, "market", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market));
@@ -484,13 +484,13 @@ impl Bitvavo {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let event: String = "bidask".to_string();
-        let tickers: crate::value::List = message.key_list("data");
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (tickers.len() as i64) } {
-            let data: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
+            let data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
             let ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None);
             let symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
@@ -838,7 +838,7 @@ impl Bitvavo {
         let timeframe: Option<String> = self.find_timeframe(Value::from(interval.as_str()), &[]);
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), "_").into()), interval);
-        let candles: crate::value::List = message.key_list("candle");
+        let candles: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("candle"));
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
@@ -850,7 +850,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (candles.len() as i64) } {
-            let candle: crate::value::Dict = self.safe_dict_t(&candles, Value::Int(i));
+            let candle: crate::value::Dict = candles.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::List = self.parse_ohlcv(Value::Dict(candle), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }

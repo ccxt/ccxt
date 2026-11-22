@@ -1371,7 +1371,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let cv: Option<String> = self.safe_string_k_opt(&data, "cv", &[]);
             let isSpot: bool = cv.is_some();
             let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), None);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
@@ -1460,8 +1460,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        ]
         //    }
         //
-        let data: crate::value::List = __pro_message.key_list("data");
-        let firstTicker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
+        let firstTicker: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let spotTest: Option<String> = self.safe_string2_opt(&firstTicker, Value::Str("cv".into()), Value::Str("aq".into()), &[]);
         let mut tradeType: String = "contract".to_string();
         if (spotTest.is_some()) {
@@ -1472,9 +1472,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (data.len() as i64) } {
-            let tickerData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let tickerData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tickerData), None);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
@@ -2091,7 +2091,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let parsedTrade: crate::value::Dict = self.parse_trade(Value::Dict(data), None);
-        let tradeSymbol: Option<String> = crate::value::KeyRead::key_read(&&parsedTrade, "symbol").as_str().map(str::to_owned);
+        let tradeSymbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
         if (tradeSymbol.is_none()) {
             return;
         }

@@ -1420,7 +1420,8 @@ impl Okx {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(messageHash));
         }
         let market: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
-        let marketType: Option<String> = (self.handle_market_type_and_params(Value::Str("watchLiquidationsForSymbols".into()), market.as_ref(), &[&params])).0.as_str().map(str::to_owned);
+        let marketTypeVariable = self.handle_market_type_and_params(Value::Str("watchLiquidationsForSymbols".into()), market.as_ref(), &[&params]);
+        let marketType: Option<String> = marketTypeVariable.0.as_str().map(str::to_owned);
         let channel: String = "liquidation-orders".to_string();
         let mut type_var: Option<String> = marketType.clone();
         if (marketType.as_deref() == Some("spot")) {
@@ -1483,12 +1484,12 @@ impl Okx {
         //        ]
         //    }
         //
-        let rawLiquidations: crate::value::List = message.key_list("data");
+        let rawLiquidations: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
+            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or_default();
             let liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), None);
             let symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
@@ -1614,12 +1615,12 @@ impl Okx {
         //        }]
         //    }
         //
-        let rawLiquidations: crate::value::List = message.key_list("data");
+        let rawLiquidations: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
+            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or_default();
             let eventType: Option<String> = self.safe_string_k_opt(&rawLiquidation, "eventType", &[]);
             if (eventType.as_deref() != Some("liquidation")) {
                 return;
@@ -2394,10 +2395,10 @@ impl Okx {
         let arg: crate::value::Dict = __pro_message.key_dict("arg");
         let channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let action: Option<String> = (match __pro_message.get("action").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let data: crate::value::List = __pro_message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
         let marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let depths: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bbo-tbt".to_string(), Value::Int(1));
@@ -2409,13 +2410,13 @@ impl Okx {
             m
         });
         let limit: Option<i64> = self.safe_integer(&depths, Value::from(channel.as_deref()), &[]).as_i64();
-        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), symbol);
         if (action.as_deref() == Some("snapshot")) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_21: bool = true;
                 while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (data.len() as i64) } {
-                let update: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                let update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                 // reset the existing orderbook instead of replacing it: a consumer
                 // holds a reference to the old object and would never see updates
                 // after a re-subscription snapshot
@@ -2430,7 +2431,7 @@ impl Okx {
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
-                let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]);
+                let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]);
                 std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&update, "seqId", &[]));
                 snapshotBook.reset(Value::Dict(snapshot));
                 if !(__ch.has_subscription(messageHash.as_str())) {
@@ -2446,7 +2447,7 @@ impl Okx {
                                         let mut i: i64 = 0;
                     let mut __for_first_22: bool = true;
                     while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (data.len() as i64) } {
-                    let update: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                    let update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                     self.handle_order_book_message(&client, &update, Value::from(&updatedBook), messageHash.as_str(), Some(&market));
                     if !(__ch.has_subscription(messageHash.as_str())) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
@@ -2473,9 +2474,9 @@ impl Okx {
                                         let mut i: i64 = 0;
                     let mut __for_first_23: bool = true;
                     while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (data.len() as i64) } {
-                    let update: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                    let update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                     let timestamp: Option<i64> = self.safe_integer_k(&update, "ts", &[]).as_i64();
-                    let snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+                    let snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
                     bboBook.reset(Value::Dict(snapshot));
                     client.resolve(Value::from(&bboBook), messageHash.as_str());
                 }
@@ -2952,7 +2953,7 @@ impl Okx {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let channel: String = self.safe_string_k(&arg, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -2961,7 +2962,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
             while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (data.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let mut position: crate::value::Dict = self.parse_position(Value::from(&rawPosition), None);
             let contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[]).as_f64();
             if (contracts == Some(0.0)) && (self.safe_string_k(&rawPosition, "posSide", &[]).as_str() == Some("net")) {
@@ -3153,7 +3154,8 @@ impl Okx {
                 stored.append(order.clone().map_or(Value::Null, Value::Dict));
                 let symbol: String = self.safe_string_k(&order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                marketIds.push(Value::from((market).id.as_deref()));
+                let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                marketIds.push(Value::from(marketId));
             }
             }
             client.resolve(stored.clone(), channel.as_deref());
@@ -3229,13 +3231,13 @@ impl Okx {
         //
         let arg: crate::value::Dict = message.key_dict("arg");
         let channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
-        let rawOrders: crate::value::List = message.key_list("data");
+        let rawOrders: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let mut filteredOrders: Vec<crate::value::Dict> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_28: bool = true;
             while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (rawOrders.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
+            let rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or_default();
             let mut tradeId: String = self.safe_string_k(&rawOrder, "tradeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if ((tradeId.chars().count() as i64)) > 0 {
                 let order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);

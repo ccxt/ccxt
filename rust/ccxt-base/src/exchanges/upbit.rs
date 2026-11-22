@@ -673,8 +673,8 @@ impl crate::exchange_generated::ExchangeBase for Upbit {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_currency" => self.fetch_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_currency_by_id" => self.fetch_currency_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_currency" => crate::Value::Dict(self.fetch_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_currency_by_id" => crate::Value::Dict(self.fetch_currency_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1306,7 +1306,7 @@ impl Upbit {
     Value::Null
 }
 
-    pub async fn fetch_currency(&mut self, code: &str, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_currency(&mut self, code: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1318,11 +1318,9 @@ impl Upbit {
         }
         let mut currency: crate::types::Currency = self.currency(Some(code));
         return self.fetch_currency_by_id((crate::value::KeyRead::key_read(&&currency, "id")).as_str().unwrap_or_default(), &[&params]).await;
-
-    Value::Null
 }
 
-    pub async fn fetch_currency_by_id(&mut self, id: &str, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_currency_by_id(&mut self, id: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1402,7 +1400,7 @@ impl Upbit {
         }
         let currencyId: Option<String> = self.safe_string_k_opt(&currencyInfo, "code", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
@@ -1423,8 +1421,6 @@ impl Upbit {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub async fn fetch_market(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
@@ -2321,8 +2317,9 @@ impl Upbit {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() supports only limit or market types in the type argument.")));
         }
-        let paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(&params, &["ordType", "ord_type"], &[]) } else { params }).into_dict();
+        let mut paramsOrdType: crate::value::Dict = params.into_dict();
         if (customType.as_deref() == Some("best")) {
+            paramsOrdType = self.omit_t(&paramsOrdType, &["ordType", "ord_type"], &[]);
             request.insert("ord_type".into(), Value::Str("best".into()));
             if (side.as_str() == Some("buy")) {
                 let orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), Some(amount), price, &[&Value::from(&paramsOrdType)]);

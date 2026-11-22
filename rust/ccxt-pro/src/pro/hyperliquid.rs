@@ -97,7 +97,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "wrap_as_post_action" => self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "wrap_as_post_action" => crate::Value::Dict(self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -169,7 +169,6 @@ impl Hyperliquid {
             "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_tickers" => { crate::exchange_stubs::enqueue_spawn("watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "wrap_as_post_action" => self.wrap_as_post_action(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
             _ => crate::Value::Null,
         }
     }
@@ -295,8 +294,8 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let ordersRequest: crate::value::Dict = self.parent.create_orders_request(orders, &[&params]).into_dict();
-        let wrapped: crate::value::Dict = self.wrap_as_post_action(&ordersRequest).into_dict();
+        let ordersRequest: crate::value::Dict = self.parent.create_orders_request(orders, &[&params]);
+        let wrapped: crate::value::Dict = self.wrap_as_post_action(&ordersRequest);
         let request: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &request, (&requestId).as_deref(), Value::Null).await;
@@ -405,7 +404,7 @@ impl Hyperliquid {
         let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let postRequest: crate::value::Dict = self.parent.edit_orders_request(Value::from(vec![order]), &[&Value::Dict(globalParams)]);
-        let wrapped: crate::value::Dict = self.wrap_as_post_action(&postRequest).into_dict();
+        let wrapped: crate::value::Dict = self.wrap_as_post_action(&postRequest);
         let request: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &request, (&requestId).as_deref(), Value::Null).await;
@@ -448,9 +447,9 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&params]).into_dict();
+        let request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&params]);
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let wrapped: crate::value::Dict = self.wrap_as_post_action(&request).into_dict();
+        let wrapped: crate::value::Dict = self.wrap_as_post_action(&request);
         let wsRequest: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
@@ -642,7 +641,7 @@ impl Hyperliquid {
         let coin: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
         let marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbol: String = (market).symbol.clone();
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rawData: crate::value::List = self.safe_list_k_t(&entry, "levels");
         let data: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1120,13 +1119,13 @@ impl Hyperliquid {
                 let name: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let marketId: Option<String> = self.parent.coin_to_market_id(name.as_deref());
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("swap".into())]);
-                let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+                let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let ticker: crate::value::Dict = self.parse_ws_ticker(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("price".to_string(), self.safe_number(&mids, Value::from(name.as_deref()), &[]));
                     m
                 }), Some(&market));
-                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker)); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Dict(ticker)); }
             }
             }
             let mut messageHash: String = "tickers".to_string();
@@ -1170,11 +1169,11 @@ impl Hyperliquid {
         let coin: Option<String> = self.safe_string_k_opt(&data, "coin", &[]);
         let marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let ctx: crate::value::Dict = self.safe_dict_k_t(&data, "ctx");
         let ticker: crate::value::Dict = self.parse_ws_ticker(&ctx, Some(&market));
-        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-        let messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
+        let messageHash: String = format!("{}{}", "ticker:", symbol);
         client.resolve(Value::Dict(ticker), messageHash.as_str());
         return Value::Bool(true);
 
@@ -1230,7 +1229,7 @@ impl Hyperliquid {
             let m = indexmap::IndexMap::new();
             m
         });
-        let data: crate::value::List = self.safe_list_k_t(&entry, "fills");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "fills"));
         let dataLength: i64 = data.len() as i64;
         if (dataLength == 0) {
             return;
@@ -1239,10 +1238,10 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
-            symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+            let symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbols.insert(symbol, Value::Bool(true));
             self.myTrades.append(Value::Dict(parsed));
         }
         }
@@ -1279,13 +1278,13 @@ impl Hyperliquid {
             self.myLiquidations = Some(ArrayCache::new(Value::from(limit)));
         }
         let user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
-        let fills: crate::value::List = self.safe_list_k_t(&entry, "fills");
+        let fills: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "fills"));
         let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (fills.len() as i64) } {
-            let fill: crate::value::Dict = self.safe_dict_t(&fills, Value::Int(i));
+            let fill: crate::value::Dict = fills.get(i as usize).cloned().unwrap_or_default();
             let liquidation: crate::value::Dict = self.safe_dict_k_t(&fill, "liquidation");
             // liquidator fills carry the liquidated counterparty here
             if ((user.as_deref() == self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str())) {
@@ -1458,7 +1457,7 @@ impl Hyperliquid {
         let coin: Option<String> = self.safe_string_k_opt(&first, "coin", &[]);
         let marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbol: String = (market).symbol.clone();
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(self.trades.has(&symbol)) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let stored: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
@@ -2101,12 +2100,12 @@ impl Hyperliquid {
         let data: crate::value::Dict = message.key_dict("data");
         let clearinghouseState: crate::value::Dict = self.safe_dict_k_t(&data, "clearinghouseState");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let rawPositions: crate::value::List = self.safe_list_k_t(&clearinghouseState, "assetPositions");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&clearinghouseState, "assetPositions"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::Dict(position));
@@ -2327,7 +2326,7 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2345,7 +2344,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (data.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
             self.orders.append(Value::from(&order));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -2803,10 +2802,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return requestId;
 }
 
-    pub fn wrap_as_post_action(&mut self, request: impl Into<crate::Value>) -> Value {
+    pub fn wrap_as_post_action(&mut self, request: impl Into<crate::Value>) -> crate::value::Dict {
         let request: Value = request.into();
         let requestId: i64 = self.request_id();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("requestId".to_string(), Value::from(requestId));
         m.insert("request".to_string(), Value::Map({
@@ -2823,7 +2822,5 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
     m
 });
-
-    Value::Null
 }
 }

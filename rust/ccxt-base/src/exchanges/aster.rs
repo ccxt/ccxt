@@ -982,7 +982,7 @@ impl crate::exchange::DerivedExchange for Aster {
                 });
                 if let Value::Dict(__d) = &mut finalParams { std::sync::Arc::make_mut(__d).shift_remove("signer"); }; // signer is not needed for approveBuilder endpoint
                 paramString = self.encode_values_with_json(finalParams.clone());
-                paramsToEncode = self.capitalize_keys(finalParams.clone());
+                paramsToEncode = Value::Dict(self.capitalize_keys(finalParams.clone()));
             }  else {
                 paramString = self.encode_values_with_json(finalParams);
                 paramsToEncode = Value::Map({
@@ -1058,7 +1058,7 @@ impl crate::exchange_generated::ExchangeBase for Aster {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "capitalize_keys" => self.capitalize_keys(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "capitalize_keys" => crate::Value::Dict(self.capitalize_keys(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
@@ -2792,7 +2792,7 @@ impl Aster {
         let sapiResult: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
         let sapiRows: crate::value::List = self.safe_list_k_t(&sapiResult, "symbols");
         let fapiResult: crate::value::Dict = self.safe_dict_t(&results, Value::Int(1));
-        let fapiRows: crate::value::List = self.safe_list_k_t(&fapiResult, "symbols");
+        let fapiRows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fapiResult, "symbols"));
         //
         // example:
         //
@@ -2892,7 +2892,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (fapiRows.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&fapiRows, Value::Int(i));
+            let market: crate::value::Dict = fapiRows.get(i as usize).cloned().unwrap_or_default();
             // tmp skip some markets with base = undefined
             if (self.safe_string_k(&market, "baseAsset", &[]) != Value::Null) {
                 fapiRowsFiltered.push(Value::Dict(market));
@@ -4726,13 +4726,13 @@ impl Aster {
                 m.insert("amount".to_string(), amountValue);
             m
         });
-        let code: String = (market).quote.clone();
+        let code: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.fapi_private_post_v3_position_margin(&[&__ws_arg_39]).await.unwrap_or_default();
         let __ws_arg_40 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market));
         return self.extend(__ws_arg_40, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("code".to_string(), Value::from(code));
+        m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
 
@@ -5214,7 +5214,7 @@ impl Aster {
 
     pub fn parse_account_positions(&self, account: &indexmap::IndexMap<String, Value>, optional_args: &[&Value]) -> crate::value::List {
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let positions: crate::value::List = account.key_list("positions");
+        let positions: Vec<crate::value::Dict> = crate::value::dict_rows(account.key_list("positions"));
         let assets: Vec<crate::value::Dict> = crate::value::dict_rows(account.key_list("assets"));
         let mut balances: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -5244,7 +5244,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
+            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let code: Value = (if ((market).linear == Some(true)) { crate::value::KeyRead::key_read(&&market, "quote") } else { crate::value::KeyRead::key_read(&&market, "base") });
@@ -5816,7 +5816,7 @@ impl Aster {
         return Value::from(({ let (__l, __b, __e) = (encodedString.chars().count() as i64, 0, -1); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); encodedString.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })).as_str().map(str::to_owned);
 }
 
-    pub fn capitalize_keys(&self, dict: impl Into<crate::Value>) -> Value {
+    pub fn capitalize_keys(&self, dict: impl Into<crate::Value>) -> crate::value::Dict {
         let dict: Value = dict.into();
         let mut capitalized: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -5833,9 +5833,7 @@ impl Aster {
             capitalized.insert(capitalizedKey, value);
         }
         }
-        return Value::Map(capitalized);
-
-    Value::Null
+        return std::sync::Arc::new(capitalized);
 }
 
     pub async fn load_markets_and_sign_in(&mut self) -> Value {

@@ -503,7 +503,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let currency: Value = currency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&currency, "_coin_id", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-        let rawNetworks: crate::value::List = self.safe_list_k_t(&currency, "networks");
+        let rawNetworks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&currency, "networks"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -512,7 +512,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
                         let mut j: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (rawNetworks.len() as i64) } {
-            let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
+            let rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string2_opt(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let rawNetworkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
@@ -941,8 +941,8 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "convert_currency_network" => self.convert_currency_network(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "convert_currency_network" => crate::Value::Dict(self.convert_currency_network(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "create_deposit_address" => crate::types::IntoRaw::into_raw(self.create_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -2243,7 +2243,7 @@ impl Hitbtc {
             if (id.as_deref().unwrap_or_default().ends_with("_BQX")) {
                 continue;
             }
-            let mut market: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(id.as_deref()));
+            let mut market: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = response.get(id.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             let expiry: Option<i64> = self.safe_integer_k(&market, "expiry", &[]).as_i64();
             let contract: bool = marketType.as_deref() == Some("futures");
@@ -2467,9 +2467,9 @@ impl Hitbtc {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            paramsOmitted = self.omit_t(params, Value::Str("network".into()), &[]);
+            paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("network".into()), &[]);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_wallet_crypto_address(&[&__ws_arg_0]).await.unwrap_or_default();
@@ -2528,9 +2528,9 @@ impl Hitbtc {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            paramsOmitted = self.omit_t(params, Value::Str("network".into()), &[]);
+            paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("network".into()), &[]);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::List = self.private_get_wallet_crypto_address(&[&__ws_arg_1]).await.unwrap_or_default();
@@ -2720,7 +2720,7 @@ impl Hitbtc {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
-            let entry: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
+            let entry: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
@@ -3066,7 +3066,7 @@ impl Hitbtc {
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
+            let orderbook: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())])));
@@ -4199,7 +4199,7 @@ impl Hitbtc {
     }
 
 
-    pub async fn convert_currency_network(&mut self, code: &str, mut amount: Value, fromNetwork: &str, toNetwork: &str, optional_args: &[&Value]) -> Value {
+    pub async fn convert_currency_network(&mut self, code: &str, mut amount: Value, fromNetwork: &str, toNetwork: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4233,13 +4233,11 @@ impl Hitbtc {
         });
         let __ws_arg_55 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::List = self.private_post_wallet_convert(&[&__ws_arg_55]).await.unwrap_or_default();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(response));
     m
 });
-
-    Value::Null
 }
 
 /*
@@ -4385,7 +4383,7 @@ impl Hitbtc {
             if (marketId.is_none()) {
                 continue;
             }
-            let rawFundingRate: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(marketId.as_deref()));
+            let rawFundingRate: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = response.get(marketId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketInner), &[]).as_str().map(str::to_owned);
             let fundingRate: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &rawFundingRate, Some(&marketInner)).as_map().cloned().unwrap_or_default();
@@ -4475,12 +4473,12 @@ impl Hitbtc {
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (contracts.len() as i64) } {
             let marketId: Option<&str> = contracts.get(i as usize).and_then(Value::as_str);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let fundingRateData: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
+            let fundingRateData: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&response, Value::from(marketId.as_deref())));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_9: bool = true;
                 while { if !__for_first_9 { j += 1; } __for_first_9 = false; j < (fundingRateData.len() as i64) } {
-                let entry: crate::value::Dict = self.safe_dict_t(&fundingRateData, Value::Int(j));
+                let entry: crate::value::Dict = fundingRateData.get(j as usize).cloned().unwrap_or_default();
                 let symbolInner: Option<String> = self.safe_symbol((crate::value::KeyRead::key_read(&&marketInner, "symbol")).as_str(), None, &[]).as_str().map(str::to_owned);
                 let fundingRate: Option<f64> = self.safe_number_k(&entry, "funding_rate", &[]).as_f64();
                 let datetime: Option<String> = self.safe_string_k_opt(&entry, "timestamp", &[]);
@@ -4728,7 +4726,7 @@ impl Hitbtc {
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (markets.len() as i64) } {
             let marketId: Option<&str> = markets.get(i as usize).and_then(Value::as_str);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let openInterest: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
+            let openInterest: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             results.push(<Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &openInterest, Some(&marketInner)));
         }
         }

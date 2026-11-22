@@ -143,7 +143,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let timestamp: Option<i64> = self.safe_integer2(&trade, Value::Str("timestamp".into()), Value::Str("tradeTime".into()), &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("_".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let side: Option<String> = self.safe_string_lower_k_opt(&trade, "side", &[]);
         let priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let amountString: Option<String> = self.safe_string2_opt(&trade, Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
@@ -188,7 +188,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let type_var: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
         let timestamp: Option<f64> = self.safe_number_k(&order, "timestamp", &[]).as_f64();
         let datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
@@ -320,7 +320,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         let name: Option<String> = self.safe_string_k_opt(&rawCurrency, "name", &[]);
         let precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(&rawCurrency, "precision", &[])]), &[]).as_f64();
-        let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "chains");
+        let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "chains"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -334,7 +334,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
                         let mut j: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
+            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let depositAllowed: bool = self.safe_bool_k_opt(&chain, "isDepositEnabled", &[Value::Bool(false)]).unwrap_or(false);
@@ -1495,10 +1495,10 @@ impl Zebpay {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (fees.len() as i64) } {
-            let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
-            let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let fee: crate::value::Dict = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
             }
         }
         }
@@ -2732,12 +2732,12 @@ impl Zebpay {
         //
         let mut result: Vec<Value> = Vec::new();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "symbols"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);
@@ -2834,12 +2834,12 @@ impl Zebpay {
         //
         let mut result: Vec<Value> = Vec::new();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "symbols"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);

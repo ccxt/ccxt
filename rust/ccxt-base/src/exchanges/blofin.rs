@@ -72,7 +72,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         let open: Option<String> = self.safe_string_k_opt(&ticker, "open24h", &[]);
         let spot: bool = self.safe_bool_k_opt(&marketResolved, "spot", &[Value::Bool(false)]).unwrap_or(false);
@@ -156,7 +156,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let id: Option<String> = self.safe_string_k_opt(&trade, "tradeId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "ts", &[]).as_i64();
         let price: Option<String> = self.safe_string2_opt(&trade, Value::Str("price".into()), Value::Str("fillPrice".into()), &[]);
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("size".into()), Value::Str("fillSize".into()), &[]);
@@ -3749,7 +3749,7 @@ impl Blofin {
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency != Value::Null) {
             let currencyNetworks: crate::value::Dict = self.safe_dict_k_t(currency, "networks");
-            let currencyNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, Value::from(unifiedCode.as_deref()));
+            let currencyNetwork: crate::value::Dict = (if let Some(Value::Dict(__m)) = currencyNetworks.get(unifiedCode.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let currencyNetworkId: Option<String> = self.safe_string_k_opt(&currencyNetwork, "id", &[]);
             if (currencyNetworkId.is_some()) {
                 return currencyNetworkId.map(Value::from).unwrap_or(Value::Null);

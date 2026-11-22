@@ -1299,8 +1299,8 @@ impl Bit2me {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (ids.len() as i64) } {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
-            let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::from(id.as_deref()));
-            let assetSettings: crate::value::Dict = self.safe_dict_t(&settingsById, Value::from(id.as_deref()));
+            let asset: crate::value::Dict = (if let Some(Value::Dict(__m)) = assets.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
+            let assetSettings: crate::value::Dict = (if let Some(Value::Dict(__m)) = settingsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             // an operation that is not listed for an asset is not available for it
             let actions: crate::value::List = self.safe_list_k_t(&assetSettings, "actions");
             let __ws_arg_1 = self.extend(asset, &[Value::Map({

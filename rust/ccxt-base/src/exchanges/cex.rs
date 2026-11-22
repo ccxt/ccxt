@@ -435,7 +435,7 @@ impl crate::exchange::DerivedExchange for Cex {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (keys.len() as i64) } {
             let networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
-            let mut rawNetwork: Option<crate::value::Dict> = self.safe_dict_o(&rawNetworks, Value::from(networkId.as_deref()));
+            let mut rawNetwork: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = rawNetworks.get(networkId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let deposit: Value = Value::Bool(self.safe_string_k(&rawNetwork, "deposit", &[]).as_str() == Some("enabled"));
             let withdraw: Value = Value::Bool(self.safe_string_k(&rawNetwork, "withdrawal", &[]).as_str() == Some("enabled"));

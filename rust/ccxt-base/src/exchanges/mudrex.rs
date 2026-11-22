@@ -2086,13 +2086,13 @@ impl Mudrex {
             }
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
             let response: crate::value::Dict = self.private_get_futures_fee_history(&[&__ws_arg_20]).await.unwrap_or_default();
-            let data: crate::value::List = self.safe_list_k_t(&response, "data");
+            let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
             let dataLength: i64 = data.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_5: bool = true;
                 while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (data.len() as i64) } {
-                let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                 allRows.push(Value::from(&entry));
                 if (self.safe_string_k(&entry, "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns

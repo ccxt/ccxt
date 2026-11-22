@@ -837,7 +837,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let symbol: String = self.safe_string_k(&rawCurrency, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let stock: bool = (symbol.ends_with(".US")) || (symbol.ends_with(".HK"));
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-        let networks: crate::value::List = self.safe_list_k_t(&rawCurrency, "tokens");
+        let networks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "tokens"));
         let mut parsedNetworks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -846,7 +846,7 @@ impl crate::exchange::DerivedExchange for Backpack {
                         let mut j: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (networks.len() as i64) } {
-            let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
+            let network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&network, "blockchain", &[]);
             let networkIdLowerCase: Option<String> = self.safe_string_lower_k_opt(&network, "blockchain", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkIdLowerCase.as_deref(), code.as_deref());
@@ -1166,7 +1166,7 @@ impl crate::exchange::DerivedExchange for Backpack {
             let optionInstructions: crate::value::Dict = self.safe_dict_k_t(&self.options, "instructions");
             let optionPathInstructions: crate::value::Dict = self.safe_dict_t(&optionInstructions, Value::from(path));
             let mut instruction: String = self.safe_string(&optionPathInstructions, &method, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut payload: Value = Value::Str("".into());
+            let mut payload: Option<String> = Some("".to_string());
             if (path == "api/v1/orders") && (method.as_str() == Some("POST")) {
                 payload = self.generate_batch_payload(sortedParams.clone(), ts.as_deref().unwrap_or_default(), recvWindow.as_str(), instruction.as_str());
             }  else {
@@ -1174,11 +1174,11 @@ impl crate::exchange::DerivedExchange for Backpack {
                 if ((queryString.chars().count() as i64)) > 0 {
                     queryString.push_str("&");
                 }
-                payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), queryString).into()), "timestamp=").into()), ts.as_deref().unwrap_or("null")).into()), "&window=").into()), recvWindow).into());
+                payload = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), queryString).into()), "timestamp=").into()), ts.as_deref().unwrap_or("null")).into()), "&window=").into()), recvWindow));
             }
             let secretBytes: crate::value::Bytes = self.base64_to_binary(&self.secret, &[]);
             let seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(secretBytes.0.iter().take(32).cloned().collect()));
-            let signature: String = eddsa(self.encode(payload), &seed, Value::Str("ed25519".into()));
+            let signature: String = eddsa(self.encode(payload.map(Value::from).unwrap_or(Value::Null)), &seed, Value::Str("ed25519".into()));
             headersSigned = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Timestamp".to_string(), ts.map(Value::from).unwrap_or(Value::Null));
@@ -1283,7 +1283,6 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "filter_stock_structures" => self.filter_stock_structures(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "generate_batch_payload" => self.generate_batch_payload(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_stock_params" => { let __t = self.handle_stock_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref());
@@ -2435,7 +2434,7 @@ impl Backpack {
                 continue;
             }
             let baseId: Option<String> = self.safe_string_k_opt(&rawMarket, "baseSymbol", &[]);
-            let security: Option<crate::value::Dict> = self.safe_dict_o(&securityById, baseId.map(Value::from).unwrap_or(Value::Null));
+            let security: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = securityById.get(baseId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let __ws_arg_0 = self.extend(&rawMarket, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("security".to_string(), security.clone().map_or(Value::Null, Value::Dict));
@@ -4892,7 +4891,7 @@ impl Backpack {
 
 
 
-    pub fn generate_batch_payload(&self, params: impl Into<crate::Value>, ts: &str, recvWindow: &str, instruction: &str) -> Value {
+    pub fn generate_batch_payload(&self, params: impl Into<crate::Value>, ts: &str, recvWindow: &str, instruction: &str) -> Option<String> {
         let params: Value = params.into();
         let mut payload: String = "".to_string();
         let paramsLength: i64 = get_array_length(&params).as_i64().unwrap_or_default();
@@ -4909,9 +4908,7 @@ impl Backpack {
             }
         }
         }
-        return Value::from(payload);
-
-    Value::Null
+        return Some(payload);
 }
 
 }

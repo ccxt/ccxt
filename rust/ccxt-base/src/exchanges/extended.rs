@@ -896,15 +896,15 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_extended_order_request" => Value::Dict(self.create_extended_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                "create_extended_order_request" => crate::Value::Dict(self.create_extended_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_settlement_data" => self.create_order_settlement_data(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()),
-                "create_transfer_settlement_data" => self.create_transfer_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
-                "create_withdrawal_settlement_data" => self.create_withdrawal_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
-                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_settlement_data" => crate::Value::Dict(self.create_order_settlement_data(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_transfer_settlement_data" => crate::Value::Dict(self.create_transfer_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_withdrawal_settlement_data" => crate::Value::Dict(self.create_withdrawal_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null),
+                    args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_account" => self.fetch_account(&args[..].iter().collect::<Vec<_>>()).await,
@@ -939,7 +939,6 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_extended_currency_code_by_id" => crate::Value::from(self.get_extended_currency_code_by_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
-                "get_extended_decimal_to_base16" => self.get_extended_decimal_to_base16(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_extended_domain_hash" => self.get_extended_domain_hash(),
                 "get_extended_encode_i64" => self.get_extended_encode_i64(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_extended_stark_amount" => self.get_extended_stark_amount(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
@@ -3107,7 +3106,7 @@ impl Extended {
         let account: crate::value::Dict = self.fetch_extended_account(&[]).await;
         let amountString: Option<String> = self.currency_to_precision(code.as_str(), Value::from(amount), &[]);
         let accountId: Option<String> = self.safe_string_k_opt(&account, "accountId", &[]);
-        let settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.as_str().unwrap_or_default(), amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, &[&Value::from(&paramsWithdrawTag)]).as_map().cloned().unwrap_or_default();
+        let settlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_withdrawal_settlement_data(address.as_str().unwrap_or_default(), amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, &[&Value::from(&paramsWithdrawTag)])).as_map().cloned().unwrap_or_default();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
@@ -3269,7 +3268,7 @@ impl Extended {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")));
         }
         let amountString: Option<String> = self.currency_to_precision(code.as_str(), Value::from(amount), &[]);
-        let settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[&params]).as_map().cloned().unwrap_or_default();
+        let settlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_transfer_settlement_data(amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[&params])).as_map().cloned().unwrap_or_default();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fromAccount".to_string(), Value::from(currentAccountId.as_str()));
@@ -3818,7 +3817,7 @@ impl Extended {
     Default::default()
 }
 
-    pub fn create_order_settlement_data(&self, isBuy: bool, amountString: &str, priceString: &str, optional_args: &[&Value]) -> Value {
+    pub fn create_order_settlement_data(&self, isBuy: bool, amountString: &str, priceString: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3863,12 +3862,10 @@ impl Extended {
         let s: Option<String> = self.get_extended_signature_hex(self.safe_string(&sig, Value::Int(1), &[Value::Str("0".into())]).as_str().unwrap_or_default());
         settlement.insert("r".into(), r.map(Value::from).unwrap_or(Value::Null));
         settlement.insert("s".into(), s.map(Value::from).unwrap_or(Value::Null));
-        return Value::Map(settlement);
-
-    Value::Null
+        return std::sync::Arc::new(settlement);
 }
 
-    pub fn create_withdrawal_settlement_data(&self, address: &str, amountString: &str, mut currency: Value, account: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub fn create_withdrawal_settlement_data(&self, address: &str, amountString: &str, mut currency: Value, account: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::Dict {
         let mut account: Value = account.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3916,12 +3913,10 @@ impl Extended {
         m.insert("s".to_string(), self.get_extended_signature_hex(self.safe_string(&sig, Value::Int(1), &[Value::Str("0".into())]).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
-        return Value::Map(settlement);
-
-    Value::Null
+        return std::sync::Arc::new(settlement);
 }
 
-    pub fn create_transfer_settlement_data(&self, amountString: &str, mut currency: Value, account: impl Into<crate::Value>, toVault: &str, toL2Key: &str, optional_args: &[&Value]) -> Value {
+    pub fn create_transfer_settlement_data(&self, amountString: &str, mut currency: Value, account: impl Into<crate::Value>, toVault: &str, toL2Key: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let mut account: Value = account.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3966,9 +3961,7 @@ impl Extended {
         m.insert("s".to_string(), self.get_extended_signature_hex(self.safe_string(&sig, Value::Int(1), &[Value::Str("0".into())]).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
-        return Value::Map(settlement);
-
-    Value::Null
+        return std::sync::Arc::new(settlement);
 }
 
     pub async fn create_extended_order_request(&mut self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
@@ -4082,7 +4075,7 @@ impl Extended {
         if (cancelId.is_some()) {
             request.insert("cancelId".into(), cancelId.map(Value::from).unwrap_or(Value::Null));
         }
-        let settlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(isBuy, amountString.as_deref().unwrap_or_default(), priceString.as_deref().unwrap_or_default(), &[&Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
+        let settlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_settlement_data(isBuy, amountString.as_deref().unwrap_or_default(), priceString.as_deref().unwrap_or_default(), &[&Value::Map(settlementParams.clone())])).as_map().cloned().unwrap_or_default();
         request.insert("settlement".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), Value::Map({
@@ -4111,7 +4104,7 @@ impl Extended {
                 let stopLossTriggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
                 let stopLossExecutionPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
                 let stopLossType: Option<String> = self.safe_string_k_opt(&stopLoss, "type", &[]);
-                let stopLossSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.as_deref().unwrap_or_default(), stopLossExecutionPrice.as_deref().unwrap_or_default(), &[&Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
+                let stopLossSettlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_settlement_data(!isBuy, amountString.as_deref().unwrap_or_default(), stopLossExecutionPrice.as_deref().unwrap_or_default(), &[&Value::Map(settlementParams.clone())])).as_map().cloned().unwrap_or_default();
                 let mut requestStopLoss: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol, stopLossTrigger.map(Value::from).unwrap_or(Value::Null))));
@@ -4143,7 +4136,7 @@ impl Extended {
                 let takeProfitTriggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
                 let takeProfitExecutionPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
                 let takeProfitType: Option<String> = self.safe_string_k_opt(&takeProfit, "type", &[]);
-                let takeProfitSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.as_deref().unwrap_or_default(), takeProfitExecutionPrice.as_deref().unwrap_or_default(), &[&Value::Map(settlementParams)]).as_map().cloned().unwrap_or_default();
+                let takeProfitSettlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_settlement_data(!isBuy, amountString.as_deref().unwrap_or_default(), takeProfitExecutionPrice.as_deref().unwrap_or_default(), &[&Value::Map(settlementParams)])).as_map().cloned().unwrap_or_default();
                 let mut requestTakeProfit: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol, takeProfitTrigger.map(Value::from).unwrap_or(Value::Null))));
@@ -4215,8 +4208,6 @@ impl Extended {
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
     m
 });
-
-    Default::default()
 }
 
 /*
@@ -4937,7 +4928,7 @@ impl Extended {
     Value::Null
 }
 
-    pub fn get_extended_decimal_to_base16(&self, value: &str) -> Value {
+    pub fn get_extended_decimal_to_base16(&self, value: &str) -> Option<String> {
         let mut decimalString: Option<String> = Some(value).map(str::to_owned);
         let hexChars: crate::value::List = std::sync::Arc::new(vec![Value::Str("0".into()), Value::Str("1".into()), Value::Str("2".into()), Value::Str("3".into()), Value::Str("4".into()), Value::Str("5".into()), Value::Str("6".into()), Value::Str("7".into()), Value::Str("8".into()), Value::Str("9".into()), Value::Str("a".into()), Value::Str("b".into()),
             Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
@@ -4949,18 +4940,16 @@ impl Extended {
             decimalString = crate::precise::Precise::stringDivPrec(&decimalString, &Value::Str("16".into()), &Value::Int(0)).as_str().map(str::to_owned);
         }
         if (result == "") {
-            return Value::Str("0".into());
+            return Value::Str("0".into()).as_str().map(str::to_owned);
         }
-        return Value::from(result);
-
-    Value::Null
+        return Some(result);
 }
 
     pub fn get_extended_signature_hex(&self, signature: &str) -> Option<String> {
         if (Value::Int(Some(signature).and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             return Some(signature).map(str::to_owned);
         }
-        return Some(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signature)));
+        return Some(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signature).map(Value::from).unwrap_or(Value::Null)));
 }
 
     pub fn get_extended_domain_hash(&self) -> Value {

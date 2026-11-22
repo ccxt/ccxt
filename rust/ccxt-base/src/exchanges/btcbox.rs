@@ -776,7 +776,7 @@ impl Btcbox {
 })]).as_map().cloned().unwrap_or_default();
             let symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, "/").into()), quote);
             let fee: Option<f64> = (if (id == "BTC") { Some(0.0005_f64) } else { Some(0.0010_f64) });
-            let details: crate::value::Dict = self.safe_dict_t(&result2Data, Value::from(id.as_str()));
+            let details: crate::value::Dict = (if let Some(Value::Dict(__m)) = result2Data.get(id.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
             let tradeDetails: crate::value::Dict = self.safe_dict_k_t(&details, "trade");
             markets.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();

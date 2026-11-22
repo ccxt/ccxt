@@ -463,7 +463,7 @@ impl crate::exchange::DerivedExchange for Delta {
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset_id", &[]);
-            let currency: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, Value::from(currencyId.as_deref()));
+            let currency: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = currenciesByNumericId.get(currencyId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let mut code: Option<String> = currencyId;
             if (currency.is_some()) {
                 code = self.safe_string_k_opt(&currency, "code", &[]);
@@ -727,7 +727,7 @@ impl crate::exchange::DerivedExchange for Delta {
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "symbol", &[]);
         let numericId: Option<i64> = self.safe_integer_k(&rawCurrency, "id", &[]).as_i64();
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
-        let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "networks");
+        let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "networks"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -736,7 +736,7 @@ impl crate::exchange::DerivedExchange for Delta {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
+            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -1441,7 +1441,7 @@ impl crate::exchange_generated::ExchangeBase for Delta {
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_settlement" => Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlements" => Value::Arr(self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2523,13 +2523,13 @@ impl Delta {
         //         "success":true
         //     }
         //
-        let mut markets: crate::value::List = self.safe_list_k_t(&response, "result");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let mut type_var: Option<String> = self.safe_string_k_opt(&market, "contract_type", &[]);
             if (type_var.as_deref() == Some("options_combos")) || (type_var.as_deref() == Some("binary_call_options")) || (type_var.as_deref() == Some("binary_put_options")) {
                 continue;
@@ -2990,7 +2990,7 @@ impl Delta {
         //         "success":true
         //     }
         //
-        let tickers: crate::value::List = self.safe_list_k_t(&response, "result");
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2999,7 +2999,7 @@ impl Delta {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (tickers.len() as i64) } {
-            let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
+            let rawTicker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
             let contractType: Option<String> = self.safe_string_k_opt(&rawTicker, "contract_type", &[]);
             if (contractType.as_deref() == Some("options_combos")) || (contractType.as_deref() == Some("binary_call_options")) || (contractType.as_deref() == Some("binary_put_options")) {
                 continue;
@@ -4667,8 +4667,6 @@ impl Delta {
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
     m
 });
-
-    Default::default()
 }
 
     pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::List {

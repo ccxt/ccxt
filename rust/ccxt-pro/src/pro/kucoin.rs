@@ -63,8 +63,6 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_current_position" => self.get_current_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "get_my_trades_message_hash_suffix" => self.get_my_trades_message_hash_suffix(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-                "get_orders_message_hash_suffix" => self.get_orders_message_hash_suffix(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "get_uta_url" => self.get_uta_url().await,
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -137,8 +135,6 @@ impl Kucoin {
             "get_cache_index" => self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "get_current_position" => self.get_current_position(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "get_message_hash" => self.get_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "get_my_trades_message_hash_suffix" => self.get_my_trades_message_hash_suffix(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-            "get_orders_message_hash_suffix" => self.get_orders_message_hash_suffix(args.get(0).copied().and_then(crate::Value::as_text).as_deref()),
             "get_uta_url" => { crate::exchange_stubs::enqueue_spawn("get_uta_url", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1286,8 +1282,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let topic: Option<String> = self.safe_string_k_opt(&ticker, "topic", &[]);
         if !topic.as_deref().unwrap_or_default().contains("contractMarket") {
-            let parts: Vec<Value> = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let marketId: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+            let parts: crate::value::List = crate::value::List::new(if let Some(__s) = topic.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
+            let marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
             let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
             let data: crate::value::Dict = self.safe_dict_k_t(&ticker, "data");
@@ -2733,7 +2729,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 topic = (if (trigger == Some(true)) { "/contractMarket/advancedOrders".to_string() } else { "/contractMarket/tradeOrders".to_string() });
             }
             if (symbolResolved.is_none()) {
-                let suffix: Option<String> = self.get_orders_message_hash_suffix(Some(topic.as_str())).as_str().map(str::to_owned);
+                let suffix: Option<String> = self.get_orders_message_hash_suffix(Some(topic.as_str()));
                 messageHash.push_str(suffix.as_deref().unwrap_or("null"));
             }
             let request: indexmap::IndexMap<String, Value> = ({
@@ -2753,7 +2749,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn get_orders_message_hash_suffix(&self, topic: Option<&str>) -> Value {
+    pub fn get_orders_message_hash_suffix(&self, topic: Option<&str>) -> Option<String> {
         let mut suffix: String = "-spot".to_string();
         if (topic == Some("/spotMarket/advancedOrders")) {
             suffix.push_str("-trigger");
@@ -2762,9 +2758,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else if (topic == Some("/contractMarket/advancedOrders")) {
             suffix = "-contract-trigger".to_string();
         }
-        return Value::from(suffix);
-
-    Value::Null
+        return Some(suffix);
 }
 
     pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
@@ -3032,7 +3026,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (crate::value::KeyRead::key_read(&&order, "average") != Value::Null) {
+            if (self.safe_number_k(&order, "average", &[]) != Value::Null) {
                 std::sync::Arc::make_mut(&mut parsed).insert("average".into(), self.safe_number_k(&order, "average", &[]));
                 std::sync::Arc::make_mut(&mut parsed).insert("cost".into(), self.safe_number_k(&order, "cost", &[]));
             }
@@ -3059,7 +3053,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         cachedOrders.append(Value::from(&parsed));
         let messageHash: String = "orders".to_string();
         let topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let suffix: Option<String> = self.get_orders_message_hash_suffix(topic.as_deref()).as_str().map(str::to_owned);
+        let suffix: Option<String> = self.get_orders_message_hash_suffix(topic.as_deref());
         let typeSpecificMessageHash: String = format!("{}{}", messageHash, suffix.as_deref().unwrap_or("null"));
         client.resolve(cachedOrders.clone(), typeSpecificMessageHash.as_str());
         let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]));
@@ -3207,7 +3201,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             if (symbolResolved.is_none()) {
-                let suffix: Option<String> = self.get_my_trades_message_hash_suffix(topic.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+                let suffix: Option<String> = self.get_my_trades_message_hash_suffix(topic.as_deref().unwrap_or_default());
                 messageHash.push_str(suffix.as_deref().unwrap_or("null"));
             }
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsTopic]);
@@ -3222,14 +3216,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn get_my_trades_message_hash_suffix(&self, topic: &str) -> Value {
+    pub fn get_my_trades_message_hash_suffix(&self, topic: &str) -> Option<String> {
         let mut suffix: String = "-spot".to_string();
         if Some(topic).unwrap_or("").contains("contractMarket") {
             suffix = "-contract".to_string();
         }
-        return Value::from(suffix);
-
-    Value::Null
+        return Some(suffix);
 }
 
     pub fn handle_my_trade(&mut self, client: &Value, message: &Value) {
@@ -3272,7 +3264,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.myTrades.append(Value::from(&parsed));
         let messageHash: String = "myTrades".to_string();
         let topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let suffix: Option<String> = self.get_my_trades_message_hash_suffix(topic.as_str()).as_str().map(str::to_owned);
+        let suffix: Option<String> = self.get_my_trades_message_hash_suffix(topic.as_str());
         let typeSpecificMessageHash: String = format!("{}{}", messageHash, suffix.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&self.myTrades), typeSpecificMessageHash.as_str());
         let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]));
@@ -3370,7 +3362,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let order: Option<String> = self.safe_string_k_opt(&trade, "orderId", &[]);
         let timestamp: Option<i64> = self.safe_integer_product2(&trade, Value::Str("ts".into()), Value::Str("time".into()), Value::Float(0.000001), &[]).as_i64();
-        let feeCurrency: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "quote").as_str().map(str::to_owned);
+        let feeCurrency: Option<String> = self.safe_string_k_opt(&marketResolved, "quote", &[]);
         let feeRate: Option<String> = self.safe_string_k_opt(&trade, "feeRate", &[]);
         let feeCost: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
         return self.safe_trade(std::sync::Arc::new({

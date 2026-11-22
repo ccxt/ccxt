@@ -638,7 +638,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
     m
 }), None));
         }
-        let orderEvents: crate::value::List = self.safe_list_k_t(&order, "orderEvents");
+        let orderEvents: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&order, "orderEvents"));
         let errorStatus: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         let orderEventsLength: i64 = orderEvents.len() as i64;
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("orderEvents"))) && (errorStatus.is_some()) && (orderEventsLength == 0) {
@@ -661,7 +661,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_12: bool = true;
                 while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (orderEvents.len() as i64) } {
-                let item: crate::value::Dict = self.safe_dict_t(&orderEvents, Value::Int(i));
+                let item: crate::value::Dict = orderEvents.get(i as usize).cloned().unwrap_or_default();
                 if (self.safe_string_k(&item, "type", &[]).as_str() == Some("EXECUTION")) {
                     executions.push(Value::from(&item));
                 }
@@ -2271,13 +2271,13 @@ impl Krakenfutures {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        let instruments: crate::value::List = self.safe_list_k_t(&response, "instruments");
+        let instruments: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "instruments"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (instruments.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&instruments, Value::Int(i));
+            let market: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             let mut type_var: Option<String> = None;
@@ -4116,7 +4116,7 @@ impl Krakenfutures {
         //        ]
         //    }
         //
-        let logs: crate::value::List = self.safe_list_k_t(&response, "logs");
+        let logs: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "logs"));
         // each execution emits two rows: a cash leg(asset is a currency) and
         // a position-size leg(asset equals the contract id) - keep the cash legs only
         let mut rows: Vec<Value> = Vec::new();
@@ -4124,7 +4124,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (logs.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&logs, Value::Int(i));
+            let row: crate::value::Dict = logs.get(i as usize).cloned().unwrap_or_default();
             let asset: Option<String> = self.safe_string_k_opt(&row, "asset", &[]);
             let contract: Option<String> = self.safe_string_k_opt(&row, "contract", &[]);
             if (asset.is_some()) && (asset != contract) {

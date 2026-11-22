@@ -583,7 +583,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ledger_comment" => Value::Dict(self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
+                "parse_ledger_comment" => crate::Value::Dict(self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1327,12 +1327,12 @@ impl Luno {
         //     }
         //
         let mut result: Vec<Value> = Vec::new();
-        let markets: crate::value::List = self.safe_list_k_t(&response, "markets");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "markets"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "market_id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
@@ -1459,13 +1459,13 @@ impl Luno {
     m
 }));
         let response: crate::value::Dict = self.call_method_t("private_get_balance", &[&params]).await;
-        let wallets: crate::value::List = self.safe_list_k_t(&response, "balance");
+        let wallets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balance"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (wallets.len() as i64) } {
-            let account: crate::value::Dict = self.safe_dict_t(&wallets, Value::Int(i));
+            let account: crate::value::Dict = wallets.get(i as usize).cloned().unwrap_or_default();
             let accountId: Option<String> = self.safe_string_k_opt(&account, "account_id", &[]);
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -2287,8 +2287,6 @@ impl Luno {
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
     m
 });
-
-    Default::default()
 }
 
 

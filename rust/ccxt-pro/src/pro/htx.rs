@@ -2022,7 +2022,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
         let marketValue: &crate::types::Market = &marketResolved;
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let tradeId: Option<String> = self.safe_string_k_opt(&trade, "tradeId", &[]);
         let price: Option<String> = self.safe_string_k_opt(&trade, "tradePrice", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&trade, "tradeVolume", &[]);
@@ -2031,9 +2031,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut type_var: Option<String> = self.safe_string_k_opt(&trade, "type", &[]);
         let mut side: Option<String> = None;
         if (type_var.is_some()) {
-            let typeParts: Vec<Value> = Value::Array(if let Some(__s) = type_var.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let typeParts: crate::value::List = crate::value::List::new(if let Some(__s) = type_var.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             side = typeParts.get(0).and_then(Value::as_str).map(str::to_owned);
-            type_var = typeParts.get(1).and_then(Value::as_str).map(str::to_owned);
+            type_var = self.safe_string_opt(&typeParts, Value::Int(1), &[]);
         }
         let aggressor: Option<bool> = self.safe_bool_k_opt(&trade, "aggressor", &[]);
         let mut takerOrMaker: Option<String> = None;
@@ -2137,8 +2137,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         if isV5Linear {
             let mut v5Market: Value = Value::Null;
-            if (symbolsNormalized.is_some()) && (Value::Int(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64).as_f64() == Some(1.0)) {
-                v5Market = market;
+            if (symbolsNormalized.is_some()) {
+                let symbolsNormalizedLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+                if (symbolsNormalizedLength == 1) {
+                    v5Market = market;
+                }
             }
             let channelAndMessageHashAndParams: crate::value::List = self.get_v5_linear_channel_and_message_hash(Value::Str("positions".into()), &[&v5Market, &paramsRequest]);
             channel = self.safe_string_opt(&channelAndMessageHashAndParams, Value::Int(0), &[]);
@@ -3324,14 +3327,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else {
                 // this trades object is artificially created
                 // in handleOrder
-                let rawTrades: crate::value::List = __pro_message.key_list("trades");
+                let rawTrades: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("trades"));
                 let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
                 let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_13: bool = true;
                     while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (rawTrades.len() as i64) } {
-                    let trade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
+                    let trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or_default();
                     let mut parsedTrade: Value = Value::Dict(self.parse_trade(Value::Dict(trade), Some(&market)));
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = self.extend(parsedTrade, &[&extendParams]);

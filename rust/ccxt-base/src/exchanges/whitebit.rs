@@ -226,7 +226,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("amount".into()), Value::Str("quote_volume".into()), &[]);
         let id: Option<String> = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("tradeID".into()), &[]);
         let side: Option<String> = self.safe_string2_opt(&trade, Value::Str("type".into()), Value::Str("side".into()), &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let role: Option<i64> = self.safe_integer_k(&trade, "role", &[]).as_i64();
         let mut takerOrMaker: Option<String> = None;
         if (role.is_some()) {
@@ -305,7 +305,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("_".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let side: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
         let filled: Option<String> = self.safe_string_k_opt(&order, "dealStock", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(&order, "left", &[]);
@@ -727,8 +727,8 @@ impl crate::exchange::DerivedExchange for Whitebit {
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (allNetworks.len() as i64) } {
             let networkId: String = self.safe_string(&allNetworks, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let networkCode: Option<String> = self.network_id_to_code(Value::from(Value::from(networkId.as_str())).as_text().as_deref(), code.as_deref());
-            let networkDepositLimits: crate::value::Dict = self.safe_dict_t(&depositLimits, Value::from(networkId.as_str()));
-            let networkWithdrawLimits: crate::value::Dict = self.safe_dict_t(&withdrawLimits, Value::from(networkId.as_str()));
+            let networkDepositLimits: crate::value::Dict = (if let Some(Value::Dict(__m)) = depositLimits.get(networkId.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
+            let networkWithdrawLimits: crate::value::Dict = (if let Some(Value::Dict(__m)) = withdrawLimits.get(networkId.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1168,7 +1168,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_funding_limits" => self.fetch_funding_limits(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_funding_limits" => crate::Value::Dict(self.fetch_funding_limits(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_funding_rate" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rates" => crate::types::IntoRaw::into_raw(self.fetch_funding_rates(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2519,7 +2519,7 @@ impl Whitebit {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currenciesIds.len() as i64) } {
             let currency: Option<&str> = currenciesIds.get(i as usize).and_then(Value::as_str);
-            let data: crate::value::Dict = self.safe_dict_t(&response, Value::from(currency.as_deref()));
+            let data: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(currency.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let code: Option<String> = self.safe_currency_code(currency.as_deref(), None);
             let withdraw: crate::value::Dict = self.safe_dict_k_t(&data, "withdraw");
             if (code.is_some()) {
@@ -2921,7 +2921,7 @@ impl Whitebit {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
  */
-    pub async fn fetch_funding_limits(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_funding_limits(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let codes = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3015,7 +3015,7 @@ impl Whitebit {
                 let mut __for_first_6: bool = true;
                 while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (feeKeys.len() as i64) } {
                 let feeKey: Option<&str> = feeKeys.get(j as usize).and_then(Value::as_str);
-                let fee: Option<crate::value::Dict> = self.safe_dict_o(&feesData, Value::from(feeKey.as_deref()));
+                let fee: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = feesData.get(feeKey.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
                 if ((fee.is_some()) && (fee.is_some())) && ((code.as_deref() == self.safe_string_k(&fee, "ticker", &[]).as_str())) {
                     feeData = fee;
                     break;
@@ -3104,9 +3104,7 @@ impl Whitebit {
 }));
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -3246,12 +3244,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (marketIds.len() as i64) } {
                     let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                     let marketNew: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("_".into())]);
-                    let marketOrders: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
+                    let marketOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&response, Value::from(marketId.as_deref())));
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_9: bool = true;
                         while { if !__for_first_9 { j += 1; } __for_first_9 = false; j < (marketOrders.len() as i64) } {
-                        let order: crate::value::Dict = self.safe_dict_t(&marketOrders, Value::Int(j));
+                        let order: crate::value::Dict = marketOrders.get(j as usize).cloned().unwrap_or_default();
                         let orderId: String = self.safe_string_k(&order, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         if (orderId == id.as_str().unwrap_or_default().to_string()) {
                             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&marketNew)).map_or(Value::Null, Value::Dict);
@@ -3403,9 +3401,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).copied();
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_value(&response, Value::from(marketId.as_deref()), &[]), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
-            let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_value(&response, Value::from(marketId.as_deref()), &[]), Some(&market)).unwrap_or_default();
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -4183,7 +4181,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
-        let limit = get_arg(optional_args, 2, Value::Null);
+        let limit: Option<i64> = limit;
         let params = get_arg(optional_args, 3, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4192,15 +4190,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // Fetch both open and closed orders in parallel
-        let openOrdersclosedOrdersVariable: Vec<Value> = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), since, limit.as_i64(), params.clone()).await), crate::types::IntoRaw::into_raw(self.fetch_closed_orders(symbol.as_str(), since, limit.as_i64(), params).await)])).await.to_vec();
+        let openOrdersclosedOrdersVariable: Vec<Value> = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), since, limit, params.clone()).await), crate::types::IntoRaw::into_raw(self.fetch_closed_orders(symbol.as_str(), since, limit, params).await)])).await.to_vec();
         let openOrders: crate::value::List = openOrdersclosedOrdersVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
         let closedOrders: crate::value::List = openOrdersclosedOrdersVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
         let allOrders: crate::value::List = self.array_concat_t(&openOrders, &closedOrders);
         // Sort by timestamp (most recent first)
         let sortedOrders: crate::value::List = self.sort_by_t(Value::Arr(allOrders), Value::Str("timestamp".into()), &[Value::Bool(true)]);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (limit != Value::Null) && ((sortedOrders.len() as i64) as f64) > limit.as_f64().unwrap_or(f64::NAN) {
-            return Value::Arr(self.array_slice(Value::from(&sortedOrders), Value::Int(0), &[limit]));
+        let sortedOrdersLength: i64 = sortedOrders.len() as i64;
+        if (limit.is_some()) && (limit.is_some() && Some(sortedOrdersLength) > limit) {
+            return Value::Arr(self.array_slice(Value::from(&sortedOrders), Value::Int(0), &[Value::from(limit)]));
         }
         return Value::Arr(sortedOrders);
         Value::Null

@@ -591,7 +591,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let rawCurrency = rawCurrency.as_map().unwrap_or(&__rawCurrency_empty);
         let token: crate::value::Dict = rawCurrency.key_dict("_token");
         let currencyId: Option<String> = self.safe_string_k_opt(&token, "token", &[]);
-        let networks: crate::value::List = self.safe_list_k_t(&token, "chain_details");
+        let networks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&token, "chain_details"));
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         let indexedChains: crate::value::Dict = rawCurrency.key_dict("_indexedChains");
         let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
@@ -602,9 +602,9 @@ impl crate::exchange::DerivedExchange for Woofipro {
                         let mut j: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (networks.len() as i64) } {
-            let networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
+            let networkEntry: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "chain_id", &[]);
-            let mut networkRow: Option<crate::value::Dict> = self.safe_dict_o(&indexedChains, Value::from(networkId.as_deref()));
+            let mut networkRow: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = indexedChains.get(networkId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let networkName: Option<String> = self.safe_string_k_opt(&networkRow, "name", &[&Value::from(networkId.as_deref())]);
             let networkCode: Option<String> = self.network_id_to_code(networkName.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -2427,7 +2427,7 @@ impl Woofipro {
         let tokenResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let chainResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let tokenData: crate::value::Dict = self.safe_dict_k_t(&tokenResponse, "data");
-        let tokenRows: crate::value::List = self.safe_list_k_t(&tokenData, "rows");
+        let tokenRows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&tokenData, "rows"));
         let chainData: crate::value::Dict = self.safe_dict_k_t(&chainResponse, "data");
         let chainRows: crate::value::List = self.safe_list_k_t(&chainData, "rows");
         let indexedChains: crate::value::Dict = self.index_by(Value::Arr(chainRows), Value::Str("chain_id".into()));
@@ -2435,7 +2435,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (tokenRows.len() as i64) } {
-            let token: crate::value::Dict = self.safe_dict_t(&tokenRows, Value::Int(i));
+            let token: crate::value::Dict = tokenRows.get(i as usize).cloned().unwrap_or_default();
             let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_token".to_string(), Value::Dict(token));
@@ -2789,14 +2789,14 @@ impl Woofipro {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
@@ -2912,14 +2912,14 @@ impl Woofipro {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
@@ -3010,13 +3010,13 @@ impl Woofipro {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let result: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_rate_timestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -4772,7 +4772,7 @@ impl Woofipro {
         let verifyingContractAddress: Option<String> = self.safe_string_k_opt(&self.options, "verifyingContractAddress", &[]);
         let chainId: Option<String> = self.safe_string_k_opt(&params, "chainId", &[]);
         let currencyNetworks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
-        let coinNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, Value::from(chainId.as_deref()));
+        let coinNetwork: crate::value::Dict = (if let Some(Value::Dict(__m)) = currencyNetworks.get(chainId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let coinNetworkId: Option<f64> = self.safe_number_k(&coinNetwork, "id", &[]).as_f64();
         if (coinNetworkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " withdraw() require chainId parameter")));

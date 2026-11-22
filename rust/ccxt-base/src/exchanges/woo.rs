@@ -805,8 +805,8 @@ impl crate::exchange::DerivedExchange for Woo {
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { j += 1; } __for_first_2 = false; j < (keys.len() as i64) } {
             let networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
-            let tokenEntry: crate::value::Dict = self.safe_dict_t(&tokensByNetworkId, Value::from(networkId.as_deref()));
-            let networkEntry: crate::value::Dict = self.safe_dict_t(&chainsByNetworkId, Value::from(networkId.as_deref()));
+            let tokenEntry: crate::value::Dict = (if let Some(Value::Dict(__m)) = tokensByNetworkId.get(networkId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
+            let networkEntry: crate::value::Dict = (if let Some(Value::Dict(__m)) = chainsByNetworkId.get(networkId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let specialNetworkId: Option<String> = self.safe_string_k_opt(&tokenEntry, "token", &[]);
             if (networkCode.is_some()) {
@@ -4288,14 +4288,14 @@ impl Woo {
         // same as fetchTicker, with multiple rows
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&row, "symbol", &[]);
             if (marketId.is_none()) {
                 continue;
@@ -4893,7 +4893,7 @@ impl Woo {
             let firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let mut currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[&firstPart]);
             if partsLength > 2 {
-                currencyId = Some(format!("{}{}", currencyId.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("_".into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]))));
+                currencyId = Some(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())])));
             }
             return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId.as_deref(), None));
         }
@@ -5640,13 +5640,13 @@ impl Woo {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rows.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingRateTimestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -6318,12 +6318,12 @@ impl Woo {
             let m = indexmap::IndexMap::new();
             m
         });
-        let data: crate::value::List = self.safe_list_k_t(&response, "rows");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "rows"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&entry, "token", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
             if (code.is_some()) {

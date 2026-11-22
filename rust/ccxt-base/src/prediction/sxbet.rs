@@ -278,9 +278,9 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "parse_settlement" => Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_sxbet_cancel_response" => Value::Arr(self.parse_sxbet_cancel_response(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_sxbet_market" => Value::Dict(self.parse_sxbet_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_sxbet_snapshot_best_odds" => Value::Dict(self.parse_sxbet_snapshot_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_sxbet_snapshot_best_odds" => crate::Value::Dict(self.parse_sxbet_snapshot_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_sxbet_tickers_by_hash" => self.parse_sxbet_tickers_by_hash(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sxbet_v3_book_sides" => Value::Dict(self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy))),
+                "parse_sxbet_v3_book_sides" => crate::Value::Dict(self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy))),
                 "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -704,7 +704,8 @@ impl Sxbet {
             }
             paginationKey = self.safe_string_k_opt(&result, "nextKey", &[]);
             page = (page + 1);
-            let collectedLength: Option<i64> = self.parse_to_int(Value::Int(rawMarkets.len() as i64));
+            let rawMarketsCount: i64 = rawMarkets.len() as i64;
+            let collectedLength: Option<i64> = self.parse_to_int(Value::from(rawMarketsCount));
             if (pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
                 break;
             }
@@ -2491,14 +2492,14 @@ impl Sxbet {
         let __ws_arg_15 = self.extend(Value::Map(request), &[&rest]);
         let response: crate::value::Dict = self.sxbet_private_get_positions_v3(&[&__ws_arg_15]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));
         let mut result: Vec<Value> = Vec::new();
         let rawPositionsLength: i64 = rawPositions.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_24: bool = true;
             while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < rawPositionsLength } {
-            let raw: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let raw: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let marketHash: String = self.safe_string_k(&raw, "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if outcomesLength > 0 {
                 if (self.safe_bool(&wantedMarkets, Value::from(marketHash), &[]) == Value::Null) {
@@ -2838,8 +2839,6 @@ impl Sxbet {
 }));
     m
 });
-
-    Default::default()
 }
 
 /*
@@ -3178,8 +3177,6 @@ impl Sxbet {
         m.insert("asks".to_string(), self.sort_by(Value::from(asks), Value::Int(0), &[]));
     m
 });
-
-    Default::default()
 }
 
     pub fn set_ws_option(&mut self, group: &str, key: &str, mut value: Value) {
@@ -3343,7 +3340,7 @@ impl Sxbet {
         }
         let requestIdString: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let pendingRequests: crate::value::Dict = self.safe_dict_k_t(&self.options, "wsPendingRequests");
-        let pendingEntry: Option<crate::value::Dict> = self.safe_dict_o(&pendingRequests, Value::from(requestIdString.as_deref()));
+        let pendingEntry: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = pendingRequests.get(requestIdString.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         let errorReply: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "error");
         if (errorReply.is_some()) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or

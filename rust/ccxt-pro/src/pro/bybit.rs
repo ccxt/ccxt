@@ -1947,7 +1947,10 @@ impl Bybit {
         let mut takerOrMaker: Value = Value::Null;
         let mut m: Value = self.safe_value_k(&trade, "m", &[]);
         if (side.is_none()) {
-            side = (if ((match &(m) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+            side = Some("sell".to_string());
+            if (match &(m) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+                side = Some("buy".to_string());
+            }
         }  else {
             // spot private
             takerOrMaker = m;
@@ -2420,12 +2423,12 @@ impl Bybit {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let rawPositions: crate::value::List = message.key_list("data");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // hacky solution to handle closing positions
@@ -3280,13 +3283,11 @@ impl Bybit {
 }
 
     pub async fn watch_topics(&mut self, url: &str, messageHashes: &[crate::Value], topics: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
-        let mut topics: Value = topics.into();
+        let topics: Value = topics.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let __topics_empty = Vec::new();
-        let topics = topics.as_array().unwrap_or(&__topics_empty);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url));
         let mut newTopics: Vec<Value> = Vec::new();
         let topicsLength: i64 = topics.len() as i64;
@@ -3298,7 +3299,7 @@ impl Bybit {
                 while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < messageHashesLength } {
                 let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if !(client.has_subscription(messageHash.as_deref())) {
-                    newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));
+                    newTopics.push(self.safe_string(&topics, Value::Int(i), &[Value::Str("".into())]));
                 }
             }
             }
@@ -3331,7 +3332,7 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_28: bool = true;
                 while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < topicsLength } {
-                let mut topic: Option<String> = topics.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut topic: Option<String> = topics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if !(matches!(topic.as_deref(), Some(__k) if subscribedTopics.contains_key(__k))) {
                     newTopics.push(topic.map(Value::from).unwrap_or(Value::Null));
                 }

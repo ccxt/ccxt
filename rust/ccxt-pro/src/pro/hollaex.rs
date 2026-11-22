@@ -428,7 +428,7 @@ impl Hollaex {
         // }
         //
         let channel: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let rawTrades: crate::value::List = message.key_list("data");
+        let rawTrades: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         // usually the first message is an empty array
         // when the user does not have any trades yet
         let dataLength: i64 = rawTrades.len() as i64;
@@ -447,7 +447,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (rawTrades.len() as i64) } {
-            let trade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
+            let trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_trade(Value::from(&trade), None);
             self.myTrades.append(Value::Dict(parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
@@ -587,7 +587,8 @@ impl Hollaex {
             rawOrders = std::sync::Arc::new(vec![dataDict.map_or(Value::Null, Value::Dict)]);
         }
         // usually the first message is an empty array
-        if (Value::Int(rawOrders.len() as i64).as_f64() == Some(0.0)) {
+        let rawOrdersLength: i64 = rawOrders.len() as i64;
+        if (rawOrdersLength == 0) {
             return;
         }
         if (self.orders.is_none()) {

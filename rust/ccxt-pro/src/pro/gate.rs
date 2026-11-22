@@ -1756,7 +1756,7 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
@@ -1998,7 +1998,7 @@ impl Gate {
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (parsed.len() as i64) } {
             let trade: Option<crate::value::Dict> = self.safe_dict_o(&parsed, Value::Int(i));
             self.myTrades.append(trade.clone().map_or(Value::Null, Value::Dict));
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             if (symbol.is_some()) {
                 marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -2331,14 +2331,14 @@ impl Gate {
         //    }
         //
         let type_var: Option<String> = self.get_market_type_by_url(client.url());
-        let data: crate::value::List = message.key_list("result");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("result"));
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (data.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
@@ -2428,7 +2428,7 @@ impl Gate {
         if (symbol != Value::Null) {
             let marketResolved: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             market = Some(crate::types::Market::clone(&marketResolved));
-            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
+            symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         let mut type_var: Option<String> = None;
         let mut query: crate::value::Dict = Default::default();
@@ -2735,7 +2735,7 @@ impl Gate {
         //        ]
         //    }
         //
-        let rawLiquidations: crate::value::List = message.key_list("result");
+        let rawLiquidations: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("result"));
         let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         if (self.liquidations.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2749,7 +2749,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
+            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or_default();
             let liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), None);
             self.liquidations.append(Value::from(&liquidation));
             std::sync::Arc::make_mut(&mut newLiquidations).push(Value::from(&liquidation));
@@ -2919,7 +2919,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                             marketType = parsedChannel.get(0).and_then(Value::as_str).map(str::to_owned);
                         }
                         let symbol: Option<String> = self.safe_symbol((payload.get(i as usize).cloned().unwrap_or(Value::Null)).as_str(), None, &[Value::Str("_".into()), marketType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                        let messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", parsedChannel.get(1).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null"));
+                        let channelName: String = self.safe_string(&parsedChannel, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                        let messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", channelName, ":").into()), symbol.as_deref().unwrap_or("null"));
                         if (true) && (__ch.has_subscription(&messageHashSymbol[..])) {
                             __ch.remove_subscription(messageHashSymbol.as_str());
                         }

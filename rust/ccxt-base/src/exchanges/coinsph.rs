@@ -172,7 +172,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let id: Option<String> = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("tradeId".into()), &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "orderId", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "time", &[]).as_i64();
@@ -396,7 +396,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
         let isFiat: bool = self.safe_bool_k_opt(&rawCurrency, "isLegalMoney", &[Value::Bool(false)]).unwrap_or(false);
-        let networkList: crate::value::List = self.safe_list_k_t(&rawCurrency, "networkList");
+        let networkList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "networkList"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -405,7 +405,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networkList.len() as i64) } {
-            let networkItem: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
+            let networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or_default();
             let network: Option<String> = self.safe_string_k_opt(&networkItem, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -1836,13 +1836,13 @@ impl Coinsph {
         //         ]
         //     }
         //
-        let markets: crate::value::List = self.safe_list_k_t(&response, "symbols");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "symbols"));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);
@@ -2861,10 +2861,10 @@ impl Coinsph {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (fees.len() as i64) } {
-            let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
-            let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let fee: crate::value::Dict = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
             }
         }
         }
@@ -2884,7 +2884,7 @@ impl Coinsph {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());

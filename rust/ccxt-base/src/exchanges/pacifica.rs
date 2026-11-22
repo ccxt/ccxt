@@ -881,7 +881,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
             match method {
                 "add_pagination_cursor_to_result" => Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "approve_builder_code" => self.approve_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "batch_orders_request" => self.batch_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "batch_orders_request" => crate::Value::Dict(self.batch_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "bind_agent_wallet" => self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
@@ -889,19 +889,19 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_order_request" => Value::Dict(self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "cancel_orders_request" => crate::Value::Dict(self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "create_orders_request" => self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_orders_request" => crate::Value::Dict(self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "edit_order_request" => Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(6).cloned().unwrap_or_default()).as_ref(), &args[7.min(args.len())..].iter().collect::<Vec<_>>())),
-                "fetch_account_settings" => self.fetch_account_settings(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_account_settings" => crate::Value::Dict(self.fetch_account_settings(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_api_keys" => self.fetch_api_keys(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_builder_approvals" => self.fetch_builder_approvals(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
@@ -938,7 +938,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "handle_origin_and_single_address" => { let __t = self.handle_origin_and_single_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client().await,
                 "load_account_settings" => self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await,
-                "parse_account_settings" => self.parse_account_settings(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_account_settings" => crate::Value::Dict(self.parse_account_settings(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2209,7 +2209,7 @@ if _try_result.is_err() {
                 m
             });
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-            settings = self.fetch_account_settings(&[&__ws_arg_1]).await;
+            settings = Value::Dict(self.fetch_account_settings(&[&__ws_arg_1]).await);
         }
         let setting: Option<crate::value::Dict> = self.safe_dict_o(&settings, &symbol);
         if (setting.is_none()) {
@@ -2276,7 +2276,7 @@ if _try_result.is_err() {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} Dict repacked from list by symbol key
  */
-    pub async fn fetch_account_settings(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_account_settings(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2292,8 +2292,6 @@ if _try_result.is_err() {
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let response: crate::value::Dict = self.public_get_account_settings(&[&__ws_arg_2]).await.unwrap_or_default();
         return self.parse_account_settings(self.safe_list_k(&response, "data", &[Value::from(vec![])]));
-
-    Value::Null
 }
 
     pub async fn load_account_settings(&mut self, optional_args: &[&Value]) -> Value {
@@ -2305,20 +2303,20 @@ if _try_result.is_err() {
         let mut settings: Value = self.handle_option(Value::Str("loadAccountSettings".into()), Value::Str("settings".into()), &[]);
         if (settings == Value::Null) || refresh {
             { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("settings".into(), __be_tmp); } }
-            settings = self.fetch_account_settings(&[&params]).await;
+            settings = Value::Dict(self.fetch_account_settings(&[&params]).await);
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("settings".into(), settings); }
         }
 
     Value::Null
 }
 
-    pub fn parse_account_settings(&self, settings: impl Into<crate::Value>) -> Value {
+    pub fn parse_account_settings(&self, settings: impl Into<crate::Value>) -> crate::value::Dict {
         let mut settings: Value = settings.into();
         let __settings_empty = Vec::new();
         let settings = settings.as_array().unwrap_or(&__settings_empty);
         let settingsLen: i64 = settings.len() as i64;
         if (settingsLen == 0) {
-            return Value::Map({
+            return std::sync::Arc::new({
     let m = indexmap::IndexMap::new();
     m
 });
@@ -2334,13 +2332,11 @@ if _try_result.is_err() {
             let setting: crate::value::Dict = settings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let marketId: Option<String> = self.safe_string_k_opt(&setting, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            settingsBySymbol.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(setting));
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            settingsBySymbol.insert(symbol, Value::Dict(setting));
         }
         }
-        return Value::Map(settingsBySymbol);
-
-    Value::Null
+        return std::sync::Arc::new(settingsBySymbol);
 }
 
 /*
@@ -2378,7 +2374,7 @@ if _try_result.is_err() {
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-            settings = self.fetch_account_settings(&[&__ws_arg_3]).await;
+            settings = Value::Dict(self.fetch_account_settings(&[&__ws_arg_3]).await);
         }
         // {
         //   "WLFI/USDC:USDC": {
@@ -3030,7 +3026,7 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn batch_orders_request(&self, actions: impl Into<crate::Value>) -> Value {
+    pub fn batch_orders_request(&self, actions: impl Into<crate::Value>) -> crate::value::Dict {
         let actions: Value = actions.into();
         //
         // [
@@ -3074,16 +3070,14 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " batchOrdersRequest() too many orders to create/cancel. Limit is ").into()), Value::from(self.number_to_string(Value::from(maxLen))))));
             }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("actions".to_string(), actions);
     m
 });
-
-    Value::Null
 }
 
-    pub fn create_orders_request(&self, mut orders: Value, optional_args: &[&Value]) -> Value {
+    pub fn create_orders_request(&self, mut orders: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3121,8 +3115,6 @@ if _try_result.is_err() {
         }
         }
         return self.batch_orders_request(Value::from(actions));
-
-    Value::Null
 }
 
 /*
@@ -3149,7 +3141,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let request: crate::value::Dict = self.create_orders_request(orders, &[]).into_dict();
+        let request: crate::value::Dict = self.create_orders_request(orders, &[]);
         let __ws_arg_12 = self.extend(request, &[params]);
         let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_12]).await;
         // {
@@ -3171,13 +3163,13 @@ if _try_result.is_err() {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let results: crate::value::List = self.safe_list_k_t(&data, "results");
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "results"));
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (results.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+            let order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
             let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut status: Option<String> = None;
@@ -3232,7 +3224,7 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a \"symbol\" argument!")));
         }
-        let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&params]).into_dict();
+        let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&params]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "clientOrderIds"], &[]);
         let __ws_arg_13 = self.extend(request, &[&paramsOmitted]);
         let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_13]).await;
@@ -3256,13 +3248,13 @@ if _try_result.is_err() {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let results: crate::value::List = self.safe_list_k_t(&data, "results");
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "results"));
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (results.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+            let order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
             let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut status: Option<String> = None;
@@ -3285,7 +3277,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn cancel_orders_request(&self, mut ids: Value, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub fn cancel_orders_request(&self, mut ids: Value, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3330,8 +3322,6 @@ if _try_result.is_err() {
         }
         }
         return self.batch_orders_request(Value::from(actions));
-
-    Value::Null
 }
 
 /*
@@ -3732,7 +3722,7 @@ if _try_result.is_err() {
         //   "code": null
         // }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3741,7 +3731,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let info: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &info, None).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {

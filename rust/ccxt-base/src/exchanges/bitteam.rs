@@ -238,7 +238,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "pair", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let id: Option<String> = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("trade_id".into()), &[]);
         let price: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("quantity".into()), Value::Str("base_volume".into()), &[]);
@@ -602,7 +602,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rawCurrencyIds.len() as i64) } {
             let rawCurrencyId: Option<&str> = rawCurrencyIds.get(i as usize).and_then(Value::as_str);
-            let currencyBalance: crate::value::Dict = self.safe_dict_t(&result, Value::from(rawCurrencyId.as_deref()));
+            let currencyBalance: crate::value::Dict = (if let Some(Value::Dict(__m)) = result.get(rawCurrencyId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let free: Option<String> = self.safe_string_k_opt(&currencyBalance, "free", &[]);
             let used: Option<String> = self.safe_string_k_opt(&currencyBalance, "used", &[]);
             let total: Option<String> = self.safe_string_k_opt(&currencyBalance, "total", &[]);

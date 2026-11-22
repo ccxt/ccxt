@@ -445,13 +445,13 @@ impl crate::exchange::DerivedExchange for Bigone {
             let m = indexmap::IndexMap::new();
             m
         });
-        let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "binding_gateways");
+        let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "binding_gateways"));
         let currencyMaxPrecision: Option<String> = self.parse_precision(&[self.safe_string2(&rawCurrency, Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]).as_str().map(str::to_owned);
         {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
+            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "gateway_name", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let mut deposit: Option<bool> = self.safe_bool_k_opt(&chain, "is_deposit_enabled", &[]);
@@ -1627,13 +1627,13 @@ impl Bigone {
         //        ...
         //    ]
         //
-        let markets: crate::value::List = self.safe_list_k_t(&response, "data");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let baseAsset: crate::value::Dict = self.safe_dict_k_t(&market, "base_asset");
             let quoteAsset: crate::value::Dict = self.safe_dict_k_t(&market, "quote_asset");
             let baseId: Option<String> = self.safe_string_k_opt(&baseAsset, "symbol", &[]);
@@ -2915,7 +2915,7 @@ impl Bigone {
         }
         let chainsIndexedById: crate::value::Dict = self.index_by(Value::Arr(data), Value::Str("chain".into()));
         let selectedNetworkId: Option<String> = self.select_network_key_from_networks(code.clone(), networkCode.map(Value::from).unwrap_or(Value::Null), Value::from(&chainsIndexedById), &[Value::Bool(false)]).as_str().map(str::to_owned);
-        let addressObject: crate::value::Dict = self.safe_dict_t(&chainsIndexedById, Value::from(selectedNetworkId.as_deref()));
+        let addressObject: crate::value::Dict = (if let Some(Value::Dict(__m)) = chainsIndexedById.get(selectedNetworkId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let address: Option<String> = self.safe_string_k_opt(&addressObject, "value", &[]);
         let tag: Option<String> = self.safe_string_k_opt(&addressObject, "memo", &[]);
         self.check_address(&[&Value::from(address.as_deref())]);

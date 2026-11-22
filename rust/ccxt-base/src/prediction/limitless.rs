@@ -823,7 +823,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "fetch_orders_by_ids" => self.fetch_orders_by_ids(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_raw_active_markets" => self.fetch_raw_active_markets(&args[..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_markets_by_tags" => self.fetch_raw_markets_by_tags(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_markets_by_tags" => self.fetch_raw_markets_by_tags(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2375,13 +2375,13 @@ impl Limitless {
         //         "totalRows": 13
         //     }
         //
-        let rows: crate::value::List = self.safe_list_k_t(&response, "events");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "events"));
         let mut filtered: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let rowTokenId: Option<String> = self.safe_string_k_opt(&row, "tokenId", &[]);
             if (tokenId.is_some()) && (rowTokenId.is_some()) && (rowTokenId != tokenId) {
                 continue;
@@ -4089,12 +4089,12 @@ if _try_result.is_err() {
                     m
                 }), &[&rest]);
                 let response: crate::value::Dict = self.limitless_public_get_markets_search(&[&__ws_arg_30]).await.unwrap_or_default();
-                let found: crate::value::List = self.safe_list_k_t(&response, "markets");
+                let found: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "markets"));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_29: bool = true;
                     while { if !__for_first_29 { j += 1; } __for_first_29 = false; j < (found.len() as i64) } {
-                    let raw: crate::value::Dict = self.safe_dict_t(&found, Value::Int(j));
+                    let raw: crate::value::Dict = found.get(j as usize).cloned().unwrap_or_default();
                     let mut rawSlug: Option<String> = self.safe_string_k_opt(&raw, "slug", &[]);
                     if ((rawSlug.is_some()) && (rawSlug.as_deref() != Some(""))) && !(matches!(rawSlug.as_deref(), Some(__k) if seen.contains_key(__k))) {
                         seen.insert(rawSlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -4116,7 +4116,7 @@ if _try_result.is_err() {
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             let requestedTags: crate::value::List = self.safe_list_k_t(&params, "tags");
-            let listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(&requestedTags, &[&params]).await.as_array().cloned().unwrap_or_default();
+            let listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(Value::Arr(requestedTags), &[&params]).await.as_array().cloned().unwrap_or_default();
             let listRawLength: i64 = listRaw.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -4286,7 +4286,7 @@ if _try_result.is_err() {
  * @param {int} [params.limit] max number of raw markets to collect per category
  * @returns {object[]} raw limitless market objects, deduped by slug
  */
-    pub async fn fetch_raw_markets_by_tags(&mut self, tags: &[crate::Value], optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_markets_by_tags(&mut self, mut tags: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4301,7 +4301,8 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_35: bool = true;
             while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (tags.len() as i64) } {
-            wanted.push((tags.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+            let tag: String = self.safe_string(&tags, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            wanted.push(Value::from(tag.to_lowercase()));
         }
         }
         let mut categoryIds: Vec<Value> = Vec::new();

@@ -210,7 +210,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&order, "size", &[]);
         let orderType: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
@@ -399,7 +399,7 @@ impl crate::exchange::DerivedExchange for Apex {
         // }
         let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let side: Option<String> = self.safe_string_lower_k_opt(&position, "side", &[]);
         let quantity: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&position, "updatedTime", &[]).as_i64();
@@ -1882,12 +1882,12 @@ impl Apex {
         //
         let mut rates: Vec<Value> = Vec::new();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let resultList: crate::value::List = self.safe_list_k_t(&data, "historyFunds");
+        let resultList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "historyFunds"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (resultList.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(i));
+            let entry: crate::value::Dict = resultList.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingTimestamp", &[]).as_i64();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             rates.push(Value::Map({
@@ -2200,7 +2200,8 @@ impl Apex {
         let subAccountId: String = self.safe_string_k(&spotAccount, "defaultSubAccountId", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let subAccounts: crate::value::List = self.safe_list_k_t(&spotAccount, "subAccounts");
         let mut nonce: String = "0".to_string();
-        if ((subAccounts.len() as i64) as f64) > ((0i64) as f64) {
+        let subAccountsLength: i64 = subAccounts.len() as i64;
+        if subAccountsLength > 0 {
             nonce = self.safe_string_k(subAccounts.get(0).cloned().unwrap_or(Value::Null), "nonce", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         }
         let finalNonce: String = nonce; // java req

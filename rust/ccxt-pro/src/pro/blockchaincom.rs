@@ -788,12 +788,12 @@ impl Blockchaincom {
         }  else if (event.as_deref() == Some("rejected")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message))));
         }  else if (event.as_deref() == Some("snapshot")) {
-            let mut orders: crate::value::List = __pro_message.key_list("orders");
+            let orders: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("orders"));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1: bool = true;
                 while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (orders.len() as i64) } {
-                let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+                let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
                 let parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None);
                 self.orders.append(Value::Dict(parsedOrder));
             }

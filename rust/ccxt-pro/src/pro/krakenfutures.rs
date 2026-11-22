@@ -1177,12 +1177,12 @@ impl Krakenfutures {
                 if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
                 let mut totalCost: Option<String> = Some("0".to_string());
                 let mut totalAmount: Option<String> = Some("0".to_string());
-                let trades: crate::value::List = self.safe_list_k_t(&previousOrder, "trades");
+                let trades: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&previousOrder, "trades"));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_4: bool = true;
                     while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (trades.len() as i64) } {
-                    let currentTrade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
+                    let currentTrade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or_default();
                     totalCost = crate::precise::Precise::stringAdd(&totalCost, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost")))).as_str().map(str::to_owned);
                     totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount")))).as_str().map(str::to_owned);
                 }
@@ -1207,14 +1207,15 @@ impl Krakenfutures {
     m
 })); }
                 }
-                let previousFee: indexmap::IndexMap<String, Value> = self.safe_dict_k(&previousOrder, "fee", &[Value::Map({
+                let mut previousFee: indexmap::IndexMap<String, Value> = self.safe_dict_k(&previousOrder, "fee", &[Value::Map({
                     let m = indexmap::IndexMap::new();
                     m
                 })]).as_map().cloned().unwrap_or_default();
                 if (previousFee.get("cost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
                     let stringOrderCost: Option<String> = self.number_to_string(previousFee.get("cost").cloned().unwrap_or(Value::Null));
                     let stringTradeCost: Option<String> = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
-                    if let Some(__d) = &mut previousOrder { if let Value::Dict(__f) = std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__f).insert("cost".into(), Value::from(crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost))); } }
+                    previousFee.insert("cost".into(), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
+                    if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map(previousFee)); }
                 }
                 // update the newUpdates count
                 orders.append(Value::Dict(self.safe_order(previousOrder.map_or(Value::Null, Value::Dict), None)));
@@ -1325,7 +1326,7 @@ impl Krakenfutures {
         //            ...
         //        ]
         //    }
-        let mut orders: crate::value::List = message.key_list("orders");
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("orders"));
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (self.orders.is_none()) {
@@ -1349,7 +1350,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_ws_order(&order, None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
@@ -2116,7 +2117,7 @@ impl Krakenfutures {
         //        ]
         //    }
         //
-        let trades: crate::value::List = message.key_list("fills");
+        let trades: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("fills"));
         if (self.myTrades.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2129,7 +2130,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (trades.len() as i64) } {
-            let trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
+            let trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or_default();
             let parsedTrade: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None);
             let tradeSymbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
             if (tradeSymbol.is_some()) {

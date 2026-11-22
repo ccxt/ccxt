@@ -1055,12 +1055,12 @@ impl Derive {
         //
         let params: crate::value::Dict = message.key_dict("params");
         let topic: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        let rawOrders: crate::value::List = self.safe_list_k_t(&params, "data");
+        let rawOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&params, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawOrders.len() as i64) } {
-            let data: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
+            let data: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or_default();
             let mut parsed: Value = Value::Dict(self.parse_order(Value::Dict(data), None));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             let orderId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);

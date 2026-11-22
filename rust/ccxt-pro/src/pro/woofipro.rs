@@ -1584,7 +1584,7 @@ impl Woofipro {
         //    }
         //
         let data: crate::value::Dict = message.key_dict("data");
-        let rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -1593,7 +1593,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), Some(&market));

@@ -2379,14 +2379,6 @@ impl Tokocrypto {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let mut response: Value = Value::Null;
-        if self.is_native_market(Some(&market)).as_bool() == Some(true) {
-            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
-            response = self.public_get_open_v1_market_klines(&[&__ws_arg_6]).await;
-        }  else {
-            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method(Value::Str("binance_get_klines".into()), &[&__ws_arg_7]).await;
-        }
         //
         // binanceGetKlines
         //
@@ -2421,9 +2413,9 @@ impl Tokocrypto {
         //     }
         //
         let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
-        if let Value::Arr(__a) = response {
-            data = __a;
-        }  else {
+        if self.is_native_market(Some(&market)).as_bool() == Some(true) {
+            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
+            let response: crate::value::Dict = self.public_get_open_v1_market_klines(&[&__ws_arg_6]).await.unwrap_or_default();
             let dataList: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
             if (dataList.is_some()) {
                 data = dataList.unwrap_or_default();
@@ -2431,6 +2423,9 @@ impl Tokocrypto {
                 let dataDict: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                 data = self.safe_list_k_t(&dataDict, "list");
             }
+        }  else {
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            data = self.binance_get_klines(&[&__ws_arg_7]).await.unwrap_or_default();
         }
         return Value::Arr(self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(since), Value::from(limitValue)]));
         Value::Null

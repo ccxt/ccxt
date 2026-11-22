@@ -722,7 +722,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let precision: Option<f64> = self.parse_number(self.parse_precision(&[decimals.map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64();
         let networkFee: Option<f64> = self.safe_number_k(&currency, "network_fee", &[]).as_f64();
         let withdrawalFee: Option<f64> = self.safe_number_k(&currency, "withdrawal_fee", &[]).as_f64();
-        let rawNetworks: crate::value::List = self.safe_list_k_t(&currency, "coinbase_networks");
+        let rawNetworks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&currency, "coinbase_networks"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -731,7 +731,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawNetworks.len() as i64) } {
-            let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(i));
+            let rawNetwork: crate::value::Dict = rawNetworks.get(i as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "resource_name", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (network.is_some()) {

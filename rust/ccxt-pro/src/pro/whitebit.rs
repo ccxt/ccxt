@@ -245,9 +245,9 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let interval: Option<i64> = self.safe_integer(self.options.get("timeframes").cloned().unwrap_or(Value::Null), timeframe, &[]).as_i64();
-        let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+        let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -294,8 +294,8 @@ impl Whitebit {
             let data: Value = params.get(i as usize).cloned().unwrap_or(Value::Null);
             let marketId: Option<String> = self.safe_string_opt(&data, Value::Int(7), &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "candles", ":").into()), symbol.as_deref().unwrap_or("null"));
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "candles", ":").into()), symbol);
             let parsed: crate::value::List = self.parse_ohlcv(data, Some(&market)).into_list();
             if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
                 CacheShelves::reset(&mut self.ohlcvs, &symbol);
@@ -463,7 +463,7 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let method: String = "market_subscribe".to_string();
         let messageHash: String = format!("{}{}", "ticker:", symbolValue);
         return self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &params]).await;
@@ -549,7 +549,7 @@ impl Whitebit {
         let tickers: crate::value::List = __pro_message.key_list("params");
         let marketId: Option<String> = self.safe_string_opt(&tickers, Value::Int(0), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(1));
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "ticker", ":").into()), symbol);
         let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(rawTicker), Some(&market));
@@ -610,7 +610,7 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trades", ":").into()), symbolValue);
         let method: String = "trades_subscribe".to_string();
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -654,7 +654,7 @@ impl Whitebit {
         let params: crate::value::List = message.key_list("params");
         let marketId: Option<String> = self.safe_string_opt(&params, Value::Int(0), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -670,7 +670,7 @@ impl Whitebit {
             stored.append(crate::value::KeyRead::read(&&parsedTrades, &Value::Int(j)));
         }
         }
-        let messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
+        let messageHash: String = format!("{}{}", "trades:", symbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -970,7 +970,7 @@ impl Whitebit {
         }
         let timestamp: Option<i64> = self.safe_timestamp_k(&order, "ctime", &[]).as_i64();
         let lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(&order, "mtime", &[]).as_i64();
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rawSide: Option<i64> = self.safe_integer_k(&order, "side", &[]).as_i64();
         let mut side: String = "buy".to_string();
         if (rawSide == Some(1)) {
@@ -999,7 +999,7 @@ impl Whitebit {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1266,11 +1266,11 @@ impl Whitebit {
                 m
             });
             let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let marketId: Value = Value::from((market).id.as_deref());
-            if (marketId != Value::Null) {
-                subscription.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
+            let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
+            if (marketId.is_some()) {
+                subscription.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
-            marketIds = std::sync::Arc::new(vec![marketId]);
+            marketIds = std::sync::Arc::new(vec![marketId.map(Value::from).unwrap_or(Value::Null)]);
             if isNested {
                 marketIds = std::sync::Arc::new(vec![Value::Arr(marketIds)]);
             }
@@ -1290,11 +1290,11 @@ impl Whitebit {
             })]);
             let mut hasSymbolSubscription: bool = true;
             let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let marketId: Value = Value::from((market).id.as_deref());
-            let isSubscribed: bool = self.safe_bool_opt(&subscription, marketId.clone(), &[Value::Bool(false)]).unwrap_or(false);
+            let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
+            let isSubscribed: bool = self.safe_bool_opt(&subscription, Value::from(marketId.as_deref()), &[Value::Bool(false)]).unwrap_or(false);
             if !isSubscribed {
-                if (marketId != Value::Null) {
-                    add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+                if (marketId.is_some()) {
+                    add_element_to_object(&mut subscription, &Value::from(marketId.as_deref()), Value::Bool(true));
                 }
                 hasSymbolSubscription = false;
             }

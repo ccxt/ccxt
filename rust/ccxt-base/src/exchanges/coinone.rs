@@ -328,7 +328,7 @@ impl crate::exchange::DerivedExchange for Coinone {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currencyIds.len() as i64) } {
             let currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::from(currencyId.as_deref()));
+            let balance: crate::value::Dict = (if let Some(Value::Dict(__m)) = balances.get(currencyId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("free".into(), self.safe_string_k(&balance, "avail", &[]));

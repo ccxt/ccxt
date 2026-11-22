@@ -387,7 +387,7 @@ impl Backpack {
             }  else if (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(methodName)).into()), "() RFQ venue tickers are only mapped for stock data")));
             }
-            let symbol: String = (market).symbol.clone();
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", kind, ":").into()), symbol).into()), "@").into()), topic).into());
             let subscriptionKey: String = format!("{}{}", "marketData:", topic);
             let mut subscriptions: Value = self.safe_dict(&(client).subscriptions, Value::from(subscriptionKey.as_str()), &[Value::Map({
@@ -734,11 +734,15 @@ impl Backpack {
         //
         let ticker: crate::value::Dict = message.key_dict("data");
         let stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let subscriptions: Value = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
+        let __ws_arg_0 = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
-        let hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let subscriptions: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_0]);
+        let hashes: Vec<Value> = Value::Array(subscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let hashesLength: i64 = hashes.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -840,11 +844,15 @@ impl Backpack {
         let message = message.as_map().unwrap_or(&__message_empty);
         let data: crate::value::Dict = message.key_dict("data");
         let stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let subscriptions: Value = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
+        let __ws_arg_1 = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
-        let hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let subscriptions: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_1]);
+        let hashes: Vec<Value> = Value::Array(subscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let hashesLength: i64 = hashes.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -960,11 +968,15 @@ impl Backpack {
         //     }
         let data: crate::value::Dict = message.key_dict("data");
         let stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let subscriptions: Value = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
+        let __ws_arg_2 = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
-        let hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let subscriptions: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_2]);
+        let hashes: Vec<Value> = Value::Array(subscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let hashesLength: i64 = hashes.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -1238,7 +1250,7 @@ impl Backpack {
         let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbol: String = (market).symbol.clone();
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let parts: crate::value::List = crate::value::List::new(stream.split(".").map(Value::from).collect());
         let timeframe: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1454,7 +1466,7 @@ impl Backpack {
         let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbol: String = (market).symbol.clone();
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(self.trades.has(&symbol)) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let stored: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
@@ -2181,7 +2193,7 @@ impl Backpack {
         let status: Option<String> = self.parse_ws_order_status(self.safe_string_k(&order, "X", &[]).as_str(), market);
         let marketId: Option<String> = self.safe_string_k_opt(&order, "s", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let type_var: Option<String> = self.safe_string_lower_k_opt(&order, "o", &[]);
         let timeInForce: Option<String> = self.safe_string_k_opt(&order, "f", &[]);
         let side: Option<String> = self.parse_ws_order_side(self.safe_string_k(&order, "S", &[]).as_str());

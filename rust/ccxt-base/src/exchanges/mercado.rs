@@ -237,7 +237,7 @@ impl crate::exchange::DerivedExchange for Mercado {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (matches!(currencyId.as_deref(), Some(__k) if balances.contains_key(__k))) {
-                let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::from(currencyId.as_deref()));
+                let balance: crate::value::Dict = (if let Some(Value::Dict(__m)) = balances.get(currencyId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                 let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
                 account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
                 account.insert("total".into(), self.safe_string_k(&balance, "total", &[]));

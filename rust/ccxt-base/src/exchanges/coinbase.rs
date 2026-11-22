@@ -1549,7 +1549,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses_by_network" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_deposit_method_id" => self.fetch_deposit_method_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_deposit_method_id" => crate::Value::Dict(self.fetch_deposit_method_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_deposit_method_ids" => self.fetch_deposit_method_ids(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1591,7 +1591,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "parse_custom_balance" => self.parse_custom_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_deposit_method_id" => self.parse_deposit_method_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_deposit_method_id" => crate::Value::Dict(self.parse_deposit_method_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_method_ids" => self.parse_deposit_method_ids(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1603,7 +1603,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "prepare_account_request" => Value::Dict(self.prepare_account_request(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
+                "prepare_account_request" => crate::Value::Dict(self.prepare_account_request(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "prepare_account_request_with_currency_code" => { let __t = self.prepare_account_request_with_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await; Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2800,13 +2800,13 @@ impl Coinbase {
     m
 }));
         let response: crate::value::Dict = self.v3_private_get_brokerage_portfolios(&[&params]).await.unwrap_or_default();
-        let portfolios: crate::value::List = self.safe_list_k_t(&response, "portfolios");
+        let portfolios: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "portfolios"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (portfolios.len() as i64) } {
-            let portfolio: crate::value::Dict = self.safe_dict_t(&portfolios, Value::Int(i));
+            let portfolio: crate::value::Dict = portfolios.get(i as usize).cloned().unwrap_or_default();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(&portfolio, "uuid", &[]));
@@ -4214,7 +4214,7 @@ if _try_result.is_err() {
         //         "num_products": 549
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "products");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "products"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -4223,7 +4223,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "product_id", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -4704,8 +4704,6 @@ if _try_result.is_err() {
             request.insert("limit".into(), Value::from(limit));
         }
         return std::sync::Arc::new(request);
-
-    Default::default()
 }
 
     pub async fn prepare_account_request_with_currency_code(&mut self, code: Option<&str>, limit: Option<i64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
@@ -6544,7 +6542,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
-    pub async fn fetch_deposit_method_id(&mut self, id: &str, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_deposit_method_id(&mut self, id: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6578,8 +6576,6 @@ if _try_result.is_err() {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "payment_method");
         return self.parse_deposit_method_id(&result);
-
-    Value::Null
 }
 
     pub fn parse_deposit_method_ids(&self, ids: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
@@ -6596,7 +6592,7 @@ if _try_result.is_err() {
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (ids.len() as i64) } {
             let __ws_arg_59 = self.parse_deposit_method_id(ids.get(i as usize).cloned().unwrap_or(Value::Null));
-            let id: crate::value::Dict = self.extend_t(__ws_arg_59, &[&params]);
+            let id: crate::value::Dict = self.extend_t(Value::Dict(__ws_arg_59), &[&params]);
             result.push(Value::Dict(id));
         }
         }
@@ -6605,9 +6601,9 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_deposit_method_id(&self, depositId: impl Into<crate::Value>) -> Value {
+    pub fn parse_deposit_method_id(&self, depositId: impl Into<crate::Value>) -> crate::value::Dict {
         let depositId: Value = depositId.into();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositId.clone());
         m.insert("id".to_string(), self.safe_string_k(&depositId, "id", &[]));
@@ -6616,8 +6612,6 @@ if _try_result.is_err() {
         m.insert("tag".to_string(), self.safe_string_k(depositId, "name", &[]));
     m
 });
-
-    Value::Null
 }
 
 /*

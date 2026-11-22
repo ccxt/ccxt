@@ -138,13 +138,16 @@ impl crate::exchange::DerivedExchange for Bit2c {
                 price = self.remove_comma_from_value(rawPrice.as_deref().unwrap_or_default());
             }
             amount = self.safe_string_k_opt(&trade, "firstAmount", &[]);
-            let reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            let reference_parts: crate::value::List = crate::value::List::new(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let marketId: Option<String> = self.safe_string_k_opt(&trade, "pair", &[]);
             let marketByPair: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
             tradeMarket = Some(self.safe_market((reference_parts.get(0).cloned().unwrap_or(Value::Null)).as_str(), Some(&marketByPair), &[]));
             let isMaker: bool = self.safe_bool_k_opt(&trade, "isMaker", &[Value::Bool(false)]).unwrap_or(false);
             makerOrTaker = (if isMaker { Some("maker".to_string()) } else { Some("taker".to_string()) });
-            orderId = (if isMaker { reference_parts.get(2).and_then(Value::as_str).map(str::to_owned) } else { reference_parts.get(1).and_then(Value::as_str).map(str::to_owned) });
+            orderId = self.safe_string_opt(&reference_parts, Value::Int(1), &[]);
+            if isMaker {
+                orderId = self.safe_string_opt(&reference_parts, Value::Int(2), &[]);
+            }
             let action: Option<i64> = self.safe_integer_k(&trade, "action", &[]).as_i64();
             if (action == Some(0)) {
                 side = Value::Str("buy".into());
@@ -1215,7 +1218,7 @@ impl Bit2c {
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
-            let mut fee: Option<crate::value::Dict> = self.safe_dict_o(&fees, Value::from(marketId.as_deref()));
+            let mut fee: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = fees.get(marketId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let makerString: Option<String> = self.safe_string_k_opt(&fee, "FeeMaker", &[]);
             let takerString: Option<String> = self.safe_string_k_opt(&fee, "FeeTaker", &[]);
             let maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]).as_f64();

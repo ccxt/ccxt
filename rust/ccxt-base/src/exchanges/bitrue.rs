@@ -635,7 +635,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "coin", &[]);
         let name: Option<String> = self.safe_string_k_opt(&rawCurrency, "coinFulName", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
-        let networkDetails: crate::value::List = self.safe_list_k_t(&rawCurrency, "chainDetail");
+        let networkDetails: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "chainDetail"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -644,7 +644,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networkDetails.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&networkDetails, Value::Int(j));
+            let entry: crate::value::Dict = networkDetails.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&entry, "chain", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (network.is_some()) {

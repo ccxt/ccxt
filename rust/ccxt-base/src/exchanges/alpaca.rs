@@ -1760,7 +1760,7 @@ impl Alpaca {
             //    }
             //
             let trades: crate::value::Dict = self.safe_dict_k_t(&response, "trades");
-            let symbolTrade: crate::value::Dict = self.safe_dict_t(&trades, marketId.map(Value::from).unwrap_or(Value::Null));
+            let symbolTrade: crate::value::Dict = (if let Some(Value::Dict(__m)) = trades.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             symbolTrades = Some(std::sync::Arc::new(vec![Value::Dict(symbolTrade)]));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTrades() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
@@ -1849,7 +1849,7 @@ impl Alpaca {
         //   }
         //
         let orderbooks: crate::value::Dict = self.safe_dict_k_t(&response, "orderbooks");
-        let rawOrderbook: crate::value::Dict = self.safe_dict_t(&orderbooks, id.map(Value::from).unwrap_or(Value::Null));
+        let rawOrderbook: crate::value::Dict = (if let Some(Value::Dict(__m)) = orderbooks.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrderbook, "t", &[]));
         return Value::Dict(self.parse_order_book(&rawOrderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]));
         Value::Null
@@ -2007,7 +2007,7 @@ impl Alpaca {
             //     }
             //
             let bars: crate::value::Dict = self.safe_dict_k_t(&response, "bars");
-            let bar: crate::value::Dict = self.safe_dict_t(&bars, marketId.map(Value::from).unwrap_or(Value::Null));
+            let bar: crate::value::Dict = (if let Some(Value::Dict(__m)) = bars.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             ohlcvs = Value::from(vec![Value::Dict(bar)]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
@@ -2150,7 +2150,7 @@ impl Alpaca {
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&snapshots, Value::from(marketId.as_deref()));
+            let mut entry: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = snapshots.get(marketId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let dailyBar: crate::value::Dict = self.safe_dict_k_t(&entry, "dailyBar");
             let prevDailyBar: crate::value::Dict = self.safe_dict_k_t(&entry, "prevDailyBar");
             let latestQuote: crate::value::Dict = self.safe_dict_k_t(&entry, "latestQuote");

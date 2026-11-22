@@ -165,7 +165,7 @@ impl crate::exchange::DerivedExchange for Toobit {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -559,12 +559,12 @@ impl crate::exchange::DerivedExchange for Toobit {
             let m = indexmap::IndexMap::new();
             m
         });
-        let rawNetworks: crate::value::List = self.safe_list_k_t(&rawCurrency, "chainTypes");
+        let rawNetworks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "chainTypes"));
         {
                         let mut j: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (rawNetworks.len() as i64) } {
-            let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
+            let rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "chainType", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -913,7 +913,7 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_bid_ask_custom" => Value::Dict(self.parse_bid_ask_custom(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_bid_ask_custom" => crate::Value::Dict(self.parse_bid_ask_custom(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_bids_asks_custom" => self.parse_bids_asks_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2147,7 +2147,7 @@ impl Toobit {
         //            },
         //          ...
         //
-        let coins: crate::value::List = self.safe_list_k_t(&response, "coins");
+        let coins: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "coins"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2156,11 +2156,11 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (coins.len() as i64) } {
-            let coin: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(i));
+            let coin: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin).into_dict();
             if (true) {
-                let code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
-                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
+                let code: String = self.safe_string_k(&parsed, "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                result.insert(code, Value::Dict(parsed));
             }
         }
         }
@@ -2768,8 +2768,6 @@ impl Toobit {
         m.insert("info".to_string(), ticker);
     m
 });
-
-    Default::default()
 }
 
 /*
@@ -3816,7 +3814,8 @@ impl Toobit {
         });
         let marketResolved: crate::types::Market = self.safe_market(self.safe_string_k(&response, "symbol", &[]).as_str(), market.as_ref(), &[]);
         let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(&response, Some(&marketResolved)));
-        result.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&marketResolved, "symbol"))), Value::Map(fee));
+        let feeSymbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        result.insert(feeSymbol, Value::Map(fee));
         return Value::Map(result);
         Value::Null
         }).await?))

@@ -404,12 +404,12 @@ impl Mudrex {
     pub fn handle_ticker(&mut self, client: &Value, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let t: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let t: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let s: Option<String> = self.safe_string_k_opt(&t, "s", &[]);
             if (s.is_none()) {
                 continue;

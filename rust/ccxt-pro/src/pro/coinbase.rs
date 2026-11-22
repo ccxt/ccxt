@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
     {
         Box::pin(async move {
             match method {
-                "create_ws_auth" => self.create_ws_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "create_ws_auth" => crate::Value::Dict(self.create_ws_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "handle_heartbeats" => self.handle_heartbeats(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -96,7 +96,6 @@ impl Coinbase {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "create_ws_auth" => self.create_ws_auth(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "handle_heartbeats" => self.handle_heartbeats(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -241,7 +240,7 @@ impl Coinbase {
         });
         if isPrivate {
             let __ws_arg_0 = self.create_ws_auth(Value::from(name), productIds);
-            subscribe = self.extend_t(subscribe, &[__ws_arg_0]);
+            subscribe = self.extend_t(subscribe, &[Value::Dict(__ws_arg_0)]);
         }
         return self.watch(url.as_deref(), &messageHash[..], &subscribe, &messageHash[..], Value::Null).await;
 
@@ -299,7 +298,7 @@ impl Coinbase {
         });
         if isPrivate {
             let __ws_arg_1 = self.create_ws_auth(Value::from(name), productIds);
-            message = self.extend_t(message, &[__ws_arg_1]);
+            message = self.extend_t(message, &[Value::Dict(__ws_arg_1)]);
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Map(subscription.clone())); }
         let res: Value = self.watch(url.as_deref(), &unWatchMessageHash[..], &message, &unWatchMessageHash[..], Value::Map(subscription)).await;
@@ -355,7 +354,7 @@ impl Coinbase {
         });
         if isPrivate {
             let __ws_arg_2 = self.create_ws_auth(Value::from(name), Value::from(productIds));
-            subscribe = self.extend_t(subscribe, &[__ws_arg_2]);
+            subscribe = self.extend_t(subscribe, &[Value::Dict(__ws_arg_2)]);
         }
         return self.watch_multiple(url.as_deref(), &messageHashes, &subscribe, &messageHashes, Value::Null).await;
 
@@ -414,7 +413,7 @@ impl Coinbase {
         });
         if isPrivate {
             let __ws_arg_3 = self.create_ws_auth(Value::from(name), Value::from(productIds));
-            message = self.extend_t(message, &[__ws_arg_3]);
+            message = self.extend_t(message, &[Value::Dict(__ws_arg_3)]);
         }
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -434,7 +433,7 @@ impl Coinbase {
     Value::Null
 }
 
-    pub fn create_ws_auth(&mut self, mut name: Value, mut productIds: Value) -> Value {
+    pub fn create_ws_auth(&mut self, mut name: Value, mut productIds: Value) -> crate::value::Dict {
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -464,9 +463,7 @@ impl Coinbase {
             }
             subscribe.insert("jwt".into(), self.safe_string_k(&self.options, "wsToken", &[]));
         }
-        return Value::Map(subscribe);
-
-    Value::Null
+        return std::sync::Arc::new(subscribe);
 }
 
 /*
@@ -703,12 +700,12 @@ impl Coinbase {
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (events.len() as i64) } {
             let tickersObj: crate::value::Dict = events.get(i as usize).cloned().unwrap_or_default();
-            let tickers: crate::value::List = self.safe_list_k_t(&tickersObj, "tickers");
+            let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&tickersObj, "tickers"));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_2: bool = true;
                 while { if !__for_first_2 { j += 1; } __for_first_2 = false; j < (tickers.len() as i64) } {
-                let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(j));
+                let ticker: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or_default();
                 let wsMarketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
                 if (wsMarketId.is_none()) {
                     continue;
@@ -850,19 +847,19 @@ impl Coinbase {
         //         ]
         //     }
         //
-        let events: crate::value::List = self.safe_list_k_t(message, "events");
+        let events: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(message, "events"));
         let timeframe: String = "5m".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (events.len() as i64) } {
-            let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
-            let candles: crate::value::List = self.safe_list_k_t(&event, "candles");
+            let event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or_default();
+            let candles: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&event, "candles"));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { j += 1; } __for_first_4 = false; j < (candles.len() as i64) } {
-                let candle: crate::value::Dict = self.safe_dict_t(&candles, Value::Int(j));
+                let candle: crate::value::Dict = candles.get(j as usize).cloned().unwrap_or_default();
                 let marketId: Option<String> = self.safe_string_k_opt(&candle, "product_id", &[]);
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
                 let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1286,7 +1283,11 @@ impl Coinbase {
         if (events.is_none()) {
             return;
         }
-        let mut marketIds: Value = Value::from(vec![]);
+        let mut marketIds: Vec<Value> = Vec::new();
+        let mut seenMarketIds: indexmap::IndexMap<String, Value> = ({
+            let m = indexmap::IndexMap::new();
+            m
+        });
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1306,10 +1307,11 @@ impl Coinbase {
                 while { if !__for_first_8 { j += 1; } __for_first_8 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let responseOrder: crate::value::Dict = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let parsed: crate::value::Dict = self.parse_ws_order(&responseOrder, None);
-                let marketId: Option<String> = self.safe_string_k_opt(&responseOrder, "product_id", &[]);
+                let mut marketId: Option<String> = self.safe_string_k_opt(&responseOrder, "product_id", &[]);
                 if (marketId.is_some()) {
-                    if !(in_op(&marketIds, &Value::from(&marketId))) {
-                        if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(marketId.map(Value::from).unwrap_or(Value::Null)); }
+                    if !(matches!(marketId.as_deref(), Some(__k) if seenMarketIds.contains_key(__k))) {
+                        seenMarketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+                        marketIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
                 self.orders.append(Value::Dict(parsed));
@@ -1321,7 +1323,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (marketIds.len() as i64) } {
-            let marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let messageHash: String = format!("{}{}", "user::", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), messageHash.as_str());

@@ -1217,7 +1217,7 @@ impl crate::exchange_generated::ExchangeBase for Digifinex {
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_borrow_rates" => self.parse_borrow_rates(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
+                "parse_borrow_rates" => crate::Value::Dict(self.parse_borrow_rates(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref())),
                 "parse_cancel_orders" => Value::Arr(self.parse_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2472,13 +2472,13 @@ impl Digifinex {
         //         "code":0
         //     }
         //
-        let markets: crate::value::List = self.safe_list_k_t(&response, "data");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "market", &[]);
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchMarketsV1() missing id")));
@@ -3863,7 +3863,7 @@ impl Digifinex {
             if (market.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a symbol argument for swap markets")));
             }
-            let marketSymbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+            let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut orders: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
@@ -3872,7 +3872,7 @@ impl Digifinex {
                 let orderItem: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]));
-                        m.insert("symbol".to_string(), Value::from(marketSymbol.as_deref()));
+                        m.insert("symbol".to_string(), Value::from(marketSymbol.as_str()));
                     m
                 });
                 orders.push(Value::Map(orderItem));
@@ -5170,13 +5170,13 @@ impl Digifinex {
         //     }
         //
         let result: crate::value::List = self.safe_list_k_t(&response, "list");
-        return self.parse_borrow_rates(&result, Some("currency"));
+        return Value::Dict(self.parse_borrow_rates(&result, Some("currency")));
         Value::Null
         }).await?))
     }
 
 
-    pub fn parse_borrow_rates(&self, info: impl Into<crate::Value>, codeKey: Option<&str>) -> Value {
+    pub fn parse_borrow_rates(&self, info: impl Into<crate::Value>, codeKey: Option<&str>) -> crate::value::Dict {
         let mut info: Value = info.into();
         let __info_empty = Vec::new();
         let info = info.as_array().unwrap_or(&__info_empty);
@@ -5205,9 +5205,7 @@ impl Digifinex {
             }
         }
         }
-        return Value::Map(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -5364,13 +5362,13 @@ impl Digifinex {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let result: crate::value::List = self.safe_list_k_t(&data, "funding_rates");
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "funding_rates"));
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_id", &[]);
             let symbolInner: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();

@@ -1409,7 +1409,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "custom_parse_bid_ask" => self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "custom_parse_order_book" => Value::Dict(self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
+                "custom_parse_order_book" => crate::Value::Dict(self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -3232,14 +3232,14 @@ impl Phemex {
             let type_var: Option<String> = self.safe_string_lower_k_opt(&market, "type", &[]);
             if (type_var.as_deref() == Some("perpetual")) || (type_var.as_deref() == Some("perpetualv2")) || (type_var.as_deref() == Some("perpetualpilot")) {
                 let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-                let riskLimitValues: crate::value::Dict = self.safe_dict_t(&riskLimitsById, Value::from(id.as_deref()));
+                let riskLimitValues: crate::value::Dict = (if let Some(Value::Dict(__m)) = riskLimitsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                 market = self.extend(&market, &[&riskLimitValues]);
-                let v1ProductsValues: crate::value::Dict = self.safe_dict_t(&v1ProductsById, id.map(Value::from).unwrap_or(Value::Null));
+                let v1ProductsValues: crate::value::Dict = (if let Some(Value::Dict(__m)) = v1ProductsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                 market = self.extend(&market, &[&v1ProductsValues]);
                 market = self.parse_swap_market(market);
             }  else {
                 let baseCurrency: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
-                let currencyValues: crate::value::Dict = self.safe_dict_t(&currenciesByCode, baseCurrency.map(Value::from).unwrap_or(Value::Null));
+                let currencyValues: crate::value::Dict = (if let Some(Value::Dict(__m)) = currenciesByCode.get(baseCurrency.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                 let valueScale: String = self.safe_string_k(&currencyValues, "valueScale", &[Value::Str("8".into())]).as_str().unwrap_or("8").to_string();
                 market = self.extend(market, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3350,8 +3350,6 @@ impl Phemex {
         }
         }
         return std::sync::Arc::new(result);
-
-    Default::default()
 }
 
 /*
@@ -5957,13 +5955,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let positions: crate::value::List = self.safe_list_k_t(&data, "positions");
+        let positions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
+            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or_default();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, &position, None).map_or(Value::Null, Value::Dict));
         }
         }
@@ -6122,13 +6120,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rows.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "createTime", &[]).as_i64();
             let execFee: Option<String> = self.safe_string2_opt(&entry, Value::Str("execFeeEv".into()), Value::Str("execFeeRv".into()), &[]);
             let currencyCode: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]).as_str(), None);
@@ -6870,13 +6868,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rates: crate::value::List = self.safe_list_k_t(&data, "rows");
+        let rates: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (rates.len() as i64) } {
-            let item: crate::value::Dict = self.safe_dict_t(&rates, Value::Int(i));
+            let item: crate::value::Dict = rates.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_integer_k(&item, "fundingTime", &[]).as_i64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -7335,13 +7333,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             response = self.private_get_accounts_account_positions(&[&__ws_arg_70]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let ranks: crate::value::List = self.safe_list_k_t(&data, "positions");
+        let ranks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (ranks.len() as i64) } {
-            let rank: crate::value::Dict = self.safe_dict_t(&ranks, Value::Int(i));
+            let rank: crate::value::Dict = ranks.get(i as usize).cloned().unwrap_or_default();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_adl_rank(self, &rank, None));
         }
         }

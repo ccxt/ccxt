@@ -441,7 +441,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "outcome_for_token" => crate::types::IntoRaw::into_raw(self.outcome_for_token(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "outcomes_by_market_id" => self.outcomes_by_market_id(args.get(0).and_then(crate::Value::as_text).as_deref()),
-                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_event" => crate::Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -454,8 +454,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_predictfun_order" => Value::Dict(self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy), args.get(2).is_some_and(crate::Value::is_truthy))),
-                "strip_price_formatting" => self.strip_price_formatting(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "sign_predictfun_order" => crate::Value::Dict(self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy), args.get(2).is_some_and(crate::Value::is_truthy))),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1023,7 +1022,8 @@ impl Predictfun {
                 m
             });
             let tags: crate::value::List = self.safe_list_k_t(&paramsValue, "tags");
-            if ((tags.len() as i64) as f64) > ((0i64) as f64) {
+            let tagsLength: i64 = tags.len() as i64;
+            if tagsLength > 0 {
                 request.insert("tagIds".into(), Value::Str(tags.iter().map(crate::runtime::stringify_param).collect::<Vec<String>>().join(",").into()));
             }
             postOmitKeys.push(Value::Str("limit".into()));
@@ -1221,13 +1221,13 @@ impl Predictfun {
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < rawTopicsLength } {
             let parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null));
             result.push(Value::from(&parsedEvent));
-            let parsedMarkets: crate::value::List = self.safe_list_k_t(&parsedEvent, "markets");
+            let parsedMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&parsedEvent, "markets"));
             let parsedMarketsLength: i64 = parsedMarkets.len() as i64;
             {
                                 let mut mi: i64 = 0;
                 let mut __for_first_2: bool = true;
                 while { if !__for_first_2 { mi += 1; } __for_first_2 = false; mi < parsedMarketsLength } {
-                let m: crate::value::Dict = self.safe_dict_t(&parsedMarkets, Value::Int(mi));
+                let m: crate::value::Dict = parsedMarkets.get(mi as usize).cloned().unwrap_or_default();
                 // prediction market rows are keyed by the unified 'market' handle
                 let handle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
                 if (handle.is_some()) {
@@ -1388,13 +1388,13 @@ impl Predictfun {
             // a term can match a market whose category row is not in the response - those rows are
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
-            let rawMarkets: crate::value::List = self.safe_list_k_t(&data, "markets");
+            let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "markets"));
             let rawMarketsLength: i64 = rawMarkets.len() as i64;
             {
                                 let mut mi: i64 = 0;
                 let mut __for_first_5: bool = true;
                 while { if !__for_first_5 { mi += 1; } __for_first_5 = false; mi < rawMarketsLength } {
-                let rawMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(mi));
+                let rawMarket: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or_default();
                 let mut marketSlug: Option<String> = self.safe_string_k_opt(&rawMarket, "categorySlug", &[]);
                 if (marketSlug.is_some()) {
                     if (matches!(marketSlug.as_deref(), Some(__k) if orphanMarkets.contains_key(__k))) {
@@ -1673,8 +1673,6 @@ impl Predictfun {
         m.insert("info".to_string(), rawTopic);
     m
 });
-
-    Default::default()
 }
 
 /*
@@ -1685,9 +1683,9 @@ impl Predictfun {
  * @param {string} [text] the raw title or outcome label
  * @returns {string} the same text with '$' removed and thousands separators closed up
  */
-    pub fn strip_price_formatting(&self, text: Option<&str>) -> Value {
+    pub fn strip_price_formatting(&self, text: Option<&str>) -> Option<String> {
         if (text.is_none()) {
-            return Value::Null;
+            return None;
         }
         let digits: String = "0123456789".to_string();
         let chars: Vec<Value> = self.string_to_chars_array(Value::from(text)).as_array().cloned().unwrap_or_default();
@@ -1723,9 +1721,7 @@ impl Predictfun {
         if pendingComma {
             stripped = format!("{}{}", stripped, ",");
         }
-        return Value::from(stripped);
-
-    Value::Null
+        return Some(stripped);
 }
 
 /*
@@ -1748,7 +1744,7 @@ impl Predictfun {
         if (marketCount.as_f64() == Some(1.0)) && (topicSlug.is_some()) {
             return topicSlug.map(str::to_owned);
         }
-        return self.strip_price_formatting(title).as_str().map(str::to_owned);
+        return self.strip_price_formatting(title);
 }
 
 /*
@@ -1879,7 +1875,7 @@ impl Predictfun {
                 m.insert("price".to_string(), Value::from(pricePrecision));
             m
         });
-        let rawOutcomes: crate::value::List = self.safe_list_k_t(&rawMarket, "outcomes");
+        let rawOutcomes: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawMarket, "outcomes"));
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcomeRaw: Option<String> = None;
         let rawOutcomesLength: i64 = rawOutcomes.len() as i64;
@@ -1887,11 +1883,11 @@ impl Predictfun {
                         let mut oi: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { oi += 1; } __for_first_10 = false; oi < rawOutcomesLength } {
-            let rawOutcome: crate::value::Dict = self.safe_dict_t(&rawOutcomes, Value::Int(oi));
+            let rawOutcome: crate::value::Dict = rawOutcomes.get(oi as usize).cloned().unwrap_or_default();
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             let rawLabel: Option<String> = self.safe_string_upper_k_opt(&rawOutcome, "name", &[]);
-            let label: Option<String> = self.strip_price_formatting(rawLabel.as_deref()).as_str().map(str::to_owned);
+            let label: Option<String> = self.strip_price_formatting(rawLabel.as_deref());
             let tokenId: Option<String> = self.safe_string_k_opt(&rawOutcome, "onChainId", &[]);
             let outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol.as_deref().unwrap_or("null"), ":").into()), label.as_deref().unwrap_or("null"));
             let mut winner: Option<bool> = None;
@@ -2329,7 +2325,7 @@ impl Predictfun {
         let __ws_arg_5 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.predictfun_get_v1_orders_matches(&[&__ws_arg_5]).await.unwrap_or_default();
         // the venue answers with the shape documented in fetchTrades below
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let wallet: Option<String> = signerAddress.as_deref().map(str::to_lowercase);
         // a settlement names one taker and several makers, and the wallet may sit on either side,
         // so the legs it signed are the ones to report - a self trade legitimately yields two rows
@@ -2339,7 +2335,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < dataLength } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let taker: crate::value::Dict = self.safe_dict_k_t(&entry, "taker");
             let takerSigner: Option<String> = self.safe_string_lower_k_opt(&taker, "signer", &[]);
             if (takerSigner == wallet) {
@@ -2356,13 +2352,13 @@ impl Predictfun {
                     m
                 })]));
             }
-            let makers: crate::value::List = self.safe_list_k_t(&entry, "makers");
+            let makers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "makers"));
             let makersLength: i64 = makers.len() as i64;
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_14: bool = true;
                 while { if !__for_first_14 { j += 1; } __for_first_14 = false; j < makersLength } {
-                let maker: crate::value::Dict = self.safe_dict_t(&makers, Value::Int(j));
+                let maker: crate::value::Dict = makers.get(j as usize).cloned().unwrap_or_default();
                 let makerSigner: Option<String> = self.safe_string_lower_k_opt(&maker, "signer", &[]);
                 if (makerSigner == wallet) {
                     let makerParty: crate::value::Dict = self.extend_t(maker, &[Value::Map({
@@ -2788,8 +2784,6 @@ impl Predictfun {
         m.insert("signature".to_string(), self.sign_hash(hash.as_str(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 });
-
-    Default::default()
 }
 
 /*
@@ -4713,7 +4707,7 @@ impl Predictfun {
         if (topicSlug.is_some()) {
             eventHandle = Some(self.shorten_slug(topicSlug.map(Value::from).unwrap_or(Value::Null)));
         }
-        let label: Option<String> = self.strip_price_formatting(self.safe_string_upper_k(&details, "outcomeName", &[]).as_str()).as_str().map(str::to_owned);
+        let label: Option<String> = self.strip_price_formatting(self.safe_string_upper_k(&details, "outcomeName", &[]).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), Value::Null);
@@ -4967,7 +4961,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // by it - see handleSubscriptionStatus in pro/binance.ts
             let id: Option<String> = (match __pro_message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
+            let subscription: crate::value::Dict = (if let Some(Value::Dict(__m)) = subscriptionsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !success {
                 self.handle_subscription_error(client.clone(), message.clone(), &subscription);

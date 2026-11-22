@@ -2469,7 +2469,7 @@ impl Btse {
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             if (symbolsNormalized.is_none()) || self.in_array(symbol.clone(), &symbolsNormalized) {
-                let levels: crate::value::List = self.safe_list_k_t(&entry, "riskLimits");
+                let levels: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "riskLimits"));
                 let mut tiers: crate::value::List = std::sync::Arc::new(Vec::new());
                 // each tier's floor is the previous tier's cap (0 for the first)
                 let mut minNotional: Option<f64> = None;
@@ -2477,7 +2477,7 @@ impl Btse {
                                         let mut j: i64 = 0;
                     let mut __for_first_5: bool = true;
                     while { if !__for_first_5 { j += 1; } __for_first_5 = false; j < (levels.len() as i64) } {
-                    let level: crate::value::Dict = self.safe_dict_t(&levels, Value::Int(j));
+                    let level: crate::value::Dict = levels.get(j as usize).cloned().unwrap_or_default();
                     let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
@@ -2706,13 +2706,13 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[&params]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (data.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let row: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             // spot rows do not carry an open interest
             if (self.safe_string_k(&row, "openInterest", &[]) != Value::Null) {
                 rows.push(Value::Dict(row));
@@ -2790,13 +2790,13 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[&params]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let row: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             // spot rows do not carry a funding rate
             if (self.safe_string_k(&row, "fundingRate", &[]) != Value::Null) {
                 rows.push(Value::Dict(row));

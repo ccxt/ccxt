@@ -338,7 +338,7 @@ impl Gemini {
         //     }
         //
         let trade: crate::value::Dict = self.parse_ws_trade(message, None);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let tradesLimit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
@@ -347,8 +347,8 @@ impl Gemini {
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
         }
-        stored.append(Value::Dict(trade));
-        let messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
+        stored.append(Value::from(&trade));
+        let messageHash: String = format!("{}{}", Value::Str("trades:".into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 

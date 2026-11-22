@@ -980,9 +980,12 @@ impl Coinbaseinternational {
             if (self.safe_string_k(&position, "side", &[]) == Value::Null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
-                let mut shortPosition: Value = self.clone_value(position.clone());
-                add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));
-                self.positions.append(shortPosition);
+                let shortPosition: crate::value::Dict = self.extend_t(&position, &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("side".to_string(), Value::Str("short".into()));
+                    m
+                })]);
+                self.positions.append(Value::Dict(shortPosition));
             }
             self.positions.append(position);
         }
@@ -2146,13 +2149,17 @@ impl Coinbaseinternational {
         let isGrouped: bool = channelPartsLength == 5;
         if !(self.orderbooks.has(&symbol)) {
             let limit: i64 = self.safe_integer_k(&self.options, "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            { let __cv = (if isGrouped { self.order_book(&[Value::Map({
+            if isGrouped {
+                { let __cv = self.order_book(&[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}), Value::from(limit)]) } else { self.counted_order_book(&[Value::Map({
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+            }  else {
+                { let __cv = self.counted_order_book(&[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}), Value::from(limit)]) }); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+            }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let nonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();

@@ -1082,9 +1082,9 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                 "fetch_order_supplement" => self.fetch_order_supplement(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_private_deposit_withdraw_fees" => self.fetch_private_deposit_withdraw_fees(&args[..].iter().collect::<Vec<_>>()).await,
-                "fetch_private_transaction_fees" => self.fetch_private_transaction_fees(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_private_transaction_fees" => crate::Value::Dict(self.fetch_private_transaction_fees(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_public_deposit_withdraw_fees" => self.fetch_public_deposit_withdraw_fees(&args[..].iter().collect::<Vec<_>>()).await,
-                "fetch_public_transaction_fees" => self.fetch_public_transaction_fees(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_public_transaction_fees" => crate::Value::Dict(self.fetch_public_transaction_fees(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
                 "fetch_swap_markets" => Value::Arr(self.fetch_swap_markets(&args[..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1947,13 +1947,13 @@ impl Lbank {
         //         "ts": 1691560288484
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let baseId: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2072,13 +2072,13 @@ impl Lbank {
         //         "success": true
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let settleId: Option<String> = self.safe_string_k_opt(&market, "clearCurrency", &[]);
@@ -3934,16 +3934,16 @@ impl Lbank {
             let method: Option<String> = self.safe_string_k_opt(&params, "method", &[&defaultMethod]);
             let paramsOmitted: Value = self.omit(&params, Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicTransactionFees")) {
-                return self.fetch_public_transaction_fees(&[&paramsOmitted]).await;
+                return Value::Dict(self.fetch_public_transaction_fees(&[&paramsOmitted]).await);
             }
-            return self.fetch_private_transaction_fees(&[&paramsOmitted]).await;
+            return Value::Dict(self.fetch_private_transaction_fees(&[&paramsOmitted]).await);
         }
-        return self.fetch_public_transaction_fees(&[&params]).await;
+        return Value::Dict(self.fetch_public_transaction_fees(&[&params]).await);
 
     Value::Null
 }
 
-    pub async fn fetch_private_transaction_fees(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_private_transaction_fees(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4029,7 +4029,7 @@ impl Lbank {
             }
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawFees));
         m.insert("deposit".to_string(), Value::Map({
@@ -4039,11 +4039,9 @@ impl Lbank {
         m.insert("info".to_string(), Value::Dict(response));
     m
 });
-
-    Value::Null
 }
 
-    pub async fn fetch_public_transaction_fees(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_public_transaction_fees(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4119,7 +4117,7 @@ impl Lbank {
             }
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawFees));
         m.insert("deposit".to_string(), Value::Map({
@@ -4129,8 +4127,6 @@ impl Lbank {
         m.insert("info".to_string(), Value::Dict(response));
     m
 });
-
-    Value::Null
 }
 
 /*

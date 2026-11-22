@@ -892,7 +892,7 @@ impl Blockchaincom {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let mut market: Option<crate::value::Dict> = self.safe_dict_o(&markets, Value::from(marketId.as_deref()));
+            let mut market: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = markets.get(marketId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
             let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);

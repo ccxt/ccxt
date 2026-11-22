@@ -1058,7 +1058,7 @@ impl crate::exchange::DerivedExchange for Htx {
 }));
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNames)); }
         }
-        let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "chains");
+        let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "chains"));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -1067,7 +1067,7 @@ impl crate::exchange::DerivedExchange for Htx {
                         let mut j: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { j += 1; } __for_first_8 = false; j < (chains.len() as i64) } {
-            let chainEntry: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
+            let chainEntry: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or_default();
             let uniqueChainId: Option<String> = self.safe_string_k_opt(&chainEntry, "chain", &[]); // i.e. usdterc20, trc20usdt ...
             let title: Option<String> = self.safe_string2_opt(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code.is_some()) && (title.is_some()) {
@@ -1603,12 +1603,12 @@ impl crate::exchange::DerivedExchange for Htx {
             while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (brackets.len() as i64) } {
             let item: crate::value::Dict = brackets.get(i as usize).cloned().unwrap_or_default();
             let leverage: Option<String> = self.safe_string_k_opt(&item, "lever_rate", &[]);
-            let ladders: crate::value::List = self.safe_list_k_t(&item, "ladders");
+            let ladders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&item, "ladders"));
             {
                                 let mut k: i64 = 0;
                 let mut __for_first_25: bool = true;
                 while { if !__for_first_25 { k += 1; } __for_first_25 = false; k < (ladders.len() as i64) } {
-                let bracket: crate::value::Dict = self.safe_dict_t(&ladders, Value::Int(k));
+                let bracket: crate::value::Dict = ladders.get(k as usize).cloned().unwrap_or_default();
                 let adjustFactor: Option<String> = self.safe_string_k_opt(&bracket, "adjust_factor", &[]);
                 tiers.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2038,7 +2038,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trading_limits" => self.fetch_trading_limits(&args[..]).await,
-                "fetch_trading_limits_by_id" => self.fetch_trading_limits_by_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_trading_limits_by_id" => crate::Value::Dict(self.fetch_trading_limits_by_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdraw_addresses" => self.fetch_withdraw_addresses(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2067,12 +2067,12 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_settlement" => Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlements" => Value::Arr(self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => Value::Dict(self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_trading_limits" => self.parse_trading_limits(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "parse_trading_limits" => crate::Value::Dict(self.parse_trading_limits(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "repay_cross_margin" => crate::types::IntoRaw::into_raw(self.repay_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -5569,7 +5569,7 @@ impl Htx {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.fetch_trading_limits_by_id(self.market_id(symbol.as_deref()).as_str(), &[&params]).await);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.fetch_trading_limits_by_id(self.market_id(symbol.as_deref()).as_str(), &[&params]).await));
         }
         }
         return Value::Map(result);
@@ -5586,7 +5586,7 @@ impl Htx {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the limits object of a market structure
  */
-    pub async fn fetch_trading_limits_by_id(&mut self, id: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_trading_limits_by_id(&mut self, id: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5602,16 +5602,14 @@ impl Htx {
     let m = indexmap::IndexMap::new();
     m
 })]), None, &[]);
-
-    Value::Null
 }
 
-    pub fn parse_trading_limits(&self, mut limits: Value, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub fn parse_trading_limits(&self, mut limits: Value, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), limits.clone());
         m.insert("limits".to_string(), Value::Map({
@@ -5626,8 +5624,6 @@ impl Htx {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub fn cost_to_precision(&self, symbol: Option<&str>, cost: impl crate::value::ScalarArg) -> Option<String> {
@@ -5833,7 +5829,7 @@ impl Htx {
         //         "ts":1640736207263
         //     }
         //
-        let markets: crate::value::List = self.safe_list_k_t(&response, "data");
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let numMarkets: i64 = markets.len() as i64;
         if numMarkets < 1 {
             panic!("{}", crate::exchange_errors::operation_failed(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() returned an empty response: ").into()), json_stringify(&response))));
@@ -5843,7 +5839,7 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let mut marketType: Option<String> = None;
             let mut baseId: Option<String> = None;
             let mut quoteId: Option<String> = None;
@@ -6988,7 +6984,7 @@ impl Htx {
             untilSeconds = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
         }
         let isContract: bool = (market).contract;
-        let marketType: String = (market).market_type.clone();
+        let marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let contractLimit: i64 = limit.unwrap_or(2000); // only used for from/to calculation
         let mut rangeLimit: Option<i64> = limit;
         if isContract {
@@ -7286,7 +7282,11 @@ impl Htx {
         if networkId.is_none() {
             return None;
         }
-        let mut keys: Vec<Value> = Value::Array((self.options.get("networkNamesByChainIds").cloned().unwrap_or(Value::Null)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let namesByChainIds: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkNamesByChainIds", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(namesByChainIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let keysLength: i64 = keys.len() as i64;
         if (keysLength == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " networkIdToCode() - markets need to be loaded at first")));
@@ -7302,7 +7302,11 @@ impl Htx {
         if currencyCode.is_none() {
             return self.super_network_code_to_id(networkCode.as_deref(), None);
         }
-        let mut keys: Vec<Value> = Value::Array((self.options.get("networkChainIdsByNames").cloned().unwrap_or(Value::Null)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let chainIdsByNames: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkChainIdsByNames", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(chainIdsByNames.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let keysLength: i64 = keys.len() as i64;
         if (keysLength == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " networkCodeToId() - markets need to be loaded at first")));
@@ -11622,14 +11626,14 @@ impl Htx {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositions() not support this market type")));
             }
         }
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (data.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let position: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, &position, None).unwrap_or_default();
             let __ws_arg_136 = self.iso8601(timestamp);
             result.push(self.extend(parsed, &[Value::Map({
@@ -12861,8 +12865,6 @@ impl Htx {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
-
-    Default::default()
 }
 
 /*

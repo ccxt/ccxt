@@ -1272,7 +1272,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         //         ]
         //     }
         //
-        let riskLimits: crate::value::List = self.safe_list_k_t(&info, "riskLimits");
+        let riskLimits: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&info, "riskLimits"));
         let marketId: Option<String> = self.safe_string_k_opt(info, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut tiers: Vec<Value> = Vec::new();
@@ -1280,7 +1280,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (riskLimits.len() as i64) } {
-            let tier: crate::value::Dict = self.safe_dict_t(&riskLimits, Value::Int(i));
+            let tier: crate::value::Dict = riskLimits.get(i as usize).cloned().unwrap_or_default();
             let initialMarginRate: Option<String> = self.safe_string_k_opt(&tier, "initialMargin", &[]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

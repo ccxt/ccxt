@@ -74,7 +74,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last_traded_price", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "created_at", &[]).as_i64();
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -218,7 +218,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         }
         let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&order, "size", &[]);
         let orderType: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
@@ -557,7 +557,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let side: Option<String> = self.safe_string_lower_k_opt(&position, "side", &[]);
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         let quantity: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(&position, "size", &[])).as_str().map(str::to_owned);
@@ -729,7 +729,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         let timestamp: Option<i64> = self.safe_integer_k(&interest, "created_at", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&interest, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -889,7 +889,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&greeks, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("option".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&greeks, "created_at", &[]).as_i64();
         let greeksData: crate::value::Dict = self.safe_dict_k_t(&greeks, "greeks");
         return Value::Map({
@@ -1309,14 +1309,13 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_trading_fee" => Value::Dict(self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "prepare_paradex_domain" => Value::Dict(self.prepare_paradex_domain(&args[..].iter().collect::<Vec<_>>()).await),
+                "prepare_paradex_domain" => crate::Value::Dict(self.prepare_paradex_domain(&args[..].iter().collect::<Vec<_>>()).await),
                 "retrieve_account" => Value::Dict(self.retrieve_account().await),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_order_request" => self.sign_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "summary_market_id" => self.summary_market_id(&args[..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -2748,9 +2747,9 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (loadedFees.len() as i64) } {
-            let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(loadedFees.get(i as usize).cloned().unwrap_or(Value::Null), None));
-            let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
+            let fee: crate::value::Dict = self.parse_trading_fee(loadedFees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
         }
         }
         return Value::Map(result);
@@ -2881,7 +2880,7 @@ impl Paradex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
+                m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_2 = self.extend(&request, &[params]);
@@ -2924,17 +2923,15 @@ impl Paradex {
  * @param {string[]|undefined} symbols unified market symbols
  * @returns {string} the market id, or ALL
  */
-    pub fn summary_market_id(&self, optional_args: &[Value]) -> Value {
+    pub fn summary_market_id(&self, optional_args: &[Value]) -> Option<String> {
         let symbols = get_arg(optional_args, 0, Value::Null);
         if (symbols != Value::Null) {
             let symbolsLength: i64 = symbols.len() as i64;
             if (symbolsLength == 1) {
-                return crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+                return self.safe_string_k_opt(crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())), "id", &[&Value::Str("".into())]);
             }
         }
-        return Value::Str("ALL".into());
-
-    Value::Null
+        return Value::Str("ALL".into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -3064,7 +3061,7 @@ impl Paradex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
+                m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_4 = self.extend(&request, &[params]);
@@ -3383,8 +3380,6 @@ impl Paradex {
             m
         });
         return std::sync::Arc::new(domain);
-
-    Default::default()
 }
 
     pub async fn retrieve_account(&mut self) -> crate::value::Dict {
@@ -4134,13 +4129,13 @@ impl Paradex {
         //     ]
         // }
         //
-        let results: crate::value::List = self.safe_list_k_t(&response, "results");
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (results.len() as i64) } {
-            let result: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+            let result: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&result, "market", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let status: Option<String> = self.safe_string_k_opt(&result, "status", &[]);
@@ -4356,9 +4351,12 @@ impl Paradex {
         let paginationCursor: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         let ordersLength: i64 = orders.len() as i64;
         if (paginationCursor.is_some()) && (ordersLength > 0) {
-            let mut first: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
-            if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
-            std::sync::Arc::make_mut(&mut orders)[0] = Value::from(first.map_or(Value::Null, Value::Dict));
+            let first: crate::value::Dict = self.extend_t(crate::value::KeyRead::read(&&orders, &Value::Int(0)), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("next".to_string(), paginationCursor.map(Value::from).unwrap_or(Value::Null));
+                m
+            })]);
+            std::sync::Arc::make_mut(&mut orders)[0] = Value::Dict(first);
         }
         return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -4706,14 +4704,14 @@ impl Paradex {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "results");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         // the endpoint keeps returning a market's position after it is closed, with a size of 0
         let mut openPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let position: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let status: Option<String> = self.safe_string_k_opt(&position, "status", &[]);
             let size: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
             if (status.as_deref() != Some("CLOSED")) && !(crate::precise::Precise::stringEq(&size, &Value::Str("0".into())).as_bool() == Some(true)) {
@@ -5443,7 +5441,7 @@ impl Paradex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
+                m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_30 = self.extend(&request, &[params]);
@@ -5595,7 +5593,7 @@ impl Paradex {
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_32]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "results");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -5605,7 +5603,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: String = self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if ((if let (Some(__h), Some(__n)) = (Some(marketId.as_str()), Some(prefix.as_str())) { __h.starts_with(__n) } else { false })) {
@@ -5858,7 +5856,7 @@ impl Paradex {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start_at".into(), Value::from(since));
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            let windowEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (since, ((if let Some(__l) = pageSize { Some(__l * rowSpacing) } else { None }))) { Some((__m0 + __m1)) } else { None }));
+            let windowEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (self.parse_to_int(&Value::from(since)), ((if let Some(__l) = pageSize { Some(__l * rowSpacing) } else { None }))) { Some((__m0 + __m1)) } else { None }));
             let endAt: Value = self.safe_integer_k(&requestUntil, "end_at", &[windowEnd.clone()]);
             if (self.safe_integer_k(&requestUntil, "end_at", &[]) == Value::Null) || (endAt.as_f64().unwrap_or(f64::NAN) > windowEnd.as_f64().unwrap_or(f64::NAN)) {
                 std::sync::Arc::make_mut(&mut requestUntil).insert("end_at".into(), windowEnd);

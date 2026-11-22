@@ -434,17 +434,17 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
     {
         Box::pin(async move {
             match method {
-                "build_clob_order_body" => self.build_clob_order_body(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
+                "build_clob_order_body" => crate::Value::Dict(self.build_clob_order_body(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_api_key" => Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
+                "create_api_key" => crate::Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_or_derive_api_key" => self.create_or_derive_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "derive_api_key" => Value::Dict(self.derive_api_key(&args[..].iter().collect::<Vec<_>>()).await),
+                "derive_api_key" => crate::Value::Dict(self.derive_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_events" => crate::types::IntoRaw::into_raw(self.fetch_events(args.get(0).cloned().unwrap_or_default()).await),
@@ -487,13 +487,12 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "polymarket_order_raw_amounts" => Value::Dict(self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_f64))),
-                "set_api_credentials" => Value::Dict(self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "polymarket_order_raw_amounts" => crate::Value::Dict(self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_f64))),
+                "set_api_credentials" => crate::Value::Dict(self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
-                "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "tag_to_slug" => self.tag_to_slug(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1625,7 +1624,7 @@ impl Polymarket {
  * @param {string} tag the tag label or slug
  * @returns {string} the gamma tag slug
  */
-    pub fn tag_to_slug(&self, tag: &str) -> Value {
+    pub fn tag_to_slug(&self, tag: &str) -> Option<String> {
         let lower: String = Some(tag).map(str::to_lowercase).unwrap_or_default();
         let allowed: String = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
         let chars: Vec<Value> = self.string_to_chars_array(Value::from(lower.clone())).as_array().cloned().unwrap_or_default();
@@ -1648,11 +1647,9 @@ impl Polymarket {
         }
         }
         if (slug == "") {
-            return Value::from(lower);
+            return Value::from(lower).as_str().map(str::to_owned);
         }
-        return Value::from(slug);
-
-    Value::Null
+        return Some(slug);
 }
 
 /*
@@ -1736,7 +1733,7 @@ impl Polymarket {
         if requestedTagsLength > 0 {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[]).as_str().unwrap_or_default()));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[]).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
         }
         if (status.as_deref() == Some("active")) {
             std::sync::Arc::make_mut(&mut baseRequest).insert("active".into(), Value::Bool(true));
@@ -1817,13 +1814,13 @@ impl Polymarket {
         let event = event.as_map().unwrap_or(&__event_empty);
         let __rd_eventSlug: Option<String> = (match event.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let eventSlug: Option<String> = (match event.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(__rd_eventSlug) }).as_str().map(str::to_owned);
-        let rawMarkets: crate::value::List = event.key_list("markets");
+        let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(event.key_list("markets"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut mi: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { mi += 1; } __for_first_18 = false; mi < (rawMarkets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(mi));
+            let market: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or_default();
             let conditionId: Option<String> = self.safe_string_k_opt(&market, "conditionId", &[]);
             let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let marketSlug: Option<String> = self.safe_string_k_opt(&market, "slug", &[&Value::from(conditionId.as_deref())]);
@@ -3327,7 +3324,7 @@ impl Polymarket {
 }));
         self.load_api_credentials().await;
         self.load_outcome(outcome.as_str(), &[]).await;
-        let built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]).into_dict();
+        let built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
         let response: crate::value::Dict = self.clob_private_post_order(&[&self.safe_dict_k(&built, "body", &[])]).await.unwrap_or_default();
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(&built, "request", &[]);
@@ -3394,7 +3391,7 @@ impl Polymarket {
     m
 })]);
             }
-            let built: crate::value::Dict = self.build_clob_order_body(self.safe_string_k(&o, "outcome", &[]).as_str(), self.safe_string_k(&o, "type", &[]).as_str(), self.safe_string_k(&o, "side", &[]).as_str(), self.safe_number_k(&o, "amount", &[]), &[&self.safe_number_k(&o, "price", &[]), &Value::Dict(orderParams)]).into_dict();
+            let built: crate::value::Dict = self.build_clob_order_body(self.safe_string_k(&o, "outcome", &[]).as_str(), self.safe_string_k(&o, "type", &[]).as_str(), self.safe_string_k(&o, "side", &[]).as_str(), self.safe_number_k(&o, "amount", &[]), &[&self.safe_number_k(&o, "price", &[]), &Value::Dict(orderParams)]);
             bodies.push(self.safe_dict_k(&built, "body", &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -3440,7 +3437,7 @@ impl Polymarket {
  * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
  * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
  */
-    pub fn build_clob_order_body(&mut self, outcome: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> Value {
+    pub fn build_clob_order_body(&mut self, outcome: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3608,15 +3605,13 @@ impl Polymarket {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
             requestEcho.insert("original_size".into(), amount);
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("body".to_string(), self.extend(rest, &[Value::Map(orderBody)]));
         m.insert("outcome".to_string(), crate::Value::from(outcomeObj.as_ref()));
         m.insert("request".to_string(), Value::Map(requestEcho));
     m
 });
-
-    Value::Null
 }
 
 /*
@@ -3717,8 +3712,6 @@ impl Polymarket {
         m.insert("takerAmount".to_string(), takerAmount.map(Value::from).unwrap_or(Value::Null));
     m
 });
-
-    Default::default()
 }
 
     pub fn sign_clob_order(&self, message: impl Into<crate::Value>, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {
@@ -3806,7 +3799,7 @@ impl Polymarket {
                     m.insert("Order".to_string(), orderStruct.clone());
                 m
             }), message.clone());
-            let eoaSig: indexmap::IndexMap<String, Value> = self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+            let eoaSig: indexmap::IndexMap<String, Value> = Value::Dict(self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
             let eoaSignature: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(self.safe_string_k(&eoaSig, "r", &[]))).into()), self.remove0x_prefix(self.safe_string_k(&eoaSig, "s", &[]))).into()), self.int_to_base16(eoaSig.get("v").cloned().unwrap_or(Value::Null), &[]));
@@ -3877,7 +3870,7 @@ impl Polymarket {
                 m.insert("Order".to_string(), orderStruct);
             m
         }), Value::Map(innerValue));
-        let innerSigObj: indexmap::IndexMap<String, Value> = self.sign_message(Value::from(&innerEncoded), (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+        let innerSigObj: indexmap::IndexMap<String, Value> = Value::Dict(self.sign_message(Value::from(&innerEncoded), (self.privateKey.clone()).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         let mut innerSig: String = format!("{}{}", Value::Str(format!("{}{}", self.remove0x_prefix(self.safe_string_k(&innerSigObj, "r", &[])), self.remove0x_prefix(self.safe_string_k(&innerSigObj, "s", &[]))).into()), self.int_to_base16(innerSigObj.get("v").cloned().unwrap_or(Value::Null), &[]));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
@@ -4429,7 +4422,7 @@ impl Polymarket {
         return Some(format!("{}{}", "0x", result));
 }
 
-    pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Value {
+    pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> crate::value::Dict {
         let signature: crate::value::Dict = ecdsa(Some(hash).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
@@ -4437,22 +4430,18 @@ impl Polymarket {
         let sRaw: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let r: String = format!("{:0>64}", rRaw);
         let s: String = format!("{:0>64}", sRaw);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("r".to_string(), Value::Str(format!("{}{}", "0x", r).into()));
         m.insert("s".to_string(), Value::Str(format!("{}{}", "0x", s).into()));
         m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
     m
 });
-
-    Value::Null
 }
 
-    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Some(privateKey).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
-
-    Value::Null
 }
 
     pub fn sign_clob_auth(&self, address: &str, timestamp: &str, mut nonce: Value) -> Option<String> {
@@ -4498,7 +4487,7 @@ impl Polymarket {
             m
         });
         let encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
-        let sig: indexmap::IndexMap<String, Value> = self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+        let sig: indexmap::IndexMap<String, Value> = Value::Dict(self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(self.safe_string_k(&sig, "r", &[]))).into()), self.remove0x_prefix(self.safe_string_k(&sig, "s", &[]))).into()), self.int_to_base16(sig.get("v").cloned().unwrap_or(Value::Null), &[])));
 }
 
@@ -4518,8 +4507,6 @@ impl Polymarket {
 }));
         let response: crate::value::Dict = self.clob_private_get_auth_derive_api_key(&[&params]).await.unwrap_or_default();
         return self.set_api_credentials(&response);
-
-    Default::default()
 }
 
 /*
@@ -4538,8 +4525,6 @@ impl Polymarket {
 }));
         let response: crate::value::Dict = self.clob_private_post_auth_api_key(&[&params]).await.unwrap_or_default();
         return self.set_api_credentials(&response);
-
-    Default::default()
 }
 
 /*
@@ -4588,8 +4573,6 @@ if _try_result.is_err() {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("l2Secret".into(), creds.get("secret").cloned().unwrap_or(Value::Null)); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("l2Passphrase".into(), creds.get("passphrase").cloned().unwrap_or(Value::Null)); }
         return std::sync::Arc::new(creds);
-
-    Default::default()
 }
 
 /*

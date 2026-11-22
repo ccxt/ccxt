@@ -117,7 +117,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseexchange {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(),
+                "authenticate" => crate::Value::Dict(self.authenticate()),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_my_trade" => self.handle_my_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -152,7 +152,6 @@ impl Coinbaseexchange {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "authenticate" => self.authenticate(),
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
@@ -241,13 +240,13 @@ impl Coinbaseexchange {
     Value::Null
 }
 
-    pub fn authenticate(&self) -> Value {
+    pub fn authenticate(&self) -> crate::value::Dict {
         self.check_required_credentials(&[]);
         let path: String = "/users/self/verify".to_string();
         let mut nonce: Option<i64> = self.nonce().as_i64();
         let payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(nonce))), Value::Str("GET".into())).into()), path);
         let signature: String = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(&self.secret, &[]), "sha256", &[Value::Str("base64".into())]);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), Value::from(nonce));
         m.insert("key".to_string(), self.apiKey.clone());
@@ -255,8 +254,6 @@ impl Coinbaseexchange {
         m.insert("passphrase".to_string(), self.password.clone());
     m
 });
-
-    Value::Null
 }
 
     pub async fn subscribe(&mut self, name: &str, symbol: Option<&str>, messageHashStart: Option<&str>, optional_args: &[Value]) -> Value {
@@ -537,7 +534,7 @@ impl Coinbaseexchange {
         let symbolValue: String = self.symbol(symbol.as_str());
         let name: String = "user".to_string();
         let messageHash: String = "myTrades".to_string();
-        let __ws_arg_0 = self.extend(params, &[self.authenticate()]);
+        let __ws_arg_0 = self.extend(params, &[Value::Dict(self.authenticate())]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_0]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -577,7 +574,7 @@ impl Coinbaseexchange {
         }
         let name: String = "user".to_string();
         let messageHash: String = "myTrades".to_string();
-        let __ws_arg_1 = self.extend(params, &[self.authenticate()]);
+        let __ws_arg_1 = self.extend(params, &[Value::Dict(self.authenticate())]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(messageHash), &__ws_arg_1]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
@@ -619,7 +616,7 @@ impl Coinbaseexchange {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]);
         let name: String = "user".to_string();
         let messageHash: String = "orders".to_string();
-        let __ws_arg_2 = self.extend(params, &[self.authenticate()]);
+        let __ws_arg_2 = self.extend(params, &[Value::Dict(self.authenticate())]);
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(messageHash), &__ws_arg_2]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&orders), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
@@ -664,7 +661,7 @@ impl Coinbaseexchange {
         let symbolValue: String = self.symbol(symbol.as_str());
         let name: String = "user".to_string();
         let messageHash: String = "orders".to_string();
-        let __ws_arg_3 = self.extend(params, &[self.authenticate()]);
+        let __ws_arg_3 = self.extend(params, &[Value::Dict(self.authenticate())]);
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_3]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -731,7 +728,7 @@ impl Coinbaseexchange {
                 m.insert("limit".to_string(), Value::from(limit));
             m
         });
-        let __ws_arg_4 = self.extend(request, &[self.authenticate()]);
+        let __ws_arg_4 = self.extend(request, &[Value::Dict(self.authenticate())]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_4, &messageHashes, Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
@@ -782,7 +779,7 @@ impl Coinbaseexchange {
                 m.insert("limit".to_string(), Value::from(limit));
             m
         });
-        let __ws_arg_5 = self.extend(request, &[self.authenticate()]);
+        let __ws_arg_5 = self.extend(request, &[Value::Dict(self.authenticate())]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null

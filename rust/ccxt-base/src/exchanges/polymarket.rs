@@ -716,9 +716,10 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "compact_signable" => Value::Arr(self.compact_signable(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "create_proxy_credentials" => self.create_proxy_credentials(&args[..].iter().collect::<Vec<_>>()).await,
+                "create_proxy_credentials" => crate::Value::Dict(self.create_proxy_credentials(&args[..].iter().collect::<Vec<_>>()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -771,7 +772,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => crate::Value::from(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref())),
                 "sign_message" => crate::Value::from(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref())),
-                "sign_perps_op" => Value::Dict(self.sign_perps_op(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "sign_perps_op" => crate::Value::Dict(self.sign_perps_op(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1443,8 +1444,8 @@ impl Polymarket {
 }));
         let promises: crate::value::List = std::sync::Arc::new(vec![self.call_method(Value::Str("public_get_info_instruments".into()), &[&params]).await, self.call_method(Value::Str("public_get_info_assets".into()), &[&params]).await]);
         let responses: crate::value::List = promise_all(&Value::Arr(promises)).await;
-        let instruments: crate::value::List = self.safe_list_t(&responses, Value::Int(0));
-        let assets: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
+        let instruments: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(0)));
+        let assets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(1)));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -1453,7 +1454,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (instruments.len() as i64) } {
-            let instrument: crate::value::Dict = self.safe_dict_t(&instruments, Value::Int(i));
+            let instrument: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or_default();
             let baseId: Option<String> = self.safe_string_k_opt(&instrument, "base_asset", &[]);
             if (baseId.is_none()) {
                 continue;
@@ -1512,7 +1513,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (assets.len() as i64) } {
-            let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+            let asset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&asset, "asset", &[]);
             if (currencyId.is_none()) {
                 continue;
@@ -1675,36 +1676,36 @@ impl Polymarket {
             let m = indexmap::IndexMap::new();
             m
         });
-        let statistics: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
+        let statistics: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(1)));
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (statistics.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&statistics, Value::Int(i));
+            let entry: crate::value::Dict = statistics.get(i as usize).cloned().unwrap_or_default();
             let instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.omit(&entry, Value::Str("klines".into()), &[]));
         }
         }
-        let bbos: crate::value::List = self.safe_list_t(&responses, Value::Int(2));
+        let bbos: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(2)));
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (bbos.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&bbos, Value::Int(i));
+            let entry: crate::value::Dict = bbos.get(i as usize).cloned().unwrap_or_default();
             let instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             let previous: crate::value::Dict = self.safe_dict_t(&merged, Value::from(instrumentId.as_deref()));
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous, &[&entry]));
         }
         }
-        let tickers: crate::value::List = self.safe_list_t(&responses, Value::Int(0));
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&responses, Value::Int(0)));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (tickers.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
+            let entry: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
             let instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             let previous: crate::value::Dict = self.safe_dict_t(&merged, instrumentId.map(Value::from).unwrap_or(Value::Null));
             result.push(self.extend(previous, &[&entry]));
@@ -2066,13 +2067,13 @@ impl Polymarket {
         //         "more": false
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2247,7 +2248,7 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-    pub fn create_order_request(&self, market: Option<&crate::types::Market>, mut type_var: Value, mut side: Value, amount: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub fn create_order_request(&self, market: Option<&crate::types::Market>, mut type_var: Value, mut side: Value, amount: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::Dict {
         let amount: Value = amount.into();
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
@@ -2316,15 +2317,13 @@ impl Polymarket {
         if (clientOrderId.is_some()) {
             entry.insert("c".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("signable".to_string(), Value::Arr(signable));
         m.insert("entry".to_string(), Value::Map(entry));
         m.insert("params".to_string(), paramsOmitted);
     m
 });
-
-    Value::Null
 }
 
 /*
@@ -2430,7 +2429,7 @@ impl Polymarket {
             let amount: Option<String> = self.safe_string_k_opt(&rawOrder, "amount", &[]);
             let price: Option<String> = self.safe_string_k_opt(&rawOrder, "price", &[]);
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let request: indexmap::IndexMap<String, Value> = self.create_order_request(Some(&market), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.map(Value::from).unwrap_or(Value::Null), &[&price.map(Value::from).unwrap_or(Value::Null), &Value::Dict(orderParams)]).as_map().cloned().unwrap_or_default();
+            let request: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_request(Some(&market), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.map(Value::from).unwrap_or(Value::Null), &[&price.map(Value::from).unwrap_or(Value::Null), &Value::Dict(orderParams)])).as_map().cloned().unwrap_or_default();
             rows.push(request.get("signable").cloned().unwrap_or(Value::Null));
             entries.push(request.get("entry").cloned().unwrap_or(Value::Null));
             ordersMarkets.push((market).raw.clone());
@@ -3231,13 +3230,13 @@ impl Polymarket {
         //         "more": false
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
             result.push(Value::Map({
@@ -3827,7 +3826,7 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
  */
-    pub async fn create_proxy_credentials(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn create_proxy_credentials(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3921,9 +3920,7 @@ impl Polymarket {
             m
         });
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("proxyCredentials".into(), Value::Map(credentials.clone())); }
-        return Value::Map(credentials);
-
-    Value::Null
+        return std::sync::Arc::new(credentials);
 }
 
 /*
@@ -3951,7 +3948,7 @@ impl Polymarket {
                 return credentials.map_or(Value::Null, Value::Dict);
             }
         }
-        return self.create_proxy_credentials(&[&params]).await;
+        return Value::Dict(self.create_proxy_credentials(&[&params]).await);
 
     Value::Null
 }
@@ -4032,8 +4029,6 @@ impl Polymarket {
             envelope.insert("exp".into(), Value::from(exp));
         }
         return std::sync::Arc::new(envelope);
-
-    Default::default()
 }
 
 /*
