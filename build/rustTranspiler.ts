@@ -5014,6 +5014,11 @@ function rustTypedParsePositionFamilies (content: string): string {
     return content.split (Q).join ('');
 }
 
+// the printer already returns Dict from this method (and no declaration of it returns Value): its callers are typed too
+function rustPrinterTypedDict (content: string, fn: string): boolean {
+    const decl = (ty: string) => new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> ' + ty + ' \\{\\n').test (content);
+    return decl ('crate::value::Dict') && !decl ('Value');
+}
 // venue request builders whose every declaration returns a dict, one name per line
 const RUST_DICT_BUILDER_FNS: string[] = [
     'edit_order_request',
@@ -5024,6 +5029,7 @@ const RUST_DICT_BUILDER_FNS: string[] = [
 // any other use (dispatch arms, `Value` locals) boxes it.
 function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BUILDER_FNS): string {
     for (const fn of fns) {
+        if (rustPrinterTypedDict (content, fn)) continue;
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -5054,11 +5060,17 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
         let m: RegExpExecArray | null;
         while ((m = head.exec (content)) !== null) starts.push (m.index);
         const copy = '.as_map().cloned().unwrap_or_default()';
-        for (const s of starts.reverse ()) {
+        for (let s of starts.reverse ()) {
             let close = balancedCloseIndex (content, content.indexOf ('(', s) + 1);
             if (close >= content.length) continue;
             const typedHead = rustDictBuilderHeadArg (content, s, close);
             if (typedHead !== undefined) { content = typedHead; continue; }
+            // the printer types a builder it proves: its Dict locals take the call as is, its boxes are undone here
+            if (/: crate::value::Dict = $/.test (content.slice (s - 40, s)) && content[close + 1] === ';') continue;
+            if (content.slice (s - 'Value::Dict('.length, s) === 'Value::Dict(' && content[close + 1] === ')') {
+                content = content.slice (0, s - 'Value::Dict('.length) + content.slice (s, close + 1) + content.slice (close + 2);
+                s -= 'Value::Dict('.length; close -= 'Value::Dict('.length;
+            }
             if (content.startsWith ('.await', close + 1)) close += '.await'.length;
             const rest = content.slice (close + 1);
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
@@ -8268,17 +8280,11 @@ const RUST_DICT_BUILDER_VENUE_FNS: Array<[string, string]> = [
     [ 'create_public_request', 'deepcoin' ],
     [ 'wrap_as_post_action', 'pacifica' ],
     [ 'send_subscription', 'polymarket' ],
-    [ 'set_api_credentials', 'prediction/opinion' ],
-    [ 'create_api_key', 'prediction/opinion' ],
-    [ 'fetch_api_key', 'prediction/opinion' ],
-    [ 'set_api_credentials', 'prediction/polymarket' ],
-    [ 'derive_api_key', 'prediction/polymarket' ],
-    [ 'create_api_key', 'prediction/polymarket' ],
     [ 'merge_position_break_info', 'xt' ],
 ];
 // hyperliquid signing: `signHash` returns the `{r, s, v}` literal, `signMessage` returns `signHash (..)`, `signL1Action`
 // returns that dict (a Dict local or `signMessage (..)`), so all three return `Dict`; any other return throws.
-const RUST_SIGNING_DICT_VENUES: string[] = [ 'hyperliquid', 'prediction/hyperliquid' ];
+const RUST_SIGNING_DICT_VENUES: string[] = [ 'hyperliquid' ];
 function rustTypedVenueBuilders (content: string, venue: string): string {
     const fns = RUST_DICT_BUILDER_VENUE_FNS.filter (([ , v ]) => v === venue).map (([ f ]) => f);
     if (fns.length > 0) content = rustTypedRequestBuilders (content, fns);
@@ -8589,9 +8595,6 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['unsubscribe_request', 'built'],
     ['parse_spot_or_uta_ticker', 'built'],
     ['create_public_subscription_request', 'built'],
-    ['parse_outcome_description', 'built'],
-    ['construct_phantom_agent', 'built'],
-    ['clob_order_message', 'built'],
     ['parse_sxbet_snapshot_best_odds', 'built'],
     ['parse_sxbet_v3_book_sides', 'built'],
     ['parse_funding_history', 'built'],
@@ -8604,10 +8607,7 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['subscribe_request', 'built'],
     ['parse_funding_rate_ws', 'built'],
     ['parse_trading_fees', 'built'],
-    ['opinion_order_raw_amounts', 'built'],
     ['parse_opinion_market', 'built'],
-    ['polymarket_order_raw_amounts', 'built'],
-    ['build_orderbook_order', 'built'],
     ['parse_sxbet_market', 'built'],
     ['sign_predictfun_order', 'built'],
     ['parse_uta_market', 'built'],
@@ -8632,6 +8632,7 @@ function rustTypedDictProducers (content: string): string {
     // later rows first: a dict producer may return another one (binance parse_balance_custom -> parse_balance_list)
     const dictRet = new RegExp ('^( *return )Value::Dict\\((self\\.(?:safe_balance|' + RUST_TYPED_DICT_PRODUCERS.filter ((r) => r[1] === 'dict').map ((r) => r[0]).join ('|') + ')\\(.*\\))\\);$', 'gm');
     for (const [fn, rowKind] of [ ...RUST_TYPED_DICT_PRODUCERS ].reverse ()) {
+        if (rustPrinterTypedDict (content, fn)) continue;
         const kind = rowKind === 'built' ? 'dict' : rowKind;
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
@@ -8667,6 +8668,8 @@ function rustTypedDictProducers (content: string): string {
             if (close >= content.length) continue;
             if (content.startsWith ('.await', close + 1)) close += '.await'.length;
             const call = content.slice (s, close + 1), rest = content.slice (close + 1);
+            // a Dict local the printer already gave the bare call (declaration in another file) keeps it
+            if (kind === 'dict' && /: crate::value::Dict = $/.test (content.slice (s - 40, s)) && rest.startsWith (';')) continue;
             if (rest.startsWith ('.into_opt_dict()')) {
                 content = content.slice (0, s) + (kind === 'dict' ? 'Some(' + call + ')' : call) + rest.slice ('.into_opt_dict()'.length);
             } else if (rest.startsWith ('.into_dict()')) {
