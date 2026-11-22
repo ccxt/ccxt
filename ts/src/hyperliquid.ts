@@ -2223,7 +2223,7 @@ export default class hyperliquid extends Exchange {
         const paramsOmitted: Dict = this.omit (params, 'randomize');
         const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (paramsOmitted, 'createOrder', 'vaultAddress');
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
-        const durationMins = Math.floor (duration / 1000 / 60); // convert from ms to minutes
+        const durationMins = Math.floor (this.parseToInt (duration) / 1000 / 60); // convert from ms to minutes
         const orderObj: Dict = {
             'a': this.parseToInt (market['baseId']),
             'b': isBuy,
