@@ -11989,7 +11989,8 @@ function javaOmitSourceIsMap (printer, source, depth) {
                 return false;
             }
         }
-        if (parent !== undefined && ts.isArrayLiteralExpression (parent)) {
+        const outer = parent?.parent;
+        if (parent !== undefined && ts.isArrayLiteralExpression (parent) && outer !== undefined && ts.isBinaryExpression (outer) && outer.left === parent) {
             return false; // destructuring target
         }
     }
@@ -15172,6 +15173,9 @@ function pairReturnElementProven (printer, node, element) {
     }
     if (value.kind === ts.SyntaxKind.TrueKeyword || value.kind === ts.SyntaxKind.FalseKeyword) {
         return element === 'Boolean' || element === 'Object';
+    }
+    if (pairSameType (element, PAIR_MAP) && javaOmitMapCall (printer, value) !== undefined) {
+        return true; // omit of a Map binds the Map overload: a fresh Map, or null
     }
     if (!ts.isIdentifier (value)) {
         return false;
