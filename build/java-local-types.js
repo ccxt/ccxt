@@ -19415,6 +19415,9 @@ function javaPrimitiveKind (ctx, text, nn) {
     if (/^-?\d+\.\d+$/.test (e)) return 'double';
     if (/^(?:\w+\.)?this\.microseconds\(\)$/.test (e)) return 'long';
     if (/^(?:\w+\.)?this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    // a Long parameter read through its long literal default is never null
+    const defaulted = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), \d{1,15}L\)$/.exec (e);
+    if (defaulted !== null && ctx.declType (defaulted[1]) === 'Long') return 'long';
     // String.length() / List.size() are primitive ints; a null-guarded `x == null ? 0 : x.length()` too
     const recv = '(?:\\(\\([\\w.<>?, ]+\\)[A-Za-z_]\\w*\\)|[A-Za-z_]\\w*)';
     if (new RegExp (`^${recv}\\.(?:size|length)\\(\\)$`).test (e)) return 'int';
