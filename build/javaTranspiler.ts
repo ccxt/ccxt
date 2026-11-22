@@ -3173,10 +3173,12 @@ class NewTranspiler {
 
         // ── this.spawn(this.method, args) → lambda (as statement ending with ;) ──
         content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm,
-            'this.spawn(() -> { try { this.$1($2); } catch(Exception _e) { throw new RuntimeException(_e); } });');
+            (_m, name, args) => this.spawnMethodReference(name, args)
+                ?? `this.spawn(() -> { try { this.${name}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`);
         // this.spawn("methodName", arg1, arg2, ...) → this.spawn(() -> { ... }) (as statement)
         content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm,
-            'this.spawn(() -> { try { this.$1($2); } catch(Exception _e) { throw new RuntimeException(_e); } });');
+            (_m, name, args) => this.spawnMethodReference(name, args)
+                ?? `this.spawn(() -> { try { this.${name}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`);
         // this.spawn(this.method, args) used as expression (value) — NOT ending with ;
         content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm, 'this.$1($2)');
         // this.spawn("methodName", args) as expression — the method-ref-as-string
@@ -3504,6 +3506,28 @@ class NewTranspiler {
             lines[i] = `${indent}${reference} ${hoistedName} = ${sourceName};`;
         }
         return lines.join ('\n');
+    }
+
+    // `this.spawn(this::m, a..)`: BaseExchange's typed spawn overloads take the arguments by value;
+    // a bare `null` would infer Object and miss a narrower parameter, so that shape keeps the lambda
+    spawnMethodReference(name: string, argsText: string): string | undefined {
+        const args: string[] = [];
+        let depth = 0;
+        let start = 0;
+        for (let k = 0; k < argsText.length; k++) {
+            const ch = argsText[k];
+            if (ch === '(' || ch === '<' || ch === '{') depth++;
+            else if (ch === ')' || ch === '>' || ch === '}') depth--;
+            else if (ch === ',' && depth === 0) {
+                args.push(argsText.slice(start, k).trim());
+                start = k + 1;
+            }
+        }
+        args.push(argsText.slice(start).trim());
+        if (depth !== 0 || args.length > 6 || args.some((a) => a === '' || a === 'null' || /["']/.test(a))) {
+            return undefined;
+        }
+        return `this.spawn(this::${name}, ${args.join(', ')});`;
     }
 
     spawnReassignedArgsByValue(content: string): string {

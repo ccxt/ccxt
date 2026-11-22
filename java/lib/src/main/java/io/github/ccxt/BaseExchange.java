@@ -1,6 +1,7 @@
 package io.github.ccxt;
 
 import java.lang.reflect.Field;
+import static io.github.ccxt.Helpers.task;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -2487,6 +2488,14 @@ public class BaseExchange {
     public void spawn(Runnable task) {
         VIRTUAL_EXECUTOR.execute(task);
     }
+
+    // `this.spawn(this::m, a..)`: the arguments are bound by value, so the call site holds no lambda
+    public <A> void spawn(Helpers.Task1<A> f, A a) { spawn(task(f, a)); }
+    public <A, B> void spawn(Helpers.Task2<A, B> f, A a, B b) { spawn(task(f, a, b)); }
+    public <A, B, C> void spawn(Helpers.Task3<A, B, C> f, A a, B b, C c) { spawn(task(f, a, b, c)); }
+    public <A, B, C, D> void spawn(Helpers.Task4<A, B, C, D> f, A a, B b, C c, D d) { spawn(task(f, a, b, c, d)); }
+    public <A, B, C, D, E> void spawn(Helpers.Task5<A, B, C, D, E> f, A a, B b, C c, D d, E e) { spawn(task(f, a, b, c, d, e)); }
+    public <A, B, C, D, E, F> void spawn(Helpers.Task6<A, B, C, D, E, F> f, A a, B b, C c, D d, E e, F g) { spawn(task(f, a, b, c, d, e, g)); }
 
     /**
      * Schedule a method-name callback on the virtual executor after a delay.
