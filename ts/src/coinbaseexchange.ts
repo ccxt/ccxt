@@ -1715,7 +1715,7 @@ export default class coinbaseexchange extends Exchange {
         } else {
             request['client_oid'] = clientOrderId;
         }
-        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, [ 'clientOrderId', 'client_oid' ]) : params;
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1929,7 +1929,7 @@ export default class coinbaseexchange extends Exchange {
         if (until !== undefined) {
             request['end_date'] = this.iso8601 (until);
         }
-        const paramsUntil: Dict = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
+        const paramsUntil: Dict = this.omit (params, [ 'until' ]);
         const response = await this.privateGetAccountsIdLedger (this.extend (request, paramsUntil));
         const entries = this.toArray (response);
         const entriesWithCurrency = [];
