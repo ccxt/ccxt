@@ -2955,8 +2955,8 @@ if _try_result.is_err() {
         if useTransfersEndpoint {
             let __ws_arg_9 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
             let transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_9, &[&crate::Value::from(currency.as_ref()), &Value::from(since), &Value::from(limit)]).await;
-            let transactions: Value = Value::Arr(self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "deposit", &[&Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into())));
-            return Value::Arr(self.parse_transactions(transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+            let transactions: crate::value::List = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "deposit", &[&Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
+            return Value::Arr(self.parse_transactions(&transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }  else {
             let __ws_arg_10 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
             let response: crate::value::Dict = self.private_trading_post_full_v1_deposit_history(&[&__ws_arg_10]).await.unwrap_or_default();
@@ -3033,8 +3033,8 @@ if _try_result.is_err() {
         if useTransfersEndpoint {
             let __ws_arg_11 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
             let transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_11, &[&crate::Value::from(currency.as_ref()), &Value::from(since), &Value::from(limit)]).await;
-            let transactions: Value = Value::Arr(self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "withdrawal", &[&Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into())));
-            return Value::Arr(self.parse_transactions(transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+            let transactions: crate::value::List = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "withdrawal", &[&Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
+            return Value::Arr(self.parse_transactions(&transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }  else {
             let __ws_arg_12 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
             let response: crate::value::Dict = self.private_trading_post_full_v1_withdrawal_history(&[&__ws_arg_12]).await.unwrap_or_default();
@@ -3724,8 +3724,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut sizeDec: String = self.safe_string(&sizeParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let sizeDecLength: i64 = (((sizeDec.chars().count() as i64)) + 0); // php tr
             let sizeDigits: Option<i64> = self.parse_to_int((if let Some(__s) = size.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null));
-            let mut denominator: f64 = f64::powf(10.0, (sizeDecLength as f64));
-            let sizeInteger: Value = (match ((Value::from((if let Some(__l) = sizeDigits { Some((__l as f64) * sizeMultiplier) } else { None }))).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+            let sizeDenominator: f64 = f64::powf(10.0, (sizeDecLength as f64));
+            let sizeInteger: Value = (match ((Value::from((if let Some(__l) = sizeDigits { Some((__l as f64) * sizeMultiplier) } else { None }))).as_f64(), (Value::from(sizeDenominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             let mut legOrder: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("assetID".to_string(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "instrument_hash", &[]));
@@ -3740,8 +3740,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let mut limitDec: String = self.safe_string(&limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let limitDecLength: i64 = (((limitDec.chars().count() as i64)) + 0); // php tr
                 let priceDigits: Option<i64> = self.parse_to_int((if let Some(__s) = price.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null));
-                denominator = f64::powf(10.0, (limitDecLength as f64));
-                let priceInteger: Value = (match ((Value::from((if let Some(__l) = priceDigits { Some(__l * priceMultiplier) } else { None }))).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+                let priceDenominator: f64 = f64::powf(10.0, (limitDecLength as f64));
+                let priceInteger: Value = (match ((Value::from((if let Some(__l) = priceDigits { Some(__l * priceMultiplier) } else { None }))).as_f64(), (Value::from(priceDenominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
                 legOrder.insert("limitPrice".into(), Value::from(self.parse_to_int(priceInteger)));
             }  else {
                 legOrder.insert("limitPrice".into(), Value::Int(0)); // should be zero to validate type-check

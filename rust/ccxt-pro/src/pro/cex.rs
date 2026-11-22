@@ -430,7 +430,7 @@ impl Cex {
         //
         let mut tradeParts: Value = trade.clone();
         if !(matches!(&trade, Value::Arr(_))) {
-            tradeParts = split(&trade, &Value::Str(":".into()));
+            tradeParts = Value::Array(if let Some(__s) = trade.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         }
         let side: Option<String> = self.safe_string_opt(&tradeParts, Value::Int(0), &[]);
         let timestamp: Option<i64> = self.safe_integer(&tradeParts, Value::Int(1), &[]).as_i64();

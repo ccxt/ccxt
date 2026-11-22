@@ -1795,9 +1795,9 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::from(&paramsMarketType)]);
         let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
-        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
-        let orderRequest: crate::value::Dict = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let paramsValue: crate::value::Dict = orderRequestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let orderRequestparamsValueVariable = self.parent.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(paramsMarginMode)]);
+        let orderRequest: crate::value::Dict = orderRequestparamsValueVariable.0;
+        let paramsValue: crate::value::Dict = orderRequestparamsValueVariable.1;
         let request: crate::value::Dict = self.extend_t(orderRequest, &[&paramsValue]);
         if (marketType.as_deref() == Some("swap")) {
             return self.trade_request("futures_new_order", &[&Value::from(&request)]).await;

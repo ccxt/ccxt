@@ -325,38 +325,38 @@ impl crate::exchange::DerivedExchange for Toobit {
         if isContract {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         }
-        return self.safe_market_structure(&[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseId".to_string(), Value::from(baseId));
-        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), (if isContract { Value::Str("swap".into()) } else { Value::Str("spot".into()) }));
-        m.insert("spot".to_string(), Value::Bool(!isContract));
-        m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(isContract));
-        m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(active));
-        m.insert("contract".to_string(), Value::Bool(isContract));
-        m.insert("linear".to_string(), (if isContract { (Value::Bool(inverse != Some(true))) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if isContract { inverse.map_or(Value::Null, Value::Bool) } else { Value::Null }));
-        m.insert("contractSize".to_string(), self.safe_number_k(&market, "contractMultiplier", &[]));
-        m.insert("expiry".to_string(), Value::Null);
-        m.insert("expiryDatetime".to_string(), Value::Null);
-        m.insert("strike".to_string(), Value::Null);
-        m.insert("optionType".to_string(), Value::Null);
-        m.insert("precision".to_string(), Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from(symbol));
+                m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+                m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
+                m.insert("baseId".to_string(), Value::from(baseId));
+                m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("type".to_string(), (if isContract { Value::Str("swap".into()) } else { Value::Str("spot".into()) }));
+                m.insert("spot".to_string(), Value::Bool(!isContract));
+                m.insert("margin".to_string(), Value::Bool(false));
+                m.insert("swap".to_string(), Value::Bool(isContract));
+                m.insert("future".to_string(), Value::Bool(false));
+                m.insert("option".to_string(), Value::Bool(false));
+                m.insert("active".to_string(), Value::Bool(active));
+                m.insert("contract".to_string(), Value::Bool(isContract));
+                m.insert("linear".to_string(), Value::Null);
+                m.insert("inverse".to_string(), Value::Null);
+                m.insert("contractSize".to_string(), self.safe_number_k(&market, "contractMultiplier", &[]));
+                m.insert("expiry".to_string(), Value::Null);
+                m.insert("expiryDatetime".to_string(), Value::Null);
+                m.insert("strike".to_string(), Value::Null);
+                m.insert("optionType".to_string(), Value::Null);
+                m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number_k(&lotSizeFilter, "stepSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(&priceFilter, "tickSize", &[]));
     m
 }));
-        m.insert("limits".to_string(), Value::Map({
+                m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -384,10 +384,15 @@ impl crate::exchange::DerivedExchange for Toobit {
 }));
     m
 }));
-        m.insert("created".to_string(), Value::Null);
-        m.insert("info".to_string(), market);
-    m
-})]);
+                m.insert("created".to_string(), Value::Null);
+                m.insert("info".to_string(), market);
+            m
+        });
+        if isContract {
+            result.insert("linear".into(), (Value::Bool(inverse != Some(true))));
+            result.insert("inverse".into(), inverse.map_or(Value::Null, Value::Bool));
+        }
+        return self.safe_market_structure(&[Value::Map(result)]);
 
     Value::Null
 }
@@ -878,12 +883,12 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_contract_order_request" => self.create_contract_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
-                    args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_contract_order_request" => { let __t = self.create_contract_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                    args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
-                    args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_request" => { let __t = self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                    args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_bids_asks" => crate::types::IntoRaw::into_raw(self.fetch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2970,15 +2975,15 @@ impl Toobit {
             m
         });
         if (market).spot {
-            let requestparamsRequestVariable: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]).as_array().cloned().unwrap_or_default();
+            let requestparamsRequestVariable: Vec<Value> = ({ let __t = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) }).as_array().cloned().unwrap_or_default();
             let request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
             let paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_11 = self.extend(request, &[&paramsRequest]);
             response = self.private_post_api_v1_spot_order(&[&__ws_arg_11]).await.unwrap_or_default();
         }  else {
-            let requestparamsRequestVariable: Vec<Value> = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]).as_array().cloned().unwrap_or_default();
-            let request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-            let paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let requestparamsRequestVariable = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]);
+            let request: crate::value::Dict = requestparamsRequestVariable.0;
+            let paramsRequest: crate::value::Dict = requestparamsRequestVariable.1;
             let __ws_arg_12 = self.extend(request, &[&paramsRequest]);
             response = self.private_post_api_v1_futures_order(&[&__ws_arg_12]).await.unwrap_or_default();
         }
@@ -2987,7 +2992,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> Value {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3028,12 +3033,10 @@ impl Toobit {
         }  else {
             request.insert("type".into(), (if let Some(__s) = Some(type_var) { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
-        return Value::from(vec![Value::Map(request), Value::Dict(paramsPostOnly)]);
-
-    Value::Null
+        return (std::sync::Arc::new(request), paramsPostOnly);
 }
 
-    pub fn create_contract_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> Value {
+    pub fn create_contract_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3121,9 +3124,7 @@ impl Toobit {
         if (self.safe_string_k(&paramsOmitted, "newClientOrderId", &[]) == Value::Null) {
             request.insert("newClientOrderId".into(), Value::from(self.uuid(&[])));
         }
-        return Value::from(vec![Value::Map(request), Value::Dict(paramsOmitted)]);
-
-    Value::Null
+        return (std::sync::Arc::new(request), paramsOmitted);
 }
 
 

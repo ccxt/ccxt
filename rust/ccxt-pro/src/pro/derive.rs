@@ -850,10 +850,7 @@ impl Derive {
         //
         //
         let params: crate::value::Dict = message.key_dict("params");
-        let data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]);
+        let data: crate::value::List = self.safe_list_k_t(&params, "data");
         let topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let parsedTopic: crate::value::List = crate::value::List::new(topic.split(".").map(Value::from).collect());
         let marketId: Option<String> = self.safe_string_opt(&parsedTopic, Value::Int(1), &[]);
@@ -868,7 +865,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let trade: crate::value::Dict = self.parse_trade(get_value(&data, &Value::Int(i)), None);
+            let trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), None);
             tradesArray.append(Value::Dict(trade));
         }
         }

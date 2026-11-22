@@ -4076,8 +4076,8 @@ impl Bitstamp {
             let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
             response = self.call_method(Value::Str("private_post_user_transactions".into()), &[&__ws_arg_18]).await;
         }
-        let result: Value = Value::Arr(self.filter_by(response, Value::Str("type".into()), Value::Str("2".into()), &[]));
-        return Value::Arr(self.parse_trades(result, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+        let result: crate::value::List = self.filter_by(response, Value::Str("type".into()), Value::Str("2".into()), &[]);
+        return Value::Arr(self.parse_trades(&result, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4545,7 +4545,11 @@ impl Bitstamp {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawal_open(&[&__ws_arg_26]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, response, currency.as_ref());
+        let __ws_arg_27 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, __ws_arg_27, currency.as_ref());
         Value::Null
         }).await?))
     }
@@ -4590,12 +4594,12 @@ impl Bitstamp {
         let mut response: Option<crate::value::Dict> = None;
         if (fromAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), toAccount.clone());
-            let __ws_arg_27 = self.extend(&request, &[&params]);
-            response = self.private_post_transfer_from_main(&[&__ws_arg_27]).await;
+            let __ws_arg_28 = self.extend(&request, &[&params]);
+            response = self.private_post_transfer_from_main(&[&__ws_arg_28]).await;
         }  else if (toAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), fromAccount.clone());
-            let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_transfer_to_main(&[&__ws_arg_28]).await;
+            let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
+            response = self.private_post_transfer_to_main(&[&__ws_arg_29]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports from or to main")));
         }

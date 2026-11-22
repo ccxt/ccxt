@@ -3235,8 +3235,8 @@ impl Dydx {
             currency = Some(self.currency(code.as_str()));
         }
         let response: crate::value::List = self.fetch_transactions_helper("fetchWithdrawals", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        let rows: Value = Value::Arr(self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]));
-        return Value::Arr(self.parse_transactions(rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+        let rows: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
+        return Value::Arr(self.parse_transactions(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3275,8 +3275,8 @@ impl Dydx {
             currency = Some(self.currency(code.as_str()));
         }
         let response: crate::value::List = self.fetch_transactions_helper("fetchDeposits", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        let rows: Value = Value::Arr(self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]));
-        return Value::Arr(self.parse_transactions(rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+        let rows: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
+        return Value::Arr(self.parse_transactions(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }

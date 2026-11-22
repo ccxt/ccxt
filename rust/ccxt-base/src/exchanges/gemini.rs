@@ -1983,8 +1983,8 @@ impl Gemini {
 }));
         let data: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webGetRestApi".into()), Value::Bool(false), &[Value::Str("<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>".into())]).await;
         let error: String = format!("{}{}", self.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-        let tables: Value = split(&data, &Value::Str("tbody>".into()));
-        let numTables: i64 = tables.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_i64().unwrap_or_default();
+        let tables: crate::value::List = crate::value::List::new(if let Some(__s) = data.as_str() { __s.split("tbody>").map(Value::from).collect() } else { Vec::new() });
+        let numTables: i64 = tables.len() as i64;
         if numTables < 2 {
             panic!("{}", crate::exchange_errors::not_supported(error.clone()));
         }

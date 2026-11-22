@@ -1826,8 +1826,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut __for_first_7: bool = true;
                 while { if !__for_first_7 { j += 1; } __for_first_7 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                let subHash: String = self.safe_string(&subMessageHashes, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                self.clean_unsubscription(client, Value::from(subHash), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
             }
             }
         }

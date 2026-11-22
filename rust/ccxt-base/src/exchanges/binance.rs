@@ -3277,20 +3277,19 @@ impl crate::exchange::DerivedExchange for Binance {
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
-        let mut parsedMessage: Value = Value::Null;
+        let mut responseParsed: Value = response.clone();
         if !success {
             let messageNew: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
             if (messageNew.is_some()) {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    parsedMessage = json_parse(&messageNew.map(Value::from).unwrap_or(Value::Null));
+                    responseParsed = json_parse(&messageNew.map(Value::from).unwrap_or(Value::Null));
                  #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
                     // do nothing
-                    parsedMessage = Value::Null;
+                    responseParsed = response;
                 }
             }
         }
-        let responseParsed: Value = (if (parsedMessage != Value::Null) { parsedMessage.clone() } else { response });
         let message: Option<String> = self.safe_string_k_opt(&responseParsed, "msg", &[]);
         if (message.is_some()) {
             self.throw_exactly_matched_exception(self.get_exceptions_by_url(url.as_str().unwrap_or_default(), "exact"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
@@ -12783,7 +12782,7 @@ impl Binance {
             clientOrderIdRequest = "clientOrderId".to_string();
         }
         if (clientOrderId.is_none()) {
-            request.insert(clientOrderIdRequest.clone(), self.generate_client_order_id(Some(&market), &[]).map(Value::from).unwrap_or(Value::Null));
+            request.insert(clientOrderIdRequest, self.generate_client_order_id(Some(&market), &[]).map(Value::from).unwrap_or(Value::Null));
         }  else {
             request.insert(clientOrderIdRequest, clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -18153,19 +18152,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let __ws_arg_181 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let response: crate::value::List = self.eapi_private_get_bill(&[&__ws_arg_181]).await.unwrap_or_default();
-        //
-        //     [
-        //         {
-        //             "id": "1125899906845701870",
-        //             "asset": "USDT",
-        //             "amount": "-0.16518203",
-        //             "type": "FEE",
-        //             "createDate": 1676621042489
-        //         }
-        //     ]
-        //
-        let first: Value = self.safe_dict(&response, Value::Int(0), &[Value::from(&response)]);
-        return <Self as crate::exchange::DerivedExchange>::parse_ledger_entry(self, first, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_ledger_entry(self, self.safe_dict(&response, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&currency));
         Value::Null
         }).await?))
     }
@@ -18323,8 +18313,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let info: crate::value::Dict = self.safe_dict_t(networks.get(currentNetworkCode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("info".into()));
             let siteUrl: Option<String> = self.safe_string_k_opt(&info, "contractAddressUrl", &[]);
             // check if url matches the field's value
-            let baseDomain: Value = self.get_base_domain_from_url(siteUrl.as_deref()).map(Value::from).unwrap_or(Value::Null);
-            if (siteUrl.is_some()) && (baseDomain != Value::Null) && (depositUrl.zip(baseDomain.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
+            let baseDomain: Option<String> = self.get_base_domain_from_url(siteUrl.as_deref());
+            if (siteUrl.is_some()) && (baseDomain.is_some()) && (depositUrl.zip(baseDomain.as_deref()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                 networkCode = currentNetworkCode;
             }
         }

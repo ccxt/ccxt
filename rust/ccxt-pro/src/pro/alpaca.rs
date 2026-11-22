@@ -372,7 +372,7 @@ impl Alpaca {
         //    ]
         //
         let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, message, None).unwrap_or_default();
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "ticker:", tickerSymbol);
         if (symbol.is_some()) {

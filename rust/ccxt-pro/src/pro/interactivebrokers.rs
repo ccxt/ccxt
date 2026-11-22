@@ -823,7 +823,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         let hasBidAsk: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("84"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("85"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("86"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("88")));
-        let hasQuote: bool = (crate::value::KeyRead::key_read(&&ticker, "bid") != Value::Null) || (crate::value::KeyRead::key_read(&&ticker, "ask") != Value::Null);
+        let hasQuote: bool = (self.safe_string_k(&ticker, "bid", &[]) != Value::Null) || (self.safe_string_k(&ticker, "ask", &[]) != Value::Null);
         if hasBidAsk && hasQuote {
             let bidAsk: Value = Value::Dict(self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -996,7 +996,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let parts: crate::value::List = crate::value::List::new(topic.split("+").map(Value::from).collect());
-        let marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
+        let marketId: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let serverId: Option<String> = (match message.get("serverId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (serverId.is_some()) {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -1013,7 +1013,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             // the base watch () stores internal futures (connected/authenticated) under an undefined
             // subscription hash, which is a None dict key in python, so it cannot be assumed a string
-            if (key != Value::Null) && (key.as_str().zip((Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh::", marketId.as_deref().unwrap_or("null")).into()), "::").into())).as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
+            if (key != Value::Null) && (key.as_str().zip((Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh::", marketId).into()), "::").into())).as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                 let candidate: Value = __ch.get_subscription(&key);
                 let duration: Option<i64> = self.safe_integer_k(&candidate, "duration", &[]).as_i64();
                 if (subscription == Value::Null) || (duration == barLength) {
@@ -1027,7 +1027,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let timeframe: Option<String> = self.safe_string_k_opt(&subscription, "timeframe", &[]);
-        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
+        let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
         let stored: Value = self.safe_value(self.safe_dict(Value::from(&self.ohlcvs), symbol.clone(), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
@@ -1233,7 +1233,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let unifiedSymbol: String = (market).symbol.clone();
+        let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let accountIdqueryVariable: Vec<Value> = self.parent.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
         let accountId: Value = accountIdqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1283,7 +1283,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let unifiedSymbol: String = (market).symbol.clone();
+        let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let accountIdqueryVariable: Vec<Value> = self.parent.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
         let accountId: Value = accountIdqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1633,7 +1633,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             let parsed: crate::value::Dict = self.parse_order(merged, None);
             self.orders.append(Value::from(&parsed));
-            let orderSymbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let orderSymbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (orderSymbol.is_some()) {
                 symbols.insert(orderSymbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -1791,12 +1791,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
         let subscription: crate::value::Dict = self.safe_dict_k_t(&__ch.subscriptions, "str");
         let realtimeUpdatesOnly: bool = self.safe_bool_k_opt(&subscription, "realtimeUpdatesOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut threshold: Value = Value::Null;
+        let mut threshold: Option<i64> = None;
         if realtimeUpdatesOnly {
             let subscribedAt: Option<i64> = self.safe_integer_k(&subscription, "subscribedAt", &[]).as_i64();
             if (subscribedAt.is_some()) {
-                threshold = (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__l) = subscribedAt { Some((__l as f64) / 1000.0) } else { None }))))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                threshold = (if let Some(__l) = (self.parse_to_int(Value::from((if let Some(__l) = subscribedAt { Some((__l as f64) / 1000.0) } else { None })))) { Some(__l * 1000) } else { None });
             }
         }
         // the same execution can be sent several times, first without the commission, then with it, then again unchanged,
@@ -1813,8 +1812,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (args.len() as i64) } {
             let rawTrade: Value = args.get(i as usize).cloned().unwrap_or(Value::Null);
             let trade: crate::value::Dict = self.parse_trade(rawTrade.clone(), None);
-            let tradeTimestamp: Value = crate::value::KeyRead::key_read(&&trade, "timestamp");
-            if (threshold != Value::Null) && (tradeTimestamp != Value::Null) && (tradeTimestamp.as_f64().unwrap_or(f64::NAN) < threshold.as_f64().unwrap_or(f64::NAN)) {
+            let tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
+            if (threshold.is_some()) && (tradeTimestamp.is_some()) && ((tradeTimestamp.is_some() && threshold.is_some() && tradeTimestamp < threshold)) {
                 continue;
             }
             if skipDuplicates {
@@ -1828,8 +1827,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
             }
             self.myTrades.append(Value::from(&trade));
-            let tradeSymbol: Value = crate::value::KeyRead::key_read(&&trade, "symbol");
-            symbols.insert(crate::runtime::stringify_param(&tradeSymbol), Value::Bool(true));
+            let tradeSymbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbols.insert(tradeSymbol, Value::Bool(true));
         }
         }
         let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();

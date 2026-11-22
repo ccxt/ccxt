@@ -970,22 +970,28 @@ impl Coinbaseinternational {
         let channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
-        let mut positions: Value = Value::Arr(self.parse_positions(&rawPositions, &[]));
+        let mut positions: Vec<Value> = self.parse_positions(&rawPositions, &[]).to_vec();
         let positionsLength: i64 = positions.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < positionsLength } {
-            let mut position: Value = get_value(&positions, &Value::Int(i));
+            let position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(&position, "side", &[]) == Value::Null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                 let shortPosition: crate::value::Dict = self.extend_t(&position, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::Str("short".into()));
                     m
                 })]);
                 self.positions.append(Value::Dict(shortPosition));
+                let longPosition: crate::value::Dict = self.extend_t(&position, &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("side".to_string(), Value::Str("long".into()));
+                    m
+                })]);
+                self.positions.append(Value::Dict(longPosition));
+                continue;
             }
             self.positions.append(position);
         }
@@ -2406,14 +2412,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]);
-        if (future != Value::Null) {
+        let mut subscribed: bool = (future != Value::Null);
+        if subscribed {
             let refreshAt: Option<i64> = self.safe_integer_k(&self.options, "wsAuthRefreshAt", &[]).as_i64();
             if (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds())) >= refreshAt)) && !(client.has_future(messageHash.as_str())) {
                 client.remove_subscription(messageHash.as_str());
-                future = Value::Null;
+                subscribed = false;
             }
         }
-        if (future == Value::Null) {
+        if !subscribed {
             self.check_required_credentials(&[]);
             let requestId: i64 = self.request_id();
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsAuthRequestId".into(), Value::from(requestId)); }

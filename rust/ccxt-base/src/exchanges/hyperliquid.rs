@@ -1209,7 +1209,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "set_agent_abstraction" => self.set_agent_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "set_ref" => self.set_ref().await,
+                "set_ref" => self.set_ref(&args[..]).await,
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "set_user_abstraction" => self.set_user_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -3334,11 +3334,11 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub async fn set_ref(&mut self) -> Value {
-        if matches!(self.safe_bool_k(&self.options, "refSet", &[Value::Bool(false)]), Value::Bool(true)) {
+    pub async fn set_ref(&mut self, optional_args: &[Value]) -> Value {
+        let alreadySet: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
+        if alreadySet {
             return Value::Bool(true);
         }
-        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("refSet".into(), Value::Bool(true)); }
         let action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("setReferrer".into()));
@@ -3404,7 +3404,17 @@ if _try_result.is_err() {
 
     pub async fn initialize_client(&mut self) -> Value {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            promise_all(&Value::from(vec![self.handle_builder_fee_approval().await, self.set_ref().await, { let __t = self.is_unified_enabled("fetchBalance", None, &[&Value::Bool(false), &Value::Map({
+            // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
+            let refSet: bool = self.safe_bool_k_opt(&self.options, "refSet", &[Value::Bool(false)]).unwrap_or(false);
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("refSet".into(), Value::Bool(true)); }
+            let feeApproved: bool = self.handle_builder_fee_approval().await.as_bool().unwrap_or_default();
+            if feeApproved {
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
+            }  else {
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
+            }
+            self.set_ref(&[Value::Bool(refSet)]).await;
+            promise_all(&Value::from(vec![{ let __t = self.is_unified_enabled("fetchBalance", None, &[&Value::Bool(false), &Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]).await;
@@ -3433,10 +3443,9 @@ if _try_result.is_err() {
                 maxFeeRate = "0%".to_string();
             }
             self.approve_builder_fee(builder.as_str(), maxFeeRate.as_str()).await;
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
+            return Value::Bool(false);
         }
         return Value::Bool(true);
 

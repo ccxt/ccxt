@@ -2360,11 +2360,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let messageHash: String = "challenge".to_string();
         if (event.as_deref() != Some("error")) {
-            let challenge: Value = (match __pro_message.get("message").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
-            let hashedChallenge: crate::value::Bytes = self.hash_binary(self.encode(&challenge), "sha256");
+            let challenge: String = (match __pro_message.get("message").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+            let hashedChallenge: crate::value::Bytes = self.hash_binary(self.encode(Value::from(challenge.as_str())), "sha256");
             let base64Secret: crate::value::Bytes = self.base64_to_binary(&self.secret, &[]);
             let signature: String = self.hmac(&hashedChallenge, &base64Secret, "sha512", &[Value::Str("base64".into())]);
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("challenge".into(), challenge); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("challenge".into(), Value::from(challenge)); }
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("signedChallenge".into(), Value::from(signature)); }
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
             future.resolve(Value::Bool(true), None);

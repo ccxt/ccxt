@@ -2320,17 +2320,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let topicSymbol: Option<String> = self.safe_string_opt(&topicParts, Value::Int(1), &[]);
         let topicChannel: Option<String> = self.safe_string_opt(&topicParts, Value::Int(0), &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[&Value::from(topicSymbol.as_deref())]);
-        let symbol: Value = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]);
-        let messageHash: String = format!("{}{}", "orderbook:", symbol);
+        let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
+        let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         // let orderbook = this.safeDict (this.orderbooks, symbol);
         if topic.as_deref().unwrap_or_default().contains("Depth") {
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
-            }  else {
-                let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-                orderbook.reset0();
             }
-            { let mut __b = self.orderbooks.at(&symbol); __b.set_book_meta("symbol", symbol.clone()); }
+            let mut storedBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+            storedBook.reset0();
+            storedBook.set_book_meta("symbol", self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]));
         }  else {
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -2356,7 +2355,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]));
                 if (cacheLength == snapshotDelay) {
-                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), symbol.clone(), Value::from(limit), Value::Map({
+                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), Value::from(symbol.as_deref()), Value::from(limit), Value::Map({
                         let m = indexmap::IndexMap::new();
                         m
                     })]);

@@ -314,9 +314,9 @@ impl Pacifica {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let requestoperationTypeVariable: Vec<Value> = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]).as_array().cloned().unwrap_or_default();
-        let request: crate::value::Dict = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let requestoperationTypeVariable = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]);
+        let request: crate::value::Dict = requestoperationTypeVariable.0;
+        let operationType: Option<String> = requestoperationTypeVariable.1.as_str().map(str::to_owned);
         let isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {

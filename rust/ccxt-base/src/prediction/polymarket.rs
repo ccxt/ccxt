@@ -2416,7 +2416,7 @@ impl Polymarket {
         let timestamp: Option<i64> = self.safe_integer_k(&bookData, "timestamp", &[]).as_i64();
         let mut quoteVolume: Option<f64> = None;
         if (market.is_some()) {
-            quoteVolume = self.safe_number2(crate::value::KeyRead::key_read(&market, "info"), Value::Str("volume24hr".into()), Value::Str("volume".into()), &[]).as_f64();
+            quoteVolume = self.safe_number2(self.safe_dict_k(&market, "info", &[]), Value::Str("volume24hr".into()), Value::Str("volume".into()), &[]).as_f64();
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();

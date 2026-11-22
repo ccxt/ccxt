@@ -1591,7 +1591,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if outcomeSymbol.as_deref().unwrap_or_default().contains(":") {
                 continue;
             }
-            let mut baseTicker: Option<String> = outcomeSymbol.clone();
+            let tickerText: String = self.safe_string(&outcomeSymbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut baseTicker: Option<String> = Some(tickerText);
             if (outcomeSymbol.as_deref().unwrap_or_default().ends_with("-NO")) {
                 baseTicker = (if let Some(__s) = outcomeSymbol.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, -3); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
             }

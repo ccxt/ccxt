@@ -2496,7 +2496,7 @@ impl Btse {
                     minNotional = maxNotional.take();
                 }
                 }
-                result.insert(symbol.clone(), Value::Arr(tiers)); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                result.insert(symbol, Value::Arr(tiers)); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         }

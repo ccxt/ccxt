@@ -2452,8 +2452,8 @@ impl Hollaex {
         if (network.is_none()) {
             return self.parse_deposit_addresses(&wallet, &[Value::from(codes.clone()), Value::Bool(false)]);
         }
-        let addresses: Value = Value::Arr(self.filter_by(Value::Arr(wallet), Value::Str("network".into()), self.network_code_to_id(network.as_deref(), None), &[]));
-        return self.parse_deposit_addresses(addresses, &[Value::from(codes), Value::Bool(false)]);
+        let addresses: crate::value::List = self.filter_by(Value::Arr(wallet), Value::Str("network".into()), self.network_code_to_id(network.as_deref(), None), &[]);
+        return self.parse_deposit_addresses(&addresses, &[Value::from(codes), Value::Bool(false)]);
         Value::Null
         }).await?))
     }

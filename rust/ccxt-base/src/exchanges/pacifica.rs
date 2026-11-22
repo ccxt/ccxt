@@ -893,7 +893,8 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_request" => { let __t = self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64),
+                    &args[5.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), __t.1]) },
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_orders_request" => crate::Value::Dict(self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -2855,9 +2856,9 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let requestoperationTypeVariable: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]).as_array().cloned().unwrap_or_default();
-        let request: crate::value::Dict = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let requestoperationTypeVariable = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]);
+        let request: crate::value::Dict = requestoperationTypeVariable.0;
+        let operationType: Option<String> = requestoperationTypeVariable.1.as_str().map(str::to_owned);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (operationType.as_deref() == Some("create_market_order")) {
@@ -2902,7 +2903,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> Value {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, Value) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3021,9 +3022,7 @@ if _try_result.is_err() {
             sigPayload.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, &paramsClientOrderId);
-        return Value::from(vec![Value::Dict(request), Value::from(operationType)]);
-
-    Value::Null
+        return (request, Value::from(operationType));
 }
 
     pub fn batch_orders_request(&self, actions: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3104,11 +3103,11 @@ if _try_result.is_err() {
             if (type_var != "limit") {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrders() supports only type = \"limit\"! Your value type=").into()), type_var)));
             }
-            let requestList: Vec<Value> = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), amountNumber, priceNumber, &[&Value::Map(orderParams)]).as_array().cloned().unwrap_or_default();
+            let requestList = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), amountNumber, priceNumber, &[&Value::Map(orderParams)]);
             let action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Create".into()));
-                    m.insert("data".to_string(), requestList.get(0).cloned().unwrap_or(Value::Null));
+                    m.insert("data".to_string(), Value::Dict(requestList.0));
                 m
             });
             actions.push(Value::Map(action));

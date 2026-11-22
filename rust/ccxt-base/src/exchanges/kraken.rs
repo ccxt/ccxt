@@ -2390,8 +2390,8 @@ impl Kraken {
         //     }
         //
         let currencies: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let enhancedArray: Value = self.add_key_in_array_items(Value::Dict(currencies), Value::Str("_coin_id".into()));
-        return self.parse_currencies(enhancedArray);
+        let enhancedArray: crate::value::List = self.add_key_in_array_items(Value::Dict(currencies), Value::Str("_coin_id".into()));
+        return self.parse_currencies(&enhancedArray);
         Value::Null
         }).await?))
     }
@@ -2399,7 +2399,7 @@ impl Kraken {
 
     pub fn safe_currency_code(&self, currencyId: Option<&str>, currency: Option<&crate::types::Currency>) -> Option<String> {
         if (currencyId.is_none()) {
-            return currencyId.map(str::to_owned);
+            return None;
         }
         if Value::Int(currencyId.and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME

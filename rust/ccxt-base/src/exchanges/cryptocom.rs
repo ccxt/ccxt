@@ -619,9 +619,9 @@ impl crate::exchange::DerivedExchange for Cryptocom {
             status = self.parse_deposit_status(rawStatus.as_deref());
         }
         let addressString: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
-        let addresstagVariable: Vec<Value> = self.parse_address(addressString.as_deref()).as_array().cloned().unwrap_or_default();
-        let address: Option<String> = addresstagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let tag: Option<String> = addresstagVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let addresstagVariable = self.parse_address(addressString.as_deref());
+        let address: Option<String> = addresstagVariable.0.as_str().map(str::to_owned);
+        let tag: Option<String> = addresstagVariable.1.as_str().map(str::to_owned);
         let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         let timestamp: Option<i64> = self.safe_integer_k(&transaction, "create_time", &[]).as_i64();
@@ -881,7 +881,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptocom {
                 "nonce" => self.nonce(),
                 "params_to_string" => crate::Value::from(self.params_to_string(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_address" => self.parse_address(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "parse_address" => { let __t = self.parse_address(args.get(0).and_then(crate::Value::as_text).as_deref()); Value::from(vec![__t.0, __t.1]) },
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2190,8 +2190,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let resultData: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let currencyMap: crate::value::Dict = self.safe_dict_k_t(&resultData, "currency_map");
-        let enhancedArray: Value = self.add_key_in_array_items(Value::Dict(currencyMap), Value::Str("_coin_id".into()));
-        return self.parse_currencies(enhancedArray);
+        let enhancedArray: crate::value::List = self.add_key_in_array_items(Value::Dict(currencyMap), Value::Str("_coin_id".into()));
+        return self.parse_currencies(&enhancedArray);
         Value::Null
         }).await?))
     }
@@ -3826,18 +3826,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn parse_address(&self, addressString: Option<&str>) -> Value {
+    pub fn parse_address(&self, addressString: Option<&str>) -> (Value, Value) {
         if (addressString.is_some()) && Value::Int(addressString.and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             let addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressString { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let address: Option<String> = addressParts.get(0).and_then(Value::as_str).map(str::to_owned);
             let rawTag: Option<String> = addressParts.get(1).and_then(Value::as_str).map(str::to_owned);
             let splitted: crate::value::List = crate::value::List::new(if let Some(__s) = rawTag.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
             let tag: Option<String> = self.safe_string_opt(&splitted, Value::Int(1), &[]);
-            return Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), tag.map(Value::from).unwrap_or(Value::Null)]);
+            return (address.map(Value::from).unwrap_or(Value::Null), tag.map(Value::from).unwrap_or(Value::Null));
         }
-        return Value::from(vec![Value::from(addressString), Value::Null]);
-
-    Value::Null
+        return (Value::from(addressString), Value::Null);
 }
 
 /*
@@ -3982,9 +3980,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let addressString: Option<String> = self.safe_string_k_opt(&value, "address", &[]);
             let currencyId: Option<String> = self.safe_string_k_opt(&value, "currency", &[]);
             let responseCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let addresstagVariable: Vec<Value> = self.parse_address(addressString.as_deref()).as_array().cloned().unwrap_or_default();
-            let address: Option<String> = addresstagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-            let tag: Option<String> = addresstagVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+            let addresstagVariable = self.parse_address(addressString.as_deref());
+            let address: Option<String> = addresstagVariable.0.as_str().map(str::to_owned);
+            let tag: Option<String> = addresstagVariable.1.as_str().map(str::to_owned);
             self.check_address(&[&Value::from(address.as_deref())]);
             let networkId: Option<String> = self.safe_string_k_opt(&value, "network", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), responseCode.as_deref());

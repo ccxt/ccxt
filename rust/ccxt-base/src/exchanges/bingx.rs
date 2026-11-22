@@ -1894,7 +1894,7 @@ impl crate::exchange::DerivedExchange for Bingx {
             let mut parsedParams: Value = Value::Null;
             let mut encodeRequest: Option<String> = None;
             if isJsonContentType {
-                encodeRequest = self.custom_encode(&paramsSorted);
+                encodeRequest = self.custom_encode(&paramsSorted).as_str().map(str::to_owned);
             }  else {
                 parsedParams = self.parse_params(&paramsSorted);
                 encodeRequest = Some(self.rawencode(&parsedParams, &[Value::Bool(true)]));
@@ -1982,6 +1982,7 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
+                "custom_encode" => self.custom_encode(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "encode_trigger_price_type" => self.encode_trigger_price_type(args.get(0).and_then(crate::Value::as_text).as_deref()),
@@ -8912,19 +8913,24 @@ impl Bingx {
     Default::default()
 }
 
-    pub fn custom_encode(&self, params: impl Into<crate::Value>) -> Option<String> {
+    pub fn custom_encode(&self, params: impl Into<crate::Value>) -> Value {
         let params: Value = params.into();
         let sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
         let rawKeys: Vec<Value> = Value::Array(sortedParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let rawKeysLength: i64 = rawKeys.len() as i64;
         let mut adjustedValue: Value = Value::Null;
-        let mut result: Option<String> = None;
+        let mut result: String = "".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < rawKeysLength } {
             let key: Option<&str> = rawKeys.get(i as usize).and_then(Value::as_str);
             let mut value: Value = sortedParams.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut pair: String = self.safe_string(&sortedParams, Value::from(key.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let flag: Option<bool> = self.safe_bool_opt(&sortedParams, Value::from(key.as_deref()), &[]);
+            if (flag.is_some()) {
+                pair = (if (flag == Some(true)) { "true".to_string() } else { "false".to_string() });
+            }
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
@@ -8951,15 +8957,18 @@ impl Bingx {
                 }
                 adjustedValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", arrStr).into()), "]").into());
                 value = adjustedValue.clone();
+                pair = format!("{}{}", Value::Str(format!("{}{}", "[", arrStr).into()), "]");
             }
             if (i == 0) {
-                result = Some(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value));
+                result = format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), pair);
             }  else {
-                result = Some(format!("{}{}", result.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key.as_deref().unwrap_or("null")).into()), "=").into()), value)));
+                result.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key.as_deref().unwrap_or("null")).into()), "=").into()), pair));
             }
         }
         }
-        return result;
+        return Value::from(result);
+
+    Value::Null
 }
 
 /*

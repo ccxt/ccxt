@@ -5886,9 +5886,11 @@ impl Bybit {
         let paginationCursor: Option<String> = self.safe_string2_opt(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]);
         let dataLength: i64 = data.len() as i64;
         if (paginationCursor.is_some()) && (dataLength > 0) {
-            let mut first: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
-            if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("nextPageCursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
-            std::sync::Arc::make_mut(&mut data)[0] = Value::from(first.map_or(Value::Null, Value::Dict));
+            { let __be_tmp = self.extend(crate::value::KeyRead::read(&&data, &Value::Int(0)), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("nextPageCursor".to_string(), paginationCursor.map(Value::from).unwrap_or(Value::Null));
+    m
+})]); std::sync::Arc::make_mut(&mut data)[0] = Value::from(__be_tmp); }
         }
         return data;
 

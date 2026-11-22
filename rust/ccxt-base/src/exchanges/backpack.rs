@@ -4310,7 +4310,7 @@ impl Backpack {
         let mut omitKeys: Vec<Value> = Vec::new();
         if (type_var == Some("limit")) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
-            request.insert(quantityKey.clone(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
+            request.insert(quantityKey, Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }  else if (type_var == Some("market")) {
             let cost: Option<String> = self.safe_string2_opt(&query, Value::Str("cost".into()), Value::Str("quoteQuantity".into()), &[]);
             if (cost.is_some()) {

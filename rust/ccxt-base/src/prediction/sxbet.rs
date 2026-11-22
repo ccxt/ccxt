@@ -151,8 +151,11 @@ impl crate::exchange::DerivedExchange for Sxbet {
         if (accessLevel.as_deref() == Some("private")) && (self.apiKey == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(path)).into()), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")));
         }
-        let baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
-        let baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[&crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
+        let mut baseUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "sxbet", &[&Value::Str("".into())]);
+        let groupUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiGroup.as_deref()), &[]);
+        if (groupUrl.is_some()) {
+            baseUrl = groupUrl;
+        }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), &params));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
         let existingHeaders: indexmap::IndexMap<String, Value> = ({

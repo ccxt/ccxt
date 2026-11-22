@@ -415,6 +415,10 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let makerFeeRate: Option<String> = self.safe_string_k_opt(&market, "makerFee", &[]);
         let maker: Option<String> = crate::precise::Precise::stringDiv(&makerFeeRate, &Value::Str("100".into())).as_str().map(str::to_owned);
         let isSpot: bool = !(swap);
+        let mut contractSize: Option<f64> = Some(1_f64);
+        if isSpot {
+            contractSize = None;
+        }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -437,7 +441,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maker".to_string(), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("contractSize".to_string(), (if isSpot { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2453,8 +2457,8 @@ impl Whitebit {
         //   }
         // }
         //
-        let enhancedArray: Value = self.add_key_in_array_items(response, Value::Str("_coin_id".into()));
-        return self.parse_currencies(enhancedArray);
+        let enhancedArray: crate::value::List = self.add_key_in_array_items(response, Value::Str("_coin_id".into()));
+        return self.parse_currencies(&enhancedArray);
         Value::Null
         }).await?))
     }

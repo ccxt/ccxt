@@ -946,8 +946,8 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "create_deposit_address" => crate::types::IntoRaw::into_raw(self.create_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_text).as_deref(), &args[7.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_request" => { let __t = self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_text).as_deref(), &args[7.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -2422,8 +2422,8 @@ impl Hitbtc {
         //        },
         //    }
         //
-        let enhancedArray: Value = self.add_key_in_array_items(response, Value::Str("_coin_id".into()));
-        return self.parse_currencies(enhancedArray);
+        let enhancedArray: crate::value::List = self.add_key_in_array_items(response, Value::Str("_coin_id".into()));
+        return self.parse_currencies(&enhancedArray);
         Value::Null
         }).await?))
     }
@@ -3989,9 +3989,9 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::from(&paramsMarketType)]);
         let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
-        let requestparamsValueVariable: Vec<Value> = self.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
-        let request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let requestparamsValueVariable = self.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(paramsMarginMode)]);
+        let request: crate::value::Dict = requestparamsValueVariable.0;
+        let paramsValue: crate::value::Dict = requestparamsValueVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_51 = self.extend(&request, &[&paramsValue]);
@@ -4008,7 +4008,7 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn create_order_request(&self, market: impl Into<crate::Value>, marketType: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, marginMode: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub fn create_order_request(&self, market: impl Into<crate::Value>, marketType: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, marginMode: Option<&str>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let market: Value = market.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4070,9 +4070,7 @@ impl Hitbtc {
             // set default margin mode to cross
             request.insert("margin_mode".into(), (if (marginMode.is_none()) { Value::Str("cross".into()) } else { Value::from(marginMode) }));
         }
-        return Value::from(vec![Value::Map(request), Value::Dict(paramsOmitted)]);
-
-    Value::Null
+        return (std::sync::Arc::new(request), paramsOmitted);
 }
 
     pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
@@ -5051,7 +5049,8 @@ impl Hitbtc {
         if (Some((market).market_type.as_str()) != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " setLeverage() supports swap contracts only")));
         }
-        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_i64().unwrap_or_default() > maxLeverage) {
+        let leverageNum: Value = self.parse_number(&leverage, &[]);
+        if (leverageNum.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverageNum.as_f64().unwrap_or(f64::NAN) > (maxLeverage as f64)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " setLeverage() leverage should be between 1 and ").into()), Value::Str(format!("{}", maxLeverage).into())).into()), " for ").into()), symbol)));
         }
         let request: indexmap::IndexMap<String, Value> = ({

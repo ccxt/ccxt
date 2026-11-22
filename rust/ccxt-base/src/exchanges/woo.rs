@@ -5288,7 +5288,7 @@ impl Woo {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolResolved: Value = (if (symbol != Value::Null) { crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let symbolResolved: Option<String> = (if (symbol != Value::Null) { self.safe_string_k_opt(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), "symbol", &[]) } else { None });
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5307,7 +5307,7 @@ impl Woo {
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));
-        m.insert("symbol".to_string(), symbolResolved);
+        m.insert("symbol".to_string(), symbolResolved.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
         Value::Null

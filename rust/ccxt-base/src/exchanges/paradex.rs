@@ -3417,7 +3417,7 @@ impl Paradex {
 }
 
     pub async fn onboarding(&mut self, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -3440,17 +3440,22 @@ impl Paradex {
         });
         let msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req), self.safe_string_k(&account, "address", &[])).as_str().map(str::to_owned);
         let signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&account, "privateKey")).as_str().map(str::to_owned);
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(&account, "address", &[])); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), self.safe_string_k(&account, "publicKey", &[])); }
-        let response: crate::value::Dict = self.private_post_onboarding(&[&params]).await.unwrap_or_default();
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("account".to_string(), self.safe_string_k(&account, "address", &[]));
+                m.insert("public_key".to_string(), self.safe_string_k(&account, "publicKey", &[]));
+            m
+        });
+        let __ws_arg_9 = self.extend(params, &[Value::Map(request)]);
+        let response: crate::value::Dict = self.private_post_onboarding(&[&__ws_arg_9]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
 }
 
     pub async fn authenticate_rest(&mut self, optional_args: &[&Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -3508,13 +3513,18 @@ impl Paradex {
 })]));
             m
         });
-        let msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req.clone()), self.safe_string_k(&account, "address", &[])).as_str().map(str::to_owned);
+        let msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req), self.safe_string_k(&account, "address", &[])).as_str().map(str::to_owned);
         let signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&account, "privateKey")).as_str().map(str::to_owned);
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(&account, "address", &[])); }
-        add_element_to_object(&mut params, &Value::Str("timestamp".into()), req.get("timestamp").cloned().unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".into(), req.get("expiration").cloned().unwrap_or(Value::Null)); }
-        let response: crate::value::Dict = self.private_post_auth(&[&params]).await.unwrap_or_default();
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("account".to_string(), self.safe_string_k(&account, "address", &[]));
+                m.insert("timestamp".to_string(), Value::from(now));
+                m.insert("expiration".to_string(), Value::from(expires));
+            m
+        });
+        let __ws_arg_10 = self.extend(params, &[Value::Map(request)]);
+        let response: crate::value::Dict = self.private_post_auth(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -4052,12 +4062,12 @@ impl Paradex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_9 = self.extend(&request, &[&params]);
-            response = self.private_delete_orders_by_client_id_client_id(&[&__ws_arg_9]).await;
+            let __ws_arg_11 = self.extend(&request, &[&params]);
+            response = self.private_delete_orders_by_client_id_client_id(&[&__ws_arg_11]).await;
         }  else {
             request.insert("order_id".into(), id);
-            let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-            response = self.private_delete_orders_order_id(&[&__ws_arg_10]).await;
+            let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
+            response = self.private_delete_orders_order_id(&[&__ws_arg_12]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         None
@@ -4108,8 +4118,8 @@ impl Paradex {
         if hasClientOrderIds {
             request.insert("client_order_ids".into(), clientOrderIds.map_or(Value::Null, Value::Arr));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_delete_orders_batch(&[&__ws_arg_11]).await.unwrap_or_default();
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_delete_orders_batch(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         // {
         //     "results": [
@@ -4201,8 +4211,8 @@ impl Paradex {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.call_method_t("private_delete_orders", &[&__ws_arg_12]).await;
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.call_method_t("private_delete_orders", &[&__ws_arg_14]).await;
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -4249,12 +4259,12 @@ impl Paradex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_orders_by_client_id_client_id(&[&__ws_arg_13]).await;
+            let __ws_arg_15 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_get_orders_by_client_id_client_id(&[&__ws_arg_15]).await;
         }  else {
             request.insert("order_id".into(), id);
-            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_order_id(&[&__ws_arg_14]).await;
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_get_orders_order_id(&[&__ws_arg_16]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         None
@@ -4316,8 +4326,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_orders_history(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_orders_history(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4405,8 +4415,8 @@ impl Paradex {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.call_method_t("private_get_orders", &[&__ws_arg_16]).await;
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.call_method_t("private_get_orders", &[&__ws_arg_18]).await;
         //
         //  {
         //     "results": [
@@ -4565,8 +4575,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.call_method_t("private_get_fills", &[&__ws_arg_17]).await;
+        let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.call_method_t("private_get_fills", &[&__ws_arg_19]).await;
         //
         //     {
         //         "next": null,
@@ -4596,10 +4606,10 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (trades.len() as i64) } {
-            let __ws_arg_18 = self.safe_string_k(&response, "next", &[]);
+            let __ws_arg_20 = self.safe_string_k(&response, "next", &[]);
             tagged.push(self.extend(trades.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("next".to_string(), __ws_arg_18);
+                    m.insert("next".to_string(), __ws_arg_20);
                 m
             })]));
         }
@@ -4777,8 +4787,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("to".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_liquidations(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_liquidations(&[&__ws_arg_21]).await.unwrap_or_default();
         //
         //     {
         //         "results": [
@@ -4831,12 +4841,12 @@ impl Paradex {
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            let __ws_arg_20 = self.extend(&paramsPaginate, &[Value::Map({
+            let __ws_arg_22 = self.extend(&paramsPaginate, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("allKinds".to_string(), Value::Bool(true));
     m
 })]);
-            let transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[&code, &Value::from(since), &Value::Null, &__ws_arg_20, &Value::Str("next".into()), &Value::Str("cursor".into()), &Value::Null, &Value::Int(100)]).await;
+            let transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[&code, &Value::from(since), &Value::Null, &__ws_arg_22, &Value::Str("next".into()), &Value::Str("cursor".into()), &Value::Null, &Value::Int(100)]).await;
             let transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "DEPOSIT");
             return Value::Arr(self.filter_by_since_limit(&transactionsOfKind, since, limit, &[]));
         }
@@ -4855,8 +4865,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsKinds, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_21 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.call_method_t("private_get_transfers", &[&__ws_arg_21]).await;
+        let __ws_arg_23 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.call_method_t("private_get_transfers", &[&__ws_arg_23]).await;
         //
         //     {
         //         "next": null,
@@ -4936,12 +4946,12 @@ impl Paradex {
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            let __ws_arg_22 = self.extend(&paramsPaginate, &[Value::Map({
+            let __ws_arg_24 = self.extend(&paramsPaginate, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("allKinds".to_string(), Value::Bool(true));
     m
 })]);
-            let transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[&code, &Value::from(since), &Value::Null, &__ws_arg_22, &Value::Str("next".into()), &Value::Str("cursor".into()), &Value::Null, &Value::Int(100)]).await;
+            let transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[&code, &Value::from(since), &Value::Null, &__ws_arg_24, &Value::Str("next".into()), &Value::Str("cursor".into()), &Value::Null, &Value::Int(100)]).await;
             let transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "WITHDRAWAL");
             return Value::Arr(self.filter_by_since_limit(&transactionsOfKind, since, limit, &[]));
         }
@@ -4960,8 +4970,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsKinds, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_23 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.call_method_t("private_get_transfers", &[&__ws_arg_23]).await;
+        let __ws_arg_25 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.call_method_t("private_get_transfers", &[&__ws_arg_25]).await;
         //
         //     {
         //         "next": null,
@@ -5059,8 +5069,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_24 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.call_method_t("private_get_transfers", &[&__ws_arg_24]).await;
+        let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.call_method_t("private_get_transfers", &[&__ws_arg_26]).await;
         //
         //     {
         //         "next": null,
@@ -5163,8 +5173,8 @@ impl Paradex {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_account_margin(&[&__ws_arg_25]).await.unwrap_or_default();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_account_margin(&[&__ws_arg_27]).await.unwrap_or_default();
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -5232,8 +5242,8 @@ impl Paradex {
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode.as_str()).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsLeverage]);
-        return self.private_post_account_margin_market(&[&__ws_arg_26]).await;
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsLeverage]);
+        return self.private_post_account_margin_market(&[&__ws_arg_28]).await;
         Value::Null
         }).await?))
     }
@@ -5268,8 +5278,8 @@ impl Paradex {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_account_margin(&[&__ws_arg_27]).await.unwrap_or_default();
+        let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_account_margin(&[&__ws_arg_29]).await.unwrap_or_default();
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -5338,8 +5348,8 @@ impl Paradex {
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode.as_deref()).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        return self.private_post_account_margin_market(&[&__ws_arg_28]).await;
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        return self.private_post_account_margin_market(&[&__ws_arg_30]).await;
         Value::Null
         }).await?))
     }
@@ -5373,8 +5383,8 @@ impl Paradex {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_29]).await.unwrap_or_default();
+        let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_31]).await.unwrap_or_default();
         //
         //     {
         //         "results": [
@@ -5445,8 +5455,8 @@ impl Paradex {
                 m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_30 = self.extend(&request, &[params]);
-        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_30]).await.unwrap_or_default();
+        let __ws_arg_32 = self.extend(&request, &[params]);
+        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_32]).await.unwrap_or_default();
         //
         //     {
         //         "results": [
@@ -5524,8 +5534,8 @@ impl Paradex {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_31]).await.unwrap_or_default();
+        let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_33]).await.unwrap_or_default();
         //
         //     {
         //         "results": [
@@ -5592,8 +5602,8 @@ impl Paradex {
                 m.insert("market".to_string(), Value::Str("ALL".into()));
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_32]).await.unwrap_or_default();
+        let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_34]).await.unwrap_or_default();
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -5739,8 +5749,8 @@ impl Paradex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_33 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_funding_payments(&[&__ws_arg_33]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_funding_payments(&[&__ws_arg_35]).await.unwrap_or_default();
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -5825,12 +5835,17 @@ impl Paradex {
             let paginationCalls: Option<i64> = paginationCallsparamsCallsVariable.0;
             let paramsCalls: crate::value::Dict = paginationCallsparamsCallsVariable.1;
             let until: Option<i64> = self.safe_integer_k(&paramsCalls, "until", &[]).as_i64();
-            let mut endAt: Option<i64> = (if let Some(__m1) = ((if let (Some(__m0), Some(__m1)) = (since, ((if let Some(__l) = ((if let Some(__l) = paginationCalls { Some(__l * 5000) } else { None })) { Some(__l * rowSpacing) } else { None }))) { Some((__m0 + __m1)) } else { None })) { Some(i64::min((self.milliseconds()), __m1)) } else { None });
+            let pageSpan: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = paginationCalls { Some(__l * 5000) } else { None })) { Some(__l * rowSpacing) } else { None })));
+            let sinceEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (since, pageSpan) { Some((__m0 + __m1)) } else { None });
+            let mut endAt: Option<i64> = Some(self.milliseconds());
+            if (sinceEnd.is_some() && endAt.is_some() && sinceEnd < endAt) {
+                endAt = sinceEnd;
+            }
             if (until.is_some()) {
                 endAt = until;
             }
-            let __ws_arg_34 = self.omit(&paramsPaginate, Value::Str("until".into()), &[]);
-            let paramsEndAt: crate::value::Dict = self.extend_t(__ws_arg_34, &[Value::Map({
+            let __ws_arg_36 = self.omit(&paramsPaginate, Value::Str("until".into()), &[]);
+            let paramsEndAt: crate::value::Dict = self.extend_t(__ws_arg_36, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("end_at".to_string(), Value::from(endAt));
                 m
@@ -5864,8 +5879,8 @@ impl Paradex {
                 std::sync::Arc::make_mut(&mut requestUntil).insert("end_at".into(), pageWindowEnd);
             }
         }
-        let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.public_get_funding_data(&[&__ws_arg_35]).await.unwrap_or_default();
+        let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.public_get_funding_data(&[&__ws_arg_37]).await.unwrap_or_default();
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",

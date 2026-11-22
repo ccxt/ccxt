@@ -578,7 +578,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let marketId: Option<String> = (match message.get("instrument_name") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let data: Option<crate::value::Dict> = self.safe_dict_o((match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }), Value::Int(0));
         let timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
@@ -597,7 +597,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let m = indexmap::IndexMap::new();
                 m
             }));
-            orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
+            orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("nonce", Value::from(nonce));
@@ -611,7 +611,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (currentNonce != previousNonce) {
                 let checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
                 if (checksum == Some(true)) {
-                    panic!("{}", crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_deref())))));
+                    panic!("{}", crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_str())))));
                 }
             }
         }
@@ -619,7 +619,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&books, "bids", &[Value::from(vec![])]));
         orderbook.set_book_meta("nonce", Value::from(nonce));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
-        let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
+        let messageHash: String = format!("{}{}", "orderbook:", symbol);
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -2286,8 +2286,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut __for_first_16: bool = true;
                         while { if !__for_first_16 { j += 1; } __for_first_16 = false; j < (messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                         let unsubHash: Option<String> = messageHashes.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                        let subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                        self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                        let subHash: String = self.safe_string(&subMessageHashes, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                        self.clean_unsubscription(client, Value::from(subHash), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
                     }
                     }
                 }

@@ -9434,8 +9434,8 @@ impl Okx {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let filtered: Value = Value::Arr(self.filter_by(Value::Arr(data), Value::Str("selected".into()), Value::Bool(true), &[]));
-        let parsed: Value = self.parse_deposit_addresses(filtered, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]);
+        let filtered: crate::value::List = self.filter_by(Value::Arr(data), Value::Str("selected".into()), Value::Bool(true), &[]);
+        let parsed: Value = self.parse_deposit_addresses(&filtered, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]);
         return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null
         }).await?))

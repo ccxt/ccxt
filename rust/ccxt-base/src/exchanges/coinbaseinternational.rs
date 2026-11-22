@@ -2426,8 +2426,8 @@ impl Coinbaseinternational {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let candles: Value = Value::Arr(self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]));
-        return Value::Arr(self.parse_ohlc_vs(candles, Some(&market), &[timeframe, Value::from(since), limit]));
+        let candles: crate::value::List = self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
+        return Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(since), limit]));
         Value::Null
         }).await?))
     }
@@ -2570,12 +2570,12 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
-            if (symbol.is_none()) {
+            let symbol: String = self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (symbol == "") {
                 continue;
             }
-            let ticker: Value = crate::types::IntoRaw::into_raw(self.fetch_ticker(symbol.as_deref().unwrap_or_default(), Value::from(&paramsResolved)).await);
-            tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
+            let ticker: Value = crate::types::IntoRaw::into_raw(self.fetch_ticker(symbol.as_str(), Value::from(&paramsResolved)).await);
+            tickers.insert(symbol, ticker);
         }
         }
         return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved.map_or(Value::Null, Value::Arr)]);

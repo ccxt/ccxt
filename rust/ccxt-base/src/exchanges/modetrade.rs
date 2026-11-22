@@ -3329,7 +3329,7 @@ impl Modetrade {
             request.insert(priceKey, Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         if isMarket && !isConditional {
-            request.insert(orderQtyKey.clone(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
+            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }

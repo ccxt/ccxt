@@ -653,7 +653,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let mut isPrior: bool = false;
         let mut fixed: bool = false;
         let mut statusId: Option<String> = None;
-        let mut price: Value = Value::Null;
+        let mut price: Option<String> = None;
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         if orderEventsLength > 0 {
             let mut executions: Vec<Value> = Vec::new();
@@ -677,9 +677,9 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                         let orderPriorExecution: crate::value::Dict = self.safe_dict_k_t(&item, "orderPriorExecution");
                         details = self.safe_value2(&item, Value::Str("orderPriorExecution".into()), Value::Str("orderPriorEdit".into()), &[]);
                         if (executedPrice.is_none()) {
-                            price = self.safe_string_k(&orderPriorExecution, "limitPrice", &[]);
+                            price = self.safe_string_k_opt(&orderPriorExecution, "limitPrice", &[]);
                         }  else {
-                            price = executedPrice.map(Value::from).unwrap_or(Value::Null);
+                            price = executedPrice;
                         }
                         if (details != Value::Null) {
                             isPrior = true;
@@ -752,15 +752,18 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         }
         let mut cost: Option<String> = None;
         if (filled.is_some()) && (true) {
-            let mut whichPrice: Value = price.clone();
+            let isLinear: bool = self.safe_bool_k_opt(&marketResolved, "linear", &[Value::Bool(false)]).unwrap_or(false);
             if (average.is_some()) {
-                whichPrice = Value::from(average.as_deref());
-            }
-            if (whichPrice != Value::Null) {
-                if ((marketResolved).linear == Some(true)) {
-                    cost = crate::precise::Precise::stringMul(&filled, &whichPrice).as_str().map(str::to_owned); // in quote
+                if isLinear {
+                    cost = crate::precise::Precise::stringMul(&filled, &average).as_str().map(str::to_owned); // in quote
                 }  else {
-                    cost = crate::precise::Precise::stringDiv(&filled, &whichPrice).as_str().map(str::to_owned); // in base
+                    cost = crate::precise::Precise::stringDiv(&filled, &average).as_str().map(str::to_owned); // in base
+                }
+            }  else if (price.is_some()) {
+                if isLinear {
+                    cost = crate::precise::Precise::stringMul(&filled, &price).as_str().map(str::to_owned); // in quote
+                }  else {
+                    cost = crate::precise::Precise::stringDiv(&filled, &price).as_str().map(str::to_owned); // in base
                 }
             }
         }
@@ -795,7 +798,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         m.insert("postOnly".to_string(), Value::Bool(type_var.as_deref() == Some("post")));
         m.insert("reduceOnly".to_string(), self.safe_bool2(&details, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
         m.insert("side".to_string(), self.safe_string_lower2(&details, Value::Str("side".into()), Value::Str("direction".into()), &[]));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::from(triggerPrice.as_deref()));
         m.insert("stopPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -1456,7 +1459,7 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -3017,7 +3020,7 @@ impl Krakenfutures {
     }
 
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3049,7 +3052,7 @@ impl Krakenfutures {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), Value::from(side));
-                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbolValue.as_deref(), amount)));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbolValue.as_deref(), Value::from(amount))));
             m
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(Value::from(&paramsPostOnly), Value::Str("clientOrderId".into()), Value::Str("cliOrdId".into()), &[]);
@@ -3140,7 +3143,7 @@ impl Krakenfutures {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
+        let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), &[&Value::from(price), &params]);
         let response: crate::value::Dict = self.private_post_sendorder(&[&Value::Dict(orderRequest)]).await.unwrap_or_default();
         //
         //    {
@@ -3247,8 +3250,8 @@ impl Krakenfutures {
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
-            let amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
-            let price: Value = self.safe_value_k(&rawOrder, "price", &[]);
+            let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[&params]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if !(extendedParams.contains_key("order_tag")) {
@@ -3256,7 +3259,7 @@ impl Krakenfutures {
                 std::sync::Arc::make_mut(&mut extendedParams).insert("order_tag".into(), Value::from(self.number_to_string(Value::Int((i + 1))))); // sequential counter
             }
             std::sync::Arc::make_mut(&mut extendedParams).insert("order".into(), Value::Str("send".into()));
-            let orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[&price, &Value::Dict(extendedParams)]);
+            let orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[&Value::from(price), &Value::Dict(extendedParams)]);
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }

@@ -60,7 +60,8 @@ impl crate::exchange_generated::ExchangeBase for Htx {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "get_order_channel_and_message_hash" => Value::Arr(self.get_order_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "get_order_channel_and_message_hash" => { let __t = self.get_order_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref(),
+                    &args[3.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, __t.1]) },
                 "get_v5_linear_channel_and_message_hash" => Value::Arr(self.get_v5_linear_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -103,7 +104,8 @@ impl Htx {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "get_order_channel_and_message_hash" => Value::Arr(self.get_order_channel_and_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).copied().cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..])),
+            "get_order_channel_and_message_hash" => { let __t = self.get_order_channel_and_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).copied().cloned().unwrap_or_default()).as_ref(),
+                &args[3.min(args.len())..]); Value::from(vec![__t.0, __t.1]) },
             "get_v5_linear_channel_and_message_hash" => Value::Arr(self.get_v5_linear_channel_and_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
@@ -1110,7 +1112,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let tick: crate::value::Dict = message.key_dict("tick");
-        let seqNum: Option<i64> = self.safe_integer_k(&tick, "seqNum", &[]).as_i64();
         let prevSeqNum: Option<i64> = self.safe_integer_k(&tick, "prevSeqNum", &[]).as_i64();
         let event: Option<String> = self.safe_string_k_opt(&tick, "event", &[]);
         let version: Option<i64> = self.safe_integer_k(&tick, "version", &[]).as_i64();
@@ -1135,7 +1136,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let bids: crate::value::List = self.safe_list_k_t(&tick, "bids");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
-            orderbook.set_book_meta("nonce", (if (spotConditon) { Value::from(seqNum) } else { Value::from(version) }));
+            let mut nonceKey: String = "version".to_string();
+            if spotConditon {
+                nonceKey = "seqNum".to_string();
+            }
+            orderbook.set_book_meta("nonce", self.safe_integer(&tick, Value::from(nonceKey), &[]));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
@@ -1310,7 +1315,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }  else {
-            let channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(Value::from(type_var.as_deref()), Value::from(subType.as_deref()), market.as_ref(), &[&paramsRequest]);
+            let channelAndMessageHash: crate::value::List = ({ let __t = self.get_order_channel_and_message_hash(Value::from(type_var.as_deref()), Value::from(subType.as_deref()), market.as_ref(), &[&paramsRequest]); std::sync::Arc::new(vec![__t.0, __t.1]) });
             channel = self.safe_string_opt(&channelAndMessageHash, Value::Int(0), &[]);
             let orderMessageHash: Option<String> = self.safe_string_opt(&channelAndMessageHash, Value::Int(1), &[]);
             // we will take advantage of the order messageHash because already handles stuff
@@ -1337,7 +1342,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     }
 
-    pub fn get_order_channel_and_message_hash(&self, mut type_var: Value, mut subType: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> crate::value::List {
+    pub fn get_order_channel_and_message_hash(&self, mut type_var: Value, mut subType: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (Value, Value) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1391,7 +1396,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 channel = format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), "*");
             }
         }
-        return std::sync::Arc::new(vec![Value::from(channel), messageHash.map(Value::from).unwrap_or(Value::Null)]);
+        return (Value::from(channel), messageHash.map(Value::from).unwrap_or(Value::Null));
 }
 
     pub fn get_v5_linear_channel_and_message_hash(&self, mut topic: Value, optional_args: &[&Value]) -> crate::value::List {
@@ -1484,7 +1489,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }  else {
-            let channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(Value::from(type_var.as_deref()), Value::from(subType.as_deref()), market.as_ref(), &[&paramsRequest]);
+            let channelAndMessageHash: crate::value::List = ({ let __t = self.get_order_channel_and_message_hash(Value::from(type_var.as_deref()), Value::from(subType.as_deref()), market.as_ref(), &[&paramsRequest]); std::sync::Arc::new(vec![__t.0, __t.1]) });
             channel = self.safe_string_opt(&channelAndMessageHash, Value::Int(0), &[]);
             messageHash = self.safe_string_opt(&channelAndMessageHash, Value::Int(1), &[]);
         }

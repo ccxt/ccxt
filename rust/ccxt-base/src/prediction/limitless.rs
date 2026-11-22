@@ -1460,14 +1460,11 @@ impl Limitless {
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (expandedRaw.len() as i64) } {
             let raw: Value = expandedRaw.get(i as usize).cloned().unwrap_or(Value::Null);
             let groupId: Option<String> = self.safe_string_n_opt(&raw, Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(&raw, "slug", &[])]);
-            let mut eventKey: Option<String> = None;
-            if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = Some(self.shorten_slug(Value::from(groupId.as_deref())));
-            }
+            let eventKey: Value = Value::from(self.shorten_slug(Value::from(groupId.as_deref())));
             let mut m: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone()).into_dict();
             markets.push(Value::from(&m));
-            if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
-                let mut eventGroup: crate::value::Dict = self.safe_dict_or(&eventGroups, Value::from(eventKey.as_deref()), Value::Map({
+            if (eventKey.as_str() != Some("")) {
+                let mut eventGroup: crate::value::Dict = self.safe_dict_or(&eventGroups, &eventKey, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(&raw, Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -1478,7 +1475,7 @@ impl Limitless {
                 let mut groupMarkets: Value = crate::value::KeyRead::key_read(&&eventGroup, "markets");
                 append_to_array(&mut groupMarkets, Value::Dict(m));
                 std::sync::Arc::make_mut(&mut eventGroup).insert("markets".into(), groupMarkets);
-                eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Dict(eventGroup));
+                eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Dict(eventGroup));
             }
         }
         }
@@ -4140,17 +4137,14 @@ if _try_result.is_err() {
             while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < rawMarketsLength } {
             let raw: Value = expandedMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let groupId: Option<String> = self.safe_string_n_opt(&raw, Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(&raw, "slug", &[])]);
-            let mut eventKey: Value = Value::Null;
-            if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = Value::from(self.shorten_slug(Value::from(groupId.as_deref())));
-            }
+            let eventKey: String = self.shorten_slug(Value::from(groupId.as_deref()));
             let mut m: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone());
             if (m == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing m")));
             }
             if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), m.clone()); }
-            if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                let mut eventGroup: crate::value::Dict = self.safe_dict_or(&eventGroups, &eventKey, Value::Map({
+            if (eventKey != "") {
+                let mut eventGroup: crate::value::Dict = self.safe_dict_or(&eventGroups, Value::from(eventKey.as_str()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(&raw, Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -4161,7 +4155,7 @@ if _try_result.is_err() {
                 let mut groupMarkets: Value = crate::value::KeyRead::key_read(&&eventGroup, "markets");
                 append_to_array(&mut groupMarkets, m);
                 std::sync::Arc::make_mut(&mut eventGroup).insert("markets".into(), groupMarkets);
-                eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Dict(eventGroup));
+                eventGroups.insert(eventKey, Value::Dict(eventGroup));
             }
         }
         }

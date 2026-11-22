@@ -2758,7 +2758,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             until = untilParam;
         }
         let sinceFromUntil: bool = (since.is_none()) && (untilParam.is_some());
-        let mut paramsResult: Value = (if sinceFromUntil { self.omit(&params, Value::Str("until".into()), &[]) } else { params });
+        let mut timeParams: indexmap::IndexMap<String, Value> = ({
+            let m = indexmap::IndexMap::new();
+            m
+        });
         if (since.is_some()) || (untilParam.is_some()) {
             let timeDelta: i64 = (((((((7 * 24)) * 60)) * 60)) * 1000); // 7 days
             let mut sinceResolved: Option<i64> = since;
@@ -2774,9 +2777,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     until = (if let Some(__m0) = since { Some((__m0 + timeDelta)) } else { None });
                 }
             }
-            add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(sinceResolved));
-            add_element_to_object(&mut paramsResult, &untilKey, self.iso8601(until));
+            timeParams.insert(crate::runtime::stringify_param(&sinceKey), self.iso8601(sinceResolved));
+            timeParams.insert(crate::runtime::stringify_param(&untilKey), self.iso8601(until));
         }
+        let merged: crate::value::Dict = self.extend_t(params, &[Value::Map(timeParams)]);
+        let paramsResult: Value = (if sinceFromUntil { self.omit(&merged, Value::Str("until".into()), &[]) } else { Value::from(&merged) });
         return paramsResult;
 
     Value::Null

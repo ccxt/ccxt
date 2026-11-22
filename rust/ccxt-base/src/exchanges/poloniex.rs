@@ -3528,25 +3528,25 @@ impl Poloniex {
                 if (market).spot {
                     amountKey = "amount".to_string();
                 }
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.to_string(), quoteAmount.map(Value::from).unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey, quoteAmount.map(Value::from).unwrap_or(Value::Null)); }
             }  else {
                 let mut amountKey: String = "sz".to_string();
                 if (market).spot {
                     amountKey = "quantity".to_string();
                 }
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.to_string(), Value::from(self.amount_to_precision(Some(symbol), Value::from(amount)))); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey, Value::from(self.amount_to_precision(Some(symbol), Value::from(amount)))); }
             }
         }  else {
             let mut amountKey: String = "sz".to_string();
             if (market).spot {
                 amountKey = "quantity".to_string();
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.to_string(), Value::from(self.amount_to_precision(Some(symbol), Value::from(amount)))); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey, Value::from(self.amount_to_precision(Some(symbol), Value::from(amount)))); }
             let mut priceKey: String = "px".to_string();
             if (market).spot {
                 priceKey = "price".to_string();
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(priceKey.to_string(), Value::from(self.price_to_precision(Some(symbol), Value::from(price)))); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(priceKey, Value::from(self.price_to_precision(Some(symbol), Value::from(price)))); }
         }
         let clientOrderId: Option<String> = self.safe_string2_opt(&queryOmitted, Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]);
         if (clientOrderId.is_some()) {
@@ -3555,7 +3555,7 @@ impl Poloniex {
             if (market).spot {
                 clientOrderIdKey = "clientOrderId".to_string();
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey.to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey, clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
             queryOmitted = self.omit_t(Value::Dict(queryOmitted), &["clientOrderId", "clOrdId"], &[]);
         }
         return (result.into_dict(), queryOmitted);
@@ -4861,12 +4861,16 @@ impl Poloniex {
             m
         });
         let codesValue: Option<crate::value::List> = self.market_codes(&[codes]);
-        let responseKeys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let feesById: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&response]);
+        let responseKeys: Vec<Value> = Value::Array(feesById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (responseKeys.len() as i64) } {
-            let currencyId: Option<&str> = responseKeys.get(i as usize).copied();
+            let currencyId: Option<&str> = responseKeys.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let feeInfo: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(currencyId.as_deref()));
             if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, &codesValue))) {
@@ -4892,15 +4896,19 @@ impl Poloniex {
                             m
                         });
                         let withdrawFee: Option<f64> = self.safe_number_k(&networkInfo, "withdrawalFee", &[]).as_f64();
+                        let mut withdrawObject: indexmap::IndexMap<String, Value> = ({
+                            let mut m = indexmap::IndexMap::new();
+                                m.insert("fee".to_string(), Value::from(withdrawFee));
+                                m.insert("percentage".to_string(), Value::Null);
+                            m
+                        });
+                        if (withdrawFee.is_some()) {
+                            withdrawObject.insert("percentage".into(), Value::Bool(false));
+                        }
                         if (networkCode.is_some()) {
                             networkObject.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("withdraw".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), Value::from(withdrawFee));
-        m.insert("percentage".to_string(), (if (withdrawFee.is_some()) { Value::Bool(false) } else { Value::Null }));
-    m
-}));
+        m.insert("withdraw".to_string(), Value::Map(withdrawObject));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);

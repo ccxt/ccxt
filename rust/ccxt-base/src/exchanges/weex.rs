@@ -213,7 +213,11 @@ impl crate::exchange::DerivedExchange for Weex {
         if (realizedPnl.is_some()) {
             tradeMarketType = "swap".to_string();
         }
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { tradeMarketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[Value::Null, Value::from(tradeMarketType.as_str())]);
+        let mut tradeMarketIdArg: Option<String> = tradeMarketId;
+        if (market.is_some()) {
+            tradeMarketIdArg = None;
+        }
+        let marketResolved: crate::types::Market = self.safe_market(tradeMarketIdArg.as_deref(), market, &[Value::Null, Value::from(tradeMarketType.as_str())]);
         let mut isSpot: Value = Value::Bool(false);
         if (market.is_none()) {
             isSpot = Value::Bool(tradeMarketType == "spot");
@@ -373,13 +377,17 @@ impl crate::exchange::DerivedExchange for Weex {
         if (errorCode.is_some()) || (errorMessage.is_some()) {
             self.handle_order_or_position_error(errorCode.as_deref(), errorMessage.as_deref(), order.clone());
         }
-        let orderMarketId: Value = self.from_sandbox_market_id(self.safe_string_k(&order, "symbol", &[]).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let orderMarketId: Option<String> = self.from_sandbox_market_id(self.safe_string_k(&order, "symbol", &[]).as_str());
         let positionSide: Option<String> = self.safe_string_k_opt(&order, "positionSide", &[]);
         let mut orderMarketType: String = "swap".to_string();
         if (positionSide.is_none()) {
             orderMarketType = "spot".to_string();
         }
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { orderMarketId } else { Value::Null })).as_str(), market, &[Value::Null, Value::from(orderMarketType)]);
+        let mut orderMarketIdArg: Option<String> = orderMarketId;
+        if (market.is_some()) {
+            orderMarketIdArg = None;
+        }
+        let marketResolved: crate::types::Market = self.safe_market(orderMarketIdArg.as_deref(), market, &[Value::Null, Value::from(orderMarketType)]);
         let timestamp: Option<i64> = self.safe_integer_n(&order, Value::from(vec![Value::Str("transactTime".into()), Value::Str("time".into()), Value::Str("createTime".into())]), &[]).as_i64();
         let rawStatus: Option<String> = self.safe_string_lower2_opt(&order, Value::Str("status".into()), Value::Str("algoStatus".into()), &[]); // algo (trigger) order payloads carry algoStatus instead of status
         let triggerPrice: Option<String> = self.omit_zero(self.safe_string2(&order, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]));

@@ -1563,8 +1563,9 @@ impl Phemex {
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, client: &Value, message: impl Into<crate::Value>) {
-        let message: Value = message.into();
+    pub fn handle_orders(&mut self, client: &Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // spot update
         // {
         //        "closed":[
@@ -1723,17 +1724,19 @@ impl Phemex {
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut parsedOrders: Vec<Value> = Vec::new();
-        if (in_op(&message, &Value::Str("closed".into()))) || (in_op(&message, &Value::Str("fills".into()))) || (in_op(&message, &Value::Str("open".into()))) {
-            let closed: crate::value::List = self.safe_list_k_t(&message, "closed");
-            let open: crate::value::List = self.safe_list_k_t(&message, "open");
+        let ordersDict: crate::value::Dict = self.safe_dict2_t(message, Value::Str("orders".into()), Value::Str("orders_p".into()));
+        if (ordersDict.contains_key("closed")) || (ordersDict.contains_key("fills")) || (ordersDict.contains_key("open")) {
+            let closed: crate::value::List = self.safe_list_k_t(&ordersDict, "closed");
+            let open: crate::value::List = self.safe_list_k_t(&ordersDict, "open");
             let orders: crate::value::List = self.array_concat_t(&open, &closed);
             let ordersLength: i64 = orders.len() as i64;
             if (ordersLength == 0) {
                 return;
             }
-            trades = self.safe_list_k_t(&message, "fills");
+            trades = self.safe_list_k_t(&ordersDict, "fills");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_10: bool = true;
@@ -1744,15 +1747,16 @@ impl Phemex {
             }
             }
         }  else {
-            let messageLength: i64 = get_array_length(&message).as_i64().unwrap_or_default();
-            if (messageLength == 0) {
+            let updates: crate::value::List = __pro_message.key_list("orders_p");
+            let updatesLength: i64 = updates.len() as i64;
+            if (updatesLength == 0) {
                 return;
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_11: bool = true;
-                while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < messageLength } {
-                let update: Value = get_value(&message, &Value::Int(i));
+                while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < updatesLength } {
+                let update: Value = updates.get(i as usize).cloned().unwrap_or(Value::Null);
                 let action: Option<String> = self.safe_string_k_opt(&update, "action", &[]);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
                     // order + trade info together
@@ -2107,8 +2111,7 @@ impl Phemex {
             return;
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("orders"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("orders_p"))) {
-            let orders: crate::value::Dict = self.safe_dict2_t(&message, Value::Str("orders".into()), Value::Str("orders_p".into()));
-            self.handle_orders(&client, &orders);
+            self.handle_orders(&client, message.clone());
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
             let mut type_var: String = "spot".to_string();

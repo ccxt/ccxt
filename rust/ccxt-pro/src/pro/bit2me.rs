@@ -354,7 +354,7 @@ impl Bit2me {
         //
         let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let data: crate::value::Dict = __pro_message.key_dict("data");
         let trade: crate::value::Dict = self.parse_ws_trade(&data, Some(&market));
         if !(self.trades.has(&symbol)) {
@@ -363,7 +363,7 @@ impl Bit2me {
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         tradesArray.append(Value::Dict(trade));
-        client.resolve(Value::from(&tradesArray), &(Value::Str(format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null")).into())));
+        client.resolve(Value::from(&tradesArray), &(Value::Str(format!("{}{}", "trades:", symbol).into())));
 }
 
     pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
@@ -1168,14 +1168,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.reject(exception.clone(), messageHash.as_deref());
                 if (name.as_deref() == Some("my-orders")) || (name.as_deref() == Some("my-trades")) {
                     // the private channels are account-wide, a symbol-scoped watchOrders / watchMyTrades waits on orders:SYMBOL / myTrades:SYMBOL
-                    let scopedPrefix: Value = Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), ":").into());
+                    let scopedPrefix: String = format!("{}{}", messageHash.as_deref().unwrap_or("null"), ":");
                     let pendingHashes: Vec<Value> = __ch.future_keys();
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_4: bool = true;
                         while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (pendingHashes.len() as i64) } {
                         let pendingHash: Value = pendingHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-                        if (pendingHash.as_str().zip(scopedPrefix.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
+                        if (pendingHash.as_str().zip(Some(scopedPrefix.as_str())).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                             client.reject(exception.clone(), &pendingHash);
                         }
                     }
