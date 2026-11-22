@@ -2097,7 +2097,8 @@ class cryptocom extends Exchange {
             $address = $addressParts[0];
             $rawTag = $addressParts[1];
             $splitted = explode('=', $rawTag);
-            return array( $address, $splitted[1] );
+            $tag = $this->safe_string($splitted, 1);
+            return array( $address, $tag );
         }
         return array( $addressString, null );
     }

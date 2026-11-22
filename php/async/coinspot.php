@@ -314,7 +314,8 @@ class coinspot extends Exchange {
                 }
             }
         } else {
-            $currencyIdsMap = is_array($balances) ? array_keys($balances) : array();
+            $balancesDict = $this->safe_dict_2($response, 'balance', 'balances', array());
+            $currencyIdsMap = is_array($balancesDict) ? array_keys($balancesDict) : array();
             for ($i = 0; $i < count($currencyIdsMap); $i++) {
                 $currencyId = $currencyIdsMap[$i];
                 $code = $this->safe_currency_code($currencyId);

@@ -827,7 +827,7 @@ class deepcoin extends Exchange {
         $timestamp = $this->safe_integer_omit_zero($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $quoteVolume = $this->safe_string($ticker, 'volCcy24h');

@@ -1886,10 +1886,16 @@ class bitso extends Exchange {
                 $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
                 $resultValue = $this->safe_dict($result, $code);
                 if ($resultValue === null) {
-                    $result[$code] = $this->deposit_withdraw_fee(array());
+                    $newInfo = array();
+                    $newInfo[$code] = $this->parse_number($withdrawalResponse[$currencyId]);
+                    $result[$code] = $this->extend($this->deposit_withdraw_fee($newInfo), array( 'withdraw' => array( 'fee' => $withdrawFee, 'percentage' => null )));
+                } else {
+                    $infoUpdate = array();
+                    $infoUpdate[$code] = $this->parse_number($withdrawalResponse[$currencyId]);
+                    $withdraw = $this->extend($this->safe_dict($resultValue, 'withdraw', array()), array( 'fee' => $withdrawFee ));
+                    $info = $this->extend($this->safe_dict($resultValue, 'info', array()), $infoUpdate);
+                    $result[$code] = $this->extend($resultValue, array( 'withdraw' => $withdraw, 'info' => $info ));
                 }
-                $result[$code]['withdraw']['fee'] = $withdrawFee;
-                $result[$code]['info'][$code] = $withdrawFee;
             }
         }
         return $result;

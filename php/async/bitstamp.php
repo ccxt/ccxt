@@ -2510,7 +2510,8 @@ class bitstamp extends Exchange {
         if ($type === 'trade') {
             $parsedTrade = $this->parse_trade($item);
             $market = null;
-            $keys = is_array($item) ? array_keys($item) : array();
+            $itemDict = $this->extend(array(), $item);
+            $keys = is_array($itemDict) ? array_keys($itemDict) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $currentKey = $keys[$i];
                 if (mb_strpos($currentKey, '_') !== false) {

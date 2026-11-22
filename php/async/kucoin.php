@@ -4423,7 +4423,8 @@ class kucoin extends Exchange {
             if ($amount === null) {
                 throw new ArgumentsRequired($this->id . ' requires an amount argument');
             }
-            if ($amount < 1) {
+            $amountInt = $this->parse_to_int($amount);
+            if ($amountInt < 1) {
                 throw new InvalidOrder($this->id . ' createOrder() minimum contract order amount is 1');
             }
             $sizeString = $this->amount_to_precision($symbol, $amount);
@@ -8029,18 +8030,20 @@ class kucoin extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'address');
         $amount = $this->safe_string($transaction, 'amount');
-        $txid = $this->safe_string($transaction, 'walletTxId');
-        if ($txid !== null) {
-            $txidParts = explode('@', $txid);
+        $walletTxId = $this->safe_string($transaction, 'walletTxId');
+        $txid = null;
+        if ($walletTxId !== null) {
+            $txidParts = explode('@', $walletTxId);
             $numTxidParts = count($txidParts);
             if ($numTxidParts > 1) {
+                $txidAddress = $txidParts[1];
                 if ($address === null) {
-                    if (strlen($txidParts[1]) > 1) {
-                        $address = $txidParts[1];
+                    if (strlen($txidAddress) > 1) {
+                        $address = $txidAddress;
                     }
                 }
             }
-            $txid = $txidParts[0];
+            $txid = $this->safe_string($txidParts, 0);
         }
         $type = 'deposit';
         if ($txid === null) {

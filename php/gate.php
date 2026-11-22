@@ -4390,7 +4390,8 @@ class gate extends Exchange {
                 $type = Precise::string_gt($amountString, '0') ? 'deposit' : 'withdrawal';
                 $amountString = Precise::string_abs($amountString);
             } else {
-                $type = $this->parse_transaction_type($id[0]);
+                $idPrefix = mb_substr($id, 0, 1 - 0);
+                $type = $this->parse_transaction_type($idPrefix);
             }
         }
         $feeCostString = $this->safe_string_2($transaction, 'fee', 'fee_amount');
@@ -5454,7 +5455,7 @@ class gate extends Exchange {
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         if ($contract) {
             list($contractRequest, $contractParams) = $this->prepare_request($market, $type, $query);
-            $contractOrder = $this->extend($contractRequest, array( 'order_id' => (string) $orderId ));
+            $contractOrder = $this->extend($contractRequest, array( 'order_id' => $orderId ));
             return array( $contractOrder, $contractParams );
         }
         list($request, $requestParams) = $this->spot_order_prepare_request($market, $trigger, $query);

@@ -3908,7 +3908,7 @@ class phemex extends Exchange {
         $txid = $this->safe_string($transaction, 'txHash');
         $currencyId = $this->safe_string($transaction, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $code = $currencyResolved['code'];
+        $code = $this->safe_string($currencyResolved, 'code');
         $networkId = $this->safe_string($transaction, 'chainName');
         $timestamp = $this->safe_integer_n($transaction, array( 'createdAt', 'submitedAt', 'submittedAt' ));
         $type = $this->safe_string_lower($transaction, 'type');
@@ -4878,14 +4878,14 @@ class phemex extends Exchange {
             $privateHeaders['x-phemex-request-expiry'] = $expiryString;
             $payload = '';
             if ($method === 'POST') {
+                $payload = $this->json($params);
                 $isOrderPlacement = ($path === 'g-orders') || ($path === 'spot/orders') || ($path === 'orders');
                 if ($isOrderPlacement) {
                     if ($this->safe_string($params, 'clOrdID') === null) {
                         $id = $this->safe_string($this->options, 'brokerId', 'CCXT123456');
-                        $params['clOrdID'] = $id . $this->uuid16();
+                        $payload = $this->json($this->extend($params, array( 'clOrdID' => $id . $this->uuid16() )));
                     }
                 }
-                $payload = $this->json($params);
                 $requestBody = $payload;
                 $privateHeaders['Content-Type'] = 'application/json';
             }

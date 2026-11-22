@@ -826,7 +826,7 @@ class extended extends Exchange {
             $market = $this->safe_market($marketId);
             $stats = $this->safe_dict($marketData, 'marketStats', array());
             $ticker = $this->parse_ticker($stats, $market);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $tickers[$symbol] = $ticker;
             }

@@ -735,8 +735,8 @@ class bullish extends \ccxt\async\bullish {
             $account['total'] = $this->safe_string($data, 'availableQuantity');
             $account['used'] = $this->safe_string($data, 'lockedQuantity');
             $code = $this->safe_currency_code($assetId);
-            $this->balance[$tradingAccountId]['info'] = $message;
             $deltaBalance = $this->safe_dict($this->balance, $tradingAccountId, array());
+            $deltaBalance['info'] = $message;
             if (($tradingAccountId !== null) && ($code !== null)) {
                 $deltaBalance[$code] = $account;
             }
@@ -773,8 +773,6 @@ class bullish extends \ccxt\async\bullish {
         $symbolsNormalized = $symbols;
         if ($hasSymbols) {
             $symbolsNormalized = $this->market_symbols($symbols);
-        }
-        if ($hasSymbols && ($symbolsNormalized !== null)) {
             $messageHash .= '::' . implode(',', $symbolsNormalized);
         }
         $request = array(

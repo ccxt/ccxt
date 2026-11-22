@@ -715,7 +715,7 @@ class gemini extends Exchange {
         $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
         $marketIds = array();
         $allMarketIds = array();
-        if ((gettype($marketIdsRaw) === 'array' && array_keys($marketIdsRaw) === array_keys(array_keys($marketIdsRaw)))) {
+        if ($marketIdsRaw !== null) {
             $allMarketIds = $marketIdsRaw;
         }
         for ($i = 0; $i < count($allMarketIds); $i++) {
@@ -2028,7 +2028,7 @@ class gemini extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $codeValue = $currency['code'];
+        $codeValue = $this->safe_string($currency, 'code', '');
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
@@ -2149,14 +2149,14 @@ class gemini extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://docs.gemini.com/rest-api/#$candles
+         * @see https://docs.gemini.com/rest-api/#candles
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2175,11 +2175,7 @@ class gemini extends Exchange {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): array {

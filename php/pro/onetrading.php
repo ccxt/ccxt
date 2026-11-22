@@ -1271,7 +1271,9 @@ class onetrading extends \ccxt\async\onetrading {
         $keys = is_array($timeframesResolved) ? array_keys($timeframesResolved) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($this->safe_string($timeframesResolved[$key], 'unit') === $unit && $this->safe_string($timeframesResolved[$key], 'period') === $period) {
+            $rowUnit = $this->safe_string($timeframesResolved[$key], 'unit');
+            $rowPeriod = $this->safe_string($timeframesResolved[$key], 'period');
+            if ($rowUnit === $unit && $rowPeriod === $period) {
                 return $key;
             }
         }

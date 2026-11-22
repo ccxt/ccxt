@@ -1234,7 +1234,7 @@ class cex extends Exchange {
             $marketId = $currency1 . '-' . $currency2;
         }
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $fee = array();
         $feeAmount = $this->safe_number($order, 'feeAmount');

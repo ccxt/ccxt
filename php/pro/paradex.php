@@ -751,7 +751,7 @@ class paradex extends \ccxt\async\paradex {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $parsedTrade = $this->parse_trade($data);
-        $symbol = $parsedTrade['symbol'];
+        $symbol = $this->safe_string($parsedTrade, 'symbol');
         $messageHash = $this->safe_string($params, 'channel');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -772,7 +772,9 @@ class paradex extends \ccxt\async\paradex {
                 $this->options['liquidationsBySymbol'] = $caches;
             }
             $liquidations->append($liquidation);
-            $client->resolve($liquidations, 'liquidations:' . $symbol);
+            if ($symbol !== null) {
+                $client->resolve($liquidations, 'liquidations:' . $symbol);
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -1228,7 +1230,7 @@ class paradex extends \ccxt\async\paradex {
         for ($i = 0; $i < $symbolsLength; $i++) {
             $symbol = ($symbolsNormalized)[$i];
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $marketIds[] = $marketId;
             $subscribeHashes[] = $channel . '.' . $marketId;
             $subMessageHashes[] = $channel . '.' . $symbol;
@@ -1321,7 +1323,7 @@ class paradex extends \ccxt\async\paradex {
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market($symbols[$i]);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $subscribeHash = $channel . '.' . $marketId;
             $subscribeHashes[] = $subscribeHash;
             if (!(is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {
@@ -1499,9 +1501,11 @@ class paradex extends \ccxt\async\paradex {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $bidAsk = $this->parse_ws_bid_ask($data);
-        $symbol = $bidAsk['symbol'];
+        $symbol = $this->safe_string($bidAsk, 'symbol');
         $this->bidsasks[$symbol] = $bidAsk;
-        $client->resolve($bidAsk, 'bidask:' . $symbol);
+        if ($symbol !== null) {
+            $client->resolve($bidAsk, 'bidask:' . $symbol);
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         $client->resolve($bidAsk, 'bidask');
     }
@@ -1727,8 +1731,10 @@ class paradex extends \ccxt\async\paradex {
         if ($symbolsLength === 0) {
             $messageHashes[] = $channel;
         } else {
-            for ($i = 0; $i < $symbolsLength; $i++) {
-                $messageHashes[] = $channel . ':' . ($symbolsNormalized)[$i];
+            if ($symbolsNormalized !== null) {
+                for ($i = 0; $i < $symbolsLength; $i++) {
+                    $messageHashes[] = $channel . ':' . $symbolsNormalized[$i];
+                }
             }
         }
         $request = $this->subscribe_request($channel);
@@ -1774,7 +1780,7 @@ class paradex extends \ccxt\async\paradex {
         }
         $cache = $this->positions;
         $position = $this->parse_position($data);
-        $symbol = $position['symbol'];
+        $symbol = $this->safe_string($position, 'symbol');
         $newPositions = array();
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -1797,7 +1803,9 @@ class paradex extends \ccxt\async\paradex {
         $cache->append($position);
         $newPositions[] = $position;
         $client->resolve($newPositions, 'positions');
-        $client->resolve($newPositions, 'positions:' . $symbol);
+        if ($symbol !== null) {
+            $client->resolve($newPositions, 'positions:' . $symbol);
+        }
     }
 
     public function watch_balance($params = array()): PromiseInterface {

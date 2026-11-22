@@ -1514,7 +1514,7 @@ class deribit extends Exchange {
         $tickers = array();
         for ($i = 0; $i < count($result); $i++) {
             $ticker = $this->parse_ticker($result[$i]);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $tickers[$symbol] = $ticker;
             }

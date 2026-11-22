@@ -860,7 +860,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $previousOrder['trades'] = array();
                 }
                 $previousOrder['trades'][] = $trade;
-                $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
+                $previousOrder['lastTradeTimestamp'] = $this->safe_integer($trade, 'timestamp');
                 $totalCost = '0';
                 $totalAmount = '0';
                 $trades = $this->safe_list($previousOrder, 'trades', array());
@@ -1538,11 +1538,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($holding !== null) {
             $holdingKeys = is_array($holding) ? array_keys($holding) : array();                  // cashAccount
             $this->balance['cash'] = $this->safe_dict($this->balance, 'cash', array());
-            $this->balance['cash']['info'] = $message;
-            $this->balance['cash']['timestamp'] = $timestamp;
-            $this->balance['cash']['datetime'] = $this->iso8601($timestamp);
-            $holdingCodes = array();
             $cashBalance = $this->safe_dict($this->balance, 'cash', array());
+            $cashBalance['info'] = $message;
+            $cashBalance['timestamp'] = $timestamp;
+            $cashBalance['datetime'] = $this->iso8601($timestamp);
+            $holdingCodes = array();
             for ($i = 0; $i < count($holdingKeys); $i++) {
                 $key = $holdingKeys[$i];
                 $code = $this->safe_currency_code($key);
@@ -1560,11 +1560,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($futures !== null) {
             $futuresKeys = is_array($futures) ? array_keys($futures) : array();                  // marginAccount
             $this->balance['margin'] = $this->safe_dict($this->balance, 'margin', array());
-            $this->balance['margin']['info'] = $message;
-            $this->balance['margin']['timestamp'] = $timestamp;
-            $this->balance['margin']['datetime'] = $this->iso8601($timestamp);
-            $futuresSymbols = array();
             $marginBalance = $this->safe_dict($this->balance, 'margin', array());
+            $marginBalance['info'] = $message;
+            $marginBalance['timestamp'] = $timestamp;
+            $marginBalance['datetime'] = $this->iso8601($timestamp);
+            $futuresSymbols = array();
             for ($i = 0; $i < count($futuresKeys); $i++) {
                 $key = $futuresKeys[$i];
                 $symbol = $this->safe_symbol($key);
@@ -1593,11 +1593,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $flexFutureCurrencies = $this->safe_dict($flexFutures, 'currencies', array());
             $flexFuturesKeys = is_array($flexFutureCurrencies) ? array_keys($flexFutureCurrencies) : array(); // multi-collateral margin account
             $this->balance['flex'] = $this->safe_dict($this->balance, 'flex', array());
-            $this->balance['flex']['info'] = $message;
-            $this->balance['flex']['timestamp'] = $timestamp;
-            $this->balance['flex']['datetime'] = $this->iso8601($timestamp);
-            $flexCodes = array();
             $flexBalance = $this->safe_dict($this->balance, 'flex', array());
+            $flexBalance['info'] = $message;
+            $flexBalance['timestamp'] = $timestamp;
+            $flexBalance['datetime'] = $this->iso8601($timestamp);
+            $flexCodes = array();
             for ($i = 0; $i < count($flexFuturesKeys); $i++) {
                 $key = $flexFuturesKeys[$i];
                 $flexFuture = $this->safe_dict($flexFutureCurrencies, $key);

@@ -487,8 +487,8 @@ class hyperliquid extends Exchange {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             $expParts = explode('-', $expiry);
             $expPartsLength = count($expParts);
-            if ($expPartsLength >= 1 && strlen($expParts[0]) === 8) {
-                $ymd = $expParts[0];
+            $ymd = $expParts[0];
+            if ($expPartsLength >= 1 && strlen($ymd) === 8) {
                 $hm = '0000';
                 if ($expPartsLength >= 2) {
                     $hm = $expParts[1];
@@ -553,7 +553,7 @@ class hyperliquid extends Exchange {
         $marketRow = $this->safe_market_structure(array(
             'id' => $outcomeKey,
             'market' => $parentSymbol,
-            'base' => explode('/', $parentSymbol)[0],
+            'base' => $this->safe_string(explode('/', $parentSymbol), 0),
             'quote' => $quoteCurrency,
             'settle' => null,
             'baseId' => $outcomeKey,
@@ -2026,8 +2026,8 @@ class hyperliquid extends Exchange {
         if (($expiryRaw !== null) && ($expiryRaw !== '')) {
             $parts = explode('-', $expiryRaw);
             $partsLength = count($parts);
-            if ($partsLength >= 1 && strlen($parts[0]) === 8) {
-                $ymd = $parts[0];
+            $ymd = $parts[0];
+            if ($partsLength >= 1 && strlen($ymd) === 8) {
                 $hm = '0000';
                 if ($partsLength >= 2) {
                     $hm = $parts[1];

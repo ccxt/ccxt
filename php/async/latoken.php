@@ -872,10 +872,11 @@ class latoken extends Exchange {
         $symbol = null;
         $marketResolved = $market;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $marketResolved = $this->market($symbol);
+            $knownSymbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($knownSymbol);
             }
+            $symbol = $knownSymbol;
         }
         $last = $this->safe_string($ticker, 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1061,10 +1062,11 @@ class latoken extends Exchange {
         $symbol = null;
         $marketResolved = $market;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $marketResolved = $this->market($symbol);
+            $knownSymbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($knownSymbol);
             }
+            $symbol = $knownSymbol;
         }
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order');
@@ -1362,10 +1364,14 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
+        $symbolKnown = false;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $base . '/' . $quote;
+            $knownSymbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
+                $symbolKnown = true;
+            }
+            $symbol = $knownSymbol;
         }
-        $symbolKnown = ($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets));
         $marketResolved = $market;
         if ($symbolKnown) {
             $marketResolved = $this->market($symbol);

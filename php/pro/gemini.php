@@ -613,7 +613,8 @@ class gemini extends \ccxt\async\gemini {
             $messageHash = $itemHashName . ':' . $symbol;
             $messageHashes[] = $messageHash;
             $market = $this->market($symbol);
-            $marketIds[] = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $marketIds[] = $marketId;
         }
         $queryStr = implode(',', $marketIds);
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');

@@ -613,13 +613,14 @@ class kalshi extends Exchange {
         $outcomeLabels = array( 'YES', 'NO' );
         $outcomes = array();
         $resolvedOutcome = null;
+        $resultText = $this->safe_string_lower($raw, 'result', '');
         for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
             $label = $outcomeLabels[$oi];
             $outcomeHandle = $this->slug_to_outcome_symbol($eventTicker, $subtitleOrTicker, $label);
             $winnerRaw = null;
             $settleFractionRaw = null;
             if ($resolved && ($result !== null) && ($result !== '')) {
-                $winnerRaw = (strtolower($label) === $result);
+                $winnerRaw = (strtolower($label) === $resultText);
                 $settleFractionRaw = ($winnerRaw) ? 1 : 0;
                 if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;

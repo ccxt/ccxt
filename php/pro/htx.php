@@ -2802,17 +2802,17 @@ class htx extends \ccxt\async\htx {
             if ($data !== null) {
                 $contractCode = $this->safe_string($message, 'contract_code');
                 $market = ($contractCode !== null) ? $this->safe_market($contractCode) : null;
-                if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-                    $dataList = $this->safe_list($message, 'data', array());
-                    for ($i = 0; $i < count($dataList); $i++) {
-                        $parsed = $this->parse_ws_trade($dataList[$i], $market);
-                        $symbol = $this->safe_string($parsed, 'symbol');
-                        if ($symbol !== null) {
-                            $cachedTrades->append($parsed);
-                        }
+                $dataList = $this->safe_list($message, 'data', array());
+                for ($i = 0; $i < count($dataList); $i++) {
+                    $parsed = $this->parse_ws_trade($dataList[$i], $market);
+                    $symbol = $this->safe_string($parsed, 'symbol');
+                    if ($symbol !== null) {
+                        $cachedTrades->append($parsed);
                     }
-                } else {
-                    $parsed = $this->parse_ws_trade($data, $market);
+                }
+                $dataDict = $this->safe_dict($message, 'data');
+                if ($dataDict !== null) {
+                    $parsed = $this->parse_ws_trade($dataDict, $market);
                     $symbol = $this->safe_string($parsed, 'symbol');
                     if ($symbol !== null) {
                         $cachedTrades->append($parsed);

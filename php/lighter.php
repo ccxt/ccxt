@@ -1520,7 +1520,7 @@ class lighter extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'market_id');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $last = $this->safe_string($ticker, 'last_trade_price');
         $high = $this->safe_string($ticker, 'daily_price_high');
         $low = $this->safe_string($ticker, 'daily_price_low');
@@ -3187,7 +3187,7 @@ class lighter extends Exchange {
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
         $signRaw = array(
             'market_index' => $this->parse_to_int($market['id']),
-            'initial_margin_fraction' => $this->parse_to_int(10000 / $leverage),
+            'initial_margin_fraction' => $this->parse_to_int(10000 / $this->parse_to_int($leverage)),
             'margin_mode' => ($marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce' => $nonce,
             'api_key_index' => $apiKeyIndex,

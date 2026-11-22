@@ -1323,15 +1323,7 @@ class alpaca extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->traderPrivateDeleteV2Orders($params));
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            return $this->parse_orders($response);
-        } else {
-            return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
-            );
-        }
+        return $this->parse_orders($response);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {

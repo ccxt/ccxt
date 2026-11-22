@@ -157,8 +157,8 @@ class cex extends \ccxt\async\cex {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $currentSymbol = $this->safe_string($this->options['watchTrades'], 'symbol');
-        if ($currentSymbol !== null && $currentSymbol !== $symbol) {
+        $currentSymbol = $this->safe_string($this->options['watchTrades'], 'symbol', '');
+        if ($currentSymbol !== '' && $currentSymbol !== $symbol) {
             throw new ArgumentsRequired($this->id . ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
         $watchTradesDict = $this->extend(array(), $this->safe_dict($this->options, 'watchTrades', array()));
@@ -541,7 +541,7 @@ class cex extends \ccxt\async\cex {
         Async\await($this->authenticate($params));
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orders:' . $symbolValue;
         $message = array(
             'e' => 'open-orders',

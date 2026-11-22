@@ -938,7 +938,7 @@ class polymarket extends Exchange {
          */
         $tokenIds = array();
         for ($i = 0; $i < count($outcomeSymbols); $i++) {
-            $outcomeSymbol = $outcomeSymbols[$i];
+            $outcomeSymbol = $this->safe_string($outcomeSymbols, $i, '');
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -982,8 +982,9 @@ class polymarket extends Exchange {
             $this->populate_outcomes();
         }
         for ($i = 0; $i < count($outcomeSymbols); $i++) {
-            if (!$this->has_outcome($outcomeSymbols[$i])) {
-                Async\await($this->fetch_outcome($outcomeSymbols[$i]));
+            $pendingSymbol = $this->safe_string($outcomeSymbols, $i, '');
+            if (!$this->has_outcome($pendingSymbol)) {
+                Async\await($this->fetch_outcome($pendingSymbol));
             }
         }
         return $this->outcomes;
@@ -1299,7 +1300,7 @@ class polymarket extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of $candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered as timestamp, $open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, $open, $high, $low, close, volume
          */
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
@@ -1382,8 +1383,18 @@ class polymarket extends Exchange {
                     }
                 }
                 $open = $this->safe_number($buckets[$bucketKey], 1);
+                $high = $price;
+                $prevHigh = $this->safe_number($buckets[$bucketKey], 2);
+                if (($prevHigh !== null) && ($price !== null) && ($prevHigh > $price)) {
+                    $high = $prevHigh;
+                }
+                $low = $price;
+                $prevLow = $this->safe_number($buckets[$bucketKey], 3);
+                if (($prevLow !== null) && ($price !== null) && ($price > $prevLow)) {
+                    $low = $prevLow;
+                }
                 // close is the last tick
-                $buckets[$bucketKey] = array( $snappedMs, $open, max($this->safe_number($buckets[$bucketKey], 2), $price), min($this->safe_number($buckets[$bucketKey], 3), $price), $price, $candleVol );
+                $buckets[$bucketKey] = array( $snappedMs, $open, $high, $low, $price, $candleVol );
             }
         }
         $bucketKeys = is_array($buckets) ? array_keys($buckets) : array();
@@ -1808,7 +1819,8 @@ class polymarket extends Exchange {
         }
         for ($i = 0; $i < count($outcomes); $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
-            $wantedIds[$outcomeObj['outcomeId']] = true;
+            $outcomeId = $this->safe_string($outcomeObj, 'outcomeId', '');
+            $wantedIds[$outcomeId] = true;
         }
         $result = array();
         for ($i = 0; $i < count($parsed); $i++) {

@@ -2524,7 +2524,7 @@ class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        $outcomeId = ($market !== null && $market !== null) ? $this->safe_string($market['info'], 'outcomeId') : null;
+        $outcomeId = $this->safe_string($this->safe_dict($market, 'info'), 'outcomeId');
         $outcomes = $this->safe_list($raw, 'outcomes', array());
         $price = null;
         $change = null;
@@ -2542,7 +2542,7 @@ class myriad extends Exchange {
                 if (($priceValue !== null) && ($changeValue !== null)) {
                     $previousCloseValue = $priceValue - $changeValue;
                     $previousClose = $previousCloseValue;
-                    if ($previousCloseValue !== 0) {
+                    if ($priceValue !== $changeValue) {
                         $percentage = $changeValue / $previousCloseValue * 100;
                     }
                 }
@@ -3150,7 +3150,7 @@ class myriad extends Exchange {
                 $tagQueries = array();
                 for ($i = 0; $i < $requestedTagsLength; $i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    $tagSlug = $requestedTags[$i];
+                    $tagSlug = $this->safe_string($requestedTags, $i, '');
                     $tagQueries[] = str_replace('-', ' ', $tagSlug);
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -3343,7 +3343,7 @@ class myriad extends Exchange {
         $linesLength = count($lines);
         for ($i = 0; $i < $linesLength; $i++) {
             $line = $lines[$i];
-            if (strlen($line) > 0) {
+            if ($line !== '') {
                 $parsed = json_decode($line, $as_associative_array = true);
                 $this->handle_centrifugo_frame($client, $parsed);
             }

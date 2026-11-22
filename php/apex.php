@@ -1375,7 +1375,7 @@ class apex extends Exchange {
         $fees = $this->safe_dict($this->fees, 'swap', array());
         $taker = $this->safe_string($fees, 'taker', '0.0005');
         $maker = $this->safe_string($fees, 'maker', '0.0002');
-        $pricePrecision = $market['precision']['price'];
+        $pricePrecision = $this->safe_number($market['precision'], 'price');
         $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($pricePrecision)), TRUNCATE, $pricePrecision, $this->precisionMode, $this->paddingMode);
         $timeNow = $this->milliseconds();
         $triggerPrice = $this->safe_string($params, 'triggerPrice');

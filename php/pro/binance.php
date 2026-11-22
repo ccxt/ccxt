@@ -324,7 +324,7 @@ class binance extends \ccxt\async\binance {
     public function get_stock_ws_url(?string $streamType = 'market'): string {
         $urlsApi = $this->safe_dict($this->urls, 'api', array());
         $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
-        $baseUrl = $wsUrls['stock'];
+        $baseUrl = $this->safe_string($wsUrls, 'stock', '');
         if ($streamType === 'combined') {
             return str_replace('/ws', '/stream', $baseUrl);
         }
@@ -1022,8 +1022,8 @@ class binance extends \ccxt\async\binance {
             'method' => array($this, 'handle_fetch_order_book'),
         );
         $snapshot = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        $snapshot['symbol'] = $market['symbol'];
-        $orderbook = $this->order_book($snapshot);
+        $symbolEntry = array( 'symbol' => $market['symbol'] );
+        $orderbook = $this->order_book($this->extend($snapshot, $symbolEntry));
         return $orderbook;
     }
 
@@ -1746,7 +1746,7 @@ class binance extends \ccxt\async\binance {
             $marketType = 'spot';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade::' . $symbol;
         $trade = $this->parse_ws_trade($message, $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
@@ -2082,7 +2082,7 @@ class binance extends \ccxt\async\binance {
             $marketType = 'spot';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         $inverse = $this->safe_bool($market, 'inverse');
         $volumeKey = ($inverse === true) ? 'q' : 'v';
@@ -2977,6 +2977,7 @@ class binance extends \ccxt\async\binance {
             $unifiedPrefix = 'ticker';
         }
         $channelName = null;
+        $batchMessageHash = '';
         $resolvedMessageHashes = array();
         $rawTickers = array();
         $newTickers = array();
@@ -3012,7 +3013,7 @@ class binance extends \ccxt\async\binance {
                 $tickerMarketType = $this->safe_string($tickerMarketById, 'type');
             }
             $parsedTicker = $this->parse_ws_ticker($ticker, $tickerMarketType);
-            $symbol = $parsedTicker['symbol'];
+            $symbol = $this->safe_string($parsedTicker, 'symbol');
             if ($symbol !== null) {
                 $newTickers[$symbol] = $parsedTicker;
             }
@@ -3025,14 +3026,16 @@ class binance extends \ccxt\async\binance {
                     $this->tickers[$symbol] = $parsedTicker;
                 }
             }
-            $messageHash = $unifiedPrefix . ':' . $channelName . '@' . $symbol;
-            $resolvedMessageHashes[] = $messageHash;
-            $client->resolve($parsedTicker, $messageHash);
+            $batchMessageHash = $unifiedPrefix . 's:' . $channelName;
+            if ($symbol !== null) {
+                $messageHash = $unifiedPrefix . ':' . $channelName . '@' . $symbol;
+                $resolvedMessageHashes[] = $messageHash;
+                $client->resolve($parsedTicker, $messageHash);
+            }
         }
         // resolve batch endpoint
         $length = count($resolvedMessageHashes);
         if ($length > 0) {
-            $batchMessageHash = $unifiedPrefix . 's:' . $channelName;
             $client->resolve($newTickers, $batchMessageHash);
         }
     }
@@ -5244,9 +5247,9 @@ class binance extends \ccxt\async\binance {
                 'info' => $rate,
             ));
             $this->tickers[$symbol] = $parsed;
-            $tickers[$symbol] = $parsed;
             $priceSymbol = $this->safe_string($parsed, 'symbol', '');
             $client->resolve($parsed, 'stock:price:' . $priceSymbol);
+            $tickers[$priceSymbol] = $parsed;
         }
         $client->resolve($tickers, 'stock:price');
     }

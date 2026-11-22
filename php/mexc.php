@@ -5078,7 +5078,7 @@ class mexc extends Exchange {
         }
         if ($code !== null) {
             $currency = $this->currency($code);
-            $currencyId = $currency['id'];
+            $currencyId = $this->safe_string($currency, 'id', '');
             $request['coin'] = $currencyId;
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side

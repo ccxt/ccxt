@@ -830,8 +830,8 @@ class toobit extends \ccxt\async\toobit {
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
-        $this->balance[$type]['info'] = $this->safe_list($message, 'B', array());
         $typeBalance = $this->safe_dict($this->balance, $type, array());
+        $typeBalance['info'] = $this->safe_list($message, 'B', array());
         $typeBalance['timestamp'] = $timestamp;
         $typeBalance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {

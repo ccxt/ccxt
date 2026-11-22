@@ -1591,7 +1591,7 @@ class lbank extends Exchange {
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }

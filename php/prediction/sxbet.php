@@ -2465,7 +2465,7 @@ class sxbet extends Exchange {
         }
         $held = $this->safe_string($this->safe_dict($this->options, 'wsBookVersions', array()), $marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if (($held !== '') && ($version <= $held)) {
+        if (($held !== '') && (($version === '') || Precise::string_le($version, $held))) {
             return $refreshed;
         }
         $this->set_ws_option('wsBookVersions', $marketHash, $version);

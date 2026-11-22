@@ -443,8 +443,11 @@ class bittrade extends Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($symbolsResolved); $i++) {
-            $symbol = $symbolsResolved[$i];
-            $result[$symbol] = $this->fetch_trading_limits_by_id($this->market_id($symbol), $params);
+            $symbol = $this->safe_string($symbolsResolved, $i);
+            $limits = $this->fetch_trading_limits_by_id($this->market_id($symbol), $params);
+            if ($symbol !== null) {
+                $result[$symbol] = $limits;
+            }
         }
         return $result;
     }

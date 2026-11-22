@@ -516,7 +516,7 @@ class btcturk extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'pair');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open');

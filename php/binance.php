@@ -3490,7 +3490,8 @@ class binance extends Exchange {
         for ($i = 0; $i < count($results); $i++) {
             $res = $this->safe_value($results, $i);
             if (($fetchMargins) && (gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res)))) {
-                $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
+                $resBySymbol = $this->index_by($res, 'symbol');
+                $keysList = is_array($resBySymbol) ? array_keys($resBySymbol) : array();
                 $length = count($this->options['crossMarginPairsData']);
                 // first one is the cross-margin promise
                 if ($length === 0) {
@@ -7211,31 +7212,30 @@ class binance extends Exchange {
         if ($method !== 'POST') {
             return $params;
         }
-        $generated = array();
         if (($path === 'order') || ($path === 'sor/order') || ($path === 'order/cancelReplace') || ($path === 'um/order') || ($path === 'cm/order') || ($path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             $clientOrderIdKey = ($api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'newClientOrderId');
             if ($clientOrderId === null) {
-                $generated[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                $params[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'algoOrder') || ($path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             $clientAlgoId = $this->safe_string($params, 'clientAlgoId');
             if ($clientAlgoId === null) {
-                $generated['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
+                $params['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'cm/conditional/order') || ($path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             $newClientStrategyId = $this->safe_string($params, 'newClientStrategyId');
             if ($newClientStrategyId === null) {
-                $generated['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
+                $params['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif ($path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             $equityClientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($equityClientOrderId === null) {
-                $generated['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
+                $params['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'order/oco') || ($path === 'margin/order/oco') || ($path === 'orderList/oco') || ($path === 'orderList/oto') || ($path === 'orderList/otoco') || ($path === 'orderList/opo') || ($path === 'orderList/opoco')) {
             // the order list endpoints take a listClientOrderId and one client order id per leg
@@ -7251,7 +7251,7 @@ class binance extends Exchange {
                 $currentClientOrderIdKey = $clientOrderIdKeys[$i];
                 $currentClientOrderId = $this->safe_string($params, $currentClientOrderIdKey);
                 if ($currentClientOrderId === null) {
-                    $generated[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                    $params[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
                 }
             }
         } elseif ($path === 'batchOrders') {
@@ -7271,8 +7271,7 @@ class binance extends Exchange {
                 $params['batchOrders'] = $checkedBatchOrders;
             }
         }
-        $withIds = $this->extend($params, $generated);
-        return $withIds;
+        return $params;
     }
 
     public function is_conditional_order($params = array()): bool {
@@ -9545,8 +9544,11 @@ class binance extends Exchange {
         $earnedCurrency = $bnb['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
         $tradedCurrencyIsQuote = false;
-        if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($applicantSymbol ?? '', $this->markets))) {
-            $tradedCurrencyIsQuote = true;
+        if (($this->markets !== null) && ($earnedCurrency !== null) && ($tradedCurrency !== null)) {
+            $knownSymbol = $earnedCurrency . '/' . $tradedCurrency;
+            if (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets)) {
+                $tradedCurrencyIsQuote = true;
+            }
         }
         $feeCostString = $this->safe_string($trade, 'serviceChargeAmount');
         $fee = array(
@@ -14497,7 +14499,7 @@ class binance extends Exchange {
         }
         if ($this->safe_bool($market, 'option', false)) {
             $optionResponse = $this->eapiPublicGetOpenInterest($this->extend($request, $params));
-            $symbolValue = $market['symbol'];
+            $symbolValue = $this->safe_string($market, 'symbol', '');
             $result = $this->parse_open_interests_history($optionResponse, $market);
             for ($i = 0; $i < count($result); $i++) {
                 $item = $this->safe_dict($result, $i);

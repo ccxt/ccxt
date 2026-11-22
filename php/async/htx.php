@@ -1565,7 +1565,7 @@ class htx extends Exchange {
 
     public function cost_to_precision(?string $symbol, mixed $cost): string {
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['cost'], $this->precisionMode);
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->safe_value($market['precision'], 'cost'), $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
@@ -1961,8 +1961,9 @@ class htx extends Exchange {
             $this->options['futureMarketIdsForSymbols'] = array();
         }
         $futureMarketIdsForSymbols = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
-        if (is_array($futureMarketIdsForSymbols) && array_key_exists($symbolOrMarketId ?? '', $futureMarketIdsForSymbols)) {
-            return $futureMarketIdsForSymbols[$symbolOrMarketId];
+        $knownSymbol = $this->safe_string($futureMarketIdsForSymbols, $symbolOrMarketId, '');
+        if ($knownSymbol !== '') {
+            return $knownSymbol;
         }
         $futureMarkets = $this->filter_by($this->markets, 'future', true);
         $futuresCharsMaps = array(
@@ -8066,12 +8067,14 @@ class htx extends Exchange {
         if ($marketType === 'swap') {
             if ($this->safe_bool($market, 'linear', false)) {
                 list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchFundingHistory', $paramsUntil, 'cross');
-                $request['margin_mode'] = $marginMode;
-                $request['contract_code'] = $market['id'];
+                $linearRequest = array(
+                    'margin_mode' => $marginMode,
+                    'contract_code' => $market['id'],
+                );
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $linearRequest['limit'] = $limit;
                 }
-                $response = Async\await($this->contractPrivateGetV5AccountBills($this->extend($request, $paramsMarginMode)));
+                $response = Async\await($this->contractPrivateGetV5AccountBills($this->extend($this->extend($request, $linearRequest), $paramsMarginMode)));
                 //
                 //     {
                 //         "code": 200,

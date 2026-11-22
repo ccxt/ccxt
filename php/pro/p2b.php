@@ -153,7 +153,7 @@ class p2b extends \ccxt\async\p2b {
         list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchTicker', 'name', $name);
         $market = $this->market($symbol);
         $this->options['tickerSubs'][$market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        $tickerSubs = $this->options['tickerSubs'];
+        $tickerSubs = $this->safe_dict($this->options, 'tickerSubs', array());
         $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
         return Async\await($this->subscribe($nameOption . '.subscribe', $nameOption . '::' . $this->safe_string($market, 'symbol', ''), $request, $paramsName));
     }

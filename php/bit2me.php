@@ -1135,14 +1135,12 @@ class bit2me extends Exchange {
             if ($triggerPrice !== null) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
             }
-            $quoteAmount = null;
             if ($cost !== null) {
-                $quoteAmount = $cost;
+                $request['amount'] = $this->cost_to_precision($symbol, $cost);
+                $request['amountInQuote'] = true;
             } elseif (($side === 'buy') && ($price !== null)) {
                 // the unified convention for market buy orders, the cost to spend is amount * price
                 $quoteAmount = Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price));
-            }
-            if ($quoteAmount !== null) {
                 $request['amount'] = $this->cost_to_precision($symbol, $quoteAmount);
                 $request['amountInQuote'] = true;
             } else {

@@ -1995,8 +1995,11 @@ class binance extends Exchange {
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $baseUrls = $this->urls['api'];
-        $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sapi']);
+        $baseUrls = $this->safe_dict($this->urls, 'api', array());
+        $baseUrl = $this->safe_string($baseUrls, $apiGroup, '');
+        if ($baseUrl === '') {
+            $baseUrl = $this->safe_string($baseUrls, 'sapi', '');
+        }
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $this->check_required_credentials();

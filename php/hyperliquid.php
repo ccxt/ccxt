@@ -381,9 +381,12 @@ class hyperliquid extends Exchange {
             if (is_array($spotCurrencyMapping) && array_key_exists($baseName ?? '', $spotCurrencyMapping)) {
                 $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
                 $quote = $this->safe_string($symbolParts, 1);
-                $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
-                if (is_array($this->markets) && array_key_exists($newSymbol ?? '', $this->markets)) {
-                    return $this->markets[$newSymbol];
+                $unifiedBase = $this->safe_currency_code($unifiedBaseName);
+                if (($unifiedBase !== null) && ($quote !== null)) {
+                    $newSymbol = $unifiedBase . '/' . $quote;
+                    if (is_array($this->markets) && array_key_exists($newSymbol ?? '', $this->markets)) {
+                        return $this->markets[$newSymbol];
+                    }
                 }
             }
         }
@@ -2201,7 +2204,7 @@ class hyperliquid extends Exchange {
         $paramsOmitted = $this->omit($params, 'randomize');
         list($vaultAddressOption, $paramsVault) = $this->handle_option_string_and_params($paramsOmitted, 'createOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddressOption);
-        $durationMins = (int) floor($duration / 1000 / 60); // convert from ms to minutes
+        $durationMins = (int) floor($this->parse_to_int($duration) / 1000 / 60); // convert from ms to minutes
         $orderObj = array(
             'a' => $this->parse_to_int($market['baseId']),
             'b' => $isBuy,

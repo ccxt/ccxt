@@ -1902,6 +1902,9 @@ class okx extends Exchange {
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
+        if ($contract) {
+            $maxSpotCost = null;
+        }
         $leverageAboveOne = Precise::string_gt($maxLeverage, '1');
         $quoteEqualSettle = ($quoteId === $settleId);
         $baseEqualSettle = ($baseId === $settleId);
@@ -1952,7 +1955,7 @@ class okx extends Exchange {
                 ),
                 'cost' => array(
                     'min' => null,
-                    'max' => $contract ? null : $maxSpotCost,
+                    'max' => $maxSpotCost,
                 ),
             ),
             'info' => $market,
@@ -5701,7 +5704,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $hasTag = ($tagWithdrawTag !== null) && (strlen($tagWithdrawTag) > 0);
+        $hasTag = ($tagWithdrawTag !== null) && ($tagWithdrawTag !== '');
         $addressWithTag = $address;
         if ($hasTag) {
             $addressWithTag = $address . ':' . $tagWithdrawTag;
@@ -6893,9 +6896,10 @@ class okx extends Exchange {
                         $entry = $params[$i];
                         $clientOrderId = $this->safe_string($entry, 'clOrdId');
                         if ($clientOrderId === null) {
-                            $entry['clOrdId'] = $brokerId . $this->uuid16();
-                            $entry['tag'] = $brokerId;
-                            $params[$i] = $entry;
+                            $taggedEntry = $this->extend(array(), $entry);
+                            $taggedEntry['clOrdId'] = $brokerId . $this->uuid16();
+                            $taggedEntry['tag'] = $brokerId;
+                            $params[$i] = $taggedEntry;
                         }
                     }
                 } else {

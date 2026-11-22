@@ -1419,6 +1419,7 @@ class dydx extends Exchange {
         $conditionalType = 0;
         $conditionalOrderTriggerSubticks = '0';
         $orderFlag = null;
+        $isShortTerm = false;
         $timeInForceNumber = null;
         if ($timeInForce === 'FOK') {
             throw new InvalidOrder($this->id . ' timeInForce fok has been deprecated');
@@ -1426,6 +1427,7 @@ class dydx extends Exchange {
         if ($orderType === 'MARKET') {
             // short-term
             $orderFlag = 0;
+            $isShortTerm = true;
             $clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if ($timeInForce !== null) {
                 // default is ioc
@@ -1435,6 +1437,7 @@ class dydx extends Exchange {
             if ($timeInForce === 'GTT') {
                 // long-term
                 $orderFlag = 64;
+                $isShortTerm = false;
                 if ($postOnly) {
                     $timeInForceNumber = 2;
                 } else {
@@ -1442,6 +1445,7 @@ class dydx extends Exchange {
                 }
             } else {
                 $orderFlag = 0;
+                $isShortTerm = true;
                 if ($timeInForce === 'IOC') {
                     $timeInForceNumber = 1;
                 } else {
@@ -1452,6 +1456,7 @@ class dydx extends Exchange {
         if ($isConditional) {
             // conditional
             $orderFlag = 32;
+            $isShortTerm = false;
             if ($stopLossPrice !== null) {
                 $conditionalType = 1;
                 $conditionalOrderTriggerSubticks = $this->price_to_precision($symbol, $stopLossPrice);
@@ -1467,7 +1472,7 @@ class dydx extends Exchange {
         $goodTillBlockTimeInSeconds = 2592000;
         // default is 30 days
         list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds);
-        if ($orderFlag === 0) {
+        if ($isShortTerm) {
             if ($goodTillBlock === null) {
                 // short term order
                 if ($latestBlockHeight === null) {

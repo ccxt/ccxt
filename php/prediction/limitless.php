@@ -271,11 +271,7 @@ class limitless extends Exchange {
                     $page = $this->sum($page, 1);
                     $request['page'] = $page;
                     $response = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
-                    $responseRows = array();
-                    if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-                        $responseRows = $response;
-                    }
-                    $page_markets = $this->safe_list($response, 'data', $responseRows);
+                    $page_markets = $this->safe_list($response, 'data', array());
                     $pageMarketsLength = count($page_markets);
                     if ($pageMarketsLength === 0) {
                         break;

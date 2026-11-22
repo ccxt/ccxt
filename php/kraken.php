@@ -2510,19 +2510,19 @@ class kraken extends Exchange {
         $batches = array();
         $batch = array();
         for ($i = 0; $i < $numTradeIds; $i++) {
-            $batch[] = $tradeIds[$i];
+            $tradeId = $this->safe_string($tradeIds, $i, '');
+            $batch[] = $tradeId;
             $batchLength = count($batch);
             if ($batchLength >= $batchSize) {
-                $batches[] = $batch;
+                $batches[] = implode(',', $batch);
                 $batch = array();
             }
         }
-        $batches[] = $batch;
+        $batches[] = implode(',', $batch);
         $result = array();
         for ($j = 0; $j < count($batches); $j++) {
-            $requestIds = $batches[$j];
             $request = array(
-                'txid' => implode(',', $requestIds),
+                'txid' => $batches[$j],
             );
             $response = $this->privatePostQueryTrades($request);
             //
@@ -2546,7 +2546,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $rawTrades = $this->safe_value($response, 'result');
+            $rawTrades = $this->safe_dict($response, 'result', array());
             $ids = is_array($rawTrades) ? array_keys($rawTrades) : array();
             $rawTradesWithIds = array();
             for ($i = 0; $i < count($ids); $i++) {
@@ -3790,33 +3790,31 @@ class kraken extends Exchange {
             return null;
         }
         if ($this->safe_string($body, 0) === '{') {
-            if (gettype($response) !== 'string') {
-                $message = $this->id . ' ' . $body;
-                $errors = $this->safe_list($response, 'error');
-                if ($errors !== null) {
-                    $numErrors = count($errors);
-                    if ($numErrors > 0) {
-                        for ($i = 0; $i < $numErrors; $i++) {
-                            $error = $errors[$i];
+            $message = $this->id . ' ' . $body;
+            $errors = $this->safe_list($response, 'error');
+            if ($errors !== null) {
+                $numErrors = count($errors);
+                if ($numErrors > 0) {
+                    for ($i = 0; $i < $numErrors; $i++) {
+                        $error = $errors[$i];
+                        $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
+                        $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
+                    }
+                    throw new ExchangeError($message);
+                }
+            }
+            // handleCreateOrdersErrors:
+            $result = $this->safe_dict($response, 'result');
+            if ($result !== null) {
+                if (is_array($result) && array_key_exists('orders' ?? '', $result)) {
+                    $orders = $this->safe_list($result, 'orders', array());
+                    for ($i = 0; $i < count($orders); $i++) {
+                        $order = $this->safe_dict($orders, $i);
+                        $error = $this->safe_string($order, 'error');
+                        if ($error !== null) {
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
-                        }
-                        throw new ExchangeError($message);
-                    }
-                }
-                // handleCreateOrdersErrors:
-                $result = $this->safe_dict($response, 'result');
-                if ($result !== null) {
-                    if (is_array($result) && array_key_exists('orders' ?? '', $result)) {
-                        $orders = $this->safe_list($result, 'orders', array());
-                        for ($i = 0; $i < count($orders); $i++) {
-                            $order = $this->safe_dict($orders, $i);
-                            $error = $this->safe_string($order, 'error');
-                            if ($error !== null) {
-                                $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
-                                $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
-                                throw new ExchangeError($message);
-                            }
+                            throw new ExchangeError($message);
                         }
                     }
                 }

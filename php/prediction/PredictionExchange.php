@@ -851,8 +851,6 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $letters = 'abcdefghijklmnopqrstuvwxyz';
         for ($i = 0; $i < count($rawWords); $i++) {
             $word = $rawWords[$i];
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if (strlen($word) === 0) {
                 continue;
             }

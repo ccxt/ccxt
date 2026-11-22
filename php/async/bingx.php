@@ -4673,13 +4673,15 @@ class bingx extends Exchange {
         );
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
         $paramsOmitted = $this->omit($params, 'clientOrderIds');
+        $idsCount = count($ids);
         $idsToParse = $ids;
         $areClientOrderIds = ($clientOrderIds !== null);
         if ($areClientOrderIds) {
+            $idsCount = count($clientOrderIds);
             $idsToParse = $clientOrderIds;
         }
         $parsedIds = array();
-        for ($i = 0; $i < count($idsToParse); $i++) {
+        for ($i = 0; $i < $idsCount; $i++) {
             $id = $this->safe_string($idsToParse, $i, '');
             $stringId = (string) $id;
             $parsedIds[] = $stringId;

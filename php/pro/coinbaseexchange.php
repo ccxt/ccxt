@@ -728,7 +728,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         $previousTrades = $this->safe_list($previousOrder, 'trades', array());
                         $previousTrades[] = $trade;
                         $previousOrder['trades'] = $previousTrades;
-                        $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
+                        $previousOrder['lastTradeTimestamp'] = $this->safe_integer($trade, 'timestamp');
                         $totalCost = '0';
                         $totalAmount = '0';
                         for ($i = 0; $i < count($previousTrades); $i++) {
@@ -748,10 +748,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                             }
                         }
                         if ($this->safe_dict($previousOrder, 'fee') === null) {
-                            $previousOrder['fee'] = array(
+                            $newFee = array(
                                 'cost' => 0,
                                 'currency' => $this->safe_string($trade['fee'], 'currency'),
                             );
+                            $previousOrder['fee'] = $newFee;
                         }
                         $previousOrderFee = $this->safe_dict($previousOrder, 'fee', array());
                         if (($this->safe_number($previousOrderFee, 'cost') !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {

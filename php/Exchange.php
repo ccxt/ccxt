@@ -8401,13 +8401,13 @@ class BaseExchange {
         return array( $triggerDirection, $paramsOmitted );
     }
 
-    public function handle_trigger_and_params(mixed $params) {
+    public function handle_trigger_and_params(array $params) {
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $paramsOmitted = ($isTrigger === true) ? $this->omit($params, array( 'trigger', 'stop' )) : $params;
         return array( $isTrigger, $paramsOmitted );
     }
 
-    public function is_trigger_order(mixed $params) {
+    public function is_trigger_order(array $params) {
         // for backwards compatibility
         return $this->handle_trigger_and_params($params);
     }

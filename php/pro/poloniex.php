@@ -803,8 +803,8 @@ class poloniex extends \ccxt\async\poloniex {
         }
         if (!(is_array($this->balance) && array_key_exists('info' ?? '', $this->balance))) {
             $this->balance['info'] = $response['info'];
-            $this->balance['timestamp'] = $response['timestamp'];
-            $this->balance['datetime'] = $response['datetime'];
+            $this->balance['timestamp'] = $this->safe_integer($response, 'timestamp');
+            $this->balance['datetime'] = $this->safe_string($response, 'datetime');
         }
         $this->balance = $this->safe_balance($this->balance);
         // don't remove the future from the .futures cache
@@ -1135,7 +1135,7 @@ class poloniex extends \ccxt\async\poloniex {
                         $previousOrder['trades'] = array();
                     }
                     $previousOrder['trades'][] = $trade;
-                    $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
+                    $previousOrder['lastTradeTimestamp'] = $this->safe_integer($trade, 'timestamp');
                     $totalCost = '0';
                     $totalAmount = '0';
                     $previousOrderTrades = $this->safe_list($previousOrder, 'trades', array());
@@ -1170,7 +1170,7 @@ class poloniex extends \ccxt\async\poloniex {
                         );
                     }
                     if (($this->safe_string($previousOrder['fee'], 'cost') !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
-                        $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
+                        $stringOrderCost = $this->safe_string($previousOrder['fee'], 'cost');
                         $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                         $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
                     }

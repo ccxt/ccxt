@@ -2273,23 +2273,22 @@ class bullish extends Exchange {
 
     public function load_account($params = array()): ?string {
         list($tradingAccountIdOption, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
-        if ($tradingAccountIdOption !== null) {
-            $this->options['tradingAccountId'] = $tradingAccountIdOption;
-            return $this->safe_string($this->options, 'tradingAccountId');
-        }
-        $response = $this->privateGetV1AccountsTradingAccounts($paramsTradingAccountId);
-        $accounts = $this->to_array($response);
-        for ($i = 0; $i < count($accounts); $i++) {
-            $account = $this->safe_dict($accounts, $i);
-            $name = $this->safe_string($account, 'tradingAccountName');
-            if ($name === 'Primary Account') {
-                $primaryAccountId = $this->safe_string($account, 'tradingAccountId');
-                if ($primaryAccountId !== null) {
-                    $this->options['tradingAccountId'] = $primaryAccountId;
-                    return $this->safe_string($this->options, 'tradingAccountId');
+        $tradingAccountId = $tradingAccountIdOption;
+        if ($tradingAccountId === null) {
+            $response = $this->privateGetV1AccountsTradingAccounts($paramsTradingAccountId);
+            $accounts = $this->to_array($response);
+            for ($i = 0; $i < count($accounts); $i++) {
+                $account = $this->safe_dict($accounts, $i);
+                $name = $this->safe_string($account, 'tradingAccountName');
+                if ($name === 'Primary Account') {
+                    $tradingAccountId = $this->safe_string($account, 'tradingAccountId');
+                    break;
                 }
-                break;
             }
+        }
+        if ($tradingAccountId !== null) {
+            $this->options['tradingAccountId'] = $tradingAccountId;
+            return $this->safe_string($this->options, 'tradingAccountId');
         }
         throw new ArgumentsRequired($this->id . ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
     }

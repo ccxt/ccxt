@@ -1154,7 +1154,7 @@ class coinbase extends \ccxt\async\coinbase {
         $events = $this->safe_list($message, 'events', array());
         $firstEvent = $this->safe_dict($events, 0, array());
         $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions' ?? '', $firstEvent));
-        $subKeys = is_array($firstEvent['subscriptions']) ? array_keys($firstEvent['subscriptions']) : array();
+        $subKeys = is_array($this->safe_dict($firstEvent, 'subscriptions', array())) ? array_keys($this->safe_dict($firstEvent, 'subscriptions', array())) : array();
         $subKeysLength = count($subKeys);
         if ($isUnsub && $subKeysLength === 0) {
             $unSubObject = $this->safe_dict($this->options, 'unSubscription', array());

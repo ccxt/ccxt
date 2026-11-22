@@ -782,7 +782,7 @@ class blofin extends \ccxt\async\blofin {
         // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for ($i = 0; $i < count($symbols); $i++) {
             if ($channelName !== null) {
-                $client->resolve($orders, $channelName . ':' . $symbols[$i]);
+                $client->resolve($orders, $channelName . ':' . $this->safe_string($symbols, $i, ''));
             }
             $client->resolve($orders, $channelName);
         }

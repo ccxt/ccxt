@@ -9535,7 +9535,7 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_n($position, array( 'cTime', 'ctime', 'createdTime' ));
         $marginMode = $this->safe_string($position, 'marginMode');
         $collateral = null;
@@ -10308,7 +10308,8 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
-        if ($amount > 0) {
+        $amountString = $this->number_to_string($amount);
+        if (Precise::string_gt($amountString, '0')) {
             throw new BadRequest($this->id . ' reduceMargin() amount parameter must be a negative value');
         }
         $holdSide = $this->safe_string($params, 'holdSide');

@@ -2217,7 +2217,7 @@ class bitvavo extends Exchange {
         $timestamp = $this->safe_integer($order, 'created');
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
@@ -2880,7 +2880,8 @@ class bitvavo extends Exchange {
     }
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
+        $marketId = $this->safe_string($params, 'market');
+        if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && ($marketId === null)) {
             return $config['noMarket'];
         }
         return $this->safe_integer($config, 'cost', 1);

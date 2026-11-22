@@ -472,7 +472,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'myTrades:' . $symbolValue;
         $method = 'deals_subscribe';
         $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, true, $params));
@@ -609,7 +609,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orders:' . $symbolValue;
         $method = 'ordersPending_subscribe';
         $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, false, $params));

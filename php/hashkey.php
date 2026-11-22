@@ -1710,7 +1710,7 @@ class hashkey extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
         $contractSizeValue = $this->safe_string($marketResolved, 'contractSize');
@@ -4069,7 +4069,7 @@ class hashkey extends Exchange {
     public function parse_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_position(array(
             'symbol' => $symbol,
             'id' => null,

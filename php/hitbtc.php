@@ -1855,7 +1855,7 @@ class hitbtc extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $fee = $this->parse_trading_fee($this->safe_dict($response, $i, array()));
-            $symbol = $fee['symbol'];
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -3689,7 +3689,8 @@ class hitbtc extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
-        if (($leverage < 1) || ($leverage > $maxLeverage)) {
+        $leverageValue = $this->parse_to_int($leverage);
+        if (($leverageValue < 1) || ($leverageValue > $maxLeverage)) {
             throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(

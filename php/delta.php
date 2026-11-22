@@ -1430,7 +1430,7 @@ class delta extends Exchange {
                 continue;
             }
             $ticker = $this->parse_ticker($rawTicker);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }

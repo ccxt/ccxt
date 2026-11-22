@@ -1155,16 +1155,16 @@ class paradex extends Exchange {
         if ($since !== null) {
             $requestUntil['start_at'] = $since;
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            $windowEnd = $this->sum($this->parse_to_int($since), $windowLength - 1);
-            $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
-            if (!$hasEnd || ($endAt > $windowEnd)) {
-                $requestUntil['end_at'] = $windowEnd;
+            $barWindowEnd = $this->sum($this->parse_to_int($since), $windowLength - 1);
+            $clampedEndAt = $this->safe_integer($requestUntil, 'end_at', $barWindowEnd);
+            if (!$hasEnd || ($clampedEndAt > $barWindowEnd)) {
+                $requestUntil['end_at'] = $barWindowEnd;
             }
         } else {
             $endAtRaw = $this->safe_integer($requestUntil, 'end_at', $this->milliseconds());
             $endAt = $this->parse_to_int($endAtRaw);
             $requestUntil['end_at'] = $endAt;
-            $requestUntil['start_at'] = $endAt - $windowLength + 1;
+            $requestUntil['start_at'] = $endAt - ($windowLength - 1);
         }
         $response = Async\await($this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted)));
         //
@@ -2969,8 +2969,10 @@ class paradex extends Exchange {
         $data = $this->safe_list($response, 'results', array());
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         $matching = array();
+        $marketId = $this->safe_string($market, 'id', '');
         for ($i = 0; $i < count($data); $i++) {
-            if ($this->safe_string($data[$i], 'market') === $market['id']) {
+            $rowMarketId = $this->safe_string($data[$i], 'market', '');
+            if ($rowMarketId === $marketId) {
                 $matching[] = $data[$i];
             }
         }
@@ -3235,14 +3237,11 @@ class paradex extends Exchange {
         $rows = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
-        for ($i = 0; $i < count($rows); $i++) {
-            $rows[$i]['next'] = $next;
-        }
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            if ($allKinds || ($this->safe_string($row, 'kind') === 'DEPOSIT')) {
-                $deposits[] = $row;
+            if ($allKinds || ($this->safe_string($rows[$i], 'kind') === 'DEPOSIT')) {
+                $withCursor = $this->extend($rows[$i], array( 'next' => $next ));
+                $deposits[] = $withCursor;
             }
         }
         return $this->parse_transactions($deposits, null, $since, $limit);
@@ -3312,14 +3311,11 @@ class paradex extends Exchange {
         $rows = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
-        for ($i = 0; $i < count($rows); $i++) {
-            $rows[$i]['next'] = $next;
-        }
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            if ($allKinds || ($this->safe_string($row, 'kind') === 'WITHDRAWAL')) {
-                $deposits[] = $row;
+            if ($allKinds || ($this->safe_string($rows[$i], 'kind') === 'WITHDRAWAL')) {
+                $withCursor = $this->extend($rows[$i], array( 'next' => $next ));
+                $deposits[] = $withCursor;
             }
         }
         return $this->parse_transactions($deposits, null, $since, $limit);
@@ -3971,7 +3967,8 @@ class paradex extends Exchange {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 $market = $this->safe_market($marketId);
                 if ($market['option'] === true) {
-                    $result[$market['symbol']] = $this->parse_option($entry, null, $market);
+                    $optionSymbol = $this->safe_string($market, 'symbol', '');
+                    $result[$optionSymbol] = $this->parse_option($entry, null, $market);
                 }
             }
         }
@@ -4187,10 +4184,10 @@ class paradex extends Exchange {
             $requestUntil['start_at'] = $since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            $windowEnd = $this->sum($this->parse_to_int($since), $pageSize * $rowSpacing);
-            $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
-            if (($this->safe_integer($requestUntil, 'end_at') === null) || ($endAt > $windowEnd)) {
-                $requestUntil['end_at'] = $windowEnd;
+            $pageWindowEnd = $this->sum($this->parse_to_int($since), $pageSize * $rowSpacing);
+            $pageEndAt = $this->safe_integer($requestUntil, 'end_at', $pageWindowEnd);
+            if (($this->safe_integer($requestUntil, 'end_at') === null) || ($pageEndAt > $pageWindowEnd)) {
+                $requestUntil['end_at'] = $pageWindowEnd;
             }
         }
         $response = Async\await($this->publicGetFundingData($this->extend($requestUntil, $paramsUntil)));

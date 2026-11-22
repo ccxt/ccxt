@@ -2019,10 +2019,11 @@ class coinbaseexchange extends Exchange {
         $paramsUntil = ($until !== null) ? $this->omit($params, array( 'until' )) : $params;
         $response = Async\await($this->privateGetAccountsIdLedger($this->extend($request, $paramsUntil)));
         $entries = $this->to_array($response);
+        $entriesWithCurrency = array();
         for ($i = 0; $i < count($entries); $i++) {
-            $entries[$i]['currency'] = $code;
+            $entriesWithCurrency[] = $this->extend($entries[$i], array( 'currency' => $code ));
         }
-        return $this->parse_ledger($entries, $currency, $since, $limit);
+        return $this->parse_ledger($entriesWithCurrency, $currency, $since, $limit);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

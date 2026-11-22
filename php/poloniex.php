@@ -674,17 +674,17 @@ class poloniex extends Exchange {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://api-docs.poloniex.com/spot/api/public/market-$data#$candles
+         * @see https://api-docs.poloniex.com/spot/api/public/market-$data#candles
          * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-$data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
@@ -763,11 +763,7 @@ class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function load_markets($reload = false, $params = array()) {
@@ -4001,7 +3997,7 @@ class poloniex extends Exchange {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
-            $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
+            $params['symbol'] = $this->encode_uri_component($this->safe_string($params, 'symbol')); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
