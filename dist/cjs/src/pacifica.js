@@ -1183,7 +1183,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const marketId = this.safeString(info, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const funding = this.safeNumber(info, 'funding');
         const markPx = this.safeNumber(info, 'mark');
         const oraclePx = this.safeNumber(info, 'oracle');
@@ -1453,7 +1453,7 @@ class pacifica extends pacifica$1["default"] {
         const amount = this.safeString(trade, 'amount');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'history_id');
         let side = this.safeString(trade, 'side');
         if (side === 'open_long') {
@@ -2207,7 +2207,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
@@ -2622,7 +2622,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const marketId = this.safeString2(order, 'symbol', 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger2(order, 'created_at', 'ct');
         const status = this.safeString2(order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString(order, 'side', 'd');
@@ -2740,7 +2740,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const margin = this.safeString(position, 'margin');
         const rawIsolated = this.safeBool(position, 'isolated');
         let isIsolated = (margin !== undefined) && (margin !== '0');
@@ -3322,7 +3322,7 @@ class pacifica extends pacifica$1["default"] {
         const timestamp = this.safeInteger(income, 'created_at');
         const marketId = this.safeString(income, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const amount = this.safeString(income, 'payout');
         const code = this.safeCurrencyCode('USDC');
         const rate = this.safeNumber(income, 'rate');

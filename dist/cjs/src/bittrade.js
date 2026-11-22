@@ -2052,7 +2052,8 @@ class bittrade extends bittrade$1["default"] {
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {
-                request['chain'] = currency['id'] + network;
+                const currencyId = this.safeString(currency, 'id', '');
+                request['chain'] = currencyId + network;
             }
             else {
                 request['chain'] = network + currency['id'];

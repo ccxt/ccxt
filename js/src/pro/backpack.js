@@ -1336,7 +1336,7 @@ export default class backpack extends backpackRest {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(data, 'e', '');
         let parsed;
         if ((event.indexOf('rfq') === 0) || (event.indexOf('quote') === 0)) {
@@ -1697,7 +1697,7 @@ export default class backpack extends backpackRest {
         const id = this.safeString(position, 'i');
         const marketId = this.safeString(position, 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const notional = this.safeString(position, 'n');
         const liquidationPrice = this.safeString(position, 'l');
         const entryPrice = this.safeString(position, 'b');

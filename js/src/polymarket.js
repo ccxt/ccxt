@@ -922,9 +922,9 @@ export default class polymarket extends Exchange {
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
         let paramsOmitted = params;
-        [paginate, paramsOmitted] = this.handleOptionAndParams(paramsOmitted, 'fetchOHLCV', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchOHLCV', 'paginate', false);
+        paramsOmitted = paramsPaginate;
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsOmitted, 1000);
         }
@@ -1075,9 +1075,9 @@ export default class polymarket extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets();
-        let paginate = false;
         let paramsOmitted = params;
-        [paginate, paramsOmitted] = this.handleOptionAndParams(paramsOmitted, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchFundingRateHistory', 'paginate', false);
+        paramsOmitted = paramsPaginate;
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '1h', paramsOmitted, 100);
         }
@@ -2369,7 +2369,7 @@ export default class polymarket extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const row = this.safeDict(response, i, {});
             const rowId = this.safeString(row, 'instrument_id');
-            if (rowId === market['id']) {
+            if (rowId === this.safeString(market, 'id')) {
                 return this.parseLeverage(row, market);
             }
         }

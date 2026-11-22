@@ -730,7 +730,7 @@ class xt extends xt$1["default"] {
             const timestamp = this.safeInteger(data, 't');
             fundingRate['timestamp'] = timestamp;
             fundingRate['datetime'] = this.iso8601(timestamp);
-            const symbol = fundingRate['symbol'];
+            const symbol = this.safeString(fundingRate, 'symbol', '');
             this.fundingRates[symbol] = fundingRate;
             const event = this.safeString(message, 'event');
             if (event !== undefined) {
@@ -1054,7 +1054,7 @@ class xt extends xt$1["default"] {
                 tradeType = 'spot';
             }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const parsed = this.parseOHLCV(data, market);
             this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -1113,7 +1113,7 @@ class xt extends xt$1["default"] {
                 tradeType = 'spot';
             }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const event = this.safeString(message, 'event');
             let tradesArray = this.safeValue(this.trades, symbol);
             if (tradesArray === undefined) {
@@ -1200,7 +1200,7 @@ class xt extends xt$1["default"] {
                 tradeType = 'contract';
             }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const obAsks = this.safeList(data, 'a');
             const obBids = this.safeList(data, 'b');
             const messageHash = event + '::' + tradeType;

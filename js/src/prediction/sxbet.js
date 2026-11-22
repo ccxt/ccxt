@@ -340,14 +340,17 @@ export default class sxbet extends Exchange {
             gameTime = this.safeTimestamp(raw, 'gameTime');
         }
         const outcomeLabels = [outcomeOneName, outcomeTwoName];
-        const outcomeIds = [marketHash, marketHash + '-2'];
         const outcomes = [];
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, label);
+            let outcomeSuffix = '';
+            if (oi > 0) {
+                outcomeSuffix = '-2';
+            }
             outcomes.push({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': marketHash + outcomeSuffix,
+                'outcomeId': marketHash + outcomeSuffix,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -496,7 +499,8 @@ export default class sxbet extends Exchange {
             const evMarketsLength = evMarkets.length;
             for (let j = 0; j < evMarketsLength; j++) {
                 const m = evMarkets[j];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString(m, 'market', '');
+                this.markets[marketKey] = m;
             }
             result.push(event);
         }
@@ -2201,7 +2205,7 @@ export default class sxbet extends Exchange {
         const keys = Object.keys(msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn(this.pong, client, msg);
+            this.spawn(this.pong, client);
             return;
         }
         const requestIdString = this.safeString(msg, 'id');

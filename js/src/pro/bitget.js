@@ -1143,7 +1143,11 @@ export default class bitget extends bitgetRest {
             if (uta) {
                 symbolOrInstId = 'symbol';
             }
-            args[topicOrChannel] = uta ? 'publicTrade' : 'trade';
+            let tradeTopic = 'trade';
+            if (uta) {
+                tradeTopic = 'publicTrade';
+            }
+            args[topicOrChannel] = tradeTopic;
             args[symbolOrInstId] = market['id'];
             topics.push(args);
             messageHashes.push('trade:' + symbol);
@@ -1706,7 +1710,9 @@ export default class bitget extends bitgetRest {
             marketId = 'default';
         }
         if ((productType === undefined) && (type !== 'spot') && (symbolResolved === undefined)) {
-            messageHash = messageHash + ':' + subType;
+            if (subType !== undefined) {
+                messageHash = messageHash + ':' + subType;
+            }
         }
         else if (productType === 'USDT-FUTURES') {
             messageHash = messageHash + ':linear';
@@ -1724,7 +1730,7 @@ export default class bitget extends bitgetRest {
             [instType, paramsInstType] = this.getInstType('watchOrders', market, uta, paramsSubType);
         }
         if (type === 'spot' && (symbolResolved !== undefined)) {
-            const resolvedSymbol = symbolResolved;
+            const resolvedSymbol = this.safeString(market, 'symbol', '');
             subscriptionHash = subscriptionHash + ':' + resolvedSymbol;
         }
         if (isTrigger === true) {
@@ -1742,8 +1748,7 @@ export default class bitget extends bitgetRest {
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchOrders', paramsInstType);
         if (marginMode !== undefined) {
             instType = 'MARGIN';
-            const marginModeValue = marginMode;
-            messageHash = messageHash + ':' + marginModeValue;
+            messageHash = messageHash + ':' + marginMode;
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             }
@@ -2105,7 +2110,7 @@ export default class bitget extends bitgetRest {
         const marketId = this.safeString2(order, 'instId', 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'cTime', 'createdTime');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const rawStatus = this.safeString2(order, 'status', 'orderStatus');
         const orderFee = this.safeList(order, 'feeDetail', []);
         const fee = this.safeDict(orderFee, 0);
@@ -2975,7 +2980,7 @@ export default class bitget extends bitgetRest {
         }
         const instId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'unsubscribe:orderbook:' + this.safeString(market, 'symbol', '');
         const subMessageHash = 'orderbook:' + symbol;
         if (symbol in this.orderbooks) {
@@ -3035,7 +3040,7 @@ export default class bitget extends bitgetRest {
         }
         const instId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'unsubscribe:ticker:' + this.safeString(market, 'symbol', '');
         const subMessageHash = 'ticker:' + symbol;
         if (symbol in this.tickers) {

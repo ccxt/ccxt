@@ -3788,7 +3788,7 @@ class binance extends binance$1["default"] {
             return undefined;
         }
         const contractType = this.safeString(market, 'contractType');
-        let contract = ('contractType' in market);
+        let contract = (contractType !== undefined);
         let expiry = this.safeInteger2(market, 'deliveryDate', 'expiryDate');
         let settleId = this.safeString(market, 'marginAsset');
         if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
@@ -4770,7 +4770,8 @@ class binance extends binance$1["default"] {
         };
         let response = undefined;
         if (this.safeBool(market, 'option', false)) {
-            response = await this.eapiPublicGetTicker(this.extend(request, params));
+            const optionResponse = await this.eapiPublicGetTicker(this.extend(request, params));
+            response = this.safeDict(optionResponse, 0, {});
         }
         else if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPublicGetTicker24hr(this.extend(request, params));
@@ -4793,10 +4794,6 @@ class binance extends binance$1["default"] {
                     response = await this.publicGetTicker24hr(this.extend(request, paramsOmitted));
                 }
             }
-        }
-        if (Array.isArray(response)) {
-            const firstTicker = this.safeDict(response, 0, {});
-            return this.parseTicker(firstTicker, market);
         }
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
@@ -5957,7 +5954,7 @@ class binance extends binance$1["default"] {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
             if (quoteOrderQty === true) {
-                const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                 const precision = this.safeValue(market['precision'], 'price');
                 if (quoteOrderQtyNew !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, number.TRUNCATE, precision, this.precisionMode);
@@ -11603,8 +11600,8 @@ class binance extends binance$1["default"] {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
                     const parsed = this.parseAccountPosition(this.extend(position, {
-                        'crossMargin': this.safeValue(balances[code], 'crossMargin'),
-                        'crossWalletBalance': this.safeValue(balances[code], 'crossWalletBalance'),
+                        'crossMargin': this.safeString(balances[code], 'crossMargin'),
+                        'crossWalletBalance': this.safeString(balances[code], 'crossWalletBalance'),
                     }), market);
                     result.push(parsed);
                 }
@@ -13922,7 +13919,7 @@ class binance extends binance$1["default"] {
                 }
             }
         }
-        return this.safeValue(config, 'cost', 1);
+        return this.safeNumber(config, 'cost', 1);
     }
     async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
         const response = await this.fetch2(path, api, method, params, config);

@@ -592,7 +592,7 @@ export default class cryptocom extends cryptocomRest {
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker(ticker, market);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = parsed;
             }

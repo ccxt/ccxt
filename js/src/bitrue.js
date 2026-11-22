@@ -1813,8 +1813,7 @@ export default class bitrue extends Exchange {
             side = isBuyer ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
-        const commission = this.safeString(trade, 'commission');
-        if (commission !== undefined) {
+        if ('commission' in trade) {
             fee = {
                 'cost': this.safeString2(trade, 'commission', 'fee'),
                 'currency': this.safeCurrencyCode(this.safeString(trade, 'commissionAssert')),
@@ -2889,10 +2888,10 @@ export default class bitrue extends Exchange {
         const txid = this.safeString(transaction, 'txid');
         const timestamp = this.safeInteger(transaction, 'createdAt');
         const updated = this.safeInteger(transaction, 'updatedAt');
-        const payAmount = this.safeString(transaction, 'payAmount');
-        const ctime = this.safeString(transaction, 'ctime');
+        const payAmount = ('payAmount' in transaction);
+        const ctime = ('ctime' in transaction);
         let type = 'deposit';
-        if ((payAmount !== undefined) || (ctime !== undefined)) {
+        if (payAmount || ctime) {
             type = 'withdrawal';
         }
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);

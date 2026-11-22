@@ -1788,7 +1788,7 @@ class nado extends nado$1["default"] {
             const priceIncrement = this.parseX18(this.safeString(market, 'price_increment_x18'));
             const amountIncrement = this.parseX18(this.safeString(market, 'size_increment'));
             const minCost = this.parseX18(this.safeString(market, 'min_size'));
-            markets.push(this.safeMarketStructure({
+            const marketEntry = {
                 'id': id,
                 'lowercaseId': undefined,
                 'symbol': symbol,
@@ -1806,11 +1806,11 @@ class nado extends nado$1["default"] {
                 'option': false,
                 'active': active,
                 'contract': contract,
-                'linear': contract ? true : undefined,
-                'inverse': contract ? false : undefined,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.parseX18(this.safeString(market, 'taker_fee_rate_x18')),
                 'maker': this.parseX18(this.safeString(market, 'maker_fee_rate_x18')),
-                'contractSize': contract ? 1 : undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -1844,7 +1844,13 @@ class nado extends nado$1["default"] {
                     'v2Pair': pair,
                     'v2Asset': asset,
                 }),
-            }));
+            };
+            if (contract) {
+                marketEntry['linear'] = true;
+                marketEntry['inverse'] = false;
+                marketEntry['contractSize'] = 1;
+            }
+            markets.push(this.safeMarketStructure(marketEntry));
         }
         return markets;
     }

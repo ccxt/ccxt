@@ -320,7 +320,7 @@ export default class phemex extends phemexRest {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString(paramsMarketType, 'settle') === 'USDT';
         let messageHash = 'perpetual:balance';
-        if (!usePerpetualApi) {
+        if (!usePerpetualApi && (type !== undefined)) {
             messageHash = type + ':balance';
         }
         return await this.subscribePrivate(type, messageHash, paramsMarketType);
@@ -520,7 +520,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
@@ -606,7 +606,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
@@ -651,7 +651,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
@@ -693,7 +693,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
@@ -947,7 +947,7 @@ export default class phemex extends phemexRest {
             if (settle === 'USDT') {
                 messageHash = 'trades:perpetual';
             }
-            else {
+            else if (type !== undefined) {
                 messageHash = 'trades:' + type;
             }
         }
@@ -1121,7 +1121,7 @@ export default class phemex extends phemexRest {
             if (isUSDTSettled) {
                 messageHash = 'orders:perpetual';
             }
-            else {
+            else if (type !== undefined) {
                 messageHash = 'orders:' + type;
             }
         }

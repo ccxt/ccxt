@@ -2615,7 +2615,7 @@ class htx extends htx$1["default"] {
         //
         const marketId = this.safeString2(trade, 'contract_code', 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerN(trade, ['ts', 'created-at', 'created_at', 'create_date', 'created_time']);
         const order = this.safeString2(trade, 'order-id', 'order_id');
         let side = this.safeString2(trade, 'direction', 'side');
@@ -3979,23 +3979,18 @@ class htx extends htx$1["default"] {
         return this.parseOrder(order, market);
     }
     parseMarginBalanceHelper(balance, code, result) {
-        let account = undefined;
+        let account = this.account();
         if (code in result) {
-            account = this.safeDict(result, code);
+            account = this.safeDict(result, code, {});
         }
-        else {
-            account = this.account();
-        }
-        if (account === undefined) {
-            throw new errors.ExchangeError(this.id + ' parseMarginBalanceHelper() could not resolve account');
-        }
+        const updates = {};
         if (this.safeString(balance, 'type') === 'trade') {
-            account['free'] = this.safeString(balance, 'balance');
+            updates['free'] = this.safeString(balance, 'balance');
         }
         if (this.safeString(balance, 'type') === 'frozen') {
-            account['used'] = this.safeString(balance, 'balance');
+            updates['used'] = this.safeString(balance, 'balance');
         }
-        return account;
+        return this.extend(account, updates);
     }
     async fetchSpotOrdersByStates(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
@@ -6941,7 +6936,7 @@ class htx extends htx$1["default"] {
         const currency = this.currency(code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
-            'currency': currency['id'].toLowerCase(),
+            'currency': this.safeStringLower(currency, 'id', ''),
         };
         if (tagValue !== undefined) {
             request['addr-tag'] = tagValue; // only for XRP?
@@ -7428,11 +7423,10 @@ class htx extends htx$1["default"] {
             }
         }
         else {
-            const cursor = this.safeValue(data, 'current_page');
+            const cursor = this.safeString(data, 'current_page');
             const result = this.safeList(data, 'data', []);
             for (let i = 0; i < result.length; i++) {
-                const entry = result[i];
-                entry['current_page'] = cursor;
+                const entry = this.extend(result[i], { 'current_page': cursor });
                 const marketId = this.safeString(entry, 'contract_code');
                 const symbolInner = this.safeSymbol(marketId);
                 const timestamp = this.safeInteger(entry, 'funding_time');
@@ -8256,7 +8250,7 @@ class htx extends htx$1["default"] {
         //     }
         //
         const marketResolved = this.safeMarket(this.safeString(position, 'contract_code'));
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const contracts = this.safeString(position, 'volume');
         const contractSize = this.safeNumber(marketResolved, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);

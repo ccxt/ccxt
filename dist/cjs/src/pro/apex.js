@@ -166,7 +166,7 @@ class apex extends apex$1["default"] {
         const id = this.safeStringN(trade, ['i', 'id', 'v']);
         const marketId = this.safeString2(trade, 's', 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerN(trade, ['t', 'T', 'createdAt']);
         const side = this.safeStringLower2(trade, 'S', 'side');
         const price = this.safeString2(trade, 'p', 'price');

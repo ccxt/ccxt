@@ -1383,8 +1383,8 @@ export default class kraken extends krakenRest {
             symbol = this.safeString(market, 'symbol');
         }
         let fee = undefined;
-        if ('fees' in trade) {
-            const fees = this.safeList(trade, 'fees', []);
+        const fees = this.safeList(trade, 'fees');
+        if (fees !== undefined) {
             const firstFee = this.safeDict(fees, 0, {});
             fee = {
                 'cost': this.safeNumber(firstFee, 'qty'),

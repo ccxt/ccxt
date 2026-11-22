@@ -440,7 +440,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawfr = this.safeDict(data, i);
             const fundingRate = this.parseFundingRate(rawfr);
-            const symbol = fundingRate['symbol'];
+            const symbol = this.safeString(fundingRate, 'symbol');
             if (symbol !== undefined) {
                 this.fundingRates[symbol] = fundingRate;
             }
@@ -462,10 +462,9 @@ export default class okx extends okxRest {
             await this.loadMarkets();
         }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTicker', 'channel', 'tickers');
-        paramsChannel['channel'] = channel;
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const ticker = await this.watchTickers([symbolValue], paramsChannel);
+        const ticker = await this.watchTickers([symbolValue], this.extend(paramsChannel, { 'channel': channel }));
         return this.safeValue(ticker, symbolValue);
     }
     /**
@@ -518,10 +517,9 @@ export default class okx extends okxRest {
             await this.loadMarkets();
         }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
-        paramsChannel['channel'] = channel;
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const ticker = await this.watchMarkPrices([symbolValue], paramsChannel);
+        const ticker = await this.watchMarkPrices([symbolValue], this.extend(paramsChannel, { 'channel': channel }));
         return this.safeValue(ticker, symbolValue);
     }
     /**
@@ -2032,7 +2030,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const channel = this.safeString(arg, 'channel', '');
         const data = this.safeList(message, 'data', []);
         if (this.positions === undefined) {
@@ -2046,8 +2044,7 @@ export default class okx extends okxRest {
             const contracts = this.safeNumber(position, 'contracts');
             if (contracts === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
-                const shortPosition = this.clone(position);
-                shortPosition['side'] = 'short';
+                const shortPosition = this.extend(this.clone(position), { 'side': 'short' });
                 cache.append(shortPosition);
                 newPositions.push(shortPosition);
             }

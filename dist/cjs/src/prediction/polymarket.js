@@ -941,7 +941,8 @@ class polymarket extends polymarket$1["default"] {
                 }
                 const chunk = [];
                 for (let i = startIndex; i < endIndex; i++) {
-                    chunk.push(tokenIds[i]);
+                    const chunkId = this.safeString(tokenIds, i, '');
+                    chunk.push(chunkId);
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1331,15 +1332,19 @@ class polymarket extends polymarket$1["default"] {
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol];
             }
             else {
-                const candle = this.safeList(buckets, bucketKey, []);
-                candle[2] = Math.max(candle[2], price); // high
-                candle[3] = Math.min(candle[3], price); // low
-                candle[4] = price; // close (last tick wins)
+                const prevVol = this.safeNumber(buckets[bucketKey], 5);
+                let candleVol = prevVol;
                 if (vol !== undefined) {
-                    const prevVol = candle[5];
-                    candle[5] = (prevVol === undefined) ? vol : this.sum(prevVol, vol); // volume
+                    if (prevVol === undefined) {
+                        candleVol = vol;
+                    }
+                    else {
+                        candleVol = this.sum(prevVol, vol);
+                    }
                 }
-                buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
+                const open = this.safeNumber(buckets[bucketKey], 1);
+                // close is the last tick
+                buckets[bucketKey] = [snappedMs, open, Math.max(this.safeNumber(buckets[bucketKey], 2), price), Math.min(this.safeNumber(buckets[bucketKey], 3), price), price, candleVol];
             }
         }
         const bucketKeys = Object.keys(buckets);
@@ -1999,8 +2004,8 @@ class polymarket extends polymarket$1["default"] {
             for (let i = 0; i < response.length; i++) {
                 // request echo first so the response's real orderID/status win on overlap
                 const rawItem = response[i];
-                const enriched = this.extend(requests[i], rawItem);
-                const parsedItem = this.parsePredictionOrder(enriched, outcomes[i]);
+                const enriched = this.extend(this.safeDict(requests, i), rawItem);
+                const parsedItem = this.parsePredictionOrder(enriched, this.safeDict(outcomes, i));
                 parsedItem['info'] = rawItem; // keep info the raw exchange response
                 result.push(parsedItem);
             }
@@ -2953,13 +2958,7 @@ class polymarket extends polymarket$1["default"] {
             return;
         }
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
-        let secret = undefined;
-        if (this.secret !== undefined) {
-            secret = this.secret;
-        }
-        else {
-            secret = this.safeString(this.options, 'l2Secret');
-        }
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
         const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {

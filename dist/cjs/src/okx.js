@@ -2274,7 +2274,7 @@ class okx extends okx$1["default"] {
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
@@ -2535,7 +2535,7 @@ class okx extends okx$1["default"] {
         const id = this.safeString(trade, 'tradeId');
         const marketId = this.safeString(trade, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(trade, 'ts');
         const price = this.safeString2(trade, 'fillPx', 'px');
         const amount = this.safeString2(trade, 'fillSz', 'sz');
@@ -3240,7 +3240,7 @@ class okx extends okx$1["default"] {
         }
         const spot = this.safeBool(market, 'spot', false);
         const contract = this.safeBool(market, 'contract');
-        const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeNumber(params, 'tpOrdPx', price);
@@ -3389,14 +3389,14 @@ class okx extends okx$1["default"] {
         else if (hasStopLoss || hasTakeProfit) {
             let attachAlgoOrd = {};
             if (hasStopLoss) {
-                const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
+                const stopLossTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 const slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 const slOrder = {};
                 slOrder['slTriggerPx'] = slTriggerPx;
-                const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
+                const stopLossLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
                 const stopLossOrderType = this.safeString(stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
                     const stopLossLimitOrderType = (stopLossOrderType === 'limit');
@@ -3432,13 +3432,13 @@ class okx extends okx$1["default"] {
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
             if (hasTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
+                const takeProfitTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
                 if (takeProfitTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
                 const tpOrder = {};
                 tpOrder['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
+                const takeProfitLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
                 const takeProfitOrderType = this.safeString2(takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
                     const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
@@ -5399,7 +5399,7 @@ class okx extends okx$1["default"] {
             currency = this.currency(code);
             request['ccy'] = currency['id'];
         }
-        const requestUntil = this.handleUntilOption('end', request, paramsMarginMode)[0];
+        const [requestUntil] = this.handleUntilOption('end', request, paramsMarginMode);
         let response;
         if (method === 'privateGetAccountBillsArchive') {
             response = await this.privateGetAccountBillsArchive(this.extend(requestUntil, query));
@@ -5583,7 +5583,7 @@ class okx extends okx$1["default"] {
         }
         const currencyId = this.safeString(depositAddress, 'ccy');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString(currencyResolved, 'code');
         const chain = this.safeString(depositAddress, 'chain');
         const networks = this.safeDict(currencyResolved, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
@@ -5759,7 +5759,7 @@ class okx extends okx$1["default"] {
             const networkUpper = network.toUpperCase();
             const networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
             network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
-            request['chain'] = currency['id'] + '-' + network;
+            request['chain'] = this.safeString(currency, 'id', '') + '-' + network;
         }
         const omitKeys = ['fee'];
         if (network !== undefined) {
@@ -6524,7 +6524,7 @@ class okx extends okx$1["default"] {
         //
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise["default"].stringAbs(pos);
         let side = this.safeString2(position, 'posSide', 'direction');
@@ -6536,7 +6536,7 @@ class okx extends okx$1["default"] {
                 const posCcy = this.safeString(position, 'posCcy');
                 const parsedCurrency = this.safeCurrencyCode(posCcy);
                 if (parsedCurrency !== undefined) {
-                    side = (marketResolved['base'] === parsedCurrency) ? 'long' : 'short';
+                    side = (this.safeString(marketResolved, 'base') === parsedCurrency) ? 'long' : 'short';
                 }
             }
             if (side === undefined) {
@@ -9173,7 +9173,7 @@ class okx extends okx$1["default"] {
         }
         const currency = this.currency(code);
         const request = {
-            'uly': currency['code'] + '-USD',
+            'uly': this.safeString(currency, 'code', '') + '-USD',
             'instType': 'OPTION',
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));

@@ -2507,7 +2507,8 @@ class hitbtc extends hitbtc$1["default"] {
         };
         if (reduceOnly !== undefined) {
             if ((resolvedMarketType !== 'swap') && (resolvedMarketType !== 'margin')) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
+                const marketTypeString = this.safeString(market, 'type', '');
+                throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduce_only for ' + marketTypeString + ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
         if (reduceOnly === true) {

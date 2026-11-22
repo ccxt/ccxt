@@ -779,7 +779,7 @@ export default class deribit extends deribitRest {
             orders = this.parseOrders(dataList);
         }
         else {
-            const data = this.safeValue(params, 'data', {});
+            const data = this.safeDict(params, 'data', {});
             const order = this.parseOrder(data);
             orders = [order];
         }

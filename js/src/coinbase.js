@@ -3809,9 +3809,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
+        const ordersLength = orders.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            orders[0] = this.extend(this.safeDict(orders, 0, {}), { 'cursor': cursor });
+        if ((ordersLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = ordersLength - 1;
+            orders[lastIndex] = this.extend(this.safeDict(orders, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3883,9 +3885,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
+        const ordersLength = orders.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            orders[0] = this.extend(this.safeDict(orders, 0, {}), { 'cursor': cursor });
+        if ((ordersLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = ordersLength - 1;
+            orders[lastIndex] = this.extend(this.safeDict(orders, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseOrders(orders, market, since, limitResolved);
     }
@@ -4181,9 +4185,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeList(response, 'fills', []);
+        const tradesLength = trades.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            trades[0] = this.extend(this.safeDict(trades, 0, {}), { 'cursor': cursor });
+        if ((tradesLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = tradesLength - 1;
+            trades[lastIndex] = this.extend(this.safeDict(trades, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseTrades(trades, market, since, limit);
     }

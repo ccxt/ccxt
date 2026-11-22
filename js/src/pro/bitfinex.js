@@ -423,7 +423,7 @@ export default class bitfinex extends bitfinexRest {
         const marketId = this.safeString(subscription, 'symbol', '');
         const market = this.safeMarket(marketId);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache(tradesLimit);
@@ -611,7 +611,7 @@ export default class bitfinex extends bitfinexRest {
         //     ]
         //
         const marketResolved = this.safeMarket(undefined, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const last = this.safeString(ticker, 6);
         const change = this.safeString(ticker, 4);
         return this.safeTicker({

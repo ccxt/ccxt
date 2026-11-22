@@ -1472,12 +1472,14 @@ class kraken extends kraken$1["default"] {
         let orderId = undefined;
         let fee = undefined;
         let symbol = undefined;
-        const isOrderTrade = (!Array.isArray(trade)) && (typeof trade !== 'string') && (this.safeString(trade, 'ordertxid') !== undefined);
+        const tradeIsList = Array.isArray(trade);
+        const tradeIsString = typeof trade === 'string';
+        const isOrderTrade = (!tradeIsList) && (!tradeIsString) && (this.safeString(trade, 'ordertxid') !== undefined);
         let marketResolved = market;
         if (isOrderTrade) {
             marketResolved = this.resolveMarketByAltnameOrId(this.safeString(trade, 'pair'), market);
         }
-        if (Array.isArray(trade)) {
+        if (tradeIsList) {
             timestamp = this.safeTimestamp(trade, 2);
             side = (this.safeString(trade, 3) === 's') ? 'sell' : 'buy';
             type = (this.safeString(trade, 4) === 'l') ? 'limit' : 'market';
@@ -1488,7 +1490,7 @@ class kraken extends kraken$1["default"] {
                 id = this.safeString(trade, 6); // artificially added as per #1794
             }
         }
-        else if (typeof trade === 'string') {
+        else if (tradeIsString) {
             id = trade;
         }
         else if (isOrderTrade) {

@@ -1436,7 +1436,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (error !== undefined) {
                 throw new errors.OrderNotFound(this.id + ' cancelOrders() failed for ' + this.safeString(requestIds, i, this.safeString(requestIds, 0)) + ': ' + error);
             }
-            const success = (status === 'success') || (this.safeString(status, 'status') === 'success');
+            const success = (this.safeString(statuses, i) === 'success') || (this.safeString(status, 'status') === 'success');
             if (!success) {
                 throw new errors.ExchangeError(this.id + ' cancelOrders() received an unexpected status: ' + this.json(status));
             }

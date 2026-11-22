@@ -1005,7 +1005,10 @@ class bithumb extends bithumb$1["default"] {
             const promises = [];
             // the exchange rejects more than 200 market ids per request
             const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
-            const maxMarketIdsPerRequest = this.parseToInt(((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let maxMarketIdsPerRequest = 200;
+            if ((maxMarketIdsOption !== undefined) && (maxMarketIdsOption >= 1)) {
+                maxMarketIdsPerRequest = this.parseToInt(maxMarketIdsOption);
+            }
             let marketIdsChunk = [];
             for (let i = 0; i < marketIdsLength; i++) {
                 marketIdsChunk.push(marketIds[i]);
@@ -1068,7 +1071,7 @@ class bithumb extends bithumb$1["default"] {
                     tickers = response;
                 }
                 else if (this.isDictionary(response)) {
-                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                    if ((this.safeString(response, 'market') !== undefined) || (this.safeString(response, 'trade_date') !== undefined) || (this.safeString(response, 'trade_timestamp') !== undefined)) {
                         tickers = [response];
                     }
                     else {
@@ -1153,15 +1156,14 @@ class bithumb extends bithumb$1["default"] {
                 const currencyIds = Object.keys(tickers);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const ticker = data[currencyId];
+                    const ticker = this.extend({}, data[currencyId]);
                     const base = this.safeCurrencyCode(currencyId);
                     if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
                     const market = this.safeMarket(symbol);
-                    ticker['date'] = timestamp;
-                    result[symbol] = this.parseTicker(ticker, market);
+                    result[symbol] = this.parseTicker(this.extend(ticker, { 'date': timestamp }), market);
                 }
             }
         }
@@ -1676,7 +1678,7 @@ class bithumb extends bithumb$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires each order to have a side');
             }
             const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);

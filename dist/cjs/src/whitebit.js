@@ -3217,15 +3217,23 @@ class whitebit extends whitebit$1["default"] {
         const currencyId = this.safeString(transaction, 'ticker');
         const status = this.safeString(transaction, 'status');
         const method = this.safeString(transaction, 'method');
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if (method === '1') {
+            addressFrom = address;
+        }
+        else if (method === '2') {
+            addressTo = address;
+        }
         return {
             'id': this.safeString(transaction, 'uniqueId'),
             'txid': this.safeString(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'network': this.networkIdToCode(this.safeString(transaction, 'network'), this.safeCurrencyCode(currencyId, currencyResolved)),
-            'addressFrom': (method === '1') ? address : undefined,
+            'addressFrom': addressFrom,
             'address': address,
-            'addressTo': (method === '2') ? address : undefined,
+            'addressTo': addressTo,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (method === '1') ? 'deposit' : 'withdrawal',
             'currency': this.safeCurrencyCode(currencyId, currencyResolved),

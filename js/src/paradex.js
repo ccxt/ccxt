@@ -609,7 +609,7 @@ export default class paradex extends Exchange {
         // the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
         const assetKinds = {};
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString(types, i, '');
             if (marketType === 'swap') {
                 assetKinds['PERP'] = true;
             }
@@ -851,11 +851,11 @@ export default class paradex extends Exchange {
         //
         const parts = symbol.split('-');
         const partsLength = parts.length;
-        let base = undefined;
+        let base = '';
         let quote = '';
         let settle = undefined;
         let expiryDate = undefined;
-        let strike = undefined;
+        let strike = '';
         let optionType = '';
         if (symbol.indexOf('/') > -1) {
             if (partsLength !== 4) {
@@ -863,20 +863,20 @@ export default class paradex extends Exchange {
             }
             const pair = parts[0];
             const pairParts = pair.split('/');
-            base = this.safeString(pairParts, 0);
+            base = this.safeString(pairParts, 0, '');
             const quoteAndSettle = this.safeString(pairParts, 1, '');
             const quoteParts = quoteAndSettle.split(':');
             quote = this.safeString(quoteParts, 0, '');
             settle = this.safeString(quoteParts, 1, quote);
             expiryDate = this.safeString(parts, 1);
-            strike = this.safeString(parts, 2);
+            strike = this.safeString(parts, 2, '');
             optionType = this.safeString(parts, 3, '');
         }
         else {
             if (partsLength !== 5) {
                 throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
             }
-            base = this.safeString(parts, 0);
+            base = this.safeString(parts, 0, '');
             quote = this.safeString(parts, 1, '');
             settle = 'USDC'; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
@@ -896,13 +896,12 @@ export default class paradex extends Exchange {
         if ((timestamp !== undefined) && (this.sum(timestamp, 86400000) <= this.milliseconds())) {
             active = false;
         }
-        let strikeInId = '';
-        if (strike !== undefined) {
-            strikeInId = strike.replace('.', '_');
-        }
+        const strikeInId = strike.replace('.', '_');
+        const idTail = '-' + strikeInId + '-' + optionType;
+        const symbolTail = '-' + strike + '-' + optionType;
         return {
-            'id': base + '-' + quote + '-' + idDate + '-' + strikeInId + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiryDate + '-' + strike + '-' + optionType,
+            'id': base + '-' + quote + '-' + idDate + idTail,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiryDate + symbolTail,
             'base': base,
             'quote': quote,
             'settle': settle,
@@ -1118,7 +1117,7 @@ export default class paradex extends Exchange {
             request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
-        const hasEnd = ('end_at' in requestUntil);
+        const hasEnd = (this.safeInteger(requestUntil, 'end_at') !== undefined);
         const paramsOmitted = this.omit(paramsUntil, ['price']);
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
@@ -1563,10 +1562,11 @@ export default class paradex extends Exchange {
         //     }
         //
         const trades = this.safeList(response, 'results', []);
+        const tagged = [];
         for (let i = 0; i < trades.length; i++) {
-            trades[i]['next'] = this.safeString(response, 'next');
+            tagged.push(this.extend(trades[i], { 'next': this.safeString(response, 'next') }));
         }
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(tagged, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -2097,13 +2097,17 @@ export default class paradex extends Exchange {
             throw new ExchangeError(this.id + ' signOrderRequest() missing orderType');
         }
         const isMarket = (orderType.indexOf('MARKET') >= 0);
+        let orderPrice = '0';
+        if (!isMarket) {
+            orderPrice = this.scaleNumber(this.safeString(request, 'price'));
+        }
         const orderReq = {
             'timestamp': now,
             'market': this.stringToBase16(this.safeString(request, 'market')),
             'side': (this.safeString(request, 'side') === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16(this.safeString(request, 'type')),
             'size': this.scaleNumber(this.safeString(request, 'size')),
-            'price': (isMarket) ? '0' : this.scaleNumber(this.safeString(request, 'price')),
+            'price': orderPrice,
         };
         const orderFields = [
             { 'name': 'timestamp', 'type': 'felt' },
@@ -2782,10 +2786,11 @@ export default class paradex extends Exchange {
         //     }
         //
         const trades = this.safeList(response, 'results', []);
+        const tagged = [];
         for (let i = 0; i < trades.length; i++) {
-            trades[i]['next'] = this.safeString(response, 'next');
+            tagged.push(this.extend(trades[i], { 'next': this.safeString(response, 'next') }));
         }
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(tagged, market, since, limit);
     }
     /**
      * @method
@@ -3199,10 +3204,11 @@ export default class paradex extends Exchange {
         const rows = this.safeList(response, 'results', []);
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString(response, 'next');
+        const tagged = [];
         for (let i = 0; i < rows.length; i++) {
-            rows[i]['next'] = next;
+            tagged.push(this.extend(rows[i], { 'next': next }));
         }
-        return this.parseTransfers(rows, currency, since, limit);
+        return this.parseTransfers(tagged, currency, since, limit);
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -3854,10 +3860,11 @@ export default class paradex extends Exchange {
         const results = this.safeList(response, 'results', []);
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString(response, 'next');
+        const tagged = [];
         for (let i = 0; i < results.length; i++) {
-            results[i]['next'] = next;
+            tagged.push(this.extend(results[i], { 'next': next }));
         }
-        return this.parseIncomes(results, market, since, limit);
+        return this.parseIncomes(tagged, market, since, limit);
     }
     parseIncome(income, market = undefined) {
         //
@@ -3940,7 +3947,7 @@ export default class paradex extends Exchange {
             // rows and skip since, the range is cut to one page of rows from since
             const windowEnd = this.sum(since, pageSize * rowSpacing);
             const endAt = this.safeInteger(requestUntil, 'end_at', windowEnd);
-            if (!('end_at' in requestUntil) || (endAt > windowEnd)) {
+            if ((this.safeInteger(requestUntil, 'end_at') === undefined) || (endAt > windowEnd)) {
                 requestUntil['end_at'] = windowEnd;
             }
         }

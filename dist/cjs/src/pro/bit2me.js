@@ -798,7 +798,8 @@ class bit2me extends bit2me$1["default"] {
             const clientOrderIds = Object.keys(pending);
             for (let i = 0; i < clientOrderIds.length; i++) {
                 const clientOrderId = clientOrderIds[i];
-                if (pending[clientOrderId] === marketId) {
+                const pendingMarketId = this.safeString(pending, clientOrderId);
+                if (pendingMarketId === marketId) {
                     this.settleRequest(client, 'added-order:' + clientOrderId, undefined, exception);
                     this.options['pendingWsOrders'] = this.omit(this.options['pendingWsOrders'], clientOrderId);
                 }

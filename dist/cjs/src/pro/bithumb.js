@@ -322,8 +322,7 @@ class bithumb extends bithumb$1["default"] {
         //
         const code = this.safeString(ticker, 'code');
         if (code !== undefined) {
-            ticker['market'] = this.safeString(ticker, 'market', code);
-            return this.parseTicker(ticker, market);
+            return this.parseTicker(this.extend(ticker, { 'market': this.safeString(ticker, 'market', code) }), market);
         }
         const date = this.safeString(ticker, 'date', '');
         const time = this.safeString(ticker, 'time', '');

@@ -484,7 +484,7 @@ export default class binance extends binanceRest {
         const rawLiquidation = this.safeDict(message, 'o', {});
         const marketId = this.safeString(rawLiquidation, 's');
         const market = this.safeMarket(marketId, undefined, '', 'contract');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const liquidation = this.parseWsLiquidation(rawLiquidation, market);
         if (this.liquidations === undefined) {
             const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -1761,7 +1761,7 @@ export default class binance extends binanceRest {
         const symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols(symbols, undefined, false, false, true);
         const firstMarket = this.market(marketSymbols[0]);
-        let type = firstMarket['type'];
+        let type = this.safeString(firstMarket, 'type', '');
         let wsUrlType = type;
         if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
@@ -1843,7 +1843,7 @@ export default class binance extends binanceRest {
         const symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols(symbols, undefined, false, false, true);
         const firstMarket = this.market(marketSymbols[0]);
-        let type = firstMarket['type'];
+        let type = this.safeString(firstMarket, 'type', '');
         let wsUrlType = type;
         if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
@@ -3426,8 +3426,11 @@ export default class binance extends binanceRest {
             'params': this.signParams(this.extend(payload, paramsMethod)),
         };
         const subscription = {
-            'method': (method === 'account.status') ? this.handleAccountStatusWs : this.handleBalanceWs,
+            'method': this.handleBalanceWs,
         };
+        if (method === 'account.status') {
+            subscription['method'] = this.handleAccountStatusWs;
+        }
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
     handleBalanceWs(client, message) {
@@ -3751,10 +3754,7 @@ export default class binance extends binanceRest {
             const account = this.account();
             const delta = this.safeString(message, 'd');
             if ((code !== undefined) && (code in balance)) {
-                let previousValue = this.safeValue(balance[code], 'free');
-                if (typeof previousValue !== 'string') {
-                    previousValue = this.numberToString(previousValue);
-                }
+                const previousValue = this.safeString(balance[code], 'free');
                 account['free'] = Precise.stringAdd(previousValue, delta);
             }
             else {
@@ -4962,7 +4962,8 @@ export default class binance extends binanceRest {
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict(message, 'o', message);
             if ((e === 'ALGO_UPDATE') && (this.safeInteger(messageValue, 'T') === undefined)) {
-                messageValue['T'] = this.safeInteger(message, 'T'); // keep the outer event time, the algo payload carries no timestamps
+                // keep the outer event time, the algo payload carries no timestamps
+                messageValue = this.extend(messageValue, { 'T': this.safeInteger(message, 'T') });
             }
         }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
@@ -5705,7 +5706,7 @@ export default class binance extends binanceRest {
                                 fee['cost'] = parseFloat(feeCostString);
                                 order['fee'] = fee;
                             }
-                            else if (fee['currency'] === undefined) {
+                            else if (this.safeString(fee, 'currency') === undefined) {
                                 order['fee'] = tradeFee;
                             }
                             else {

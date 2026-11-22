@@ -1982,7 +1982,7 @@ class bitso extends bitso$1["default"] {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('success' in response) {
+        if (this.safeBool(response, 'success') !== undefined) {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //

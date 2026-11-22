@@ -1277,10 +1277,11 @@ class toobit extends toobit$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = [];
+        let candles = [];
         if (endpoint === 'index') {
             request['symbol'] = this.safeString(market['info'], 'indexToken'); // index klines take the index id instead of the market id
-            response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
+            const indexResponse = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
+            candles = this.safeList(indexResponse, 'data', []);
             //
             //     {
             //         "code": 200,
@@ -1310,7 +1311,8 @@ class toobit extends toobit$1["default"] {
             //
         }
         else if (endpoint === 'mark') {
-            response = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice));
+            const markResponse = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice));
+            candles = this.safeList(markResponse, 'data', []);
             //
             //     {
             //         "code": 200,
@@ -1330,7 +1332,7 @@ class toobit extends toobit$1["default"] {
             //
         }
         else {
-            response = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
+            candles = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
             //
             //    [
             //        [
@@ -1348,13 +1350,6 @@ class toobit extends toobit$1["default"] {
             //        ],
             //        ...
             //
-        }
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
-        else {
-            candles = this.safeList(response, 'data', []);
         }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
@@ -2918,7 +2913,9 @@ class toobit extends toobit$1["default"] {
         const tagFrom = this.safeString(transaction, 'fromAddressTag');
         const addressTo = this.safeString(transaction, 'address');
         const addressFrom = this.safeString(transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
+        const arriveQuantity = this.safeString(transaction, 'arriveQuantity');
+        const success = this.safeBool(transaction, 'success');
+        const isWithdraw = (arriveQuantity !== undefined) || (success !== undefined);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,

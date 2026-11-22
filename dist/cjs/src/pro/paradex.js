@@ -479,7 +479,7 @@ class paradex extends paradex$1["default"] {
     cleanUnsubscribed(client, unsubHash, subscription) {
         const subscribeHashes = this.safeList(subscription, 'subscribeHashes', []);
         for (let j = 0; j < subscribeHashes.length; j++) {
-            const subscribeHash = subscribeHashes[j];
+            const subscribeHash = this.safeString(subscribeHashes, j, '');
             if (subscribeHash in client.subscriptions) {
                 delete client.subscriptions[subscribeHash];
             }
@@ -1058,8 +1058,9 @@ class paradex extends paradex$1["default"] {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 const subscribeHashes = Object.keys(client.subscriptions);
                 for (let i = 0; i < subscribeHashes.length; i++) {
-                    if ((subscribeHashes[i] === scopedHash) || (subscribeHashes[i].indexOf(channel + '.') === 0)) {
-                        delete client.subscriptions[subscribeHashes[i]];
+                    const subscribeHash = this.safeString(subscribeHashes, i, '');
+                    if ((subscribeHash === scopedHash) || (subscribeHash.indexOf(channel + '.') === 0)) {
+                        delete client.subscriptions[subscribeHash];
                     }
                 }
                 const unsubscribe = this.unsubscribeRequest(channel);
@@ -1140,7 +1141,8 @@ class paradex extends paradex$1["default"] {
         let othersRemain = false;
         const keys = Object.keys(client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
-            if ((keys[i].indexOf(channel + '.') === 0) && !this.inArray(keys[i], subscribeHashes)) {
+            const key = this.safeString(keys, i, '');
+            if ((key.indexOf(channel + '.') === 0) && !this.inArray(key, subscribeHashes)) {
                 othersRemain = true;
             }
         }
@@ -1241,7 +1243,7 @@ class paradex extends paradex$1["default"] {
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
         // it rejects the watchers of those markets only
         const subscription = {
-            'id': request['id'],
+            'id': this.safeInteger(request, 'id'),
             'messageHashes': missingHashes,
         };
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscribeHashes, subscription);

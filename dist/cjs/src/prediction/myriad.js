@@ -1411,14 +1411,7 @@ class myriad extends myriad$1["default"] {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        const traderParam = this.safeString2(params, 'trader', 'address');
-        let trader = undefined;
-        if (traderParam !== undefined) {
-            trader = traderParam;
-        }
-        else {
-            trader = this.walletAddressOrUndefined();
-        }
+        const trader = this.safeString2(params, 'trader', 'address', this.walletAddressOrUndefined());
         if (trader === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2007,9 +2000,9 @@ class myriad extends myriad$1["default"] {
         const state = this.safeString(raw, 'state', 'open');
         const endDate = this.safeString(raw, 'expiresAt');
         return {
-            'id': market['id'],
+            'id': this.safeString(market, 'id', ''),
             'slug': slug,
-            'event': market['market'],
+            'event': this.safeString(market, 'market', ''),
             'title': this.safeString2(raw, 'title', 'shortName'),
             'description': this.safeString(raw, 'description'),
             'markets': [market],
@@ -2129,8 +2122,9 @@ class myriad extends myriad$1["default"] {
         const outcomesLength = outcomes.length;
         // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
+        const compositeId = this.safeString(raw, 'networkId', '') + ':' + this.safeString(raw, 'id', '');
         return {
-            'id': networkId + ':' + marketId,
+            'id': compositeId,
             'market': marketSymbol,
             'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel': marketExecutionModel,
@@ -3195,7 +3189,7 @@ class myriad extends myriad$1["default"] {
         const keys = Object.keys(msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn(this.pong, client, msg);
+            this.spawn(this.pong, client);
             return;
         }
         const connectReply = this.safeDict(msg, 'connect');

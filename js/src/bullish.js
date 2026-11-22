@@ -824,7 +824,7 @@ export default class bullish extends Exchange {
             contract = false;
             margin = this.safeBool(market, 'marginTradingEnabled');
         }
-        else {
+        else if (settle !== undefined) {
             contractSize = this.safeNumber(market, 'contractMultiplier');
             symbol = base + '/' + quote + ':' + settle;
             linear = settle === quote;
@@ -845,7 +845,8 @@ export default class bullish extends Exchange {
                     option = true;
                     optionType = this.safeStringLower(market, 'optionType');
                     strike = this.parseToNumeric(this.safeString(market, 'optionStrikePrice'));
-                    symbol = base + '/' + quote + ':' + settle + '-' + dateYmd + '-' + this.numberToString(strike) + '-' + this.safeString(idParts, 4);
+                    const optionSide = this.safeString(idParts, 4, '');
+                    symbol = base + '/' + quote + ':' + settle + '-' + dateYmd + '-' + this.numberToString(strike) + '-' + optionSide;
                 }
             }
         }

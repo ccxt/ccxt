@@ -750,8 +750,9 @@ export default class htx extends htxRest {
                 throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
             }
         }
-        const spotConditon = (market['spot'] === true) && (prevSeqNum === this.safeInteger(orderbook, 'nonce'));
-        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === this.safeInteger(orderbook, 'nonce'));
+        const currentNonce = this.safeInteger(orderbook, 'nonce');
+        const spotConditon = (market['spot'] === true) && (prevSeqNum === currentNonce);
+        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === currentNonce);
         if ((spotConditon) || (nonSpotCondition)) {
             const asks = this.safeList(tick, 'asks', []);
             const bids = this.safeList(tick, 'bids', []);
@@ -2117,7 +2118,7 @@ export default class htx extends htxRest {
             }
             const first = this.safeDict(data, 0, {});
             const splitTopic = topic.split('.');
-            let messageHash = this.safeString(splitTopic, 0);
+            let messageHash = this.safeString(splitTopic, 0, '');
             let subscription = this.safeDict2(client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol

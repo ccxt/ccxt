@@ -776,7 +776,7 @@ class deribit extends deribit$1["default"] {
             orders = this.parseOrders(dataList);
         }
         else {
-            const data = this.safeValue(params, 'data', {});
+            const data = this.safeDict(params, 'data', {});
             const order = this.parseOrder(data);
             orders = [order];
         }

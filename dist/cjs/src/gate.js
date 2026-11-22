@@ -1466,6 +1466,13 @@ class gate extends gate$1["default"] {
             const marginStatus = this.safeInteger(market, 'status', 1); // 0 disabled, 1 enabled
             const leverage = this.safeNumber(market, 'leverage');
             const margin = leverage !== undefined;
+            const costLimits = {
+                'min': this.safeNumber(market, 'min_quote_amount'),
+                'max': undefined,
+            };
+            if (margin) {
+                costLimits['max'] = this.safeNumber(market, 'max_quote_amount');
+            }
             const buyStart = this.safeIntegerProduct(spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             const createdTs = (buyStart !== 0) ? buyStart : undefined;
             const active = (tradeStatus === 'tradable') || (margin && (marginStatus === 1));
@@ -1513,10 +1520,7 @@ class gate extends gate$1["default"] {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'cost': {
-                        'min': this.safeNumber(market, 'min_quote_amount'),
-                        'max': margin ? this.safeNumber(market, 'max_quote_amount') : undefined,
-                    },
+                    'cost': costLimits,
                 },
                 'created': createdTs,
                 'info': market,
@@ -2998,7 +3002,7 @@ class gate extends gate$1["default"] {
             response = await this.publicDeliveryGetSettleTickers(this.extend(request, query));
         }
         else if (this.safeBool(market, 'option', false)) {
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id', '');
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, query));
@@ -3568,7 +3572,8 @@ class gate extends gate$1["default"] {
             const isIndex = (price === 'index');
             if (isMark || isIndex) {
                 const marketId = this.safeString(market, 'id', '');
-                request['contract'] = price + '_' + marketId;
+                const contractId = price + '_' + marketId;
+                request['contract'] = contractId;
             }
             let paramsContract = paramsOmitted;
             if (isMark || isIndex) {
@@ -7549,7 +7554,7 @@ class gate extends gate$1["default"] {
         if (type !== 'option') {
             throw new errors.NotSupported(this.id + ' fetchSettlementHistory() supports option markets only');
         }
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const optionParts = marketId.split('-');
         const request = {
             'underlying': this.safeString(optionParts, 0),
@@ -7638,7 +7643,7 @@ class gate extends gate$1["default"] {
                 }
             }
             else {
-                const marketId = market['id'];
+                const marketId = this.safeString(market, 'id', '');
                 const optionParts = marketId.split('-');
                 request['underlying'] = this.safeString(optionParts, 0);
             }
@@ -7933,9 +7938,10 @@ class gate extends gate$1["default"] {
         const currencyId = this.safeString(item, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
         const type = this.safeString(item, 'type');
-        const rawTimestamp = this.safeString(item, 'time');
+        const rawTimestamp = this.safeString(item, 'time', '');
+        const rawTimestampLength = rawTimestamp.length;
         let timestamp = undefined;
-        if (rawTimestamp.length > 10) {
+        if (rawTimestampLength > 10) {
             timestamp = parseInt(rawTimestamp);
         }
         else {
@@ -8144,7 +8150,7 @@ class gate extends gate$1["default"] {
             request['settle'] = market['settleId'];
         }
         else if (this.safeBool(market, 'option', false)) {
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id', '');
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
         }
@@ -8158,7 +8164,7 @@ class gate extends gate$1["default"] {
             response = await this.privateOptionsGetPositionClose(this.extend(request, params));
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         //
         // swap and future
@@ -8323,7 +8329,7 @@ class gate extends gate$1["default"] {
         //         },
         //     ]
         //
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict(response, i, {});
             const entryMarketId = this.safeString(entry, 'name');
@@ -8653,7 +8659,7 @@ class gate extends gate$1["default"] {
         }
         const currency = this.currency(code);
         const request = {
-            'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
+            'underlying': this.safeString(currency, 'code', '') + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts(this.extend(request, params));
         //

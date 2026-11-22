@@ -2337,10 +2337,7 @@ class extended extends extended$1["default"] {
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let symbolsList = symbols;
-        if (typeof symbols === 'string') {
-            symbolsList = [symbols];
-        }
+        const symbolsList = symbols;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchPositionsHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000);

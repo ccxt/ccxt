@@ -54,7 +54,7 @@ class gemini extends gemini$1["default"] {
         }
         const market = this.market(symbol);
         const messageHash = 'trades:' + this.safeString(market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         if (marketId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchTrades() marketId is required');
         }
@@ -384,7 +384,7 @@ class gemini extends gemini$1["default"] {
         }
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + this.safeString(market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         if (marketId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBook() marketId is required');
         }

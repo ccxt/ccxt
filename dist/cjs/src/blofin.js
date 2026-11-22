@@ -664,6 +664,13 @@ class blofin extends blofin$1["default"] {
         const contractType = this.safeString(market, 'contractType');
         const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        const costLimits = {
+            'min': undefined,
+            'max': maxSpotCost,
+        };
+        if (contract) {
+            costLimits['max'] = undefined;
+        }
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -708,10 +715,7 @@ class blofin extends blofin$1["default"] {
                     'min': undefined,
                     'max': undefined,
                 },
-                'cost': {
-                    'min': undefined,
-                    'max': contract ? undefined : maxSpotCost,
-                },
+                'cost': costLimits,
             },
             'info': market,
         });
@@ -2989,7 +2993,7 @@ class blofin extends blofin$1["default"] {
         //
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const pos = this.safeString(position, 'positions');
         const contractsAbs = Precise["default"].stringAbs(pos);
         let side = this.safeString(position, 'positionSide');

@@ -895,16 +895,11 @@ export default class cryptocom extends Exchange {
         const request = {};
         if (symbols !== undefined) {
             let symbol = undefined;
-            if (Array.isArray(symbols)) {
-                const symbolsLength = symbols.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest(this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = this.safeString(symbols, 0);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest(this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
             }
-            else {
-                symbol = symbols;
-            }
+            symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
@@ -2630,7 +2625,7 @@ export default class cryptocom extends Exchange {
         let type = undefined;
         const rawStatus = this.safeString(transaction, 'status');
         let status = undefined;
-        if (this.safeString(transaction, 'client_wid') !== undefined) {
+        if ('client_wid' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus(rawStatus);
         }
@@ -3305,17 +3300,12 @@ export default class cryptocom extends Exchange {
         let market = undefined;
         if (symbolsNormalized !== undefined) {
             let symbol = undefined;
-            if (Array.isArray(symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if (symbolsLength === 1) {
-                    symbol = symbolsNormalized[0];
-                }
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            else {
-                symbol = symbolsNormalized;
+            if (symbolsLength === 1) {
+                symbol = symbolsNormalized[0];
             }
             market = this.market(symbol);
             request['instrument_name'] = market['id'];

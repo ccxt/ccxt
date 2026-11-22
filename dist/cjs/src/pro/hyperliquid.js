@@ -235,11 +235,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
             },
         };
         const message = this.extend(request, params);
@@ -267,12 +271,16 @@ class hyperliquid extends hyperliquid$1["default"] {
         const url = this.urls['api']['ws']['public'];
         const nonce = this.incrementingNonce();
         const id = this.numberToString(nonce);
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'id': id,
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
             },
         };
         const message = this.extend(request, params);
@@ -346,6 +354,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
         const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'subscribe',
             'subscription': {
@@ -353,7 +365,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
             },
         };
         await this.waitForPendingUnsubscribe(url, messageHash);
@@ -377,11 +389,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const subMessageHash = 'ticker:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
             },
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
@@ -796,11 +812,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
             },
         };
         const message = this.extend(request, params);
@@ -830,11 +850,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
             },
         };
         const message = this.extend(request, params);
@@ -921,7 +945,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const coin = this.safeString(trade, 'coin');
         const marketId = this.coinToMarketId(coin);
         const marketResolved = this.safeMarket(marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'tid');
         let side = this.safeString(trade, 'side');
         if (side !== undefined) {
@@ -963,11 +987,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
                 'interval': timeframe,
             },
         };
@@ -998,11 +1026,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.urls['api']['ws']['public'];
+        let wireCoin = this.safeString(market, 'id', '');
+        if (this.safeBool(market, 'swap', false)) {
+            wireCoin = this.safeString(market, 'baseName', '');
+        }
         const request = {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
+                'coin': wireCoin,
                 'interval': timeframe,
             },
         };

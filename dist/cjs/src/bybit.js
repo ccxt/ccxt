@@ -2255,6 +2255,13 @@ class bybit extends bybit$1["default"] {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
+            const costLimits = {
+                'min': undefined,
+                'max': undefined,
+            };
+            if (linear) {
+                costLimits['min'] = this.safeNumber(lotSizeFilter, 'minNotionalValue'); // https://bybit-exchange.github.io/docs/v5/market/instrument
+            }
             const parsedMarket = this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
@@ -2298,10 +2305,7 @@ class bybit extends bybit$1["default"] {
                         'min': this.safeNumber(priceFilter, 'minPrice'),
                         'max': this.safeNumber(priceFilter, 'maxPrice'),
                     },
-                    'cost': {
-                        'min': linear ? this.safeNumber(lotSizeFilter, 'minNotionalValue') : undefined, // https://bybit-exchange.github.io/docs/v5/market/instrument
-                        'max': undefined,
-                    },
+                    'cost': costLimits,
                 },
                 'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
@@ -3122,7 +3126,7 @@ class bybit extends bybit$1["default"] {
         };
         const market = this.market(symbol);
         const fundingTimeFrameMins = this.safeInteger(market['info'], 'fundingInterval');
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         request['symbol'] = market['id'];
         const [type, paramsValue] = this.getBybitType('fetchFundingRateHistory', market, paramsPaginate);
         if (type === 'spot' || type === 'option') {
@@ -3340,8 +3344,7 @@ class bybit extends bybit$1["default"] {
         const id = this.safeStringN(trade, ['execId', 'id', 'tradeId']);
         const marketId = this.safeString(trade, 'symbol');
         let marketType = 'spot';
-        const createType = this.safeString(trade, 'createType');
-        if (createType !== undefined) {
+        if ('createType' in trade) {
             marketType = 'contract';
         }
         const category = this.safeString(trade, 'category');
@@ -4071,8 +4074,7 @@ class bybit extends bybit$1["default"] {
             }
         }
         const marketId = this.safeString(order, 'symbol');
-        const tpslMode = this.safeString(order, 'tpslMode');
-        const isContract = (tpslMode !== undefined);
+        const isContract = ('tpslMode' in order);
         let marketType = undefined;
         if (market !== undefined) {
             marketType = this.safeString(market, 'type');
@@ -4317,7 +4319,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const lowerCaseType = type.toLowerCase();
         const request = {
             'symbol': market['id'],
@@ -6346,8 +6348,7 @@ class bybit extends bybit$1["default"] {
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const feeCost = this.safeNumber2(transaction, 'depositFee', 'withdrawFee');
         let type = 'withdrawal';
-        const depositFee = this.safeString(transaction, 'depositFee');
-        if (depositFee !== undefined) {
+        if ('depositFee' in transaction) {
             type = 'deposit';
         }
         let fee = undefined;

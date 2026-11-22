@@ -427,7 +427,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             orders = this.parseOrders(dataList);
         }
         else {
-            const data = this.safeValue(params, 'data', {});
+            const data = this.safeDict(params, 'data', {});
             orders = [this.parseOrder(data)];
         }
         const ordersLength = orders.length;
@@ -521,7 +521,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
             const position = positions[i];
-            if (position['side'] === undefined) {
+            if (this.safeString(position, 'side') === undefined) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
