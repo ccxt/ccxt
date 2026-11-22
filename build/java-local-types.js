@@ -15,15 +15,15 @@ import { shortenJavaReferences } from './javaUtilImports.js';
 export const JAVA_STRING_RETURN_METHODS = new Set ([
     'applyScale', 'calcOrderPrice', 'convertToInstrumentType', 'convertToX18',
     'amountToPrecision', 'costToPrecision', 'costToPredictionPrecision', 'createAuthToken',
-    'createOrderAppendix', 'createOrderIdFromParts', 'createOrderNonce',
+    'createOrderAppendix', 'createOrderNonce',
     'currencyFromPrecision', 'encodeMarginMode', 'encodeOrderSide', 'encodeOrderType',
-    'encodeTriggerPriceType', 'encodeValuesWithJson', 'encodeWorkingType',
+    'encodeTriggerPriceType', 'encodeWorkingType',
     'feeToPrecision', 'fromEn', 'fromPrecision', 'fromWeiWithDecimals',
     'futuresRequestId', 'generateClientOrderId',
     'getDexFromHip3Symbol', 'getDexFromSymbols',
     'getMarketIdByType',
-    'getSubAccountId',
-    'getTifFromRawOrderType', 'getWalletAddress',
+    
+    'getTifFromRawOrderType', 
     'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
     'marketOutcomeToSymbol', 'normalizeTagKey', 'oath', 'outcomeSearchQuery', 'padHex',
     'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
@@ -38,12 +38,11 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseTransferType', 'parseType',
     'parseUnits', 'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide',
     'parseWsOrderStatus', 'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'pow',
-    'prepareMessage', 'priceToPrecision', 'scaleNumber', 'shortenSlug',
-    'signL1AndPrepareTxInfo', 'symbol', 'toOrderbookWei',
+    'priceToPrecision', 'scaleNumber', 'shortenSlug',
+    'symbol', 
     'tokenIdToSymbol', 'typeToTradeType', 'walletAddressOrUndefined',
     // extended/gate/lighter/nado string producers
-    'getExtendedStarkAmount',
-    'getExtendedOrderMsgHash', 'getExtendedWithdrawalMsgHash', 'getExtendedTransferMsgHash',
+    
     'createAuth', 'removeMarketSuffix',
 ]);
 
@@ -18813,6 +18812,57 @@ function javaBaseStringPrecisionCall (printer, node) {
     }
 }
 
+// `this.json (..)`: the member is an Exchange.ts property bound to a functions/ arrow, so the
+// resolved signature lives outside Exchange.ts while the Java member is BaseExchange's own
+function javaBaseMemberCall (printer, node) {
+    const declarations = printer.getChecker ().getSymbolAtLocation (node.expression)?.declarations ?? [];
+    return declarations.length === 1 && JAVA_BASE_SOURCE_FILE.test (String (declarations[0]?.resolve?.()?.getSourceFile?.()?.fileName));
+}
+
+// `public String <name>;` in the hand-written BaseExchange.java header
+let javaBaseHeaderText;
+function javaBaseHeaderStringField (name) {
+    if (javaBaseHeaderText === undefined) {
+        try {
+            javaBaseHeaderText = fs.readFileSync (JAVA_BASE_HEADER_FILES[0], 'utf8').split (JAVA_CORE_DELIMITER)[0];
+        } catch (e) {
+            javaBaseHeaderText = '';
+        }
+    }
+    return /^\w+$/.test (name) && new RegExp (`^    public String ${name};`, 'm').test (javaBaseHeaderText);
+}
+
+// a sync base-tier call whose hand-written Java declaration returns String (json, uuid5, ...)
+function javaBaseStringCoreCall (printer, node) {
+    try {
+        if (node !== undefined && ts.isPropertyAccessExpression (node) && node.expression.kind === ts.SyntaxKind.ThisKeyword) {
+            // a hand-written BaseExchange field declared String, declared once in ts/src (Exchange.ts)
+            return javaBaseHeaderStringField (String (node.name.text)) && javaBaseMemberCall (printer, { expression: node });
+        }
+        // `s.slice (..)` on a TS string the printer prints as a guarded native substring
+        if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+            && node.expression.name.text === 'slice' && ts.isIdentifier (node.expression.expression)
+            && (printer.getChecker ().getTypeAtLocation (node.expression.expression).flags & ts.TypeFlags.StringLike) !== 0) {
+            const name = node.expression.expression.text;
+            const printed = String (printer.printNode (node, 0));
+            return printed.startsWith (`(${name} == null ? null : ${name}.substring(`) || printed.startsWith (`(${name} == null ? null : ((String)${name}).substring(`);
+        }
+        // `x.toString ()` on a TS string prints `String.valueOf(x)`
+        if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+            && node.expression.name.text === 'toString' && node.arguments.length === 0) {
+            return (printer.getChecker ().getTypeAtLocation (node.expression.expression).flags & ts.TypeFlags.StringLike) !== 0;
+        }
+        if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+            && ts.isIdentifier (node.expression.expression) && node.expression.expression.text === 'Precise') {
+            return PRECISE_STRING_STATICS.has (node.expression.name.text) && !node.arguments.some ((a) => ts.isSpreadElement (a));
+        }
+        return isThisCall (node) && !node.arguments.some ((a) => ts.isSpreadElement (a)) && !isAsyncMethodCall (printer, node)
+            && (javaResolvesToBase (printer, node) || javaBaseMemberCall (printer, node)) && syncCoreCallType (printer, node) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 export function installJavaStringReturns (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printClassBody !== 'function' || typeof printer.javaNativeReturnType !== 'function'
@@ -18857,7 +18907,8 @@ export function installJavaStringReturns (transpiler) {
     const upstreamPrints = printer.javaExpressionPrintsType.bind (printer);
     printer.javaExpressionPrintsType = function (expression, target) {
         if (target === 'String') {
-            return upstreamPrints (expression, target) || javaBaseStringPrecisionCall (printer, printer.javaUnwrapReturnExpression (expression));
+            return upstreamPrints (expression, target) || javaBaseStringPrecisionCall (printer, printer.javaUnwrapReturnExpression (expression))
+                || javaBaseStringCoreCall (printer, printer.javaUnwrapReturnExpression (expression));
         }
         if (target !== 'Long' && target !== 'Double') {
             return upstreamPrints (expression, target);
