@@ -8229,7 +8229,7 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
         return !boxOnly;
     }
     // a tuple-holder slot the printer reads natively holds what GetValue(h, i) answered
-    if (/^\w+Variable\[\d+\]$/.test (text)) {
+    if (/^\w+Variable\[\d+\]$/.test (text) || /^\w+Pair\.Value\.V$/.test (text)) {
         return true;
     }
     // the deref of a pair-bind pointer temp (`x = *xPtr`) is a plain scalar, never a pointer box
@@ -10911,7 +10911,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = h29a22StructBoxInfoReads (content);  // `info` of a boxed struct read from the typed field
     content = goAsyncTupleSlotReads (content, filePath);  // again: async []any producers are received as rN.Value only after GOCHAN3
     content = goAsyncMapPairHolders (content);
-    content = goAsyncMapPairs (content);
     content = goPromiseAllSlotReads (content);  // promiseAll destructure slots, once the receive prints ListTyped(r.Value)
     content = goPromiseAllLoopReads (content);  // loop-built task lists read back under the same len() bound
     content = goPromiseAllSelfBoundReads (content);  // GetValue(h, i) inside `for i < len(h)`
@@ -16111,7 +16110,7 @@ async function runMain () {
             [ 'go-typed-deref-self-test-misc: ', goTypedMiscSelfTest ], goErrSelfTest, goStructReturnsSelfTest, goChan3SelfTest,
             [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ], [ 'go omit of guarded urls: ', goUrlsKeyGuardedSelfTest ],
             [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], [ 'go self map rebind self: ', goSelfMapRebindSelfTest, true ], [ 'go annotated return self test: ', goAnnotatedReturnSelfTest, true ],
-            [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ], [ 'go async map pair holders: ', goAsyncMapPairHoldersCheck ], [ 'go async map pairs: ', goAsyncMapPairsCheck ],
+            [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ], [ 'go async map pair holders: ', goAsyncMapPairHoldersCheck ],
             [ 'go str return self test: ', goStrReturnSelfTest, true ], [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
             [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
             [ 'h27-g26 struct row reads: ', h27g26StructRowReadsSelfTest ],
@@ -20794,101 +20793,6 @@ function goAsyncMapPairHolders (content: string): string {
         changed = true;
     }
     return changed ? lines.join ('\n') : content;
-}
-
-// a `[]any` async core whose every send is `[]any{<v>, <params map>}` carries a MapPair[T] (exchange_helpers.go; T bool
-// when every slot 0 is a bool) if every receive reads its Recv holder only as slot 0 / MapTyped(slot 1): same values
-function goAsyncMapPairs (content: string): string {
-    if ((content.indexOf ('AsyncResult[[]any]{Value: []any{') < 0) || !/^package ccxt\s*$/m.test (content)) {
-        return content;
-    }
-    let out = content;
-    const core = /^func \(this \*(\w+)\) (\w+)Async\([^\n]*\) <-chan AsyncResult\[\[\]any\] \{\n\tch := make\(chan AsyncResult\[\[\]any\], 1\)\n\tgo this\.(\w+)\(ch(?:, [^\n]*)?\)\n\treturn ch\n\}\n/gm;
-    for (const m of [ ...content.matchAll (core) ]) {
-        const [ , receiver, method, bodyName ] = m;
-        const masked = goTextMaskLiteralsAndComments (out);
-        const head = masked.indexOf ('\nfunc (this *' + receiver + ') ' + bodyName + '(ch chan AsyncResult[[]any], ');
-        const end = (head < 0) ? -1 : masked.indexOf ('\n}\n', head);
-        if ((end < 0) || (masked.split (method + 'Async(').length - 1 !== (out.match (new RegExp ('<-this\\.' + method + 'Async\\(', 'g')) ?? []).length + 1)) {
-            continue;
-        }
-        const body = masked.substring (head, end);
-        const sends = [ ...body.matchAll (/\bch <- AsyncResult\[\[\]any\]\{([^\n]*)\}$/gm) ];
-        const pairs = sends.map ((s) => /^Value: \[\]any\{(\(\w+ == true\)|\w+), (\w+)\}$/.exec (s[1]));
-        const one = (rx: string) => (body.match (new RegExp (rx, 'gm')) ?? []).length === 1;
-        const isBool = (e: string) => e.startsWith ('(') || one ('^\\t+var ' + e + ' bool = ');
-        const isMap = (p: string) => one ('^\\t\\w+, ' + p + ' := this\\.HandleOption(?:Bool|String)?AndParams2?\\(') && !new RegExp ('(?<![\\w.])' + p + ' :?=(?!=)').test (body.replace (/\t\w+, \w+ := this\.HandleOption/, ''));
-        if (!sends.length || (body.match (/\bch <- /g) ?? []).length !== sends.length || pairs.some ((p) => (p === null) || !isMap (p[2]))) {
-            continue;
-        }
-        const T = pairs.every ((p) => isBool ((p as RegExpExecArray)[1])) ? 'bool' : 'any';
-        // every receive: `rN := <-this.MAsync(..)`, error panic, Recv holder read only as [0] / [1]
-        const lines = out.split ('\n');
-        const mlines = masked.split ('\n');
-        const edits: [ number, string[] ][] = [];
-        let ok = true;
-        for (let k = 0; k < mlines.length && ok; k++) {
-            const r = new RegExp ('^\\t+(r\\d*) := <-this\\.' + method + 'Async\\(').exec (mlines[k]);
-            if (r === null) {
-                continue;
-            }
-            const recv = new RegExp ('^(\\t+)(\\w+)Recv, _ := ' + r[1] + '\\.Value, ' + r[1] + '\\.Value != nil$').exec (mlines[k + 4] ?? '');
-            if ((recv === null) || (mlines[k + 5] !== recv[1] + 'var ' + recv[2] + ' []any = ' + recv[2] + 'Recv')) {
-                ok = false;
-                break;
-            }
-            const [ , ind, h ] = recv;
-            let j = k + 6;
-            const rewritten: string[] = [];
-            const slot0 = '(?:GetValue\\(' + h + ', 0\\)|' + h + '\\[0\\])';
-            for (; j < mlines.length && new RegExp ('(?<![\\w.])' + h + '(?!\\w)').test (mlines[j]); j++) {
-                const a = new RegExp ('^' + ind + '(\\w+) := ' + slot0 + '$').exec (mlines[j]);
-                const b = new RegExp ('^' + ind + '(\\w+) = ' + slot0 + '$').exec (mlines[j]);
-                const c = new RegExp ('^' + ind + 'var (\\w+) map\\[string\\]any = MapTyped\\(' + h + '\\[1\\]\\)$').exec (mlines[j]);
-                const d = new RegExp ('^' + ind + '(\\w+) = (?:MapTyped\\(' + h + '\\[1\\]\\)|' + h + '\\[1\\])$').exec (mlines[j]);
-                const line = (a !== null) ? ('var ' + a[1] + ' ' + T + ' = ' + r[1] + '.Value.V') : (b !== null) ? (b[1] + ' = ' + r[1] + '.Value.V')
-                    : (c !== null) ? ('var ' + c[1] + ' map[string]any = ' + r[1] + '.Value.P') : (d !== null) ? (d[1] + ' = ' + r[1] + '.Value.P') : undefined;
-                if (line === undefined) {
-                    ok = false;
-                    break;
-                }
-                rewritten.push (ind + line);
-            }
-            const fnEnd = mlines.indexOf ('}', j);
-            if (!ok || (rewritten.length !== 2) || new RegExp ('(?<![\\w.])' + h + '(?:Recv)?(?!\\w)').test (mlines.slice (j, fnEnd).join ('\n'))) {
-                ok = false;
-                break;
-            }
-            edits.push ([ k + 4, rewritten ]);
-        }
-        if (!ok || !edits.length) {
-            continue;
-        }
-        for (const [ at, repl ] of edits.reverse ()) {
-            lines.splice (at, 4, ...repl);
-        }
-        out = lines.join ('\n');
-        const start = out.indexOf ('\nfunc (this *' + receiver + ') ' + bodyName + '(ch chan AsyncResult[[]any], ');
-        const stop = out.indexOf ('\n}\n', start);
-        const fixed = out.substring (start, stop).replace ('(ch chan AsyncResult[[]any], ', '(ch chan AsyncResult[MapPair[' + T + ']], ')
-            .replace (/\bch <- AsyncResult\[\[\]any\]\{Value: \[\]any\{([^\n]*), (\w+)\}\}$/gm, 'ch <- AsyncResult[MapPair[' + T + ']]{Value: MapPair[' + T + ']{V: $1, P: $2}}');
-        out = out.substring (0, start) + fixed + out.substring (stop);
-        const tramp = m[0].replace (/AsyncResult\[\[\]any\]/g, 'AsyncResult[MapPair[' + T + ']]');
-        out = out.replace (m[0], tramp);
-    }
-    return out;
-}
-
-function goAsyncMapPairsCheck (ok: SelfTestOk): void {
-    const producer = 'func (this *X) PAsync(p any) <-chan AsyncResult[[]any] {\n\tch := make(chan AsyncResult[[]any], 1)\n\tgo this.pBody(ch, p)\n\treturn ch\n}\n'
-        + 'func (this *X) pBody(ch chan AsyncResult[[]any], p any) any {\n\tdefer close(ch)\n\tdefer ReturnPanicError(ch)\n\tvar d bool = false\n\tu, q := this.HandleOptionAndParams(p, \"m\", \"u\")\n\tif u != nil {\n\n\t\tch <- AsyncResult[[]any]{Value: []any{(u == true), q}}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[[]any]{Value: []any{d, q}}\n\treturn nil\n}\n';
-    const consumer = (reads: string) => 'func (this *X) F(p any) any {\n\tr1 := <-this.PAsync(p)\n\tif r1.Err != nil {\n\t\tpanic(r1.Err)\n\t}\n\thVariableRecv, _ := r1.Value, r1.Value != nil\n\tvar hVariable []any = hVariableRecv\n' + reads + '\treturn u\n}\n';
-    const pos = goAsyncMapPairs ('package ccxt\n\n' + producer + consumer ('\tu := GetValue(hVariable, 0)\n\tvar q map[string]any = MapTyped(hVariable[1])\n'));
-    ok (pos.includes ('\tvar u bool = r1.Value.V\n\tvar q map[string]any = r1.Value.P\n') && pos.includes ('MapPair[bool]{V: (u == true), P: q}') && pos.includes ('<-chan AsyncResult[MapPair[bool]] {') && !pos.includes ('hVariable'), 'bool/map pair carrier: ' + pos);
-    ok (goAsyncMapPairs ('package ccxt\n\n' + producer + consumer ('\tu := GetValue(hVariable, 0)\n\tx := hVariable\n')).includes ('AsyncResult[[]any]'), 'an escaping holder keeps the []any carrier');
-    const anyPair = goAsyncMapPairs ('package ccxt\n\n' + producer.replace ('{d, q}', '{p, q}') + consumer ('\tu := h[0]\n\tvar q map[string]any = MapTyped(hVariable[1])\n').replace ('h[0]', 'hVariable[0]'));
-    ok (anyPair.includes ('\tvar u any = r1.Value.V\n') && anyPair.includes ('MapPair[any]{V: p, P: q}'), 'an unproven bool slot is carried as any: ' + anyPair);
-    ok (goAsyncMapPairs ('package ccxt\n\n' + producer.replace ('{d, q}', '{d, p}') + consumer ('\tu := GetValue(hVariable, 0)\n\tvar q map[string]any = MapTyped(hVariable[1])\n')).includes ('AsyncResult[[]any]'), 'an unproven params slot keeps the []any carrier');
 }
 
 function goAsyncMapPairHoldersCheck (ok: SelfTestOk): void {
