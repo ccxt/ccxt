@@ -11381,9 +11381,34 @@ function goSliceColonFix (content: string, open: number, close: number, level: n
     const low = bounds.slice (0, colon).replace (/[ \t]+$/, '');
     const high = bounds.slice (colon + 1).replace (/^[ \t]+/, '');
     const needsBlanks = (level <= 1) && (low.trim () !== '') && (high.trim () !== '') &&
-        (goBoundIsBinary (low) || goBoundIsBinary (high));
+        (goBoundIsBinary (low) || goBoundIsBinary (high)) && !goSliceIsBinaryOperand (content, open, close);
     const blank = needsBlanks ? ' ' : '';
     return { 'start': open, 'end': close, 'text': low + blank + ':' + blank + high };
+}
+
+// true when the slice whose bounds are `content[open : close]` is an operand of a binary
+// operator (`h[i:i+1] == "0"`): go/printer then prints it one level deeper, without blanks
+function goSliceIsBinaryOperand (content: string, open: number, close: number): boolean {
+    const after = /^[ \t]*(==|!=|<=|>=|&&|\|\||<<|>>|&\^|[-+*/%&|^<>])(?!=)/.exec (content.slice (close + 1, close + 8));
+    if (after !== null) {
+        return true;
+    }
+    let k = open - 2;
+    while ((k >= 0) && /[\w.]/.test (content[k])) {
+        k -= 1;
+    }
+    while ((k >= 0) && ((content[k] === ' ') || (content[k] === '\t'))) {
+        k -= 1;
+    }
+    const before = /(==|!=|<=|>=|&&|\|\||<<|>>|&\^|[-+*/%&|^<>])$/.exec (content.slice (Math.max (0, k - 1), k + 1));
+    if (before === null) {
+        return false;
+    }
+    let m = k - before[1].length;
+    while ((m >= 0) && ((content[m] === ' ') || (content[m] === '\t'))) {
+        m -= 1;
+    }
+    return (m >= 0) && GO_OPERAND_ENDER.test (content[m]);   // binary, not a unary sign or `*` deref
 }
 
 // true when the slice bound `text` is a binary expression for go/printer's isBinary(),
@@ -12246,6 +12271,53 @@ function goGofmtAlignTables (content: string, aligner: GoCompositeEntryAligner):
     return lines.join ('\n');
 }
 
+// gofmt aligns each run of consecutive single-line keyed entries on its own (a multi-line entry,
+// a blank or a comment line ends the run), so a pass that rewrote one entry of a literal holding
+// a nested literal or a func value is realigned run by run; a run with a trailing comment is left alone.
+function goGofmtAlignRuns (content: string, aligner: GoCompositeEntryAligner): string {
+    const lines = content.split ('\n');
+    const live = goTextCodeLineStarts (content);
+    const keyed = /^(\t+)"((?:[^"\\]|\\.)*)": +(.*?),( *\/\/.*)?$/;
+    const entry = (k: number): RegExpExecArray | null => {
+        const m = live[k] ? keyed.exec (lines[k]) : null;
+        if (m === null) {
+            return null;
+        }
+        const mask = goTextMaskLiteralsAndComments (m[3]);
+        const count = (c: string) => mask.split (c).length;
+        const balanced = (count ('(') === count (')')) && (count ('[') === count (']')) && (count ('{') === count ('}'));
+        let flat = mask;
+        for (let prev = ''; prev !== flat; ) {
+            prev = flat;
+            flat = flat.replace (/\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\}/g, '');
+        }
+        return (!balanced || (flat.indexOf (',') >= 0) || (flat.indexOf (':') >= 0)) ? null : m;
+    };
+    for (let i = 0; i < lines.length; i++) {
+        const first = entry (i);
+        if (first === null) {
+            continue;
+        }
+        const run: RegExpExecArray[] = [ first ];
+        let j = i + 1;
+        for (let m = entry (j); (m !== null) && (m[1] === first[1]); m = entry (j)) {
+            run.push (m);
+            j += 1;
+        }
+        const commented = run.some ((m) => (m[4] !== undefined) || (goTextMaskLiteralsOnly (m[3]).indexOf ('//') >= 0));
+        if (!commented) {
+            const aligned = aligner.alignGoCompositeEntries (run.map ((m) => m[1] + '"' + m[2] + '": ' + m[3]));
+            if (aligned.length === run.length) {
+                for (let k = 0; k < run.length; k++) {
+                    lines[i + k] = aligned[k];
+                }
+            }
+        }
+        i = j - 1;
+    }
+    return lines.join ('\n');
+}
+
 export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner = goCompositeKeyAligner ()): string {
     const code = goTextMaskLiteralsAndComments (content).split ('\n');
     const commentFree = goTextMaskLiteralsOnly (content).split ('\n');
@@ -12272,7 +12344,7 @@ export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner
         }
         out.push (line);
     }
-    return goGofmtAlignTables (out.join ('\n'), aligner);
+    return goGofmtAlignRuns (goGofmtAlignTables (out.join ('\n'), aligner), aligner);
 }
 
 function goGofmtLayoutSelfTest (ok: SelfTestOk): void {
@@ -12286,6 +12358,13 @@ function goGofmtLayoutSelfTest (ok: SelfTestOk): void {
         head + 'func (this *X) f() any {\n\treturn map[string]any{\n\t\t"id":     1,\n\t\t"symbol": "BTC/USDT",\n\t}\n}\n');
     const clean = head + 'func f() int {\n\treturn 1\n}\n';
     check ('idempotent', goGofmtLayout (clean, aligner), clean);
+    const run = (a: string, b: string, c: string) => head + 'func (this *X) f() any {\n\treturn map[string]any{\n\t\t' + a + ',\n\t\t' + b + ',\n\t\t"price": func() int {\n\t\t\treturn 1\n\t\t}(),\n\t\t' + c + ',\n\t}\n}\n';
+    check ('run before a func value', goGofmtLayout (run ('"won":       won', '"amount": v', '"pnl": p'), aligner), run ('"won":    won', '"amount": v', '"pnl": p'));
+    const commented = run ('"a":    1 // x', '"bb": 2', '"c": 3');
+    check ('commented run', goGofmtLayout (commented, aligner), commented);
+    const slice = (s: string) => 'package x\n\nfunc f() {\n' + s + '}\n';
+    check ('slice operand', goGofmtSplicedText (slice ('\tif h[i : i+1] == "0" {\n\t}\n')), slice ('\tif h[i:i+1] == "0" {\n\t}\n'));
+    check ('slice statement', goGofmtSplicedText (slice ('\tx := s[0:len(s) - 3]\n')), slice ('\tx := s[0 : len(s)-3]\n'));
 }
 
 function overwriteFileAndFolder (path: string, content: string) {
