@@ -2442,7 +2442,7 @@ export default class hyperliquid extends Exchange {
             const price = this.safeString (rawOrder, 'price');
             let orderParams: Dict = this.safeDict (rawOrder, 'params', {});
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
-            orderParams['slippage'] = slippage;
+            orderParams = this.extend (orderParams, { 'slippage': slippage });
             const stopLoss = this.safeDict (orderParams, 'stopLoss');
             const takeProfit = this.safeDict (orderParams, 'takeProfit');
             const hasStopLoss = (stopLoss !== undefined);
