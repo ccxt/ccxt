@@ -349,7 +349,7 @@ public partial class phemex : ccxt.phemex
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool usePerpetualApi = (this.safeString(paramsMarketType, "settle") == "USDT");
         string messageHash = "perpetual:balance";
-        if (!usePerpetualApi)
+        if (!usePerpetualApi && ((type != null)))
         {
             messageHash = (type + ":balance");
         }
@@ -570,7 +570,7 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         string name = "spot_market24h";
@@ -669,7 +669,7 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -718,7 +718,7 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -765,7 +765,7 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -1057,7 +1057,7 @@ public partial class phemex : ccxt.phemex
             if (settle == "USDT")
             {
                 messageHash = "trades:perpetual";
-            } else
+            } else if ((type != null))
             {
                 messageHash = ("trades:" + type);
             }
@@ -1252,7 +1252,7 @@ public partial class phemex : ccxt.phemex
             if (isUSDTSettled)
             {
                 messageHash = "orders:perpetual";
-            } else
+            } else if ((type != null))
             {
                 messageHash = ("orders:" + type);
             }

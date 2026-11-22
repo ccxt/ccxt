@@ -1007,7 +1007,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, (timeframeInSeconds * 1000L), alignedSince, limitResolved));
     }
 
-    public virtual object insertMissingCandles(IList<object> candles, object distanceInMs, object since, object limit)
+    public virtual object insertMissingCandles(IList<object> candles, object distanceInMs, Int64? since, object limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results

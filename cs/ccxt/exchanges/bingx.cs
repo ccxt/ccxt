@@ -4298,7 +4298,7 @@ public partial class bingx : Exchange
         return this.parseOrders(result, market);
     }
 
-    public virtual string? parseOrderSide(object side)
+    public virtual string? parseOrderSide(string? side)
     {
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "BUY", "buy" },

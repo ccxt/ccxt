@@ -1481,7 +1481,7 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
             Dictionary<string, object> market = this.market(this.safeString(outcomeObj, "market"));
-            request["marketTopicId"] = getValue((market.ContainsKey("info") ? market["info"] : null), "marketTopicId");
+            request["marketTopicId"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketTopicId");
         }
         IDictionary<string, object> wallet = await this.FetchWallet("fetchOrders", parameters);
         request["walletAddress"] = this.safeString(wallet, "walletAddress");

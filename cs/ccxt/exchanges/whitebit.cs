@@ -3769,15 +3769,24 @@ public partial class whitebit : Exchange
         string? currencyId = this.safeString(transaction, "ticker");
         string? status = this.safeString(transaction, "status");
         string? method = this.safeString(transaction, "method");
+        string? addressFrom = null;
+        string? addressTo = null;
+        if (method == "1")
+        {
+            addressFrom = address;
+        } else if (method == "2")
+        {
+            addressTo = address;
+        }
         return new Dictionary<string, object>() {
             { "id", this.safeString(transaction, "uniqueId") },
             { "txid", this.safeString(transaction, "transactionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", this.networkIdToCode(this.safeString(transaction, "network"), this.safeCurrencyCode(currencyId, currencyResolved)) },
-            { "addressFrom", (method == "1") ? address : null },
+            { "addressFrom", addressFrom },
             { "address", address },
-            { "addressTo", (method == "2") ? address : null },
+            { "addressTo", addressTo },
             { "amount", this.safeNumber(transaction, "amount") },
             { "type", (method == "1") ? "deposit" : "withdrawal" },
             { "currency", this.safeCurrencyCode(currencyId, currencyResolved) },

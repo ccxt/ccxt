@@ -542,7 +542,7 @@ public partial class paradex : ccxt.paradex
         List<object> subscribeHashes = this.safeList(subscription, "subscribeHashes", new List<object>() {});
         for (int j = 0; j < subscribeHashes.Count; j++)
         {
-            string subscribeHash = ((string)subscribeHashes[j]);
+            string subscribeHash = this.safeString(subscribeHashes, j, "");
             if ((client.subscriptions != null && subscribeHash != null && client.subscriptions.ContainsKey(subscribeHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
@@ -1211,9 +1211,10 @@ public partial class paradex : ccxt.paradex
                 List<object> subscribeHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
                 for (int i = 0; i < subscribeHashes.Count; i++)
                 {
-                    if ((isEqual(subscribeHashes[i], scopedHash)) || ((getIndexOf(subscribeHashes[i], (channel + ".")) == 0)))
+                    string? subscribeHash = this.safeString(subscribeHashes, i, "");
+                    if (((subscribeHash == scopedHash)) || (((subscribeHash?.IndexOf((channel + "."), StringComparison.Ordinal) ?? -1) == 0)))
                     {
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)subscribeHashes[i]);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
                     }
                 }
                 Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
@@ -1311,7 +1312,8 @@ public partial class paradex : ccxt.paradex
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            if (((getIndexOf(keys[i], (channel + ".")) == 0)) && !this.inArray(keys[i], subscribeHashes))
+            string? key = this.safeString(keys, i, "");
+            if ((((key?.IndexOf((channel + "."), StringComparison.Ordinal) ?? -1) == 0)) && !this.inArray(key, subscribeHashes))
             {
                 othersRemain = true;
             }
@@ -1423,7 +1425,7 @@ public partial class paradex : ccxt.paradex
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
         // it rejects the watchers of those markets only
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
+            { "id", this.safeInteger(request, "id") },
             { "messageHashes", missingHashes },
         };
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscribeHashes, subscription);

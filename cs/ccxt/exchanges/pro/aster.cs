@@ -165,7 +165,12 @@ public partial class aster : ccxt.aster
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchTickers");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -225,7 +230,12 @@ public partial class aster : ccxt.aster
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -315,7 +325,12 @@ public partial class aster : ccxt.aster
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -381,7 +396,12 @@ public partial class aster : ccxt.aster
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
-        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -521,7 +541,12 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
-        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
@@ -578,7 +603,12 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
-        if (((symbolsNormalized == null)) || (((symbolsNormalized?.Count ?? 0) == 0)))
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             throw new ArgumentsRequired ((this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }

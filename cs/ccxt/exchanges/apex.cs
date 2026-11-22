@@ -1424,12 +1424,12 @@ public partial class apex : Exchange
         return base.safeMarket(marketId, marketResolved, delimiter, marketType);
     }
 
-    public virtual string? generateRandomClientIdOmni(object _accountId)
+    public virtual string? generateRandomClientIdOmni(string? _accountId)
     {
         string suffix = ((("-" + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
-        if (((_accountId != null)) && (!(_accountId is "")))
+        if (((_accountId != null)) && ((_accountId != "")))
         {
-            return (("apexomni-" + (_accountId)) + suffix);
+            return (("apexomni-" + _accountId) + suffix);
         }
         return (("apexomni-" + this.randNumber(12).ToString()) + suffix);
     }

@@ -2176,7 +2176,7 @@ public partial class krakenfutures : Exchange
         return this.parseOrders(canceledAndRejected, market, since, limit);
     }
 
-    public virtual string? parseOrderType(object orderType)
+    public virtual string? parseOrderType(string? orderType)
     {
         Dictionary<string, object> typesMap = new Dictionary<string, object>() {
             { "lmt", "limit" },

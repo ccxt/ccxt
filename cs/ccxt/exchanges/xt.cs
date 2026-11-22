@@ -4683,7 +4683,9 @@ public partial class xt : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        string marketType = ((order != null && ((IDictionary<string, object>)order).ContainsKey("result"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("positionSide"))) ? "contract" : "spot";
+        string? resultId = this.safeString(order, "result");
+        string? orderPositionSide = this.safeString(order, "positionSide");
+        string marketType = ((resultId != null)) || ((orderPositionSide != null)) ? "contract" : "spot";
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
         string? symbol = this.safeSymbol(marketId, marketResolved, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
@@ -4764,7 +4766,7 @@ public partial class xt : Exchange
         }, marketResolved);
     }
 
-    public virtual string? parseOrderType(object type)
+    public virtual string? parseOrderType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "stop", "limit" },

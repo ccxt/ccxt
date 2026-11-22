@@ -2670,10 +2670,6 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> symbolsList = symbols;
-        if ((symbols is string))
-        {
-            symbolsList = new List<object>() {symbols};
-        }
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchPositionsHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
@@ -2800,7 +2796,7 @@ public partial class extended : Exchange
         });
     }
 
-    public virtual string? getExtendedStarkAmount(string amount, object resolution, object roundUp = null)
+    public virtual string? getExtendedStarkAmount(string amount, Int64? resolution, object roundUp = null)
     {
         roundUp ??= false;
         string? resolutionString = this.numberToString(resolution);

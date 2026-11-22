@@ -3960,7 +3960,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(transactions,code, since, limit));
     }
 
-    public virtual string? parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "COMPLETE", "ok" },
@@ -3972,7 +3972,7 @@ public partial class poloniex : Exchange
             { "COMPLETE ERROR", "failed" },
             { "COMPLETE_ERROR", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)

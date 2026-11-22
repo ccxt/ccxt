@@ -843,20 +843,20 @@ public partial class paradex : Exchange
         Dictionary<string, object> assetKinds = new Dictionary<string, object>() {};
         for (int i = 0; i < types.Count; i++)
         {
-            object marketType = types[i];
-            if ((marketType is "swap"))
+            string? marketType = this.safeString(types, i, "");
+            if (marketType == "swap")
             {
                 assetKinds["PERP"] = true;
-            } else if ((marketType is "spot"))
+            } else if (marketType == "spot")
             {
                 assetKinds["SPOT"] = true;
-            } else if ((marketType is "option"))
+            } else if (marketType == "option")
             {
                 assetKinds["OPTION"] = true;
                 assetKinds["PERP_OPTION"] = true;
             } else
             {
-                throw new BadRequest ((string)((this.id + " fetchMarkets() types must be any of swap, spot and option, got ") + (marketType))) ;
+                throw new BadRequest (((this.id + " fetchMarkets() types must be any of swap, spot and option, got ") + marketType)) ;
             }
         }
         List<object> wanted = new List<object>() {};
@@ -1100,11 +1100,11 @@ public partial class paradex : Exchange
         //
         List<object> parts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         int partsLength = parts.Count;
-        string? bs = null;
+        string bs = "";
         string? quote = "";
         string? settle = null;
         string? expiryDate = null;
-        string? strike = null;
+        string? strike = "";
         string? optionType = "";
         if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
@@ -1114,13 +1114,13 @@ public partial class paradex : Exchange
             }
             string? pair = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
             List<object> pairParts = pair.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-            bs = this.safeString(pairParts, 0);
+            bs = this.safeString(pairParts, 0, "");
             string? quoteAndSettle = this.safeString(pairParts, 1, "");
             List<object> quoteParts = quoteAndSettle.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             quote = this.safeString(quoteParts, 0, "");
             settle = this.safeString(quoteParts, 1, quote);
             expiryDate = this.safeString(parts, 1);
-            strike = this.safeString(parts, 2);
+            strike = this.safeString(parts, 2, "");
             optionType = this.safeString(parts, 3, "");
         } else
         {
@@ -1128,7 +1128,7 @@ public partial class paradex : Exchange
             {
                 throw new BadSymbol ((string)((this.id + " does not have market symbol ") + (symbol))) ;
             }
-            bs = this.safeString(parts, 0);
+            bs = this.safeString(parts, 0, "");
             quote = this.safeString(parts, 1, "");
             settle = "USDC"; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
@@ -1150,14 +1150,12 @@ public partial class paradex : Exchange
         {
             active = false;
         }
-        string strikeInId = "";
-        if ((strike != null))
-        {
-            strikeInId = strike.Replace(".", (string)"_");
-        }
+        string strikeInId = strike.Replace(".", (string)"_");
+        string idTail = ((("-" + strikeInId) + "-") + optionType);
+        string symbolTail = ((("-" + strike) + "-") + optionType);
         return new Dictionary<string, object>() {
-            { "id", (bs == null ? null : bs + "-" + quote + "-" + idDate + "-" + strikeInId + "-" + optionType) },
-            { "symbol", (bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryDate + "-" + strike + "-" + optionType) },
+            { "id", (((((bs + "-") + quote) + "-") + idDate) + idTail) },
+            { "symbol", (((((((bs + "/") + quote) + ":") + settle) + "-") + expiryDate) + symbolTail) },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },
@@ -1402,7 +1400,7 @@ public partial class paradex : Exchange
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_at", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        bool hasEnd = ((requestUntil != null && requestUntil.ContainsKey("end_at")));
+        bool hasEnd = (!(this.safeInteger(requestUntil, "end_at") == null));
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, new List<object>() {"price"});
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         Int64? limitResolved = (((limit == null)) || (limit > 1000)) ? 1000 : limit;
@@ -1538,7 +1536,7 @@ public partial class paradex : Exchange
      * @param {string} [marketType] keep this market type only
      * @returns {object[]} the rows of loaded markets
      */
-    public virtual List<object> filterLoadedSummaries(IList<object> summaries, object marketType = null)
+    public virtual List<object> filterLoadedSummaries(IList<object> summaries, string? marketType = null)
     {
         List<object> result = new List<object>() {};
         IDictionary<string, object> marketsById = this.markets_by_id;
@@ -1898,11 +1896,14 @@ public partial class paradex : Exchange
         //     }
         //
         List<object> trades = this.safeList(response, "results", new List<object>() {});
+        List<object> tagged = new List<object>() {};
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            ((IDictionary<string,object>)trades[i])["next"] = this.safeString(response, "next");
+            tagged.Add(this.extend(trades[i], new Dictionary<string, object>() {
+                { "next", this.safeString(response, "next") },
+            }));
         }
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(tagged, market, since, limit);
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -2379,12 +2380,12 @@ public partial class paradex : Exchange
         return this.safeStringLower(types, type, type);
     }
 
-    public virtual string? scaleNumber(object num)
+    public virtual string? scaleNumber(string? num)
     {
         return ((string?)((object)(Precise.stringMul(num, "100000000"))));
     }
 
-    public virtual string? encodeTimeInForce(object timeInForce)
+    public virtual string? encodeTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "GTC", "GTC" },
@@ -2396,7 +2397,7 @@ public partial class paradex : Exchange
         string? instruction = this.safeString(timeInForces, timeInForce);
         if ((instruction == null))
         {
-            throw new NotSupported ((((this.id + " createOrder() does not support timeInForce ") + (timeInForce)) + ", supported values are GTC, IOC, PO and RPI")) ;
+            throw new NotSupported ((((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", supported values are GTC, IOC, PO and RPI")) ;
         }
         return instruction;
     }
@@ -2523,13 +2524,18 @@ public partial class paradex : Exchange
             throw new ExchangeError ((this.id + " signOrderRequest() missing orderType")) ;
         }
         bool isMarket = (orderType.IndexOf("MARKET", StringComparison.Ordinal) >= 0);
+        string? orderPrice = "0";
+        if (!isMarket)
+        {
+            orderPrice = this.scaleNumber(this.safeString(request, "price"));
+        }
         Dictionary<string, object> orderReq = new Dictionary<string, object>() {
             { "timestamp", now },
             { "market", this.stringToBase16(this.safeString(request, "market")) },
             { "side", ((this.safeString(request, "side") == "BUY")) ? "1" : "2" },
             { "orderType", this.stringToBase16(this.safeString(request, "type")) },
             { "size", this.scaleNumber(this.safeString(request, "size")) },
-            { "price", isMarket ? "0" : this.scaleNumber(this.safeString(request, "price")) },
+            { "price", orderPrice },
         };
         List<object> orderFields = new List<object>() {new Dictionary<string, object>() {
     { "name", "timestamp" },
@@ -3108,12 +3114,12 @@ public partial class paradex : Exchange
         //
         List<object> orders = this.safeList(response, "results", new List<object>() {});
         string? paginationCursor = this.safeString(response, "next");
-        int ordersLength = (orders?.Count ?? 0);
+        int ordersLength = orders.Count;
         if (((paginationCursor != null)) && (ordersLength > 0))
         {
             IDictionary<string, object> first = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
             first["next"] = paginationCursor;
-            orders[Convert.ToInt32(0)] = first;
+            ((List<object>)orders)[Convert.ToInt32(0)] = first;
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3304,11 +3310,14 @@ public partial class paradex : Exchange
         //     }
         //
         List<object> trades = this.safeList(response, "results", new List<object>() {});
+        List<object> tagged = new List<object>() {};
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            ((IDictionary<string,object>)trades[i])["next"] = this.safeString(response, "next");
+            tagged.Add(this.extend(trades[i], new Dictionary<string, object>() {
+                { "next", this.safeString(response, "next") },
+            }));
         }
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(tagged, market, since, limit);
     }
 
     /**
@@ -3790,11 +3799,14 @@ public partial class paradex : Exchange
         List<object> rows = this.safeList(response, "results", new List<object>() {});
         // the cursor pagination reads the next page cursor from the parsed entries
         string? next = this.safeString(response, "next");
+        List<object> tagged = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            ((IDictionary<string,object>)rows[i])["next"] = next;
+            tagged.Add(this.extend(rows[i], new Dictionary<string, object>() {
+                { "next", next },
+            }));
         }
-        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit));
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(tagged, currency, since, limit));
     }
 
     public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
@@ -4524,11 +4536,14 @@ public partial class paradex : Exchange
         List<object> results = this.safeList(response, "results", new List<object>() {});
         // the cursor pagination reads the next page cursor from the parsed entries
         string? next = this.safeString(response, "next");
+        List<object> tagged = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            ((IDictionary<string,object>)results[i])["next"] = next;
+            tagged.Add(this.extend(results[i], new Dictionary<string, object>() {
+                { "next", next },
+            }));
         }
-        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(results, market, since, limit));
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(tagged, market, since, limit));
     }
 
     public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
@@ -4631,7 +4646,7 @@ public partial class paradex : Exchange
             // rows and skip since, the range is cut to one page of rows from since
             Int64 windowEnd = this.sum(since, (pageSize * rowSpacing));
             Int64? endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (!((requestUntil != null && requestUntil.ContainsKey("end_at"))) || (endAt > windowEnd))
+            if (((this.safeInteger(requestUntil, "end_at") == null)) || (endAt > windowEnd))
             {
                 requestUntil["end_at"] = windowEnd;
             }

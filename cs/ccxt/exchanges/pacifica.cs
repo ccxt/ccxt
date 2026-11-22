@@ -1406,7 +1406,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString(info, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         double? funding = this.safeNumber(info, "funding");
         double? markPx = this.safeNumber(info, "mark");
         double? oraclePx = this.safeNumber(info, "oracle");
@@ -1706,7 +1706,7 @@ public partial class pacifica : Exchange
         string? amount = this.safeString(trade, "amount");
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "history_id");
         string? side = this.safeString(trade, "side");
         if (side == "open_long")
@@ -2563,7 +2563,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -3032,7 +3032,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString2(order, "symbol", "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         string? side = this.safeString(order, "side", "d");
@@ -3164,7 +3164,7 @@ public partial class pacifica : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? margin = this.safeString(position, "margin");
         bool? rawIsolated = this.safeBool(position, "isolated");
         bool isIsolated = ((margin != null)) && (margin != "0");
@@ -3832,7 +3832,7 @@ public partial class pacifica : Exchange
         Int64? timestamp = this.safeInteger(income, "created_at");
         string? marketId = this.safeString(income, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? amount = this.safeString(income, "payout");
         string? code = this.safeCurrencyCode("USDC");
         double? rate = this.safeNumber(income, "rate");

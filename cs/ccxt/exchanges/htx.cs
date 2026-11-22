@@ -3519,7 +3519,7 @@ public partial class htx : Exchange
         //
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
@@ -5016,29 +5016,23 @@ public partial class htx : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual IDictionary<string, object> parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
+    public virtual object parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
     {
-        IDictionary<string, object> account = null;
+        IDictionary<string, object> account = this.account();
         if ((result != null && code != null && result.ContainsKey(code)))
         {
-            account = this.safeDict(result, code);
-        } else
-        {
-            account = this.account();
+            account = this.safeDict(result, code, new Dictionary<string, object>() {});
         }
-        if ((account == null))
-        {
-            throw new ExchangeError ((this.id + " parseMarginBalanceHelper() could not resolve account")) ;
-        }
+        Dictionary<string, object> updates = new Dictionary<string, object>() {};
         if ((this.safeString(balance, "type") == "trade"))
         {
-            account["free"] = this.safeString(balance, "balance");
+            updates["free"] = this.safeString(balance, "balance");
         }
         if ((this.safeString(balance, "type") == "frozen"))
         {
-            account["used"] = this.safeString(balance, "balance");
+            updates["used"] = this.safeString(balance, "balance");
         }
-        return account;
+        return this.extend(account, updates);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchSpotOrdersByStates(object states, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
@@ -8148,7 +8142,7 @@ public partial class htx : Exchange
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", address },
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToLower() },
+            { "currency", this.safeStringLower(currency, "id", "") },
         };
         if ((tagValue != null))
         {
@@ -8658,12 +8652,13 @@ public partial class htx : Exchange
             }
         } else
         {
-            object cursor = this.safeValue(data, "current_page");
+            string? cursor = this.safeString(data, "current_page");
             List<object> result = this.safeList(data, "data", new List<object>() {});
             for (int i = 0; i < result.Count; i++)
             {
-                IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
-                entry["current_page"] = cursor;
+                Dictionary<string, object> entry = this.extend(result[i], new Dictionary<string, object>() {
+                    { "current_page", cursor },
+                });
                 string? marketId = this.safeString(entry, "contract_code");
                 string? symbolInner = this.safeSymbol(marketId);
                 Int64? timestamp = this.safeInteger(entry, "funding_time");
@@ -9516,7 +9511,7 @@ public partial class htx : Exchange
         //     }
         //
         Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(position, "contract_code"));
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? contracts = this.safeString(position, "volume");
         double? contractSize = this.safeNumber(marketResolved, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);

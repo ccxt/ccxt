@@ -1361,7 +1361,7 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscriptionHash, subscription));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, string type, object subType, string subscriptionHash, object parameters)
+    public virtual void setBalanceCache(WebSocketClient client, string type, string? subType, string subscriptionHash, object parameters)
     {
         if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {

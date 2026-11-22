@@ -502,7 +502,7 @@ public partial class mudrex : Exchange
                 continue;
             }
             Dictionary<string, object> m = this.safeMarket(sym);
-            string? symbol = ((string)(m != null && m.ContainsKey("symbol") ? m["symbol"] : null));
+            string? symbol = this.safeString(m, "symbol", "");
             if ((symbols != null) && !this.inArray(symbol, symbols))
             {
                 continue;
@@ -516,7 +516,7 @@ public partial class mudrex : Exchange
     {
         string? ms = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         double? pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1019,7 +1019,7 @@ public partial class mudrex : Exchange
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_at"));
         string? status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        string? sym = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? sym = this.safeString(marketResolved, "symbol", "");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", oid },
@@ -1620,7 +1620,7 @@ public partial class mudrex : Exchange
         //
         string? ms = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         string? side = this.safeStringLower(trade, "order_type");

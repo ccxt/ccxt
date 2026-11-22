@@ -1273,7 +1273,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual Dictionary<string, object> constructCurrencyObject(object id, string? code, object name, object precision, object minCost, IDictionary<string, object> originalPayload)
+    public virtual Dictionary<string, object> constructCurrencyObject(string? id, string? code, string? name, Int64? precision, double? minCost, IDictionary<string, object> originalPayload)
     {
         string currencyType = "crypto";
         Dictionary<string, object> description = this.describe();

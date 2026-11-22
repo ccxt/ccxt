@@ -1279,7 +1279,8 @@ public partial class polymarket : PredictionExchange
                 List<object> chunk = new List<object>() {};
                 for (Int64 i = startIndex; (i < endIndex); i++)
                 {
-                    chunk.Add((tokenIds != null && i < tokenIds.Count ? tokenIds[(int)i] : null));
+                    string? chunkId = this.safeString(tokenIds, i, "");
+                    chunk.Add(chunkId);
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1727,16 +1728,21 @@ public partial class polymarket : PredictionExchange
                 buckets[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
             {
-                List<object> candle = this.safeList(buckets, bucketKey, new List<object>() {});
-                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax((candle != null && 2 < candle.Count ? candle[2] : null), price); // high
-                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin((candle != null && 3 < candle.Count ? candle[3] : null), price); // low
-                ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)
+                double? prevVol = this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 5);
+                object candleVol = prevVol;
                 if ((vol != null))
                 {
-                    object prevVol = (candle != null && 5 < candle.Count ? candle[5] : null);
-                    ((List<object>)candle)[Convert.ToInt32(5)] = ((prevVol == null)) ? vol : this.sum(prevVol, vol); // volume
+                    if ((prevVol == null))
+                    {
+                        candleVol = vol;
+                    } else
+                    {
+                        candleVol = this.sum(prevVol, vol);
+                    }
                 }
-                buckets[(string)bucketKey] = candle; // reassign after mutation, php arrays are value types
+                double? open = this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 1);
+                // close is the last tick
+                buckets[(string)bucketKey] = new List<object>() {snappedMs, open, mathMax(this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 2), price), mathMin(this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 3), price), price, candleVol};
             }
         }
         List<object> bucketKeys = new List<object>(buckets.Keys);
@@ -2482,8 +2488,8 @@ public partial class polymarket : PredictionExchange
             {
                 // request echo first so the response's real orderID/status win on overlap
                 object rawItem = response[i];
-                Dictionary<string, object> enriched = this.extend((requests != null && i < requests.Count ? requests[i] : null), rawItem);
-                Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, ((object)(outcomes != null && i < outcomes.Count ? outcomes[i] : null)));
+                Dictionary<string, object> enriched = this.extend(this.safeDict(requests, i), rawItem);
+                Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, ((object)this.safeDict(outcomes, i)));
                 parsedItem["info"] = rawItem; // keep info the raw exchange response
                 result.Add(parsedItem);
             }
@@ -3349,7 +3355,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr151279 && ((hxArr151279 is IList<object>) || (hxArr151279.GetType().IsGenericType && hxArr151279.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr151493 && ((hxArr151493 is IList<object>) || (hxArr151493.GetType().IsGenericType && hxArr151493.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3643,14 +3649,7 @@ public partial class polymarket : PredictionExchange
             return;
         }
         string? apiKey = ((this.apiKey != null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        string? secret = null;
-        if ((this.secret != null))
-        {
-            secret = this.secret;
-        } else
-        {
-            secret = this.safeString(this.options, "l2Secret");
-        }
+        string? secret = ((this.secret != null)) ? this.secret : this.safeString(this.options, "l2Secret");
         string? passphrase = ((this.password != null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         bool hasL2 = ((apiKey != null)) && ((secret != null)) && ((passphrase != null));
         if (hasL2)

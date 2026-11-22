@@ -5348,7 +5348,7 @@ public partial class binance : Exchange
             return null;
         }
         string? contractType = this.safeString(market, "contractType");
-        bool contract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractType")));
+        bool contract = ((contractType != null));
         Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
         string? settleId = this.safeString(market, "marginAsset");
         if ((contractType == "PERPETUAL") || ((expiry == 4133404800000)))
@@ -6409,7 +6409,8 @@ public partial class binance : Exchange
         object response = null;
         if ((this.safeBool(market, "option", false) == true))
         {
-            response = await this.eapiPublicGetTicker(this.extend(request, parameters));
+            List<object> optionResponse = await this.eapiPublicGetTicker(this.extend(request, parameters));
+            response = this.safeDict(optionResponse, 0, new Dictionary<string, object>() {});
         } else if ((this.safeBool(market, "linear", false) == true))
         {
             response = await this.fapiPublicGetTicker24hr(this.extend(request, parameters));
@@ -6434,11 +6435,6 @@ public partial class binance : Exchange
                     response = await this.publicGetTicker24hr(this.extend(request, paramsOmitted));
                 }
             }
-        }
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            IDictionary<string, object> firstTicker = this.safeDict(response, 0, new Dictionary<string, object>() {});
-            return this.parseTicker(firstTicker, market);
         }
         if ((response == null))
         {
@@ -7696,7 +7692,7 @@ public partial class binance : Exchange
             bool quoteOrderQty = ((bool)this.handleOption("createOrder", "quoteOrderQty", true));
             if ((quoteOrderQty == true))
             {
-                object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
+                string? quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
                 object precision = this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 if ((quoteOrderQtyNew != null))
                 {
@@ -9071,7 +9067,7 @@ public partial class binance : Exchange
      * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    public virtual string? generateClientOrderId(IDictionary<string, object>? market = null, object api = null, object path = null)
+    public virtual string? generateClientOrderId(IDictionary<string, object>? market = null, string? api = null, object path = null)
     {
         string? idMarketType = null;
         if ((market != null))
@@ -9108,14 +9104,14 @@ public partial class binance : Exchange
         }
         if (((idMarketType == null)) && ((api != null)))
         {
-            bool isSpotOrMargin = (((string)api).IndexOf("sapi", StringComparison.Ordinal) > -1 || (api is "private"));
+            bool isSpotOrMargin = (api.IndexOf("sapi", StringComparison.Ordinal) > -1 || (api == "private"));
             if (isSpotOrMargin)
             {
                 idMarketType = "spot";
-            } else if (((string)api).IndexOf("dapi", StringComparison.Ordinal) > -1)
+            } else if (api.IndexOf("dapi", StringComparison.Ordinal) > -1)
             {
                 idMarketType = "inverse";
-            } else if (((string)api).IndexOf("eapi", StringComparison.Ordinal) > -1)
+            } else if (api.IndexOf("eapi", StringComparison.Ordinal) > -1)
             {
                 idMarketType = "option";
             } else
@@ -13730,8 +13726,8 @@ public partial class binance : Exchange
                 if ((balances != null && code != null && balances.ContainsKey(code)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
-                        { "crossMargin", this.safeValue((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossMargin") },
-                        { "crossWalletBalance", this.safeValue((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossWalletBalance") },
+                        { "crossMargin", this.safeString((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossMargin") },
+                        { "crossWalletBalance", this.safeString((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossWalletBalance") },
                     }), market);
                     result.Add(parsed);
                 }
@@ -16286,7 +16282,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 
     public async override Task<object> request(string path, IList<object> api = null, object method = null, object parameters = null, object config = null)

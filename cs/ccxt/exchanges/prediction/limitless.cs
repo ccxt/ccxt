@@ -2286,7 +2286,7 @@ public partial class limitless : PredictionExchange
         return this.safeString(sides, side, side);
     }
 
-    public virtual string? applyScale(object amount, bool? multiply = null)
+    public virtual string? applyScale(string? amount, bool? multiply = null)
     {
         multiply ??= false;
         Int64? decimals = this.safeInteger(this.options, "usdcDecimals", 6);
@@ -2529,7 +2529,7 @@ public partial class limitless : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrder(parsedOrder);
     }
 
-    public virtual string? signOrderRequest(IDictionary<string, object> signRequest, object marketSymbol)
+    public virtual string? signOrderRequest(IDictionary<string, object> signRequest, string? marketSymbol)
     {
         this.checkRequiredCredentials();
         if ((this.privateKey == null))

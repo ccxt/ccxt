@@ -479,7 +479,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? marketId = this.safeString(subscription, "symbol", "");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -689,7 +689,7 @@ public partial class bitfinex : ccxt.bitfinex
         //     ]
         //
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? last = this.safeString(ticker, 6);
         string? change = this.safeString(ticker, 4);
         return this.safeTicker(new Dictionary<string, object>() {

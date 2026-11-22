@@ -823,12 +823,12 @@ public partial class btcturk : Exchange
             }
             int seconds = this.parseTimeframe(timeframeVar);
             Int64 limitCount = ((limit == null)) ? 100 : Math.Min(limit.Value, 11000);
-            Int64? limitSeconds = this.parseToInt((seconds * ((limitCount - 1))));
+            Int64 limitSeconds = (seconds * ((limitCount - 1)));
             if ((since != null))
             {
                 Int64? sinceSeconds = this.parseToInt(((double?)since / 1000));
-                object to = add(sinceSeconds, limitSeconds);
-                if (isLessThan(to, untilSeconds))
+                Int64? to = (sinceSeconds + limitSeconds);
+                if ((untilSeconds != null && (to == null || to < untilSeconds)))
                 {
                     request["to"] = to;
                 }

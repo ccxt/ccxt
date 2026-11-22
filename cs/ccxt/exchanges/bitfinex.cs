@@ -2097,7 +2097,10 @@ public partial class bitfinex : Exchange
          */
         Dictionary<string, object> market = this.market(symbol);
         string? amountString = this.amountToPrecision(symbol, amount);
-        amountString = ((side == "buy")) ? amountString : Precise.stringNeg(amountString);
+        if (!(side == "buy"))
+        {
+            amountString = Precise.stringNeg(amountString);
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amountString },
@@ -4589,7 +4592,10 @@ public partial class bitfinex : Exchange
         if ((amount != null))
         {
             string? amountString = this.amountToPrecision(symbol, amount);
-            amountString = ((side == "buy")) ? amountString : Precise.stringNeg(amountString);
+            if ((side != "buy"))
+            {
+                amountString = Precise.stringNeg(amountString);
+            }
             request["amount"] = amountString;
         }
         string? triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");

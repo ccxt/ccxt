@@ -2194,6 +2194,14 @@ public partial class gate : Exchange
             Int64? marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
             double? leverage = this.safeNumber(market, "leverage");
             bool margin = (leverage != null);
+            Dictionary<string, object> costLimits = new Dictionary<string, object>() {
+                { "min", this.safeNumber(market, "min_quote_amount") },
+                { "max", null },
+            };
+            if (margin)
+            {
+                costLimits["max"] = this.safeNumber(market, "max_quote_amount");
+            }
             Int64? buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             Int64? createdTs = ((buyStart != 0)) ? buyStart : null;
             bool active = (tradeStatus == "tradable") || (margin && ((marginStatus == 1)));
@@ -2240,10 +2248,7 @@ public partial class gate : Exchange
                         { "min", null },
                         { "max", null },
                     } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(market, "min_quote_amount") },
-                        { "max", margin ? this.safeNumber(market, "max_quote_amount") : null },
-                    } },
+                    { "cost", costLimits },
                 } },
                 { "created", createdTs },
                 { "info", market },
@@ -2310,7 +2315,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual Dictionary<string, object> parseContractMarket(IDictionary<string, object> market, object settleId)
+    public virtual Dictionary<string, object> parseContractMarket(IDictionary<string, object> market, string? settleId)
     {
         //
         //  Perpetual swap
@@ -3907,7 +3912,7 @@ public partial class gate : Exchange
             response = await this.publicDeliveryGetSettleTickers(this.extend(request, query));
         } else if ((this.safeBool(market, "option", false) == true))
         {
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             request["underlying"] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, query));
@@ -4537,7 +4542,8 @@ public partial class gate : Exchange
             if (isMark || isIndex)
             {
                 string? marketId = this.safeString(market, "id", "");
-                request["contract"] = (price == null ? null : price + "_" + marketId);
+                string? contractId = ((string)(price == null ? null : price + "_" + marketId));
+                request["contract"] = contractId;
             }
             Dictionary<string, object> paramsContract = paramsOmitted;
             if (isMark || isIndex)
@@ -9028,7 +9034,7 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((this.id + " fetchSettlementHistory() supports option markets only")) ;
         }
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id", "");
         List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "underlying", this.safeString(optionParts, 0) },
@@ -9134,7 +9140,7 @@ public partial class gate : Exchange
                 }
             } else
             {
-                string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+                string? marketId = this.safeString(market, "id", "");
                 List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 request["underlying"] = this.safeString(optionParts, 0);
             }
@@ -9456,9 +9462,10 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(item, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");
-        string? rawTimestamp = this.safeString(item, "time");
+        string? rawTimestamp = this.safeString(item, "time", "");
+        int rawTimestampLength = rawTimestamp.Length;
         Int64? timestamp = null;
-        if (rawTimestamp.Length > 10)
+        if (rawTimestampLength > 10)
         {
             timestamp = JsParse.parseInt(rawTimestamp);
         } else
@@ -9702,7 +9709,7 @@ public partial class gate : Exchange
             request["settle"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
         } else if ((this.safeBool(market, "option", false) == true))
         {
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             request["underlying"] = this.safeString(optionParts, 0);
         }
@@ -9717,7 +9724,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetPositionClose(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         //
         // swap and future
@@ -9892,7 +9899,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -10158,7 +10165,7 @@ public partial class gate : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "underlying", add((currency.ContainsKey("code") ? currency["code"] : null), "_USDT") },
+            { "underlying", (this.safeString(currency, "code", "") + "_USDT") },
         };
         List<object> response = await this.publicOptionsGetContracts(this.extend(request, parameters));
         //

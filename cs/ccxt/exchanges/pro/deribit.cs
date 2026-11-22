@@ -873,7 +873,7 @@ public partial class deribit : ccxt.deribit
             orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(dataList));
         } else
         {
-            object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
             ccxt.Order order = this.parseOrder(data);
             orders = new List<object>() {ccxt.BaseExchange.FromOrder(order)};
         }
@@ -927,7 +927,7 @@ public partial class deribit : ccxt.deribit
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39729 && ((hxArr39729 is IList<object>) || (hxArr39729.GetType().IsGenericType && hxArr39729.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39728 && ((hxArr39728 is IList<object>) || (hxArr39728.GetType().IsGenericType && hxArr39728.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

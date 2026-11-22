@@ -1151,19 +1151,13 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            object symbol = null;
-            if (((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            string? symbol = null;
+            int symbolsLength = symbols?.Count ?? 0;
+            if (symbolsLength > 1)
             {
-                int symbolsLength = symbols?.Count ?? 0;
-                if (symbolsLength > 1)
-                {
-                    throw new BadRequest ((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                symbol = this.safeString(symbols, 0);
-            } else
-            {
-                symbol = symbols;
+                throw new BadRequest ((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
             }
+            symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
@@ -1938,7 +1932,7 @@ public partial class cryptocom : Exchange
         return this.parseOrders(result);
     }
 
-    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, double? amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2456,11 +2450,11 @@ public partial class cryptocom : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public virtual List<object> parseAddress(object addressString)
+    public virtual List<object> parseAddress(string? addressString)
     {
-        if ((addressString != null) && ((string)addressString).IndexOf("?", StringComparison.Ordinal) > 0)
+        if ((addressString != null) && addressString.IndexOf("?", StringComparison.Ordinal) > 0)
         {
-            List<object> addressParts = ((string)addressString).Split(new [] {"?"}, StringSplitOptions.None).ToList<object>();
+            List<object> addressParts = addressString.Split(new [] {"?"}, StringSplitOptions.None).ToList<object>();
             string? address = ((string)(addressParts != null && 0 < addressParts.Count ? addressParts[0] : null));
             string? rawTag = ((string)(addressParts != null && 1 < addressParts.Count ? addressParts[1] : null));
             List<object> splitted = rawTag.Split(new [] {"="}, StringSplitOptions.None).ToList<object>();
@@ -3110,7 +3104,7 @@ public partial class cryptocom : Exchange
         string? type = null;
         string? rawStatus = this.safeString(transaction, "status");
         string? status = null;
-        if ((this.safeString(transaction, "client_wid") != null))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("client_wid")))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
@@ -3877,21 +3871,15 @@ public partial class cryptocom : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            object symbol = null;
-            if (((symbolsNormalized is IList<object>) || (symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            string? symbol = null;
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
+            if (symbolsLength > 1)
             {
-                int symbolsLength = (symbolsNormalized?.Count ?? 0);
-                if (symbolsLength > 1)
-                {
-                    throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                if ((symbolsLength == 1))
-                {
-                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
-                }
-            } else
+                throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+            }
+            if ((symbolsLength == 1))
             {
-                symbol = symbolsNormalized;
+                symbol = ((string)(symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
             }
             market = this.market(symbol);
             request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);

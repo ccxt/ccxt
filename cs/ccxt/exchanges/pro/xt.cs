@@ -855,7 +855,7 @@ public partial class xt : ccxt.xt
             Int64? timestamp = this.safeInteger(data, "t");
             fundingRate["timestamp"] = timestamp;
             fundingRate["datetime"] = this.iso8601(timestamp);
-            string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
+            string? symbol = this.safeString(fundingRate, "symbol", "");
             this.fundingRates[(string)symbol] = fundingRate;
             string? eventVar = this.safeString(message, "event");
             if ((eventVar != null))
@@ -1212,7 +1212,7 @@ public partial class xt : ccxt.xt
                 tradeType = "spot";
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             IList<object> parsed = this.parseOHLCV(data, market);
             this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
@@ -1277,7 +1277,7 @@ public partial class xt : ccxt.xt
                 tradeType = "spot";
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             string? eventVar = this.safeString(message, "event");
             ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((tradesArray == null))
@@ -1370,11 +1370,11 @@ public partial class xt : ccxt.xt
                 tradeType = "contract";
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
             string messageHash = ((eventVar + "::") + tradeType);
-            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+            if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");

@@ -2853,7 +2853,7 @@ public partial class coinbaseinternational : Exchange
         }, marketResolved);
     }
 
-    public virtual string? parseTimeInForce(object timeInForce)
+    public virtual string? parseTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "good_til_cancelled", "GTC" },

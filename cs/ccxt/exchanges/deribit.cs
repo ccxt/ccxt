@@ -3996,7 +3996,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(settlementsWithCursor), market, since, limit));
     }
 
-    public virtual object addPaginationCursorToResult(object cursor, IList<object> data)
+    public virtual object addPaginationCursorToResult(string? cursor, IList<object> data)
     {
         if ((cursor != null))
         {

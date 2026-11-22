@@ -1102,7 +1102,7 @@ public partial class opinion : PredictionExchange
         return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
-    public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string side, double? amount, double? price, object decimals)
+    public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string side, double? amount, double? price, Int64? decimals)
     {
         string decimalsStr = "1";
         if (!(decimals == null))

@@ -1885,8 +1885,7 @@ public partial class bitrue : Exchange
             side = isBuyer == true ? "buy" : "sell"; // this is a true side
         }
         Dictionary<string, object> fee = null;
-        string? commission = this.safeString(trade, "commission");
-        if ((commission != null))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString2(trade, "commission", "fee") },
@@ -3049,10 +3048,10 @@ public partial class bitrue : Exchange
         string? txid = this.safeString(transaction, "txid");
         Int64? timestamp = this.safeInteger(transaction, "createdAt");
         Int64? updated = this.safeInteger(transaction, "updatedAt");
-        string? payAmount = this.safeString(transaction, "payAmount");
-        string? ctime = this.safeString(transaction, "ctime");
+        bool payAmount = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("payAmount")));
+        bool ctime = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("ctime")));
         string type = "deposit";
-        if (((payAmount != null)) || ((ctime != null)))
+        if (payAmount || ctime)
         {
             type = "withdrawal";
         }

@@ -841,6 +841,14 @@ public partial class blofin : Exchange
         string? contractType = this.safeString(market, "contractType");
         double? maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         double? maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        Dictionary<string, object> costLimits = new Dictionary<string, object>() {
+            { "min", null },
+            { "max", maxSpotCost },
+        };
+        if (contract)
+        {
+            costLimits["max"] = null;
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -885,10 +893,7 @@ public partial class blofin : Exchange
                     { "min", null },
                     { "max", null },
                 } },
-                { "cost", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", contract ? null : maxSpotCost },
-                } },
+                { "cost", costLimits },
             } },
             { "info", market },
         });
@@ -3498,7 +3503,7 @@ public partial class blofin : Exchange
         //
         string? marketId = this.safeString(position, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? pos = this.safeString(position, "positions");
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString(position, "positionSide");

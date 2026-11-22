@@ -1501,25 +1501,19 @@ public partial class toobit : Exchange
         {
             request["limit"] = limit;
         }
-        object response = new List<object>() {};
+        List<object> candles = new List<object>() {};
         if ((endpoint == "index"))
         {
             request["symbol"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "indexToken"); // index klines take the index id instead of the market id
-            response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
+            Dictionary<string, object> indexResponse = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
+            candles = this.safeList(indexResponse, "data", new List<object>() {});
         } else if ((endpoint == "mark"))
         {
-            response = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice));
+            Dictionary<string, object> markResponse = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice));
+            candles = this.safeList(markResponse, "data", new List<object>() {});
         } else
         {
-            response = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
-        }
-        object candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        } else
-        {
-            candles = this.safeList(response, "data", new List<object>() {});
+            candles = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
@@ -3100,7 +3094,9 @@ public partial class toobit : Exchange
         string? tagFrom = this.safeString(transaction, "fromAddressTag");
         string? addressTo = this.safeString(transaction, "address");
         string? addressFrom = this.safeString(transaction, "fromAddress");
-        bool isWithdraw = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("arriveQuantity"))) || ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("success")));
+        string? arriveQuantity = this.safeString(transaction, "arriveQuantity");
+        bool? success = this.safeBool(transaction, "success");
+        bool isWithdraw = ((arriveQuantity != null)) || ((success != null));
         string type = isWithdraw ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },

@@ -490,7 +490,7 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawfr = this.safeDict(data, i);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawfr);
-            string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
+            string? symbol = this.safeString(fundingRate, "symbol");
             if ((symbol != null))
             {
                 this.fundingRates[(string)symbol] = fundingRate;
@@ -519,10 +519,9 @@ public partial class okx : ccxt.okx
         (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
-        paramsChannel["channel"] = channel;
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, paramsChannel));
+        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, this.extend(paramsChannel, new Dictionary<string, object>() { { "channel", channel }, })));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbolValue));
     }
 
@@ -591,10 +590,9 @@ public partial class okx : ccxt.okx
         (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
-        paramsChannel["channel"] = channel;
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolValue}, paramsChannel));
+        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolValue}, this.extend(paramsChannel, new Dictionary<string, object>() { { "channel", channel }, })));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbolValue));
     }
 
@@ -1305,7 +1303,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54558 && ((hxArr54558 is IList<object>) || (hxArr54558.GetType().IsGenericType && hxArr54558.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54564 && ((hxArr54564 is IList<object>) || (hxArr54564.GetType().IsGenericType && hxArr54564.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1361,7 +1359,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57028 && ((hxArr57028 is IList<object>) || (hxArr57028.GetType().IsGenericType && hxArr57028.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57034 && ((hxArr57034 is IList<object>) || (hxArr57034.GetType().IsGenericType && hxArr57034.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -2300,7 +2298,7 @@ public partial class okx : ccxt.okx
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         string channel = this.safeString(arg, "channel", "");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         if ((this.positions == null))
@@ -2317,8 +2315,9 @@ public partial class okx : ccxt.okx
             if ((contracts == 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
-                Dictionary<string, object> shortPosition = ((Dictionary<string, object>)this.clone(position));
-                shortPosition["side"] = "short";
+                Dictionary<string, object> shortPosition = this.extend(this.clone(position), new Dictionary<string, object>() {
+                    { "side", "short" },
+                });
                 cache.append(shortPosition);
                 newPositions.Add(shortPosition);
             }

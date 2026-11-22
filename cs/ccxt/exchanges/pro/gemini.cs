@@ -55,7 +55,7 @@ public partial class gemini : ccxt.gemini
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("trades:" + this.safeString(market, "symbol", ""));
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         if ((marketId == null))
         {
             throw new ArgumentsRequired ((this.id + " watchTrades() marketId is required")) ;
@@ -420,7 +420,7 @@ public partial class gemini : ccxt.gemini
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         if ((marketId == null))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBook() marketId is required")) ;

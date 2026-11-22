@@ -1217,7 +1217,7 @@ public partial class delta : Exchange
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "close");
         IDictionary<string, object> quotes = this.safeDict(ticker, "quotes", new Dictionary<string, object>() {});
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -2012,7 +2012,7 @@ public partial class delta : Exchange
         //
         string? marketId = this.safeString(position, "product_symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
         string? sizeString = this.safeString(position, "size");
         string? side = null;

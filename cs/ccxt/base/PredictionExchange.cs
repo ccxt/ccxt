@@ -1929,7 +1929,7 @@ public partial class PredictionExchange : BaseExchange
         return this.amountToPrecision(marketSymbol, amount);
     }
 
-    public virtual string? priceToPredictionPrecision(string outcome, double? price)
+    public virtual string? priceToPredictionPrecision(string? outcome, double? price)
     {
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? marketSymbol = this.safeString(outcomeObj, "market");

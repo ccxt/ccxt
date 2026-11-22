@@ -1675,15 +1675,7 @@ public partial class myriad : PredictionExchange
         {
             return ccxt.BaseExchange.ToPredictionOrderList(new List<object>() {});
         }
-        string? traderParam = this.safeString2(parameters, "trader", "address");
-        string? trader = null;
-        if ((traderParam != null))
-        {
-            trader = traderParam;
-        } else
-        {
-            trader = this.walletAddressOrUndefined();
-        }
+        string? trader = this.safeString2(parameters, "trader", "address", this.walletAddressOrUndefined());
         if ((trader == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
@@ -2317,7 +2309,7 @@ public partial class myriad : PredictionExchange
         return result;
     }
 
-    public virtual string? fromWeiWithDecimals(object hexValue, object decimals)
+    public virtual string? fromWeiWithDecimals(object hexValue, Int64? decimals)
     {
         string? decimalString = this.hexToDecimalString(hexValue);
         if ((decimalString == null))
@@ -2374,9 +2366,9 @@ public partial class myriad : PredictionExchange
         string? state = this.safeString(raw, "state", "open");
         string? endDate = this.safeString(raw, "expiresAt");
         return new Dictionary<string, object>() {
-            { "id", (market != null && market.ContainsKey("id") ? market["id"] : null) },
+            { "id", this.safeString(market, "id", "") },
             { "slug", slug },
-            { "event", (market != null && market.ContainsKey("market") ? market["market"] : null) },
+            { "event", this.safeString(market, "market", "") },
             { "title", this.safeString2(raw, "title", "shortName") },
             { "description", this.safeString(raw, "description") },
             { "markets", new List<object>() {market} },
@@ -2502,8 +2494,9 @@ public partial class myriad : PredictionExchange
         int outcomesLength = (outcomes?.Count ?? 0);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         string? marketResolvedOutcome = resolvedOutcome;
+        string compositeId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
-            { "id", (networkId == null ? null : networkId + ":" + marketId) },
+            { "id", compositeId },
             { "market", marketSymbol },
             { "marketType", (outcomesLength > 2) ? "categorical" : "binary" },
             { "executionModel", marketExecutionModel },
@@ -3006,7 +2999,7 @@ public partial class myriad : PredictionExchange
      * @param {string} outcome the unified outcome of the order book
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public virtual object parseWeiOrderBook(IDictionary<string, object> response, object outcome)
+    public virtual object parseWeiOrderBook(IDictionary<string, object> response, string? outcome)
     {
         IList<object> rawBids = (IList<object>)(this.safeList(response, "bids", new List<object>() {}));
         IList<object> rawAsks = (IList<object>)(this.safeList(response, "asks", new List<object>() {}));
@@ -3408,10 +3401,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154618_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154618_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154618_0, hxauTask154618_1);
-            List<object> responses = new List<object> { hxauTask154618_0.Result, hxauTask154618_1.Result };
+            var hxauTask154598_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154598_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154598_0, hxauTask154598_1);
+            List<object> responses = new List<object> { hxauTask154598_0.Result, hxauTask154598_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3432,10 +3425,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155596_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155596_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155596_0, hxauTask155596_1);
-                List<object> listResponses = new List<object> { hxauTask155596_0.Result, hxauTask155596_1.Result };
+                var hxauTask155576_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155576_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155576_0, hxauTask155576_1);
+                List<object> listResponses = new List<object> { hxauTask155576_0.Result, hxauTask155576_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3449,10 +3442,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156379_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156379_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156379_0, hxauTask156379_1);
-                List<object> responses = new List<object> { hxauTask156379_0.Result, hxauTask156379_1.Result };
+                var hxauTask156359_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156359_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156359_0, hxauTask156359_1);
+                List<object> responses = new List<object> { hxauTask156359_0.Result, hxauTask156359_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
@@ -3567,7 +3560,7 @@ public partial class myriad : PredictionExchange
         })))));
     }
 
-    public virtual Int64 requestId(object url)
+    public virtual Int64 requestId(string? url)
     {
         object existing = this.safeValue(this.options, "requestId");
         if ((existing == null))
@@ -3684,7 +3677,7 @@ public partial class myriad : PredictionExchange
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
-            this.spawn(this.pong, new object[] { client, msg});
+            this.spawn(this.pong, new object[] { client});
             return;
         }
         IDictionary<string, object> connectReply = this.safeDict(msg, "connect");

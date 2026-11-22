@@ -506,7 +506,7 @@ public partial class bitrue : ccxt.bitrue
         return result;
     }
 
-    public virtual object convertFromRawQuantity(string symbol, object rawQuantity)
+    public virtual object convertFromRawQuantity(string symbol, double? rawQuantity)
     {
         if ((rawQuantity == null))
         {

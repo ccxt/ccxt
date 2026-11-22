@@ -378,15 +378,19 @@ public partial class sxbet : PredictionExchange
             gameTime = this.safeTimestamp(raw, "gameTime");
         }
         List<object> outcomeLabels = new List<object>() {outcomeOneName, outcomeTwoName};
-        List<object> outcomeIds = new List<object>() {marketHash, (marketHash + "-2")};
         List<object> outcomes = new List<object>() {};
         for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
         {
             string? label = ((string)outcomeLabels[oi]);
             string? outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, label);
+            string outcomeSuffix = "";
+            if (oi > 0)
+            {
+                outcomeSuffix = "-2";
+            }
             outcomes.Add(new Dictionary<string, object>() {
-                { "id", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
-                { "outcomeId", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
+                { "id", (marketHash + outcomeSuffix) },
+                { "outcomeId", (marketHash + outcomeSuffix) },
                 { "outcome", outcomeHandle },
                 { "market", marketSymbol },
                 { "label", label },
@@ -561,7 +565,8 @@ public partial class sxbet : PredictionExchange
             for (int j = 0; j < evMarketsLength; j++)
             {
                 object m = (evMarkets != null && j < evMarkets.Count ? evMarkets[j] : null);
-                this.markets[(string)getValue(m, "market")] = m;
+                string? marketKey = this.safeString(m, "market", "");
+                this.markets[(string)marketKey] = m;
             }
             result.Add(eventVar);
         }
@@ -2417,7 +2422,7 @@ public partial class sxbet : PredictionExchange
         this.options[(string)group] = this.extend(this.safeDict(this.options, group, new Dictionary<string, object>() {}), entry);
     }
 
-    public virtual Int64 requestId(object url)
+    public virtual Int64 requestId(string? url)
     {
         object existing = this.safeValue(this.options, "requestId");
         if ((existing == null))
@@ -2552,7 +2557,7 @@ public partial class sxbet : PredictionExchange
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
-            this.spawn(this.pong, new object[] { client, msg});
+            this.spawn(this.pong, new object[] { client});
             return;
         }
         string? requestIdString = this.safeString(msg, "id");

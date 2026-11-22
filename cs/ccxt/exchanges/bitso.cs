@@ -2230,7 +2230,7 @@ public partial class bitso : Exchange
         {
             return null;  // fallback to default error handler
         }
-        if (inOp(response, "success"))
+        if (!(this.safeBool(response, "success") == null))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

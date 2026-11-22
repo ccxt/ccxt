@@ -354,8 +354,9 @@ public partial class bithumb : ccxt.bithumb
         string? code = this.safeString(ticker, "code");
         if ((code != null))
         {
-            ((IDictionary<string,object>)ticker)["market"] = this.safeString(ticker, "market", code);
-            return this.parseTicker(ticker, market);
+            return this.parseTicker(this.extend(ticker, new Dictionary<string, object>() {
+                { "market", this.safeString(ticker, "market", code) },
+            }), market);
         }
         string date = this.safeString(ticker, "date", "");
         string time = this.safeString(ticker, "time", "");

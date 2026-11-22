@@ -284,7 +284,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual string? valueToChecksum(object value)
+    public virtual string? valueToChecksum(double? value)
     {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with

@@ -1932,7 +1932,7 @@ public partial class tokocrypto : Exchange
         }, market);
     }
 
-    public virtual string? parseTimeInForce(object timeInForce)
+    public virtual string? parseTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "1", "GTC" },

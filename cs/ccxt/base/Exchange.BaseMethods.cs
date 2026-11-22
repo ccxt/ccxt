@@ -4691,7 +4691,7 @@ public partial class BaseExchange
         return results;
     }
 
-    public virtual object getSymbolsForMarketType(string? marketType = null, string? subType = null, bool? symbolWithActiveStatus = null, bool? symbolWithUnknownStatus = null)
+    public virtual object getSymbolsForMarketType(object marketType = null, object subType = null, bool? symbolWithActiveStatus = null, bool? symbolWithUnknownStatus = null)
     {
         symbolWithActiveStatus ??= true;
         symbolWithUnknownStatus ??= true;
@@ -7017,7 +7017,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual void checkRequiredMarginArgument(string methodName, string symbol, object marginMode)
+    public virtual void checkRequiredMarginArgument(string methodName, object symbol, object marginMode)
     {
         /**
          * @ignore

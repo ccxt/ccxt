@@ -253,7 +253,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public virtual ccxt.Ticker parseWSTicker(IDictionary<string, object> ticker, IDictionary<string, object> market, object timestamp, object datetime)
+    public virtual ccxt.Ticker parseWSTicker(IDictionary<string, object> ticker, IDictionary<string, object> market, Int64? timestamp, string? datetime)
     {
         //
         //     {

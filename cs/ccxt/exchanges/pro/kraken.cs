@@ -1552,9 +1552,9 @@ public partial class kraken : ccxt.kraken
             symbol = this.safeString(market, "symbol");
         }
         Dictionary<string, object> fee = null;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fees")))
+        List<object> fees = this.safeList(trade, "fees");
+        if ((fees != null))
         {
-            List<object> fees = this.safeList(trade, "fees", new List<object>() {});
             IDictionary<string, object> firstFee = this.safeDict(fees, 0, new Dictionary<string, object>() {});
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeNumber(firstFee, "qty") },

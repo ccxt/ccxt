@@ -889,7 +889,8 @@ public partial class bit2me : ccxt.bit2me
             for (int i = 0; i < clientOrderIds.Count; i++)
             {
                 string? clientOrderId = ((string)clientOrderIds[i]);
-                if (isEqual((clientOrderId != null && pending.ContainsKey(clientOrderId) ? pending[clientOrderId] : null), marketId))
+                string? pendingMarketId = this.safeString(pending, clientOrderId);
+                if ((pendingMarketId == marketId))
                 {
                     this.settleRequest(client, ("added-order:" + clientOrderId), null, exception);
                     this.options["pendingWsOrders"] = this.omit((this.options != null && this.options.ContainsKey("pendingWsOrders") ? this.options["pendingWsOrders"] : null), clientOrderId);

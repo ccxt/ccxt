@@ -1611,13 +1611,13 @@ public partial class hyperliquid : PredictionExchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < statuses.Count; i++)
         {
-            object status = statuses[i];
+            object status = (statuses != null && i < statuses.Count ? statuses[i] : null);
             string? error = this.safeString(status, "error");
             if ((error != null))
             {
                 throw new OrderNotFound (((((this.id + " cancelOrders() failed for ") + this.safeString(requestIds, i, this.safeString(requestIds, 0))) + ": ") + error)) ;
             }
-            bool success = ((status is "success")) || ((this.safeString(status, "status") == "success"));
+            bool success = ((this.safeString(statuses, i) == "success")) || ((this.safeString(status, "status") == "success"));
             if (!success)
             {
                 throw new ExchangeError (((this.id + " cancelOrders() received an unexpected status: ") + this.json(status))) ;
@@ -1931,7 +1931,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        string? tifLower = ((timeInForce != null) && !(timeInForce == "")) ? timeInForce.ToLower() : null;
+        string? tifLower = ((timeInForce != null) && (timeInForce != "")) ? timeInForce.ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 

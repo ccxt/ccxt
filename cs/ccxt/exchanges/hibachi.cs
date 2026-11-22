@@ -1352,7 +1352,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
     }
 
-    public virtual object encodeWithdrawMessage(double? amount, object maxFees, string? address)
+    public virtual object encodeWithdrawMessage(double? amount, double? maxFees, string? address)
     {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
@@ -2017,7 +2017,7 @@ public partial class hibachi : Exchange
         return null;
     }
 
-    public virtual string? parseTransactionType(object type)
+    public virtual string? parseTransactionType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "deposit", "transaction" },
@@ -2025,7 +2025,7 @@ public partial class hibachi : Exchange
             { "transfer-in", "transfer" },
             { "transfer-out", "transfer" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseTransactionStatus(string? status)

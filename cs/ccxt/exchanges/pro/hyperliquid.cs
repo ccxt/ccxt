@@ -263,11 +263,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbolValue);
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -299,12 +304,17 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Int64? nonce = this.incrementingNonce();
         string? id = this.numberToString(nonce);
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -385,11 +395,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
         string messageHash = ("ticker:" + symbolValue);
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "activeAssetCtx" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
             } },
         };
         await this.waitForPendingUnsubscribe(url, messageHash);
@@ -417,11 +432,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ("ticker:" + symbolValue);
         string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "activeAssetCtx" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
             } },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -904,11 +924,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trade:" + symbolValue);
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -943,11 +968,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subMessageHash = ("trade:" + symbolValue);
         string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -1041,7 +1071,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(trade, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "tid");
         string? side = this.safeString(trade, "side");
         if ((side != null))
@@ -1093,11 +1123,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
                 { "interval", timeframeVar },
             } },
         };
@@ -1135,11 +1170,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        string? wireCoin = this.safeString(market, "id", "");
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            wireCoin = this.safeString(market, "baseName", "");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", wireCoin },
                 { "interval", timeframeVar },
             } },
         };
@@ -1414,7 +1454,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void parseWsBalance(object balance, object accountType = null)
+    public virtual void parseWsBalance(object balance, string? accountType = null)
     {
         //
         // spot

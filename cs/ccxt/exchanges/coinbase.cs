@@ -4248,10 +4248,12 @@ public partial class coinbase : Exchange
         //     }
         //
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
+        int ordersLength = orders.Count;
         string? cursor = this.safeString(response, "cursor");
-        if (((cursor != null)) && (cursor != ""))
+        if ((ordersLength > 0) && ((cursor != null)) && (cursor != ""))
         {
-            ((List<object>)orders)[Convert.ToInt32(0)] = this.extend(this.safeDict(orders, 0, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+            int lastIndex = (ordersLength - 1);
+            ((List<object>)orders)[Convert.ToInt32(lastIndex)] = this.extend(this.safeDict(orders, lastIndex, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
                 { "cursor", cursor },
             });
         }
@@ -4333,10 +4335,12 @@ public partial class coinbase : Exchange
         //     }
         //
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
+        int ordersLength = orders.Count;
         string? cursor = this.safeString(response, "cursor");
-        if (((cursor != null)) && (cursor != ""))
+        if ((ordersLength > 0) && ((cursor != null)) && (cursor != ""))
         {
-            ((List<object>)orders)[Convert.ToInt32(0)] = this.extend(this.safeDict(orders, 0, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+            int lastIndex = (ordersLength - 1);
+            ((List<object>)orders)[Convert.ToInt32(lastIndex)] = this.extend(this.safeDict(orders, lastIndex, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
                 { "cursor", cursor },
             });
         }
@@ -4686,10 +4690,12 @@ public partial class coinbase : Exchange
         //     }
         //
         List<object> trades = this.safeList(response, "fills", new List<object>() {});
+        int tradesLength = trades.Count;
         string? cursor = this.safeString(response, "cursor");
-        if (((cursor != null)) && (cursor != ""))
+        if ((tradesLength > 0) && ((cursor != null)) && (cursor != ""))
         {
-            ((List<object>)trades)[Convert.ToInt32(0)] = this.extend(this.safeDict(trades, 0, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+            int lastIndex = (tradesLength - 1);
+            ((List<object>)trades)[Convert.ToInt32(lastIndex)] = this.extend(this.safeDict(trades, lastIndex, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
                 { "cursor", cursor },
             });
         }

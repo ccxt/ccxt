@@ -81,7 +81,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("ORDER_BOOK" + ":") + symbolValue);
         string marketIdValue = this.safeString(market, "id", "");
         string? endPart = null;
@@ -157,7 +157,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("TRADE" + ":") + symbolValue);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic("trades", messageHash, (market.ContainsKey("id") ? market["id"] : null)));
         Int64? limitResolved = limit;
@@ -237,7 +237,7 @@ public partial class bitopro : ccxt.bitopro
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbolValue = this.safeString(market, "symbol", "");
             messageHash = ((messageHash + ":") + symbolValue);
         }
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "private");
@@ -411,7 +411,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("TICKER" + ":") + symbolValue);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, (market.ContainsKey("id") ? market["id"] : null)));
     }

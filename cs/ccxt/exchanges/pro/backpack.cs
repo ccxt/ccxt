@@ -1549,7 +1549,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(data, "e", "");
         object parsed = null;
         if ((((eventVar?.IndexOf("rfq", StringComparison.Ordinal) ?? -1) == 0)) || (((eventVar?.IndexOf("quote", StringComparison.Ordinal) ?? -1) == 0)))
@@ -1967,7 +1967,7 @@ public partial class backpack : ccxt.backpack
         string? id = this.safeString(position, "i");
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? notional = this.safeString(position, "n");
         string? liquidationPrice = this.safeString(position, "l");
         string? entryPrice = this.safeString(position, "b");

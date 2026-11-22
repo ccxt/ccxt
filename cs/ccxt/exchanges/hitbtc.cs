@@ -2774,7 +2774,8 @@ public partial class hitbtc : Exchange
         {
             if ((resolvedMarketType != "swap") && (resolvedMarketType != "margin"))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() does not support reduce_only for ") + ((market != null && market.ContainsKey("type") ? market["type"] : null))) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
+                string? marketTypeString = this.safeString(market, "type", "");
+                throw new InvalidOrder ((((this.id + " createOrder() does not support reduce_only for ") + marketTypeString) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
             }
         }
         if ((reduceOnly == true))

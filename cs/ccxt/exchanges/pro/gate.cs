@@ -2671,7 +2671,7 @@ public partial class gate : ccxt.gate
         isInverse ??= false;
         if (((type is "swap")) || ((type is "future")))
         {
-            string settleKey = isInverse == true ? "btc" : "usdt";
+            string settleKey = (isInverse == true) ? "btc" : "usdt";
             return this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type), settleKey);
         } else
         {

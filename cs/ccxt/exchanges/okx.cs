@@ -3235,7 +3235,7 @@ public partial class okx : Exchange
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-", marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
@@ -3522,7 +3522,7 @@ public partial class okx : Exchange
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "fillPx", "px");
         string? amount = this.safeString2(trade, "fillSz", "sz");
@@ -4288,7 +4288,7 @@ public partial class okx : Exchange
         }
         bool? spot = this.safeBool(market, "spot", false);
         bool? contract = this.safeBool(market, "contract");
-        object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         double? tpOrdPx = this.safeNumber(parameters, "tpOrdPx", price);
@@ -4467,7 +4467,7 @@ public partial class okx : Exchange
             Dictionary<string, object> attachAlgoOrd = new Dictionary<string, object>() {};
             if (hasStopLoss)
             {
-                object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
+                string? stopLossTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
                 if ((stopLossTriggerPrice == null))
                 {
                     throw new InvalidOrder ((this.id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
@@ -4475,7 +4475,7 @@ public partial class okx : Exchange
                 string? slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 Dictionary<string, object> slOrder = new Dictionary<string, object>() {};
                 slOrder["slTriggerPx"] = slTriggerPx;
-                object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
+                string? stopLossLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 string? stopLossOrderType = this.safeString(stopLoss, "type");
                 if ((stopLossOrderType != null))
                 {
@@ -4517,14 +4517,14 @@ public partial class okx : Exchange
             }
             if (hasTakeProfit)
             {
-                object takeProfitTriggerPrice = this.safeValueN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "tpTriggerPx"});
+                string? takeProfitTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "tpTriggerPx"});
                 if ((takeProfitTriggerPrice == null))
                 {
                     throw new InvalidOrder ((this.id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
                 Dictionary<string, object> tpOrder = new Dictionary<string, object>() {};
                 tpOrder["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
+                string? takeProfitLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
                 string? takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if ((takeProfitOrderType != null))
                 {
@@ -6637,7 +6637,8 @@ public partial class okx : Exchange
             currency = this.currency(code);
             request["ccy"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        Dictionary<string, object> requestUntil = ((Dictionary<string, object>)getValue(this.handleUntilOption("end", request, paramsMarginMode), 0));
+        IList<object> requestUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsMarginMode);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilVariable[0];
         Dictionary<string, object> response = null;
         if (method == "privateGetAccountBillsArchive")
         {
@@ -6830,7 +6831,7 @@ public partial class okx : Exchange
         }
         string? currencyId = this.safeString(depositAddress, "ccy");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
+        string? code = this.safeString(currencyResolved, "code");
         string? chain = this.safeString(depositAddress, "chain");
         IDictionary<string, object> networks = this.safeDict(currencyResolved, "networks", new Dictionary<string, object>() {});
         Dictionary<string, object> networksById = this.indexBy(networks, "id");
@@ -7026,7 +7027,7 @@ public partial class okx : Exchange
             string networkUpper = network.ToUpper();
             string? networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
             network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
-            request["chain"] = add(add((currency.ContainsKey("id") ? currency["id"] : null), "-"), network);
+            request["chain"] = ((this.safeString(currency, "id", "") + "-") + network);
         }
         List<object> omitKeys = new List<object>() {"fee"};
         if ((network != null))
@@ -7849,7 +7850,7 @@ public partial class okx : Exchange
         //
         string? marketId = this.safeString(position, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString2(position, "posSide", "direction");
@@ -7864,7 +7865,7 @@ public partial class okx : Exchange
                 string? parsedCurrency = this.safeCurrencyCode(posCcy);
                 if ((parsedCurrency != null))
                 {
-                    side = (isEqual((marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null), parsedCurrency)) ? "long" : "short";
+                    side = ((this.safeString(marketResolved, "base") == parsedCurrency)) ? "long" : "short";
                 }
             }
             if ((side == null))
@@ -10741,7 +10742,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "uly", add((currency.ContainsKey("code") ? currency["code"] : null), "-USD") },
+            { "uly", (this.safeString(currency, "code", "") + "-USD") },
             { "instType", "OPTION" },
         };
         Dictionary<string, object> response = await this.publicGetMarketTickers(this.extend(request, parameters));

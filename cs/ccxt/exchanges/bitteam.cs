@@ -2559,13 +2559,13 @@ public partial class bitteam : Exchange
         return this.safeString(types, type, type);
     }
 
-    public virtual string? parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "approving", "pending" },
             { "success", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

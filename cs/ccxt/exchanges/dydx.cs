@@ -1424,7 +1424,7 @@ public partial class dydx : Exchange
         return signature;
     }
 
-    public virtual string? signDydxTx(object privateKey, object message, string? memo, string? chainId, IDictionary<string, object> account, object authenticators, object fee = null)
+    public virtual string? signDydxTx(string? privateKey, object message, string? memo, string? chainId, IDictionary<string, object> account, object authenticators, object fee = null)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((IList<object>) encodedTxsignDocVariable)[0];
@@ -1502,7 +1502,7 @@ public partial class dydx : Exchange
         return this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {});
     }
 
-    public virtual string? pow(string? n, object m)
+    public virtual string? pow(string? n, string? m)
     {
         string? r = Precise.stringMul(n, "1");
         Int64? c = this.parseToInt(m);

@@ -1017,11 +1017,11 @@ public partial class polymarket : Exchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        bool? paginate = false;
         IDictionary<string, object> paramsOmitted = parameters;
-        IList<object> paginateparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparamsOmittedVariable[0]);
-        paramsOmitted = (IDictionary<string, object>)paginateparamsOmittedVariable[1];
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
+        paramsOmitted = paramsPaginate;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsOmitted, 1000));
@@ -1183,11 +1183,11 @@ public partial class polymarket : Exchange
             throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        bool? paginate = false;
         IDictionary<string, object> paramsOmitted = parameters;
-        IList<object> paginateparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparamsOmittedVariable[0]);
-        paramsOmitted = (IDictionary<string, object>)paginateparamsOmittedVariable[1];
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
+        paramsOmitted = paramsPaginate;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", paramsOmitted, 100));
@@ -2349,7 +2349,7 @@ public partial class polymarket : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
     }
 
-    public virtual string? parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending", "pending" },
@@ -2636,7 +2636,7 @@ public partial class polymarket : Exchange
         {
             IDictionary<string, object> row = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? rowId = this.safeString(row, "instrument_id");
-            if (isEqual(rowId, (market.ContainsKey("id") ? market["id"] : null)))
+            if ((rowId == this.safeString(market, "id")))
             {
                 return ccxt.BaseExchange.ToLeverage(this.parseLeverage(row, market));
             }

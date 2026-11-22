@@ -5015,7 +5015,7 @@ public partial class weex : Exchange
         {
             return ((string?)((object)(marketId)));
         }
-        if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0))))
+        if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey(marketId))))
         {
             return ((string?)((object)(marketId)));  // a live market id, not a demo one
         }

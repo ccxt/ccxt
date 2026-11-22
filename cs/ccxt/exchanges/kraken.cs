@@ -1645,13 +1645,15 @@ public partial class kraken : Exchange
         string? orderId = null;
         Dictionary<string, object> fee = null;
         string? symbol = null;
-        bool isOrderTrade = (!((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && (!(trade is string)) && ((this.safeString(trade, "ordertxid") != null));
+        bool tradeIsList = ((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool tradeIsString = (trade is string);
+        bool isOrderTrade = (!tradeIsList) && (!tradeIsString) && ((this.safeString(trade, "ordertxid") != null));
         IDictionary<string, object> marketResolved = market;
         if (isOrderTrade)
         {
             marketResolved = this.resolveMarketByAltnameOrId(this.safeString(trade, "pair"), market);
         }
-        if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (tradeIsList)
         {
             timestamp = this.safeTimestamp(trade, 2);
             side = ((this.safeString(trade, 3) == "s")) ? "sell" : "buy";
@@ -1663,7 +1665,7 @@ public partial class kraken : Exchange
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
             }
-        } else if ((trade is string))
+        } else if (tradeIsString)
         {
             id = ((string)trade);
         } else if (isOrderTrade)
@@ -2062,7 +2064,7 @@ public partial class kraken : Exchange
         return market;
     }
 
-    public virtual IDictionary<string, object> getDelistedMarketById(object id)
+    public virtual IDictionary<string, object> getDelistedMarketById(string? id)
     {
         if ((id == null))
         {
@@ -2077,7 +2079,7 @@ public partial class kraken : Exchange
         int baseIdEnd = 3;
         int quoteIdStart = 3;
         int quoteIdEnd = 6;
-        int idLength = ((string)id).Length;
+        int idLength = id.Length;
         if ((idLength == 8))
         {
             baseIdEnd = 4;
@@ -2089,8 +2091,8 @@ public partial class kraken : Exchange
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        string? baseId = slice(id, baseIdStart, baseIdEnd);
-        string? quoteId = slice(id, quoteIdStart, quoteIdEnd);
+        string? baseId = ((id == null) ? null : id[(int)(baseIdStart < 0 ? id.Length + baseIdStart : baseIdStart)..Math.Min((int)(baseIdEnd < 0 ? id.Length + baseIdEnd : baseIdEnd), id.Length)]);
+        string? quoteId = ((id == null) ? null : id[(int)(quoteIdStart < 0 ? id.Length + quoteIdStart : quoteIdStart)..Math.Min((int)(quoteIdEnd < 0 ? id.Length + quoteIdEnd : quoteIdEnd), id.Length)]);
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
@@ -2127,7 +2129,7 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseOrderType(object status)
+    public virtual string? parseOrderType(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "take-profit", "market" },
@@ -3350,7 +3352,7 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseNetwork(object network)
+    public virtual string? parseNetwork(string? network)
     {
         IDictionary<string, object> withdrawMethods = this.safeDict(this.options, "withdrawMethods", new Dictionary<string, object>() {});
         return this.safeString(withdrawMethods, network, network);

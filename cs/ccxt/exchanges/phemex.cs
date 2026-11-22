@@ -1575,7 +1575,7 @@ public partial class phemex : Exchange
         }
         string? stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, this.parseToInt((scale * (-1))));
+        precise.decimals = this.sum(precise.decimals, this.parseToInt((scale * -1)));
         precise.reduce();
         string preciseString = ((object)precise).ToString();
         return this.parseToNumeric(preciseString);

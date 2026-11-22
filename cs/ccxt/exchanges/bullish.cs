@@ -976,7 +976,7 @@ public partial class bullish : Exchange
             spot = true;
             contract = false;
             margin = this.safeBool(market, "marginTradingEnabled");
-        } else
+        } else if ((settle != null))
         {
             contractSize = this.safeNumber(market, "contractMultiplier");
             symbol = ((((bs + "/") + quote) + ":") + settle);
@@ -1000,7 +1000,8 @@ public partial class bullish : Exchange
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = ((((((((((bs + "/") + quote) + ":") + settle) + "-") + dateYmd) + "-") + this.numberToString(strike)) + "-") + this.safeString(idParts, 4));
+                    string? optionSide = this.safeString(idParts, 4, "");
+                    symbol = ((((((((((bs + "/") + quote) + ":") + settle) + "-") + dateYmd) + "-") + this.numberToString(strike)) + "-") + optionSide);
                 }
             }
         }
@@ -1061,7 +1062,7 @@ public partial class bullish : Exchange
         });
     }
 
-    public virtual string? parseMarketType(string? type = null, object defaultType = null)
+    public virtual string? parseMarketType(string? type = null, string? defaultType = null)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "SPOT", "spot" },
@@ -1830,7 +1831,7 @@ public partial class bullish : Exchange
         return paramsExtended;
     }
 
-    public virtual object handleSinceAndUntil(object since = null, object parameters = null, object sinceKey = null, object untilKey = null)
+    public virtual object handleSinceAndUntil(object since = null, object parameters = null, string? sinceKey = null, string? untilKey = null)
     {
         parameters ??= new Dictionary<string, object>();
         sinceKey ??= "createdAtDatetime[gte]";

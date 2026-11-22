@@ -1133,7 +1133,11 @@ public partial class bithumb : Exchange
             List<Task<List<object>>> promises = new List<Task<List<object>>>() {};
             // the exchange rejects more than 200 market ids per request
             Int64? maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
-            Int64? maxMarketIdsPerRequest = this.parseToInt((((maxMarketIdsOption == null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))) ? 200 : maxMarketIdsOption);
+            Int64? maxMarketIdsPerRequest = 200;
+            if (((maxMarketIdsOption != null)) && (maxMarketIdsOption >= 1))
+            {
+                maxMarketIdsPerRequest = this.parseToInt(maxMarketIdsOption);
+            }
             List<object> marketIdsChunk = new List<object>() {};
             for (int i = 0; i < marketIdsLength; i++)
             {
@@ -1202,7 +1206,7 @@ public partial class bithumb : Exchange
                     tickers = ((List<object>)response);
                 } else if (this.isDictionary(response))
                 {
-                    if (((response is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("market"))) || ((response is IDictionary<string, object> inOpDict1 && inOpDict1.ContainsKey("trade_date"))) || ((response is IDictionary<string, object> inOpDict2 && inOpDict2.ContainsKey("trade_timestamp"))))
+                    if (((this.safeString(response, "market") != null)) || ((this.safeString(response, "trade_date") != null)) || ((this.safeString(response, "trade_timestamp") != null)))
                     {
                         tickers = new List<object>() {response};
                     } else
@@ -1279,7 +1283,7 @@ public partial class bithumb : Exchange
                 for (int j = 0; j < currencyIds.Count; j++)
                 {
                     string? currencyId = ((string)currencyIds[j]);
-                    object ticker = (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null);
+                    Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {}, (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null));
                     string? bs = this.safeCurrencyCode(currencyId);
                     if ((bs == null))
                     {
@@ -1287,8 +1291,9 @@ public partial class bithumb : Exchange
                     }
                     string symbol = ((bs + "/") + (quote));
                     Dictionary<string, object> market = this.safeMarket(symbol);
-                    ((IDictionary<string,object>)ticker)["date"] = timestamp;
-                    result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
+                    result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.extend(ticker, new Dictionary<string, object>() {
+                        { "date", timestamp },
+                    }), market));
                 }
             }
         }
@@ -1855,7 +1860,7 @@ public partial class bithumb : Exchange
                 throw new ArgumentsRequired ((this.id + " createOrders() requires each order to have a side")) ;
             }
             object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);

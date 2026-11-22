@@ -2420,7 +2420,8 @@ public partial class bittrade : Exchange
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network == "erc20")
             {
-                request["chain"] = add((currency.ContainsKey("id") ? currency["id"] : null), network);
+                string currencyId = this.safeString(currency, "id", "");
+                request["chain"] = (currencyId + network);
             } else
             {
                 request["chain"] = (network == null ? null : network + (string)(object)((currency.ContainsKey("id") ? currency["id"] : null)));

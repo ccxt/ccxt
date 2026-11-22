@@ -2846,7 +2846,7 @@ public partial class lighter : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseOrderType(object type)
+    public virtual string? parseOrderType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "limit", "limit" },
@@ -2859,10 +2859,10 @@ public partial class lighter : Exchange
             { "twap-sub", "twap" },
             { "liquidation", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
-    public virtual string? parseOrderTypeInteger(object typeInteger)
+    public virtual string? parseOrderTypeInteger(Int64? typeInteger)
     {
         if ((typeInteger == null))
         {
@@ -2879,10 +2879,10 @@ public partial class lighter : Exchange
             { "7", "twap-sub" },
             { "8", "liquidation" },
         };
-        return this.safeString(types, typeInteger.ToString());
+        return this.safeString(types, ((object)typeInteger).ToString());
     }
 
-    public virtual string? parseOrderTimeInForce(object tif)
+    public virtual string? parseOrderTimeInForce(string? tif)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "immediate-or-cancel", "IOC" },
@@ -2938,7 +2938,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
         Dictionary<string, object> currency = this.currency(code);
-        string? currencyCode = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
+        string? currencyCode = this.safeString(currency, "code", "");
         if ((currencyCode != "USDC") && (currencyCode != "ETH"))
         {
             throw new ExchangeError ((this.id + " transfer() only supports USDC and ETH transfers")) ;
@@ -3341,7 +3341,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> currency = this.currency(code);
-        string? currencyCode = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
+        string? currencyCode = this.safeString(currency, "code", "");
         if ((currencyCode != "USDC") && (currencyCode != "ETH"))
         {
             throw new ExchangeError ((this.id + " withdraw() only supports USDC and ETH transfers")) ;

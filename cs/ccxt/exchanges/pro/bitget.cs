@@ -97,7 +97,7 @@ public partial class bitget : ccxt.bitget
         });
     }
 
-    public virtual (string?, IDictionary<string, object>) getInstType(object methodName, IDictionary<string, object> market, bool? uta = null, object parameters = null)
+    public virtual (string?, IDictionary<string, object>) getInstType(string? methodName, IDictionary<string, object> market, bool? uta = null, object parameters = null)
     {
         uta ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -1312,7 +1312,12 @@ public partial class bitget : ccxt.bitget
             {
                 symbolOrInstId = "symbol";
             }
-            args[(string)topicOrChannel] = (uta == true) ? "publicTrade" : "trade";
+            string tradeTopic = "trade";
+            if ((uta == true))
+            {
+                tradeTopic = "publicTrade";
+            }
+            args[(string)topicOrChannel] = tradeTopic;
             args[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
             topics.Add(args);
             messageHashes.Add(("trade:" + symbol));
@@ -1938,7 +1943,10 @@ public partial class bitget : ccxt.bitget
         }
         if (((productType == null)) && (!(type == "spot")) && ((symbolResolved == null)))
         {
-            messageHash = ((messageHash + ":") + subType);
+            if ((subType != null))
+            {
+                messageHash = ((messageHash + ":") + subType);
+            }
         } else if (productType == "USDT-FUTURES")
         {
             messageHash = (messageHash + ":linear");
@@ -1960,7 +1968,7 @@ public partial class bitget : ccxt.bitget
         }
         if ((type == "spot") && ((symbolResolved != null)))
         {
-            string? resolvedSymbol = symbolResolved;
+            string? resolvedSymbol = this.safeString(market, "symbol", "");
             subscriptionHash = ((subscriptionHash + ":") + resolvedSymbol);
         }
         if ((isTrigger == true))
@@ -1984,8 +1992,7 @@ public partial class bitget : ccxt.bitget
         if ((marginMode != null))
         {
             instType = "MARGIN";
-            string? marginModeValue = marginMode;
-            messageHash = ((messageHash + ":") + marginModeValue);
+            messageHash = ((messageHash + ":") + marginMode);
             if ((marginMode == "isolated"))
             {
                 channel = "orders-isolated";
@@ -2373,7 +2380,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString2(order, "instId", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
         List<object> orderFee = this.safeList(order, "feeDetail", new List<object>() {});
         IDictionary<string, object> fee = this.safeDict(orderFee, 0);
@@ -3375,10 +3382,10 @@ public partial class bitget : ccxt.bitget
         }
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
         string subMessageHash = ("orderbook:" + symbol);
-        if (((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
@@ -3449,10 +3456,10 @@ public partial class bitget : ccxt.bitget
         }
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("unsubscribe:ticker:" + this.safeString(market, "symbol", ""));
         string subMessageHash = ("ticker:" + symbol);
-        if (((symbol != null) && (this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol))))
+        if (((symbol != null) && (this.tickers != null && this.tickers.ContainsKey(symbol))))
         {
             this.tickers.Remove(symbol);
         }

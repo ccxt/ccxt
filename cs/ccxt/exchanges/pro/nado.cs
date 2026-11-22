@@ -1318,7 +1318,7 @@ public partial class nado : ccxt.nado
         return ((string?)((object)(this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey))));
     }
 
-    public virtual Dictionary<string, object> createPublicSubscriptionRequest(string method, object streamType, object market = null, object id = null, object parameters = null)
+    public virtual Dictionary<string, object> createPublicSubscriptionRequest(string method, object streamType, object market = null, Int64? id = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> stream = new Dictionary<string, object>() {

@@ -1914,7 +1914,7 @@ public partial class nado : Exchange
             double? priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
             double? amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
             double? minCost = this.parseX18(this.safeString(market, "min_size"));
-            markets.Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            Dictionary<string, object> marketEntry = new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", null },
                 { "symbol", symbol },
@@ -1932,11 +1932,11 @@ public partial class nado : Exchange
                 { "option", false },
                 { "active", active },
                 { "contract", contract },
-                { "linear", contract ? true : null },
-                { "inverse", contract ? false : null },
+                { "linear", null },
+                { "inverse", null },
                 { "taker", this.parseX18(this.safeString(market, "taker_fee_rate_x18")) },
                 { "maker", this.parseX18(this.safeString(market, "maker_fee_rate_x18")) },
-                { "contractSize", contract ? 1 : null },
+                { "contractSize", null },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },
@@ -1970,7 +1970,14 @@ public partial class nado : Exchange
                     { "v2Pair", pair },
                     { "v2Asset", asset },
                 }) },
-            }));
+            };
+            if (contract)
+            {
+                marketEntry["linear"] = true;
+                marketEntry["inverse"] = false;
+                marketEntry["contractSize"] = 1;
+            }
+            markets.Add(this.safeMarketStructure(marketEntry));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
@@ -3259,7 +3266,7 @@ public partial class nado : Exchange
         return ((double?)((object)(this.parseNumber(Precise.stringDiv(value, "1000000000000000000")))));
     }
 
-    public virtual string? createOrderNonce(object recvWindow)
+    public virtual string? createOrderNonce(Int64? recvWindow)
     {
         object expires = this.sum(this.milliseconds(), recvWindow);
         string? highBits = Precise.stringMul(this.numberToString(expires), "1048576");
@@ -3353,7 +3360,7 @@ public partial class nado : Exchange
         return this.safeDict(this.options, "gatewayContracts", new Dictionary<string, object>() {});
     }
 
-    public virtual string? orderVerifyingContract(object productId)
+    public virtual string? orderVerifyingContract(Int64? productId)
     {
         return ("0x" + this.padHex(this.intToBase16(productId), 40));
     }
@@ -3373,7 +3380,7 @@ public partial class nado : Exchange
         return ((string?)((object)(((paddedRight == null) ? null : paddedRight.Substring(0, ((int)Math.Max(Math.Min(((end ?? 0L) < 0 ? ((Int64)paddedRight.Length) + ((end ?? 0L)) : (end ?? 0L)), ((Int64)paddedRight.Length)), 0L)))))));
     }
 
-    public virtual string? signOrder(IDictionary<string, object> order, object productId, object chainId)
+    public virtual string? signOrder(IDictionary<string, object> order, Int64? productId, string? chainId)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },

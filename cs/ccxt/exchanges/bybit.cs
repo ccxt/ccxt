@@ -2597,7 +2597,7 @@ public partial class bybit : Exchange
         return amountString;
     }
 
-    public virtual string? getPrice(object symbol, object price)
+    public virtual string? getPrice(object symbol, string? price)
     {
         if ((price == null))
         {
@@ -2612,7 +2612,7 @@ public partial class bybit : Exchange
         return ((string?)((object)(price)));
     }
 
-    public virtual string? getCost(string? symbol, object cost)
+    public virtual string? getCost(string? symbol, string? cost)
     {
         Dictionary<string, object> market = this.market(symbol);
         bool emptyPrecisionPrice = ((this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "price") == null));
@@ -3197,6 +3197,14 @@ public partial class bybit : Exchange
                 symbol = ((symbol + "-") + this.yymmdd(expiry));
             }
             double? contractSize = inverse ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
+            Dictionary<string, object> costLimits = new Dictionary<string, object>() {
+                { "min", null },
+                { "max", null },
+            };
+            if (linear)
+            {
+                costLimits["min"] = this.safeNumber(lotSizeFilter, "minNotionalValue"); // https://bybit-exchange.github.io/docs/v5/market/instrument
+            }
             Dictionary<string, object> parsedMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -3240,10 +3248,7 @@ public partial class bybit : Exchange
                         { "min", this.safeNumber(priceFilter, "minPrice") },
                         { "max", this.safeNumber(priceFilter, "maxPrice") },
                     } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", linear ? this.safeNumber(lotSizeFilter, "minNotionalValue") : null },
-                        { "max", null },
-                    } },
+                    { "cost", costLimits },
                 } },
                 { "created", this.safeInteger(market, "launchTime") },
                 { "info", market },
@@ -4136,7 +4141,7 @@ public partial class bybit : Exchange
         };
         Dictionary<string, object> market = this.market(symbol);
         Int64? fundingTimeFrameMins = this.safeInteger((market.ContainsKey("info") ? market["info"] : null), "fundingInterval");
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         (string?, IDictionary<string, object>) typeparamsValueVariable = this.getBybitType("fetchFundingRateHistory", market, paramsPaginate);
         string? type = typeparamsValueVariable.Item1;
@@ -4365,8 +4370,7 @@ public partial class bybit : Exchange
         string? id = this.safeStringN(trade, new List<object>() {"execId", "id", "tradeId"});
         string? marketId = this.safeString(trade, "symbol");
         string? marketType = "spot";
-        string? createType = this.safeString(trade, "createType");
-        if ((createType != null))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("createType")))
         {
             marketType = "contract";
         }
@@ -5157,8 +5161,7 @@ public partial class bybit : Exchange
             }
         }
         string? marketId = this.safeString(order, "symbol");
-        string? tpslMode = this.safeString(order, "tpslMode");
-        bool isContract = ((tpslMode != null));
+        bool isContract = ((order != null && ((IDictionary<string, object>)order).ContainsKey("tpslMode")));
         string? marketType = null;
         if ((market != null))
         {
@@ -5436,7 +5439,7 @@ public partial class bybit : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string lowerCaseType = type.ToLower();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -7709,8 +7712,7 @@ public partial class bybit : Exchange
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         double? feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         string type = "withdrawal";
-        string? depositFee = this.safeString(transaction, "depositFee");
-        if ((depositFee != null))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("depositFee")))
         {
             type = "deposit";
         }

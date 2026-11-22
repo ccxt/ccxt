@@ -1364,7 +1364,7 @@ public partial class kalshi : PredictionExchange
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public virtual object sortedOrders(string? outcome, object timestamp, IList<object> bids, IList<object> asks)
+    public virtual object sortedOrders(string? outcome, Int64? timestamp, IList<object> bids, IList<object> asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         List<object> bidsValue = this.sortBy(bids, 0, true);

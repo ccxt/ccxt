@@ -1004,7 +1004,7 @@ public partial class cex : ccxt.cex
         return ccxt.BaseExchange.FromOrder(this.safeOrder(parsedOrder, marketResolved));
     }
 
-    public virtual string? fromPrecision(object amount, object scale)
+    public virtual string? fromPrecision(string? amount, Int64? scale)
     {
         if ((amount == null))
         {
@@ -1016,7 +1016,7 @@ public partial class cex : ccxt.cex
         return ((object)precise).ToString();
     }
 
-    public virtual string? currencyFromPrecision(object currency, object amount)
+    public virtual string? currencyFromPrecision(object currency, string? amount)
     {
         Int64? scale = this.safeInteger((this.currenciesDict != null && currency != null && this.currenciesDict.ContainsKey((string)currency) ? this.currenciesDict[(string)currency] : null), "precision", 0);
         return this.fromPrecision(amount, scale);
@@ -1151,9 +1151,9 @@ public partial class cex : ccxt.cex
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual string? pairToSymbol(object pair)
+    public virtual string? pairToSymbol(string? pair)
     {
-        List<object> parts = ((string)pair).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = pair.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
         string? bs = this.safeCurrencyCode(baseId);

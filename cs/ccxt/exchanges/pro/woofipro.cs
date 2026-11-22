@@ -1087,7 +1087,7 @@ public partial class woofipro : ccxt.woofipro
         string messageHash = "myTrades";
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.Trade trade = this.parseWsTrade(message, market);
         if ((this.myTrades == null))
         {

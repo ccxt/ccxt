@@ -2399,7 +2399,7 @@ public partial class hashkey : Exchange
         };
     }
 
-    public virtual string? parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "1", "pending" },
@@ -2831,7 +2831,7 @@ public partial class hashkey : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

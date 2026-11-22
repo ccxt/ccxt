@@ -833,7 +833,7 @@ public partial class hashkey : ccxt.hashkey
         bool? snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
         if ((snapshot == true))
         {
-            string? messageHash = ((string)(add(add(type, ":"), "fetchBalanceSnapshot")));
+            string? messageHash = ((string)(add(type, ":fetchBalanceSnapshot")));
             if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);

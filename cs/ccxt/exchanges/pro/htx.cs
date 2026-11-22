@@ -843,8 +843,9 @@ public partial class htx : ccxt.htx
                 throw new ChecksumError (((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((prevSeqNum == this.safeInteger(orderbook, "nonce")));
-        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (((version - 1) == this.safeInteger(orderbook, "nonce")));
+        Int64? currentNonce = this.safeInteger(orderbook, "nonce");
+        bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((prevSeqNum == currentNonce));
+        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && ((version - 1 == currentNonce));
         if ((spotConditon) || (nonSpotCondition))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
@@ -2333,8 +2334,8 @@ public partial class htx : ccxt.htx
             }
             IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
             List<object> splitTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-            string? messageHash = this.safeString(splitTopic, 0);
-            IDictionary<string, object> subscription = this.safeDict2(client.subscriptions, messageHash, (messageHash == null ? null : messageHash + ".*"));
+            string messageHash = this.safeString(splitTopic, 0, "");
+            IDictionary<string, object> subscription = this.safeDict2(client.subscriptions, messageHash, (messageHash + ".*"));
             if ((subscription == null))
             {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2347,7 +2348,7 @@ public partial class htx : ccxt.htx
                 {
                     return;
                 }
-                messageHash = (messageHash == null ? null : messageHash + ("." + currencyId.ToLower()));
+                messageHash = messageHash + ("." + currencyId.ToLower());
                 subscription = this.safeDict(client.subscriptions, messageHash);
             }
             string? subType = this.safeString(subscription, "subType");
@@ -3036,7 +3037,7 @@ public partial class htx : ccxt.htx
             {
                 string? contractCode = this.safeString(message, "contract_code");
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
-                if ((data is IList<object> hxList122645))
+                if ((data is IList<object> hxList122675))
                 {
                     List<object> dataList = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; i < dataList.Count; i++)

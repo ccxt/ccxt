@@ -2538,7 +2538,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrders(ordersToBeParsed);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, string amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, string amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2550,8 +2550,8 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string typeValue = ((string)type).ToUpper();
-        string sideValue = ((string)side).ToUpper();
+        string typeValue = type.ToUpper();
+        string sideValue = side.ToUpper();
         bool isMarket = (typeValue == "MARKET");
         bool isBuy = (sideValue == "BUY");
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
@@ -2678,7 +2678,7 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> market = this.market(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             string? type = this.safeStringUpper(rawOrder, "type");
             string? side = this.safeStringUpper(rawOrder, "side");
             string? amount = this.safeString(rawOrder, "amount");
@@ -3192,7 +3192,7 @@ public partial class hyperliquid : Exchange
             string? id = this.safeString(rawOrder, "id");
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> market = this.market(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             string? type = this.safeStringUpper(rawOrder, "type");
             bool isMarket = (type == "MARKET");
             string? side = this.safeStringUpper(rawOrder, "side");

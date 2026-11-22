@@ -2552,7 +2552,7 @@ public partial class digifinex : Exchange
             List<object> ordersRequests = new List<object>() {};
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+                Dictionary<string, object> market = this.market(this.safeString(symbols, i));
                 string? marketId = this.safeString(market, "id");
                 string? orderId = ((string)ids[i]);
                 ordersRequests.Add(new Dictionary<string, object>() {
@@ -2581,7 +2581,7 @@ public partial class digifinex : Exchange
                 result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                     { "info", orderId },
                     { "id", orderId },
-                    { "symbol", (symbols != null && i < symbols.Count ? symbols[i] : null) },
+                    { "symbol", this.safeString(symbols, i) },
                     { "status", status },
                 })));
             }
@@ -5117,8 +5117,10 @@ public partial class digifinex : Exchange
                     }
                 } else
                 {
-                    depositWithdrawFee["withdraw"] = withdrawResult;
-                    depositWithdrawFee["deposit"] = depositResult;
+                    depositWithdrawFees[(string)code] = this.extend(depositWithdrawFee, new Dictionary<string, object>() {
+                        { "withdraw", withdrawResult },
+                        { "deposit", depositResult },
+                    });
                 }
             }
         }
