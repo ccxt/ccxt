@@ -16117,8 +16117,7 @@ public class Binance extends BinanceApi
         //         }
         //     ]
         //
-        Object first = this.safeDict(response, 0, response);
-        return this.parseLedgerEntry((Map<String, Object>) (first), currency);
+        return this.parseLedgerEntry((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), currency);
 
     }
 
@@ -16654,7 +16653,7 @@ public class Binance extends BinanceApi
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        Object parsedMessage = null;
+        Object responseParsed = response;
         if (!Boolean.TRUE.equals(success))
         {
             String messageNew = this.safeString(response, "msg");
@@ -16662,15 +16661,14 @@ public class Binance extends BinanceApi
             {
                 try
                 {
-                    parsedMessage = Helpers.parseJson(messageNew);
+                    responseParsed = Helpers.parseJson(messageNew);
                 } catch(Exception e)
                 {
                     // do nothing
-                    parsedMessage = null;
+                    responseParsed = response;
                 }
             }
         }
-        Object responseParsed = (((!java.util.Objects.equals(parsedMessage, null)))) ? parsedMessage : response;
         String message = this.safeString(responseParsed, "msg");
         if (!java.util.Objects.equals(message, null))
         {

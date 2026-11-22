@@ -1051,7 +1051,8 @@ public class Interactivebrokers extends InteractivebrokersApi
         String dhResponse = this.safeString(response, "diffie_hellman_response", "");
         BigInteger sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
         String liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1(), "base64");
-        String check = this.hmac(this.encode(this.options.get("consumer_key")), this.base64ToBinary(liveSessionToken), sha1(), "hex");
+        String consumerKey = this.safeString(this.options, "consumer_key", "");
+        String check = this.hmac(this.encode(consumerKey), this.base64ToBinary(liveSessionToken), sha1(), "hex");
         if (!java.util.Objects.equals(check, this.safeString(response, "live_session_token_signature")))
         {
             throw new AuthenticationError((this.id + " signIn() live session token validation failed")) ;
@@ -1200,7 +1201,8 @@ public class Interactivebrokers extends InteractivebrokersApi
             Object regainTimestamp = this.sum(lostTimestamp, regainDelay);
             if (((!((this.milliseconds()) >= ((Number) regainTimestamp).doubleValue()))))
             {
-                throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + this.iso8601(regainTimestamp)) + " (options.autoRegainSession), ") + this.json(response))) ;
+                String regainDatetime = this.iso8601(regainTimestamp);
+                throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + regainDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
             }
             response = (this.ibkrGatewayRegainSession(parameters)).join();
             authenticated = (Boolean) this.safeBool(response, "authenticated", false);
@@ -1209,7 +1211,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 // try again options.autoRegainSession seconds later
                 this.options.put("gatewaySessionLostTimestamp", this.milliseconds());
                 this.ibkrGatewayScheduleRegain();
-                throw new AuthenticationError(((((this.id + " failed to take back the brokerage session of the client portal gateway, retrying at ") + this.iso8601(this.sum(this.milliseconds(), regainDelay))) + " (options.autoRegainSession), ") + this.json(response))) ;
+                String retryDatetime = this.iso8601(this.sum(this.milliseconds(), regainDelay));
+                throw new AuthenticationError(((((this.id + " failed to take back the brokerage session of the client portal gateway, retrying at ") + retryDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
             }
         }
         this.options.remove("gatewaySessionLostTimestamp");
@@ -2270,7 +2273,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         for (var i = 0; i < cfdExchanges.size(); i++)
         {
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("exchange", (cfdExchanges == null || i < 0 || i >= cfdExchanges.size() ? null : cfdExchanges.get(i)));
+            request.put("exchange", this.safeString(cfdExchanges, i, ""));
             request.put("assetClass", "CFD");
             promises.add(this.marketsEndpointCall(request, "webapiGetV1ApiTrsrvAllConids", new ArrayList<Object>(Arrays.asList())));
         }
@@ -2333,7 +2336,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         for (var i = 0; i < bondSymbols.size(); i++)
         {
             Map<String, Object> searchRequest = new HashMap<String, Object>();
-            searchRequest.put("symbol", (bondSymbols == null || i < 0 || i >= bondSymbols.size() ? null : bondSymbols.get(i)));
+            searchRequest.put("symbol", this.safeString(bondSymbols, i, ""));
             searchRequest.put("secType", "BOND");
             searchPromises.add(this.marketsEndpointCall((Map<String, Object>) (this.extend(searchRequest, parameters)), "webapiPostV1ApiIserverSecdefSearch", new ArrayList<Object>(Arrays.asList())));
         }
@@ -2448,7 +2451,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> stockExchanges = this.safeList(exchangesDict, "STK", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < stockExchanges.size(); j++)
         {
-            Object exchange = (stockExchanges == null || j < 0 || j >= stockExchanges.size() ? null : stockExchanges.get(j));
+            String exchange = this.safeString(stockExchanges, j, "");
             Map<String, Object> stockRequest = new HashMap<String, Object>() {{
                 put( "exchange", exchange );
                 put( "assetClass", "STK" );
@@ -3196,12 +3199,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         if (!java.util.Objects.equals(multiplier, null))
         {
-            String scaled = Precise.stringMul((result == null ? null : ((String)result).substring(0, (int) Math.min(((((long) ((String)result).length()) - 1L)) < 0 ? ((String)result).length() + ((((long) ((String)result).length()) - 1L)) : ((((long) ((String)result).length()) - 1L)), ((String)result).length()))), multiplier);
-            if (java.util.Objects.equals(scaled, null))
-            {
-                return null;
-            }
-            result = scaled;
+            return Precise.stringMul((result == null ? null : ((String)result).substring(0, (int) Math.min(((((long) ((String)result).length()) - 1L)) < 0 ? ((String)result).length() + ((((long) ((String)result).length()) - 1L)) : ((((long) ((String)result).length()) - 1L)), ((String)result).length()))), multiplier);
         }
         if (java.util.Objects.equals(result, ""))
         {
@@ -4448,9 +4446,11 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         Map<String, Object> options = this.safeDict(this.options, "fetchMyTrades", new HashMap<String, Object>() {{}});
         String defaultMethod = "privateGetIserverAccountTrades";
-        if (!java.util.Objects.equals(market, null))
+        if (!java.util.Objects.equals(symbol, null))
         {
-            String assetClass = this.safeString(market.get("info"), "assetClass");
+            Map<String, Object> symbolMarket = this.market(symbol);
+            Map<String, Object> symbolInfo = this.safeDict(symbolMarket, "info", null);
+            String assetClass = this.safeString(symbolInfo, "assetClass");
             if (java.util.Objects.equals(assetClass, "CRYPTO"))
             {
                 defaultMethod = "privatePostPaTransactions";
@@ -4536,7 +4536,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("acctIds", new ArrayList<Object>(Arrays.asList(accountId)));
-        request.put("conids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))));
+        request.put("conids", new ArrayList<Object>(Arrays.asList(this.parseToInt(this.safeString(market, "id")))));
         request.put("currency", currency);
         request.put("days", days);
         Map<String, Object> response = (this.webapiPostV1ApiPaTransactions(this.extend(request, query))).join();
@@ -5170,7 +5170,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 String message = this.exceptionMessage(e, false);
                 Boolean mustQueryAccounts = ((String)message).indexOf("query /accounts first") >= 0;
-                if (Boolean.TRUE.equals(isAccountsPath) || !Boolean.TRUE.equals(mustQueryAccounts) || ((retries != null && i == retries)))
+                if (Boolean.TRUE.equals(isAccountsPath) || !Boolean.TRUE.equals(mustQueryAccounts) || ((retries == null || i >= retries)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

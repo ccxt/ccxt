@@ -710,11 +710,15 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (java.util.Objects.equals(this.safeString(position, "side"), null))
             {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                ((Map<String, Object>)position).put("side", "long");
                 Map<String, Object> shortPosition = this.extend(position, new HashMap<String, Object>() {{
                     put( "side", "short" );
                 }});
                 ((io.github.ccxt.ws.ArrayCache) this.positions).append(shortPosition);
+                Map<String, Object> longPosition = this.extend(position, new HashMap<String, Object>() {{
+                    put( "side", "long" );
+                }});
+                ((io.github.ccxt.ws.ArrayCache) this.positions).append(longPosition);
+                continue;
             }
             ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         }
@@ -1999,16 +2003,17 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Client client = this.client(url);
         String messageHash = "authenticated";
         Object future = this.safeValue(client.subscriptions, messageHash);
-        if (!java.util.Objects.equals(future, null))
+        Boolean subscribed = (!java.util.Objects.equals(future, null));
+        if (Boolean.TRUE.equals(subscribed))
         {
             Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
             if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(client.futures.containsKey(messageHash)))
             {
                 client.subscriptions.remove(messageHash);
-                future = null;
+                subscribed = false;
             }
         }
-        if (java.util.Objects.equals(future, null))
+        if (!Boolean.TRUE.equals(subscribed))
         {
             this.checkRequiredCredentials(true);
             Long requestId = this.requestId();

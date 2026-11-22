@@ -843,8 +843,8 @@ public class Gemini extends GeminiApi
 
         Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>", (String) null)).join();
         String error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-        List<Object> tables = (List<Object>) Helpers.split(data, "tbody>");
-        Integer numTables = (tables == null ? 0 : tables.size());
+        List<Object> tables = new ArrayList<Object>(Arrays.asList(((String)((String)data)).split(java.util.regex.Pattern.quote("tbody>"))));
+        Integer numTables = tables.size();
         if (((numTables == null || numTables < 2)))
         {
             throw new NotSupported(error) ;

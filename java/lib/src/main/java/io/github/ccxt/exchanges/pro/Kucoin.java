@@ -2049,12 +2049,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook());
-            } else
-            {
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-                orderbook.reset(null);
             }
-            this.orderbooks.get(symbol).put("symbol", symbol);
+            io.github.ccxt.ws.WsOrderBook storedBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            storedBook.reset(null);
+            storedBook.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null));
         } else
         {
             if (!(this.orderbooks.containsKey(symbol)))

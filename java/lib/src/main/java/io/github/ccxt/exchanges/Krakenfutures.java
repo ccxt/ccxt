@@ -1744,8 +1744,8 @@ public class Krakenfutures extends KrakenfuturesApi
             String marketId = this.safeString(rawOrder, "symbol");
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(extendedParams.containsKey("order_tag")))
@@ -2874,19 +2874,24 @@ public class Krakenfutures extends KrakenfuturesApi
         String cost = null;
         if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(marketResolved, null)))
         {
-            String whichPrice = price;
+            Boolean isLinear = (Boolean) this.safeBool(marketResolved, "linear", false);
             if (!java.util.Objects.equals(average, null))
             {
-                whichPrice = average;
-            }
-            if (!java.util.Objects.equals(whichPrice, null))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
+                if (Boolean.TRUE.equals(isLinear))
                 {
-                    cost = Precise.stringMul(filled, whichPrice); // in quote
+                    cost = Precise.stringMul(filled, average); // in quote
                 } else
                 {
-                    cost = Precise.stringDiv(filled, whichPrice); // in base
+                    cost = Precise.stringDiv(filled, average); // in base
+                }
+            } else if (!java.util.Objects.equals(price, null))
+            {
+                if (Boolean.TRUE.equals(isLinear))
+                {
+                    cost = Precise.stringMul(filled, price); // in quote
+                } else
+                {
+                    cost = Precise.stringDiv(filled, price); // in base
                 }
             }
         }

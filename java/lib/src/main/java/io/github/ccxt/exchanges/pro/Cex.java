@@ -255,7 +255,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object tradeParts = trade;
         if (!(trade instanceof List))
         {
-            tradeParts = Helpers.split(trade, ":");
+            tradeParts = new ArrayList<Object>(Arrays.asList(((String)((String)trade)).split(java.util.regex.Pattern.quote(":"))));
         }
         String side = this.safeString(tradeParts, 0);
         Long timestamp = this.safeInteger(tradeParts, 1);
@@ -1080,7 +1080,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             return null;
         }
         var precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, this.safeInteger(new ArrayList<Object>(Arrays.asList(scale)), 0, 0));
+        precise.decimals += java.util.Objects.requireNonNullElse(this.safeInteger(new ArrayList<Object>(Arrays.asList(scale)), 0, 0), 0L).intValue();
         precise.reduce();
         return String.valueOf(precise);
     }

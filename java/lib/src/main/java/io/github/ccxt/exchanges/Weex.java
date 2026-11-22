@@ -2161,7 +2161,12 @@ public class Weex extends WeexApi
         {
             tradeMarketType = "swap";
         }
-        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? tradeMarketId : null, market, (String) null, tradeMarketType);
+        String tradeMarketIdArg = tradeMarketId;
+        if (!java.util.Objects.equals(market, null))
+        {
+            tradeMarketIdArg = null;
+        }
+        Map<String, Object> marketResolved = this.safeMarket(tradeMarketIdArg, market, (String) null, tradeMarketType);
         Object isSpot = false;
         if (java.util.Objects.equals(market, null))
         {
@@ -3912,7 +3917,12 @@ public class Weex extends WeexApi
         {
             orderMarketType = "spot";
         }
-        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? orderMarketId : null, market, (String) null, orderMarketType);
+        String orderMarketIdArg = orderMarketId;
+        if (!java.util.Objects.equals(market, null))
+        {
+            orderMarketIdArg = null;
+        }
+        Map<String, Object> marketResolved = this.safeMarket(orderMarketIdArg, market, (String) null, orderMarketType);
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("transactTime", "time", "createTime")));
         String rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         String triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));

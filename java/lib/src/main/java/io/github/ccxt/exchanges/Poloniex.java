@@ -2168,11 +2168,11 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> fee = null;
         String feeCurrency = this.safeString2(order, "tokenFeeCurrency", "feeCcy");
         String feeCost = null;
-        Object feeCurrencyCode = null;
+        String feeCurrencyCode = null;
         String rate = this.safeString(order, "fee");
         if (java.util.Objects.equals(feeCurrency, null))
         {
-            feeCurrencyCode = (((java.util.Objects.equals(side, "buy")))) ? marketResolved.get("base") : marketResolved.get("quote");
+            feeCurrencyCode = java.util.Objects.toString((((java.util.Objects.equals(side, "buy")))) ? marketResolved.get("base") : marketResolved.get("quote"), null);
         } else
         {
             // poloniex accepts a 30% discount to pay fees in TRX
@@ -4117,10 +4117,11 @@ public class Poloniex extends PoloniexApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        List<Object> responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> feesById = this.extend(new HashMap<String, Object>() {{}}, response);
+        List<String> responseKeys = new ArrayList<String>(feesById.keySet());
         for (var i = 0; i < responseKeys.size(); i++)
         {
-            String currencyId = (String) (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
+            String currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> feeInfo = this.safeDict(response, currencyId, null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
@@ -4140,18 +4141,22 @@ public class Poloniex extends PoloniexApi
                         Map<String, Object> networkInfo = this.safeDict(response, networkId, null);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee", (Object) null);
+                        Map<String, Object> withdrawObject = new HashMap<String, Object>();
+                        withdrawObject.put("fee", withdrawFee);
+                        withdrawObject.put("percentage", null);
+                        if (!java.util.Objects.equals(withdrawFee, null))
+                        {
+                            withdrawObject.put("percentage", false);
+                        }
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-                            HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                            mapLiteral9.put("fee", withdrawFee);
-                            mapLiteral9.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
-                            mapLiteral8.put("withdraw", mapLiteral9);
-                            mapLiteral8.put("deposit", new HashMap<String, Object>() {{
+                            networkObject.put(networkCode, new HashMap<String, Object>() {{
+    put( "withdraw", withdrawObject );
+    put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
-    }});
-                            networkObject.put(networkCode, mapLiteral8);
+    }} );
+}});
                         }
                         parsedFee.put("networks", this.extend(this.safeDict(parsedFee, "networks", new HashMap<String, Object>() {{}}), networkObject));
                     }
@@ -4675,36 +4680,36 @@ public class Poloniex extends PoloniexApi
             collateral = ((((!java.util.Objects.equals(positionMargin, null)) && (!java.util.Objects.equals(upl, null))))) ? Precise.stringAdd(positionMargin, upl) : null;
         }
         // todo: some more fields
-        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-        mapLiteral10.put("info", position);
-        mapLiteral10.put("id", null);
-        mapLiteral10.put("symbol", marketResolved.get("symbol"));
-        mapLiteral10.put("notional", this.parseNumber(notional));
-        mapLiteral10.put("marginMode", marginMode);
-        mapLiteral10.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
-        mapLiteral10.put("entryPrice", this.safeNumber(position, "openAvgPx", (Object) null));
-        mapLiteral10.put("unrealizedPnl", this.safeNumber(position, "upl", (Object) null));
-        mapLiteral10.put("percentage", null);
-        mapLiteral10.put("contracts", this.safeNumber(position, "qty", (Object) null));
-        mapLiteral10.put("contractSize", null);
-        mapLiteral10.put("markPrice", this.safeNumber(position, "markPx", (Object) null));
-        mapLiteral10.put("lastPrice", null);
-        mapLiteral10.put("side", this.safeStringLower(position, "posSide"));
-        mapLiteral10.put("hedged", null);
-        mapLiteral10.put("timestamp", timestamp);
-        mapLiteral10.put("datetime", this.iso8601(timestamp));
-        mapLiteral10.put("lastUpdateTimestamp", null);
-        mapLiteral10.put("maintenanceMargin", this.safeNumber(position, "mm", (Object) null));
-        mapLiteral10.put("maintenanceMarginPercentage", null);
-        mapLiteral10.put("collateral", this.parseNumber(collateral));
-        mapLiteral10.put("positionMargin", this.parseNumber(positionMargin));
-        mapLiteral10.put("initialMargin", this.parseNumber(initialMargin));
-        mapLiteral10.put("initialMarginPercentage", null);
-        mapLiteral10.put("leverage", this.safeInteger(position, "lever"));
-        mapLiteral10.put("marginRatio", this.safeNumber(position, "mgnRatio", (Object) null));
-        mapLiteral10.put("stopLossPrice", this.safeNumber(position, "slTrgPx", (Object) null));
-        mapLiteral10.put("takeProfitPrice", this.safeNumber(position, "tpTrgPx", (Object) null));
-        return this.safePosition(mapLiteral10);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", marketResolved.get("symbol"));
+        mapLiteral8.put("notional", this.parseNumber(notional));
+        mapLiteral8.put("marginMode", marginMode);
+        mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
+        mapLiteral8.put("entryPrice", this.safeNumber(position, "openAvgPx", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "upl", (Object) null));
+        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("contracts", this.safeNumber(position, "qty", (Object) null));
+        mapLiteral8.put("contractSize", null);
+        mapLiteral8.put("markPrice", this.safeNumber(position, "markPx", (Object) null));
+        mapLiteral8.put("lastPrice", null);
+        mapLiteral8.put("side", this.safeStringLower(position, "posSide"));
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastUpdateTimestamp", null);
+        mapLiteral8.put("maintenanceMargin", this.safeNumber(position, "mm", (Object) null));
+        mapLiteral8.put("maintenanceMarginPercentage", null);
+        mapLiteral8.put("collateral", this.parseNumber(collateral));
+        mapLiteral8.put("positionMargin", this.parseNumber(positionMargin));
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("leverage", this.safeInteger(position, "lever"));
+        mapLiteral8.put("marginRatio", this.safeNumber(position, "mgnRatio", (Object) null));
+        mapLiteral8.put("stopLossPrice", this.safeNumber(position, "slTrgPx", (Object) null));
+        mapLiteral8.put("takeProfitPrice", this.safeNumber(position, "tpTrgPx", (Object) null));
+        return this.safePosition(mapLiteral8);
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)

@@ -1627,7 +1627,7 @@ public class Polymarket extends PolymarketApi
         Double quoteVolume = null;
         if (!java.util.Objects.equals(market, null))
         {
-            quoteVolume = this.safeNumber2(market.get("info"), "volume24hr", "volume", (Object) null);
+            quoteVolume = this.safeNumber2(this.safeDict(market, "info", null), "volume24hr", "volume", (Object) null);
         }
         HashMap<String, Object> j39v3 = new HashMap<String, Object>();
         j39v3.put("outcome", outcome);

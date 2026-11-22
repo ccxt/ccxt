@@ -2309,10 +2309,12 @@ public class Paradex extends ParadexApi
         }};
         String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
         String signature = this.starknetSign(msg, account.get("privateKey"));
-        parameters.put("signature", signature);
-        Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
-        Helpers.addElementToObject(parameters, "public_key", this.safeString(account, "publicKey"));
-        Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "signature", signature );
+            put( "account", Paradex.this.safeString(account, "address") );
+            put( "public_key", Paradex.this.safeString(account, "publicKey") );
+        }};
+        Map<String, Object> response = (this.privatePostOnboarding(this.extend(parameters, request))).join();
         return response;
 
     }
@@ -2369,11 +2371,12 @@ public class Paradex extends ParadexApi
         }};
         String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
         String signature = this.starknetSign(msg, account.get("privateKey"));
-        parameters.put("signature", signature);
-        Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
-        parameters.put("timestamp", req.get("timestamp"));
-        parameters.put("expiration", req.get("expiration"));
-        Map<String, Object> response = (this.privatePostAuth(parameters)).join();
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("signature", signature);
+        request.put("account", this.safeString(account, "address"));
+        request.put("timestamp", now);
+        request.put("expiration", expires);
+        Map<String, Object> response = (this.privatePostAuth(this.extend(parameters, request))).join();
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -4950,7 +4953,13 @@ public class Paradex extends ParadexApi
             Long paginationCalls = (Long) ((List<Object>) paginationCallsparamsCallsVariable).get(0);
             Map<String, Object> paramsCalls = (Map<String, Object>) ((List<Object>) paginationCallsparamsCallsVariable).get(1);
             Long until = this.safeInteger(paramsCalls, "until");
-            Object endAt = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.milliseconds(), this.sum(since, Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing)));
+            Long pageSpan = this.parseToInt(Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing));
+            Long sinceEnd = (Long) this.sum(since, pageSpan);
+            Long endAt = this.milliseconds();
+            if ((endAt != null && (sinceEnd == null || sinceEnd < endAt)))
+            {
+                endAt = sinceEnd;
+            }
             if (!java.util.Objects.equals(until, null))
             {
                 endAt = until;

@@ -4109,7 +4109,7 @@ public class Bitget extends BitgetApi
             var precise = new Precise(priceEndStep);
             if (!java.util.Objects.equals(pricePlaces, null))
             {
-                precise.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(precise.decimals, pricePlaces);
+                precise.decimals = Math.max(precise.decimals, pricePlaces.intValue());
             }
             precise.reduce();
             String priceString = String.valueOf(precise);
@@ -4117,7 +4117,7 @@ public class Bitget extends BitgetApi
             var preciseAmount = new Precise(sizeMultiplier);
             if (!java.util.Objects.equals(volumePlaces, null))
             {
-                preciseAmount.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(preciseAmount.decimals, volumePlaces);
+                preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces.intValue());
             }
             preciseAmount.reduce();
             String amountString = String.valueOf(preciseAmount);

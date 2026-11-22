@@ -3436,8 +3436,12 @@ public class Sxbet extends SxbetApi
         {
             throw new AuthenticationError((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
-        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)baseUrls.get("sxbet")));
+        String baseUrl = this.safeString(this.urls.get("api"), "sxbet", "");
+        String groupUrl = this.safeString(this.urls.get("api"), apiGroup);
+        if (!java.util.Objects.equals(groupUrl, null))
+        {
+            baseUrl = groupUrl;
+        }
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};

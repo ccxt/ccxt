@@ -1247,35 +1247,35 @@ public class Toobit extends ToobitApi
         {
             symbol = ((((base + "/") + quote) + ":") + settle);
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("base", base);
-        mapLiteral2.put("quote", quote);
-        mapLiteral2.put("settle", settle);
-        mapLiteral2.put("baseId", baseId);
-        mapLiteral2.put("quoteId", quoteId);
-        mapLiteral2.put("settleId", settleId);
-        mapLiteral2.put("type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot");
-        mapLiteral2.put("spot", !Boolean.TRUE.equals(isContract));
-        mapLiteral2.put("margin", false);
-        mapLiteral2.put("swap", isContract);
-        mapLiteral2.put("future", false);
-        mapLiteral2.put("option", false);
-        mapLiteral2.put("active", active);
-        mapLiteral2.put("contract", isContract);
-        mapLiteral2.put("linear", ((Boolean.TRUE.equals(isContract))) ? (!java.util.Objects.equals(inverse, true)) : null);
-        mapLiteral2.put("inverse", ((Boolean.TRUE.equals(isContract))) ? inverse : null);
-        mapLiteral2.put("contractSize", this.safeNumber(market, "contractMultiplier", (Object) null));
-        mapLiteral2.put("expiry", null);
-        mapLiteral2.put("expiryDatetime", null);
-        mapLiteral2.put("strike", null);
-        mapLiteral2.put("optionType", null);
-        mapLiteral2.put("precision", new HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("id", id);
+        result.put("symbol", symbol);
+        result.put("base", base);
+        result.put("quote", quote);
+        result.put("settle", settle);
+        result.put("baseId", baseId);
+        result.put("quoteId", quoteId);
+        result.put("settleId", settleId);
+        result.put("type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot");
+        result.put("spot", !Boolean.TRUE.equals(isContract));
+        result.put("margin", false);
+        result.put("swap", isContract);
+        result.put("future", false);
+        result.put("option", false);
+        result.put("active", active);
+        result.put("contract", isContract);
+        result.put("linear", null);
+        result.put("inverse", null);
+        result.put("contractSize", this.safeNumber(market, "contractMultiplier", (Object) null));
+        result.put("expiry", null);
+        result.put("expiryDatetime", null);
+        result.put("strike", null);
+        result.put("optionType", null);
+        result.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Toobit.this.safeNumber(lotSizeFilter, "stepSize", (Object) null) );
                 put( "price", Toobit.this.safeNumber(priceFilter, "tickSize", (Object) null) );
             }});
-        mapLiteral2.put("limits", new HashMap<String, Object>() {{
+        result.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1293,9 +1293,14 @@ public class Toobit extends ToobitApi
                     put( "max", null );
                 }} );
             }});
-        mapLiteral2.put("created", null);
-        mapLiteral2.put("info", market);
-        return this.safeMarketStructure(mapLiteral2);
+        result.put("created", null);
+        result.put("info", market);
+        if (Boolean.TRUE.equals(isContract))
+        {
+            result.put("linear", (!java.util.Objects.equals(inverse, true)));
+            result.put("inverse", inverse);
+        }
+        return this.safeMarketStructure(result);
     }
 
     /**
@@ -1495,21 +1500,21 @@ public class Toobit extends ToobitApi
         }
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("id", this.safeString2(trade, "id", "v"));
-        mapLiteral3.put("order", this.safeString(trade, "orderId"));
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("amount", amountString);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", this.safeString2(trade, "id", "v"));
+        mapLiteral2.put("order", this.safeString(trade, "orderId"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1703,28 +1708,28 @@ public class Toobit extends ToobitApi
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("high", this.safeString(ticker, "h"));
-        mapLiteral4.put("low", this.safeString(ticker, "l"));
-        mapLiteral4.put("bid", this.safeString(ticker, "b"));
-        mapLiteral4.put("bidVolume", null);
-        mapLiteral4.put("ask", this.safeString(ticker, "a"));
-        mapLiteral4.put("askVolume", null);
-        mapLiteral4.put("vwap", null);
-        mapLiteral4.put("open", this.safeString(ticker, "o"));
-        mapLiteral4.put("close", last);
-        mapLiteral4.put("last", last);
-        mapLiteral4.put("previousClose", null);
-        mapLiteral4.put("change", this.safeString(ticker, "pc"));
-        mapLiteral4.put("percentage", Precise.stringMul(this.safeString(ticker, "pcp"), "100"));
-        mapLiteral4.put("average", null);
-        mapLiteral4.put("baseVolume", baseVolume);
-        mapLiteral4.put("quoteVolume", this.safeString(ticker, "qv"));
-        mapLiteral4.put("info", ticker);
-        return this.safeTicker(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", this.safeString(ticker, "h"));
+        mapLiteral3.put("low", this.safeString(ticker, "l"));
+        mapLiteral3.put("bid", this.safeString(ticker, "b"));
+        mapLiteral3.put("bidVolume", null);
+        mapLiteral3.put("ask", this.safeString(ticker, "a"));
+        mapLiteral3.put("askVolume", null);
+        mapLiteral3.put("vwap", null);
+        mapLiteral3.put("open", this.safeString(ticker, "o"));
+        mapLiteral3.put("close", last);
+        mapLiteral3.put("last", last);
+        mapLiteral3.put("previousClose", null);
+        mapLiteral3.put("change", this.safeString(ticker, "pc"));
+        mapLiteral3.put("percentage", Precise.stringMul(this.safeString(ticker, "pcp"), "100"));
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", baseVolume);
+        mapLiteral3.put("quoteVolume", this.safeString(ticker, "qv"));
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, marketResolved);
     }
 
     /**
@@ -2367,34 +2372,34 @@ public class Toobit extends ToobitApi
         }
         // omitZero already maps '0.0' to undefined
         String triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", order);
-        mapLiteral5.put("id", this.safeString(order, "orderId"));
-        mapLiteral5.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
-        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(order, "status")));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", this.parseOrderType(rawType));
-        mapLiteral5.put("timeInForce", this.safeString(order, "timeInForce"));
-        mapLiteral5.put("postOnly", (java.util.Objects.equals(rawType, "LIMIT_MAKER")));
-        mapLiteral5.put("side", rawSideLower);
-        mapLiteral5.put("price", this.omitZero(this.safeString(order, "price")));
-        mapLiteral5.put("triggerPrice", triggerPrice);
-        mapLiteral5.put("cost", this.omitZero(this.safeString(order, "cumulativeQuoteQty")));
-        mapLiteral5.put("average", this.safeString(order, "avgPrice"));
-        mapLiteral5.put("amount", this.safeString(order, "origQty"));
-        mapLiteral5.put("filled", this.safeString(order, "executedQty"));
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("trades", null);
-        mapLiteral5.put("fee", null);
-        mapLiteral5.put("marginMode", null);
-        mapLiteral5.put("reduceOnly", reduceOnly);
-        mapLiteral5.put("leverage", null);
-        mapLiteral5.put("hedged", null);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", this.safeString(order, "orderId"));
+        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "status")));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", this.parseOrderType(rawType));
+        mapLiteral4.put("timeInForce", this.safeString(order, "timeInForce"));
+        mapLiteral4.put("postOnly", (java.util.Objects.equals(rawType, "LIMIT_MAKER")));
+        mapLiteral4.put("side", rawSideLower);
+        mapLiteral4.put("price", this.omitZero(this.safeString(order, "price")));
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        mapLiteral4.put("cost", this.omitZero(this.safeString(order, "cumulativeQuoteQty")));
+        mapLiteral4.put("average", this.safeString(order, "avgPrice"));
+        mapLiteral4.put("amount", this.safeString(order, "origQty"));
+        mapLiteral4.put("filled", this.safeString(order, "executedQty"));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("reduceOnly", reduceOnly);
+        mapLiteral4.put("leverage", null);
+        mapLiteral4.put("hedged", null);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -2532,9 +2537,9 @@ public class Toobit extends ToobitApi
         {
             response = (this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, paramsMarketType))).join();
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", response);
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", response);
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral5, (Map<String, Object>) null)));
 
     }
 
@@ -3040,23 +3045,23 @@ public class Toobit extends ToobitApi
         {
             direction = "out";
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", item);
-        mapLiteral7.put("id", this.safeString(item, "id"));
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("direction", direction);
-        mapLiteral7.put("account", null);
-        mapLiteral7.put("referenceId", null);
-        mapLiteral7.put("referenceAccount", null);
-        mapLiteral7.put("type", this.parseLedgerType(this.safeString(item, "flowType")));
-        mapLiteral7.put("currency", currencyResolved.get("code"));
-        mapLiteral7.put("amount", amount);
-        mapLiteral7.put("before", null);
-        mapLiteral7.put("after", after);
-        mapLiteral7.put("status", null);
-        mapLiteral7.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", item);
+        mapLiteral6.put("id", this.safeString(item, "id"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("direction", direction);
+        mapLiteral6.put("account", null);
+        mapLiteral6.put("referenceId", null);
+        mapLiteral6.put("referenceAccount", null);
+        mapLiteral6.put("type", this.parseLedgerType(this.safeString(item, "flowType")));
+        mapLiteral6.put("currency", currencyResolved.get("code"));
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("before", null);
+        mapLiteral6.put("after", after);
+        mapLiteral6.put("status", null);
+        mapLiteral6.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
     }
 
     public String parseLedgerType(String type)

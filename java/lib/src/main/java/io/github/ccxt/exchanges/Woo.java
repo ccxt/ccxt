@@ -4108,7 +4108,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? ((Map<String, Object>)this.market(symbol)).get("symbol") : null;
+        String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(this.market(symbol), "symbol") : null;
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "token", currency.get("id") );

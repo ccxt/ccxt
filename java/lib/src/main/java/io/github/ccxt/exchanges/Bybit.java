@@ -2395,9 +2395,9 @@ public class Bybit extends BybitApi
         Integer dataLength = data.size();
         if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
         {
-            Map<String, Object> first = (Map<String, Object>) (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-            first.put("nextPageCursor", paginationCursor);
-            data.set(0, first);
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("nextPageCursor", paginationCursor);
+            data.set(0, this.extend((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), j39v1));
         }
         return data;
     }
@@ -3080,37 +3080,37 @@ public class Bybit extends BybitApi
             Map<String, Object> priceFilter = this.safeDict(market, "priceFilter", null);
             Double quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision", (Object) null);
             String marginTrading = this.safeString(market, "marginTrading", "none");
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", (!java.util.Objects.equals(marginTrading, "none")));
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", active);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("taker", this.parseNumber("0.001"));
-            j39v1.put("maker", this.parseNumber("0.001"));
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("id", id);
+            j39v2.put("symbol", symbol);
+            j39v2.put("base", base);
+            j39v2.put("quote", quote);
+            j39v2.put("settle", null);
+            j39v2.put("baseId", baseId);
+            j39v2.put("quoteId", quoteId);
+            j39v2.put("settleId", null);
+            j39v2.put("type", "spot");
+            j39v2.put("spot", true);
+            j39v2.put("margin", (!java.util.Objects.equals(marginTrading, "none")));
+            j39v2.put("swap", false);
+            j39v2.put("future", false);
+            j39v2.put("option", false);
+            j39v2.put("active", active);
+            j39v2.put("contract", false);
+            j39v2.put("linear", null);
+            j39v2.put("inverse", null);
+            j39v2.put("taker", this.parseNumber("0.001"));
+            j39v2.put("maker", this.parseNumber("0.001"));
+            j39v2.put("contractSize", null);
+            j39v2.put("expiry", null);
+            j39v2.put("expiryDatetime", null);
+            j39v2.put("strike", null);
+            j39v2.put("optionType", null);
+            j39v2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bybit.this.safeNumber(lotSizeFilter, "basePrecision", (Object) null) );
                     put( "price", Bybit.this.safeNumber(priceFilter, "tickSize", quotePrecision) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            j39v2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", Bybit.this.parseNumber("1") );
                         put( "max", null );
@@ -3128,9 +3128,9 @@ public class Bybit extends BybitApi
                         put( "max", Bybit.this.safeNumber(lotSizeFilter, "maxOrderAmt", (Object) null) );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(this.safeMarketStructure(j39v1));
+            j39v2.put("created", null);
+            j39v2.put("info", market);
+            ((List<Object>)result).add(this.safeMarketStructure(j39v2));
         }
         return result;
 
@@ -3485,38 +3485,38 @@ public class Bybit extends BybitApi
             boolean loadExpiredOptions = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "loadExpiredOptions", (Object) null));
             if (Boolean.TRUE.equals(isActive) || (loadAllOptions) || (loadExpiredOptions))
             {
-                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("id", id);
-                j39v2.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter));
-                j39v2.put("base", base);
-                j39v2.put("quote", quote);
-                j39v2.put("settle", settle);
-                j39v2.put("baseId", baseId);
-                j39v2.put("quoteId", quoteId);
-                j39v2.put("settleId", settleId);
-                j39v2.put("type", "option");
-                j39v2.put("subType", null);
-                j39v2.put("spot", false);
-                j39v2.put("margin", false);
-                j39v2.put("swap", false);
-                j39v2.put("future", false);
-                j39v2.put("option", true);
-                j39v2.put("active", isActive);
-                j39v2.put("contract", true);
-                j39v2.put("linear", !Boolean.TRUE.equals(isInverse));
-                j39v2.put("inverse", isInverse);
-                j39v2.put("taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")));
-                j39v2.put("maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")));
-                j39v2.put("contractSize", this.parseNumber("1"));
-                j39v2.put("expiry", expiry);
-                j39v2.put("expiryDatetime", this.iso8601(expiry));
-                j39v2.put("strike", this.parseNumber(strike));
-                j39v2.put("optionType", this.safeStringLower(market, "optionsType"));
-                j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("id", id);
+                j39v3.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter));
+                j39v3.put("base", base);
+                j39v3.put("quote", quote);
+                j39v3.put("settle", settle);
+                j39v3.put("baseId", baseId);
+                j39v3.put("quoteId", quoteId);
+                j39v3.put("settleId", settleId);
+                j39v3.put("type", "option");
+                j39v3.put("subType", null);
+                j39v3.put("spot", false);
+                j39v3.put("margin", false);
+                j39v3.put("swap", false);
+                j39v3.put("future", false);
+                j39v3.put("option", true);
+                j39v3.put("active", isActive);
+                j39v3.put("contract", true);
+                j39v3.put("linear", !Boolean.TRUE.equals(isInverse));
+                j39v3.put("inverse", isInverse);
+                j39v3.put("taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")));
+                j39v3.put("maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")));
+                j39v3.put("contractSize", this.parseNumber("1"));
+                j39v3.put("expiry", expiry);
+                j39v3.put("expiryDatetime", this.iso8601(expiry));
+                j39v3.put("strike", this.parseNumber(strike));
+                j39v3.put("optionType", this.safeStringLower(market, "optionsType"));
+                j39v3.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Bybit.this.safeNumber(lotSizeFilter, "qtyStep", (Object) null) );
                         put( "price", Bybit.this.safeNumber(priceFilter, "tickSize", (Object) null) );
                     }});
-                j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v3.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -3534,9 +3534,9 @@ public class Bybit extends BybitApi
                             put( "max", null );
                         }} );
                     }});
-                j39v2.put("created", this.safeInteger(market, "launchTime"));
-                j39v2.put("info", market);
-                ((List<Object>)result).add(this.safeMarketStructure(j39v2));
+                j39v3.put("created", this.safeInteger(market, "launchTime"));
+                j39v3.put("info", market);
+                ((List<Object>)result).add(this.safeMarketStructure(j39v3));
             }
         }
         return result;
@@ -6465,17 +6465,17 @@ public class Bybit extends BybitApi
         Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
         for (var i = 0; i < clientOrderIds.size(); i++)
         {
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("symbol", market.get("id"));
-            j39v3.put("orderLinkId", this.safeString(clientOrderIds, i));
-            ((List<Object>)ordersRequests).add(j39v3);
+            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("symbol", market.get("id"));
+            j39v4.put("orderLinkId", this.safeString(clientOrderIds, i));
+            ((List<Object>)ordersRequests).add(j39v4);
         }
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-            j39v4.put("symbol", market.get("id"));
-            j39v4.put("orderId", this.safeString(ids, i));
-            ((List<Object>)ordersRequests).add(j39v4);
+            HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+            j39v5.put("symbol", market.get("id"));
+            j39v5.put("orderId", this.safeString(ids, i));
+            ((List<Object>)ordersRequests).add(j39v5);
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("category", category);
@@ -8674,7 +8674,7 @@ public class Bybit extends BybitApi
         for (var i = 0; i < positions.size(); i++)
         {
             Object rawPosition = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-            if (((switch ((Object)(rawPosition)) { case List<?> j39v8 -> j39v8.contains("data"); case Map<?, ?> j39v7 -> j39v7.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v6 -> j39v6.contains("is_valid"); case Map<?, ?> j39v5 -> j39v5.containsKey("is_valid"); case null, default -> false; })))
+            if (((switch ((Object)(rawPosition)) { case List<?> j39v9 -> j39v9.contains("data"); case Map<?, ?> j39v8 -> j39v8.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v7 -> j39v7.contains("is_valid"); case Map<?, ?> j39v6 -> j39v6.containsKey("is_valid"); case null, default -> false; })))
             {
                 // futures only
                 rawPosition = this.safeDict(rawPosition, "data", null);
@@ -11248,7 +11248,7 @@ public class Bybit extends BybitApi
         //  ]
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
         {
             Map<String, Object> tier = this.safeDict(info, i, null);
             String marketId = this.safeString(tier, "symbol");
@@ -11258,16 +11258,16 @@ public class Bybit extends BybitApi
             {
                 minNotional = this.safeNumber(Helpers.GetValue(info, (((long) i) - 1L)), "riskLimitValue", (Object) null);
             }
-            HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-            j39v9.put("tier", this.safeInteger(tier, "id"));
-            j39v9.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-            j39v9.put("currency", marketResolved.get("settle"));
-            j39v9.put("minNotional", minNotional);
-            j39v9.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
-            j39v9.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
-            j39v9.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
-            j39v9.put("info", tier);
-            ((List<Object>)tiers).add(j39v9);
+            HashMap<String, Object> j39v10 = new HashMap<String, Object>();
+            j39v10.put("tier", this.safeInteger(tier, "id"));
+            j39v10.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+            j39v10.put("currency", marketResolved.get("settle"));
+            j39v10.put("minNotional", minNotional);
+            j39v10.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
+            j39v10.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+            j39v10.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
+            j39v10.put("info", tier);
+            ((List<Object>)tiers).add(j39v10);
         }
         return tiers;
     }
@@ -12538,11 +12538,11 @@ public class Bybit extends BybitApi
                 requestHeaders = this.extend(requestHeaders, mapLiteral12);
             } else
             {
-                HashMap<String, Object> j39v13 = new HashMap<String, Object>();
-                j39v13.put("api_key", this.apiKey);
-                j39v13.put("recv_window", this.options.get("recvWindow"));
-                j39v13.put("timestamp", timestamp);
-                Map<String, Object> query = this.extend(parameters, j39v13);
+                HashMap<String, Object> j39v14 = new HashMap<String, Object>();
+                j39v14.put("api_key", this.apiKey);
+                j39v14.put("recv_window", this.options.get("recvWindow"));
+                j39v14.put("timestamp", timestamp);
+                Map<String, Object> query = this.extend(parameters, j39v14);
                 Map<String,Object> sortedQuery = this.keysort(query);
                 String auth = this.rawencode(sortedQuery, true);
                 String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());

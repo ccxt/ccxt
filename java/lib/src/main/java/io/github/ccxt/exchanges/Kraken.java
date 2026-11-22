@@ -1092,7 +1092,7 @@ public class Kraken extends KrakenApi
     {
         if (java.util.Objects.equals(currencyId, null))
         {
-            return (String) currencyId;
+            return null;
         }
         if (((String)currencyId).indexOf(".") > 0)
         {

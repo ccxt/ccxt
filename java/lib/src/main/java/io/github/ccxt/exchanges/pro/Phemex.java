@@ -79,7 +79,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             return null;
         }
         var precise = new Precise(en);
-        precise.decimals = this.sum(precise.decimals, this.safeInteger(new ArrayList<Object>(Arrays.asList(scale)), 0, 0));
+        precise.decimals += java.util.Objects.requireNonNullElse(this.safeInteger(new ArrayList<Object>(Arrays.asList(scale)), 0, 0), 0L).intValue();
         precise.reduce();
         return String.valueOf(precise);
     }
@@ -1519,19 +1519,21 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-        if ((message.containsKey("closed")) || (message.containsKey("fills")) || (message.containsKey("open")))
+        Map<String, Object> ordersDict = (Map<String, Object>) this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
+        if ((ordersDict.containsKey("closed")) || (ordersDict.containsKey("fills")) || (ordersDict.containsKey("open")))
         {
-            List<Object> closed = this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
-            List<Object> open = this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
+            List<Object> closed = this.safeList(ordersDict, "closed", new ArrayList<Object>(Arrays.asList()));
+            List<Object> open = this.safeList(ordersDict, "open", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(open, closed);
             Integer ordersLength = orders.size();
             if (java.util.Objects.equals(ordersLength, 0))
             {
                 return;
             }
-            trades = (List<Object>) this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
+            trades = (List<Object>) this.safeList(ordersDict, "fills", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < orders.size(); i++)
             {
                 Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
@@ -1540,14 +1542,15 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Integer messageLength = (switch ((Object)(message)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
-            if ((messageLength != null && messageLength == 0))
+            List<Object> updates = this.safeList(message, "orders_p", new ArrayList<Object>(Arrays.asList()));
+            Integer updatesLength = updates.size();
+            if (java.util.Objects.equals(updatesLength, 0))
             {
                 return;
             }
-            for (var i = 0; (messageLength != null && i < messageLength); i++)
+            for (var i = 0; (updatesLength != null && i < updatesLength); i++)
             {
-                Object update = Helpers.GetValue(message, i);
+                Object update = (updates == null || i < 0 || i >= updates.size() ? null : updates.get(i));
                 String action = this.safeString(update, "action");
                 if ((!java.util.Objects.equals(action, null)) && (!java.util.Objects.equals(action, "Cancel")))
                 {
@@ -1901,8 +1904,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         if ((message.containsKey("orders")) || (message.containsKey("orders_p")))
         {
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
-            this.handleOrders(client, orders);
+            this.handleOrders(client, message);
         }
         if ((message.containsKey("accounts")) || (message.containsKey("accounts_p")) || (message.containsKey("wallets")))
         {

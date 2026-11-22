@@ -613,13 +613,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, 10);
-            Object feeCurrencyCode = null;
+            String feeCurrencyCode = null;
             if (!java.util.Objects.equals(feeCurrencyId, null))
             {
                 feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null);
             } else
             {
-                feeCurrencyCode = marketResolved.get("quote");
+                feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
             }
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();

@@ -2198,19 +2198,18 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public CompletableFuture<Object> setRef()
+    public CompletableFuture<Object> setRef(Object alreadySet)
     {
-        return BaseExchange.supplyAsync(() -> this.setRefCore());
+        return BaseExchange.supplyAsync(() -> this.setRefCore(alreadySet));
     }
 
-    private Object setRefCore()
+    private Object setRefCore(Object alreadySet)
     {
 
-        if (Boolean.TRUE.equals(this.safeBool(this.options, "refSet", false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(alreadySet, false)))
         {
             return true;
         }
-        this.options.put("refSet", true);
         Map<String, Object> action = new HashMap<String, Object>() {{
             put( "type", "setReferrer" );
             put( "code", Hyperliquid.this.safeString(Hyperliquid.this.options, "ref", "CCXT1") );
@@ -2288,7 +2287,19 @@ public class Hyperliquid extends HyperliquidApi
 
         try
         {
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.handleBuilderFeeApproval()), ((CompletableFuture<?>) this.setRef()), ((CompletableFuture<?>) this.isUnifiedEnabled("fetchBalance", (String) null, false, new HashMap<String, Object>() {{}})))).join(); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
+            Boolean refSet = (Boolean) this.safeBool(this.options, "refSet", false);
+            this.options.put("refSet", true);
+            Boolean feeApproved = (this.handleBuilderFeeApproval()).join();
+            if (Boolean.TRUE.equals(feeApproved))
+            {
+                this.options.put("approvedBuilderFee", true);
+            } else
+            {
+                this.options.put("builderFee", false); // disable builder fee if an error occurs
+            }
+            (this.setRef(refSet)).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.isUnifiedEnabled("fetchBalance", (String) null, false, new HashMap<String, Object>() {{}})))).join(); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch(Exception e)
         {
             return false;
@@ -2322,10 +2333,9 @@ public class Hyperliquid extends HyperliquidApi
                 maxFeeRate = "0%";
             }
             (this.approveBuilderFee(builder, maxFeeRate)).join();
-            this.options.put("approvedBuilderFee", true);
         } catch(Exception e)
         {
-            this.options.put("builderFee", false); // disable builder fee if an error occurs
+            return false;
         }
         return true;
 

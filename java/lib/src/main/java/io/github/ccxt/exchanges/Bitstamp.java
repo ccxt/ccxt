@@ -3644,7 +3644,7 @@ public class Bitstamp extends BitstampApi
             request.put("account_currency", currency.get("id"));
             response = (this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag))).join();
         }
-        return this.parseTransaction((Map<String, Object>) (response), currency);
+        return this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, response)), currency);
 
     }
 

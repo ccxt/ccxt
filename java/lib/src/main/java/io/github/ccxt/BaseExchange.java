@@ -9105,17 +9105,8 @@ public Map<String, Object> describe()
         List<Object> arrayData = this.toArray(data);
         for (var i = 0; i < arrayData.size(); i++)
         {
-            Map<String, Object> itemOrItems = (Map<String, Object>) this.parseLedgerEntry((Map<String, Object>) ((arrayData == null || i < 0 || i >= arrayData.size() ? null : arrayData.get(i))), currency);
-            if ((itemOrItems instanceof List))
-            {
-                for (var j = 0; j < (switch ((Object)(itemOrItems)) { case null -> 0; case List<?> j39v18 -> j39v18.size(); case String j39v19 -> j39v19.length(); case Object j39v20 -> j39v20.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v20) : 0; }); j++)
-                {
-                    ((List<Object>)result).add(this.extend(Helpers.GetValue(itemOrItems, j), parameters));
-                }
-            } else
-            {
-                ((List<Object>)result).add(this.extend(itemOrItems, parameters));
-            }
+            Map<String, Object> entry = (Map<String, Object>) this.parseLedgerEntry((Map<String, Object>) (this.safeDict(arrayData, i, new HashMap<String, Object>() {{}})), currency);
+            ((List<Object>)result).add(this.extend(entry, parameters));
         }
         result = this.sortBy(result, "timestamp");
         String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
@@ -9638,11 +9629,11 @@ public Map<String, Object> describe()
             String upperId = ((String)currencyId).toUpperCase();
             code = this.commonCurrencyCode(upperId);
         }
-        HashMap<String, Object> j39v21 = new HashMap<String, Object>();
-        j39v21.put("id", currencyId);
-        j39v21.put("code", code);
-        j39v21.put("precision", null);
-        return (Map<String, Object>) (this.safeCurrencyStructure(j39v21));
+        HashMap<String, Object> j39v18 = new HashMap<String, Object>();
+        j39v18.put("id", currencyId);
+        j39v18.put("code", code);
+        j39v18.put("precision", null);
+        return (Map<String, Object>) (this.safeCurrencyStructure(j39v18));
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -11307,7 +11298,7 @@ public Map<String, Object> describe()
     public List<Object> parseOpenInterestsHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; }); i++)
         {
             ((List<Object>)interests).add(this.parseOpenInterest(Helpers.GetValue(response, i), market));
         }
@@ -11590,7 +11581,7 @@ public Map<String, Object> describe()
         {
             dictResponse = response;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(dictResponse)) { case Map<?, ?> j39v25 -> { synchronized (j39v25) { yield new ArrayList<Object>(j39v25.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(dictResponse)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); });
         if (!Boolean.TRUE.equals(isArray))
         {
             Integer keysLength = keys.size();
@@ -11653,7 +11644,7 @@ public Map<String, Object> describe()
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v26 -> { synchronized (j39v26) { yield new ArrayList<Object>(j39v26.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer numNetworks = networkKeys.size();
         String currencyCode = this.safeString(currency, "code");
         for (var i = 0; (numNetworks != null && i < numNetworks); i++)
@@ -11855,7 +11846,7 @@ public Map<String, Object> describe()
                         Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
                     }
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v30 -> j39v30.size(); case String j39v31 -> j39v31.length(); case Object j39v32 -> j39v32.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v32) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v27 -> j39v27.size(); case String j39v28 -> j39v28.length(); case Object j39v29 -> j39v29.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v29) : 0; });
                     if (this.verbose)
                     {
                         String backwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -11888,7 +11879,7 @@ public Map<String, Object> describe()
                 {
                     // do it forwards, starting from the since
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v27 -> j39v27.size(); case String j39v28 -> j39v28.length(); case Object j39v29 -> j39v29.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v29) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v24 -> j39v24.size(); case String j39v25 -> j39v25.length(); case Object j39v26 -> j39v26.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v26) : 0; });
                     if (this.verbose)
                     {
                         String forwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -12231,7 +12222,7 @@ public Map<String, Object> describe()
                 paramsMaxEntriesPerRequest.put(((String)pageKey), (((long) i) + 1L));
                 Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                 errors = 0;
-                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v33 -> j39v33.size(); case String j39v34 -> j39v34.length(); case Object j39v35 -> j39v35.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v35) : 0; });
+                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v30 -> j39v30.size(); case String j39v31 -> j39v31.length(); case Object j39v32 -> j39v32.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v32) : 0; });
                 if (this.verbose)
                 {
                     String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));

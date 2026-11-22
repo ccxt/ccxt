@@ -896,7 +896,6 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> tick = this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
-        Long seqNum = this.safeInteger(tick, "seqNum");
         Long prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         String eventVar = this.safeString(tick, "event");
         Long version = this.safeInteger(tick, "version");
@@ -925,7 +924,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             List<Object> bids = this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            orderbook.put("nonce", ((Boolean.TRUE.equals(spotConditon))) ? seqNum : version);
+            String nonceKey = "version";
+            if (Boolean.TRUE.equals(spotConditon))
+            {
+                nonceKey = "seqNum";
+            }
+            orderbook.put("nonce", this.safeInteger(tick, nonceKey));
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
@@ -3326,7 +3330,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> typeUrlsByApi = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
         String hostnameURL = null;
-        Object url = null;
+        String url = null;
         if (java.util.Objects.equals(type, "spot"))
         {
             Map<String, Object> spotUrls = this.safeDict(typeUrlsByApi, "spot", new HashMap<String, Object>() {{}});
@@ -3369,7 +3373,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 url = this.safeString(subTypeUrl, "public");
             }
         }
-        return (String) (url);
+        return url;
     }
 
     public CompletableFuture<Object> subscribePublic(String url, String symbol, String messageHash, Object method, Map<String, Object> parameters)

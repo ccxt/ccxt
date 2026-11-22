@@ -1396,8 +1396,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < symbolsResolved.size(); i++)
         {
-            String symbol = this.safeString(symbolsResolved, i);
-            if (java.util.Objects.equals(symbol, null))
+            String symbol = this.safeString(symbolsResolved, i, "");
+            if (java.util.Objects.equals(symbol, ""))
             {
                 continue;
             }

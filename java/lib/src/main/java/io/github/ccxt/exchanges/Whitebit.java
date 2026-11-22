@@ -875,6 +875,11 @@ public class Whitebit extends WhitebitApi
         String makerFeeRate = this.safeString(market, "makerFee");
         String maker = Precise.stringDiv(makerFeeRate, "100");
         Boolean isSpot = !Boolean.TRUE.equals(swap);
+        Double contractSize = this.parseNumber("1");
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            contractSize = null;
+        }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", symbol);
@@ -896,7 +901,7 @@ public class Whitebit extends WhitebitApi
         mapLiteral1.put("inverse", inverse);
         mapLiteral1.put("taker", this.parseNumber(taker));
         mapLiteral1.put("maker", this.parseNumber(maker));
-        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : this.parseNumber("1"));
+        mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", null);
         mapLiteral1.put("expiryDatetime", null);
         mapLiteral1.put("strike", null);

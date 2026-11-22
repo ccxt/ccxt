@@ -1629,7 +1629,7 @@ public class Phemex extends PhemexApi
         }
         String stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, this.parseToInt((scale * -1L)));
+        precise.decimals += java.util.Objects.requireNonNullElse(this.parseToInt((scale * -1L)), 0L).intValue();
         precise.reduce();
         String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);
@@ -1660,7 +1660,7 @@ public class Phemex extends PhemexApi
             return null;
         }
         var precise = new Precise(en);
-        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale));
+        precise.decimals += java.util.Objects.requireNonNullElse(this.parseToInt(scale), 0L).intValue();
         precise.reduce();
         return String.valueOf(precise);
     }

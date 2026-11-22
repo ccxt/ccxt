@@ -373,7 +373,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //
         String marketId = this.safeString(message, "instrument_name");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> data = this.safeDict(this.safeList(message, "data", null), 0, null);
         Long timestamp = this.safeInteger(data, "t");
         if (!(this.orderbooks.containsKey(symbol)))
@@ -402,7 +402,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
                 if (checksum)
                 {
-                    throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
+                    throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol)))) ;
                 }
             }
         }
@@ -1959,8 +1959,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                     for (var j = 0; j < messageHashes.size(); j++)
                     {
                         String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                        String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-                        this.cleanUnsubscription(client, subHash, unsubHash, false);
+                        String subHash = this.safeString(subMessageHashes, j, "");
+                        this.cleanUnsubscription(client, (String) (subHash), unsubHash, false);
                     }
                 }
                 this.cleanCache(subscription);

@@ -3953,9 +3953,10 @@ public class Lighter extends LighterApi
         Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
         Map<String, Object> market = this.market(symbol);
         Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
+        Double leverageNum = this.parseNumber(leverage);
         Map<String, Object> signRaw = new HashMap<String, Object>();
         signRaw.put("market_index", this.parseToInt(market.get("id")));
-        signRaw.put("initial_margin_fraction", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(10000, leverage)));
+        signRaw.put("initial_margin_fraction", this.parseToInt((((double) 10000) / ((double) leverageNum))));
         signRaw.put("margin_mode", (((java.util.Objects.equals(marginMode, "cross")))) ? 0 : 1);
         signRaw.put("nonce", nonce);
         signRaw.put("api_key_index", apiKeyIndex);

@@ -640,7 +640,8 @@ public class Kalshi extends KalshiApi
             {
                 continue;
             }
-            String baseTicker = outcomeSymbol;
+            String tickerText = this.safeString(outcomeSymbols, i, "");
+            String baseTicker = tickerText;
             if ((outcomeSymbol.endsWith(((String)"-NO"))))
             {
                 baseTicker = (outcomeSymbol == null ? null : ((String)outcomeSymbol).substring(0, Math.max(((String)outcomeSymbol).length() - 3, 0)));

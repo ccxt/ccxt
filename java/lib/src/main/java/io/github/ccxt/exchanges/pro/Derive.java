@@ -640,7 +640,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //
         //
         Map<String, Object> parameters = this.safeDict(message, "params", null);
-        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(parameters, "channel", "");
         List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
@@ -652,9 +652,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             tradesArray.append(trade);
         }
         this.trades.put(symbol, tradesArray);

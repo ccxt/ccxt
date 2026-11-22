@@ -2122,7 +2122,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         String messageHash = "challenge";
         if (!java.util.Objects.equals(eventVar, "error"))
         {
-            Object challenge = this.safeValue(message, "message");
+            String challenge = this.safeString(message, "message", "");
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
             byte[] base64Secret = this.base64ToBinary(this.secret);
             String signature = this.hmac(hashedChallenge, base64Secret, sha512(), "base64");

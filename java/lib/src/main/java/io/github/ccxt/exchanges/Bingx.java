@@ -7768,11 +7768,17 @@ public class Bingx extends BingxApi
         List<String> rawKeys = new ArrayList<String>(sortedParams.keySet());
         Integer rawKeysLength = rawKeys.size();
         String adjustedValue = null;
-        String result = null;
+        String result = "";
         for (var i = 0; (rawKeysLength != null && i < rawKeysLength); i++)
         {
             String key = (rawKeys == null || i < 0 || i >= rawKeys.size() ? null : rawKeys.get(i));
             Object value = (sortedParams == null || key == null ? null : sortedParams.get(key));
+            String pair = this.safeString(sortedParams, key, "");
+            Boolean flag = (Boolean) this.safeBool(sortedParams, key, (Object) null);
+            if (!java.util.Objects.equals(flag, null))
+            {
+                pair = ((Boolean.TRUE.equals(flag))) ? "true" : "false";
+            }
             if ((value instanceof List))
             {
                 String arrStr = null;
@@ -7803,13 +7809,14 @@ public class Bingx extends BingxApi
                 }
                 adjustedValue = (("[" + arrStr) + "]");
                 value = adjustedValue;
+                pair = (("[" + arrStr) + "]");
             }
             if ((i == 0))
             {
-                result = ((key + "=") + value);
+                result = ((key + "=") + pair);
             } else
             {
-                result = (result + ((("&" + key) + "=") + value));
+                result = (result + ((("&" + key) + "=") + pair));
             }
         }
         return result;

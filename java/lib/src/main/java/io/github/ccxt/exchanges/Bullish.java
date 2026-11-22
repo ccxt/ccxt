@@ -1946,7 +1946,7 @@ public class Bullish extends BullishApi
             until = untilParam;
         }
         Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null));
-        Map<String, Object> paramsResult = ((Boolean.TRUE.equals(sinceFromUntil))) ? this.omit(parameters, "until") : parameters;
+        Map<String, Object> timeParams = new HashMap<String, Object>() {{}};
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(untilParam, null)))
         {
             Long timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
@@ -1967,9 +1967,11 @@ public class Bullish extends BullishApi
                     until = this.sum(since, timeDelta);
                 }
             }
-            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"), this.iso8601(sinceResolved));
-            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"), this.iso8601(until));
+            timeParams.put((String)java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"), this.iso8601(sinceResolved));
+            timeParams.put((String)java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"), this.iso8601(until));
         }
+        Map<String, Object> merged = this.extend(parameters, timeParams);
+        Map<String, Object> paramsResult = ((Boolean.TRUE.equals(sinceFromUntil))) ? this.omit(merged, "until") : merged;
         return paramsResult;
     }
 

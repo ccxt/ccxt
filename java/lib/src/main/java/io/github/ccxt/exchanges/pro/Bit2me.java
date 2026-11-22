@@ -231,7 +231,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade(data, market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))

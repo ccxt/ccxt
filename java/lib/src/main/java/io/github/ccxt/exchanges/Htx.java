@@ -6389,14 +6389,14 @@ public class Htx extends HtxApi
         Map<String, Object> fee = null;
         if ((!java.util.Objects.equals(feeCost, null)) && (!java.util.Objects.equals(feeCost, "0")) && (!java.util.Objects.equals(feeCost, "0.0")))
         {
-            Object feeCurrency = null;
+            String feeCurrency = null;
             String feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             if (!java.util.Objects.equals(feeCurrencyId, null))
             {
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             } else
             {
-                feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? marketResolved.get("quote") : marketResolved.get("base");
+                feeCurrency = java.util.Objects.toString((((java.util.Objects.equals(side, "sell")))) ? marketResolved.get("quote") : marketResolved.get("base"), null);
             }
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();

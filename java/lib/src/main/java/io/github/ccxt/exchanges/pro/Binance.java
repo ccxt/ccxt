@@ -1507,8 +1507,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var j = 0; j < messageHashes.size(); j++)
             {
                 String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-                this.cleanUnsubscription(client, subHash, unsubHash, false);
+                String subHash = this.safeString(subMessageHashes, j, "");
+                this.cleanUnsubscription(client, (String) (subHash), unsubHash, false);
             }
         }
         this.cleanCache(subscription);

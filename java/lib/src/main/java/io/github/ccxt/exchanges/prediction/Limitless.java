@@ -451,21 +451,17 @@ public class Limitless extends LimitlessApi
         {
             Object raw = (expandedRaw == null || i < 0 || i >= expandedRaw.size() ? null : expandedRaw.get(i));
             String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-            String eventKey = null;
-            if (!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, ""))
-            {
-                eventKey = this.shortenSlug((String) (groupId));
-            }
+            String eventKey = this.shortenSlug((String) (groupId));
             MarketInterface m = this.parseMarket(raw);
             ((List<Object>)markets).add(m);
-            if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
+            if (!java.util.Objects.equals(eventKey, ""))
             {
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("groupId", groupId);
-                j39v1.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
-                j39v1.put("raw", raw);
-                j39v1.put("markets", new ArrayList<Object>(Arrays.asList()));
-                Map<String, Object> eventGroup = (Map<String, Object>) this.safeDict(eventGroups, eventKey, j39v1);
+                Map<String, Object> eventGroup = (Map<String, Object>) this.safeDict(eventGroups, eventKey, new HashMap<String, Object>() {{
+                    put( "groupId", groupId );
+                    put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", groupId) );
+                    put( "raw", raw );
+                    put( "markets", new ArrayList<Object>(Arrays.asList()) );
+                }});
                 Object groupMarkets = eventGroup.get("markets");
                 ((List<Object>)groupMarkets).add(m);
                 eventGroup.put("markets", groupMarkets);
@@ -1343,31 +1339,31 @@ public class Limitless extends LimitlessApi
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
         Object outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
-        HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-        j39v2.put("outcome", outcomeSymbol);
-        j39v2.put("outcomeId", this.safeString(market, "outcomeId"));
-        j39v2.put("label", this.safeString(market, "label"));
-        j39v2.put("market", this.safeString(market, "market"));
-        j39v2.put("timestamp", null);
-        j39v2.put("datetime", null);
-        j39v2.put("high", null);
-        j39v2.put("low", null);
-        j39v2.put("bid", this.parseNumber(bidStr));
-        j39v2.put("bidVolume", this.parseNumber(bidSizeStr));
-        j39v2.put("ask", this.parseNumber(askStr));
-        j39v2.put("askVolume", this.parseNumber(askSizeStr));
-        j39v2.put("vwap", null);
-        j39v2.put("open", null);
-        j39v2.put("close", this.parseNumber(lastStr));
-        j39v2.put("last", this.parseNumber(lastStr));
-        j39v2.put("previousClose", null);
-        j39v2.put("change", null);
-        j39v2.put("percentage", null);
-        j39v2.put("average", this.parseNumber(midStr));
-        j39v2.put("baseVolume", null);
-        j39v2.put("quoteVolume", this.parseNumber(volumeStr));
-        j39v2.put("info", ticker);
-        return (Map<String, Object>) (this.safePredictionTicker(j39v2, (Object) null));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", outcomeSymbol);
+        j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
+        j39v1.put("label", this.safeString(market, "label"));
+        j39v1.put("market", this.safeString(market, "market"));
+        j39v1.put("timestamp", null);
+        j39v1.put("datetime", null);
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", this.parseNumber(bidStr));
+        j39v1.put("bidVolume", this.parseNumber(bidSizeStr));
+        j39v1.put("ask", this.parseNumber(askStr));
+        j39v1.put("askVolume", this.parseNumber(askSizeStr));
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", this.parseNumber(lastStr));
+        j39v1.put("last", this.parseNumber(lastStr));
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", this.parseNumber(midStr));
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", this.parseNumber(volumeStr));
+        j39v1.put("info", ticker);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, (Object) null));
     }
 
     /**
@@ -1953,7 +1949,7 @@ public class Limitless extends LimitlessApi
         {
             (this.loadOutcome((String) (outcome), false)).join();
         }
-        Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+        Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
         if ((length != null && length > 50))
         {
             throw new BadRequest((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
@@ -3579,25 +3575,21 @@ public class Limitless extends LimitlessApi
         {
             Object raw = (expandedMarkets == null || i < 0 || i >= expandedMarkets.size() ? null : expandedMarkets.get(i));
             String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-            String eventKey = null;
-            if (!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, ""))
-            {
-                eventKey = this.shortenSlug((String) (groupId));
-            }
+            String eventKey = this.shortenSlug((String) (groupId));
             Map<String, Object> m = (Map<String, Object>) this.parseMarket(raw);
             if (java.util.Objects.equals(m, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
             }
             ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
-            if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
+            if (!java.util.Objects.equals(eventKey, ""))
             {
-                HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                j39v6.put("groupId", groupId);
-                j39v6.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
-                j39v6.put("raw", raw);
-                j39v6.put("markets", new ArrayList<Object>(Arrays.asList()));
-                Map<String, Object> eventGroup = (Map<String, Object>) this.safeDict(eventGroups, eventKey, j39v6);
+                Map<String, Object> eventGroup = (Map<String, Object>) this.safeDict(eventGroups, eventKey, new HashMap<String, Object>() {{
+                    put( "groupId", groupId );
+                    put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", groupId) );
+                    put( "raw", raw );
+                    put( "markets", new ArrayList<Object>(Arrays.asList()) );
+                }});
                 Object groupMarkets = eventGroup.get("markets");
                 ((List<Object>)groupMarkets).add(m);
                 eventGroup.put("markets", groupMarkets);

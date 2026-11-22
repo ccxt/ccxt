@@ -133,7 +133,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    ]
         //
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
-        String symbol = (String) ticker.get("symbol");
+        String symbol = this.safeString(ticker, "symbol");
         String tickerSymbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + tickerSymbol);
         if (!java.util.Objects.equals(symbol, null))

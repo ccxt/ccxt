@@ -2261,7 +2261,7 @@ public class Woofipro extends WoofiproApi
         String side = this.safeStringLower(order, "side");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
         String average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        Object fee = this.safeValue2(order, "total_fee", "totalFee");
+        Double fee = this.safeNumber2(order, "total_fee", "totalFee", (Object) null);
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         List<Object> transactions = this.safeList(order, "Transactions", null);
         Double triggerPrice = this.safeNumber(order, "triggerPrice", (Object) null);
@@ -2566,8 +2566,8 @@ public class Woofipro extends WoofiproApi
             String marketId = this.safeString(rawOrder, "symbol");
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = this.safeDict(orderParams, "stopLoss", null);
