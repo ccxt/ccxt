@@ -125,7 +125,7 @@ func (this *BaseExchange) optionAndParams2(params any, methodName1 any, optionNa
 
 // HandleOptionStringAndParams is handleOptionAndParams read as a string: a present option
 // of another type panics (CheckOptionString); the transpiled copy is dropped.
-func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any, optionName any, optionalArgs ...any) (*string, map[string]any) {
+func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any, optionName string, optionalArgs ...any) (*string, map[string]any) {
 	defaultValue := GetArgStringPtr(optionalArgs, 0, nil)
 	value, newParams := this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
 	return this.CheckOptionString(methodName, optionName, value), newParams
@@ -141,26 +141,26 @@ func (this *BaseExchange) HandleMarginModeAndParams(methodName any, optionalArgs
 
 // HandleOptionBoolAndParams is the `defaultValue: boolean` overload: the option read as a bool
 // (another type panics in CheckOptionBool), so the result is never absent.
-func (this *BaseExchange) HandleOptionBoolAndParams(params any, methodName any, optionName any, defaultValue bool) (bool, map[string]any) {
+func (this *BaseExchange) HandleOptionBoolAndParams(params any, methodName any, optionName string, defaultValue bool) (bool, map[string]any) {
 	value, newParams := this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
 	return *this.CheckOptionBool(methodName, optionName, value), newParams
 }
 
 // HandleOptionBoolAndParamsNullable is the `defaultValue?: Bool` overload: the *bool is nil when absent.
-func (this *BaseExchange) HandleOptionBoolAndParamsNullable(params any, methodName any, optionName any, optionalArgs ...any) (*bool, map[string]any) {
+func (this *BaseExchange) HandleOptionBoolAndParamsNullable(params any, methodName any, optionName string, optionalArgs ...any) (*bool, map[string]any) {
 	defaultValue := GetArgBoolPtr(optionalArgs, 0, nil)
 	value, newParams := this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
 	return this.CheckOptionBool(methodName, optionName, value), newParams
 }
 
 // HandleOptionBoolAndParams2 is HandleOptionBoolAndParams over two option names.
-func (this *BaseExchange) HandleOptionBoolAndParams2(params any, methodName any, optionName1 any, optionName2 any, defaultValue bool) (bool, map[string]any) {
+func (this *BaseExchange) HandleOptionBoolAndParams2(params any, methodName any, optionName1 string, optionName2 any, defaultValue bool) (bool, map[string]any) {
 	value, newParams := this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
 	return *this.CheckOptionBool(methodName, optionName1, value), newParams
 }
 
 // HandleOptionBoolAndParams2Nullable is HandleOptionBoolAndParamsNullable over two option names.
-func (this *BaseExchange) HandleOptionBoolAndParams2Nullable(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) (*bool, map[string]any) {
+func (this *BaseExchange) HandleOptionBoolAndParams2Nullable(params any, methodName any, optionName1 string, optionName2 any, optionalArgs ...any) (*bool, map[string]any) {
 	defaultValue := GetArgBoolPtr(optionalArgs, 0, nil)
 	value, newParams := this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
 	return this.CheckOptionBool(methodName, optionName1, value), newParams
@@ -257,33 +257,33 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 
 // HandleOptionIntegerAndParams is the `defaultValue: number` overload: the option read as an integer
 // (another type panics in CheckOptionInteger), so the result is never absent.
-func (this *BaseExchange) HandleOptionIntegerAndParams(params any, methodName any, optionName any, defaultValue int64) (int64, map[string]any) {
+func (this *BaseExchange) HandleOptionIntegerAndParams(params any, methodName any, optionName string, defaultValue int64) (int64, map[string]any) {
 	value, newParams := this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
 	return *this.CheckOptionInteger(methodName, optionName, value), newParams
 }
 
 // HandleOptionIntegerAndParamsNullable is the `defaultValue?: Int` overload: element 0 is a *int64, nil when absent.
-func (this *BaseExchange) HandleOptionIntegerAndParamsNullable(params any, methodName any, optionName any, optionalArgs ...any) []any {
+func (this *BaseExchange) HandleOptionIntegerAndParamsNullable(params any, methodName any, optionName string, optionalArgs ...any) []any {
 	defaultValue := GetArgInt64Ptr(optionalArgs, 0, nil)
 	value, newParams := this.optionAndParams(params, methodName, optionName, defaultValue)
 	return []any{this.CheckOptionInteger(methodName, optionName, value), newParams}
 }
 
 // HandleOptionIntegerAndParams2 is HandleOptionIntegerAndParams over two option names.
-func (this *BaseExchange) HandleOptionIntegerAndParams2(params any, methodName any, optionName1 any, optionName2 any, defaultValue int64) (int64, map[string]any) {
+func (this *BaseExchange) HandleOptionIntegerAndParams2(params any, methodName any, optionName1 string, optionName2 any, defaultValue int64) (int64, map[string]any) {
 	value, newParams := this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
 	return *this.CheckOptionInteger(methodName, optionName1, value), newParams
 }
 
 // HandleOptionIntegerAndParams2Nullable is HandleOptionIntegerAndParamsNullable over two option names.
-func (this *BaseExchange) HandleOptionIntegerAndParams2Nullable(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
+func (this *BaseExchange) HandleOptionIntegerAndParams2Nullable(params any, methodName any, optionName1 string, optionName2 any, optionalArgs ...any) []any {
 	defaultValue := GetArgInt64Ptr(optionalArgs, 0, nil)
 	value, newParams := this.optionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
 	return []any{this.CheckOptionInteger(methodName, optionName1, value), newParams}
 }
 
 // HandleOptionStringAndParams2 is HandleOptionStringAndParams over two option names.
-func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) (*string, map[string]any) {
+func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName any, optionName1 string, optionName2 any, optionalArgs ...any) (*string, map[string]any) {
 	defaultValue := GetArgStringPtr(optionalArgs, 0, nil)
 	value, newParams := this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
 	return this.CheckOptionString(methodName, optionName1, value), newParams

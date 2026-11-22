@@ -767,17 +767,17 @@ func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 }
 
 // a present option value of another type is a user error: panic instead of coercing
-func (this *BaseExchange) CheckOptionString(methodName any, optionName any, value any) *string {
+func (this *BaseExchange) CheckOptionString(methodName any, optionName string, value any) *string {
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
 	if s, ok := value.(string); ok {
 		return &s
 	}
-	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a string"))
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + optionName + " must be a string"))
 }
 
-func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value any) *bool {
+func (this *BaseExchange) CheckOptionBool(methodName any, optionName string, value any) *bool {
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
@@ -810,11 +810,11 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 			return &f
 		}
 	}
-	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + optionName + " must be a boolean"))
 }
 
 // any JS number box (int, int64, float64) with an integral value reads as int64; fractions, strings and others panic
-func (this *BaseExchange) CheckOptionInteger(methodName any, optionName any, value any) *int64 {
+func (this *BaseExchange) CheckOptionInteger(methodName any, optionName string, value any) *int64 {
 	switch v := derefScalar(value).(type) {
 	case nil:
 		return nil
@@ -829,7 +829,7 @@ func (this *BaseExchange) CheckOptionInteger(methodName any, optionName any, val
 			return &n
 		}
 	}
-	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be an integer"))
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + optionName + " must be an integer"))
 }
 
 func optionMethodLabel(methodName any) string {
