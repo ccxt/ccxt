@@ -4571,13 +4571,15 @@ export default class bingx extends Exchange {
         };
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
         const paramsOmitted: Dict = this.omit (params, 'clientOrderIds');
+        let idsCount = ids.length;
         let idsToParse: string[] = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
+            idsCount = clientOrderIds.length;
             idsToParse = clientOrderIds;
         }
         const parsedIds: string[] = [];
-        for (let i = 0; i < idsToParse.length; i++) {
+        for (let i = 0; i < idsCount; i++) {
             const id = this.safeString (idsToParse, i, '');
             const stringId = id.toString ();
             parsedIds.push (stringId);
