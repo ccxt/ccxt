@@ -4124,7 +4124,7 @@ export default class interactivebrokers extends Exchange {
             } catch (e) {
                 const message = this.exceptionMessage (e, false);
                 const mustQueryAccounts = message.indexOf ('query /accounts first') >= 0;
-                if (isAccountsPath || !mustQueryAccounts || (i === retries)) {
+                if (isAccountsPath || !mustQueryAccounts || (i >= retries)) {
                     throw e;
                 }
                 this.options['serviceAccountsLoaded'] = false;
