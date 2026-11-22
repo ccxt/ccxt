@@ -122,7 +122,7 @@ class bittrade extends \ccxt\async\bittrade {
         $timestamp = $this->safe_integer($message, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, $ch);
         return $message;
@@ -204,7 +204,7 @@ class bittrade extends \ccxt\async\bittrade {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $tradesCache = $this->safe_value($this->trades, $symbol);
         if ($tradesCache === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -291,7 +291,7 @@ class bittrade extends \ccxt\async\bittrade {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());

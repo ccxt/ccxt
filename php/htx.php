@@ -3053,7 +3053,7 @@ class htx extends Exchange {
             $untilSeconds = $this->parse_to_int($until / 1000);
         }
         $isContract = ($market['contract'] === true);
-        $marketType = $market['type'];
+        $marketType = $this->safe_string($market, 'type', '');
         $contractLimit = ($limit !== null) ? $limit : 2000; // only used for from/to calculation
         $rangeLimit = $limit;
         if ($isContract) {
@@ -3404,7 +3404,8 @@ class htx extends Exchange {
         if ($networkId === null) {
             return null;
         }
-        $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
+        $namesByChainIds = $this->safe_dict($this->options, 'networkNamesByChainIds', array());
+        $keys = is_array($namesByChainIds) ? array_keys($namesByChainIds) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
             throw new ExchangeError($this->id . ' networkIdToCode() - markets need to be loaded at first');
@@ -3420,7 +3421,8 @@ class htx extends Exchange {
         if ($currencyCode === null) {
             return parent::network_code_to_id($networkCode);
         }
-        $keys = is_array($this->options['networkChainIdsByNames']) ? array_keys($this->options['networkChainIdsByNames']) : array();
+        $chainIdsByNames = $this->safe_dict($this->options, 'networkChainIdsByNames', array());
+        $keys = is_array($chainIdsByNames) ? array_keys($chainIdsByNames) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
             throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');

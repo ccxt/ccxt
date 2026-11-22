@@ -916,7 +916,7 @@ class kucoin extends \ccxt\async\kucoin {
         $topic = $this->safe_string($ticker, 'topic');
         if (mb_strpos($topic, 'contractMarket') === false) {
             $parts = explode(':', $topic);
-            $marketId = $parts[1];
+            $marketId = $this->safe_string($parts, 1);
             $marketResolved = $this->safe_market($marketId, $market);
             $symbol = $this->safe_string($marketResolved, 'symbol');
             $data = $this->safe_dict($ticker, 'data', array());
@@ -2408,7 +2408,7 @@ class kucoin extends \ccxt\async\kucoin {
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if ($order['average'] !== null) {
+            if ($this->safe_number($order, 'average') !== null) {
                 $parsed['average'] = $this->safe_number($order, 'average');
                 $parsed['cost'] = $this->safe_number($order, 'cost');
             }
@@ -2719,7 +2719,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $order = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer_product_2($trade, 'ts', 'time', 0.000001);
-        $feeCurrency = $marketResolved['quote'];
+        $feeCurrency = $this->safe_string($marketResolved, 'quote');
         $feeRate = $this->safe_string($trade, 'feeRate');
         $feeCost = $this->safe_string($trade, 'fee');
         return $this->safe_trade(array(

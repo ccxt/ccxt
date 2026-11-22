@@ -331,7 +331,7 @@ class upbit extends \ccxt\async\upbit {
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         $trade = $this->parse_trade($message);
-        $symbol = $trade['symbol'];
+        $symbol = $this->safe_string($trade, 'symbol');
         if ($symbol === null) {
             return;
         }

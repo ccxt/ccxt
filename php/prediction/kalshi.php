@@ -611,7 +611,6 @@ class kalshi extends Exchange {
         );
         // Build outcomes
         $outcomeLabels = array( 'YES', 'NO' );
-        $outcomeIds = array( $ticker, $ticker . '-NO' );
         $outcomes = array();
         $resolvedOutcome = null;
         for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
@@ -630,9 +629,14 @@ class kalshi extends Exchange {
             // reassigned local into the anonymous inner class it emits for a map literal)
             $winner = $winnerRaw;
             $settleFraction = $settleFractionRaw;
+            $outcomeSuffix = '';
+            if ($oi > 0) {
+                $outcomeSuffix = '-NO';
+            }
+            $outcomeId = $ticker . $outcomeSuffix;
             $outcomes[] = array(
-                'id' => $outcomeIds[$oi],
-                'outcomeId' => $outcomeIds[$oi],
+                'id' => $outcomeId,
+                'outcomeId' => $outcomeId,
                 'outcome' => $outcomeHandle,
                 'market' => $marketSymbol,
                 'label' => $label,

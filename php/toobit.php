@@ -729,7 +729,7 @@ class toobit extends Exchange {
             $coin = $coins[$i];
             $parsed = $this->parse_currency($coin);
             if ($parsed !== null) {
-                $code = $parsed['code'];
+                $code = $this->safe_string($parsed, 'code', '');
                 $result[$code] = $parsed;
             }
         }
@@ -1196,7 +1196,7 @@ class toobit extends Exchange {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -2734,7 +2734,8 @@ class toobit extends Exchange {
         $result = array();
         $marketResolved = $this->safe_market($this->safe_string($response, 'symbol'), $market);
         $fee = $this->parse_trading_fee($response, $marketResolved);
-        $result[$marketResolved['symbol']] = $fee;
+        $feeSymbol = $this->safe_string($marketResolved, 'symbol', '');
+        $result[$feeSymbol] = $fee;
         return $result;
     }
 

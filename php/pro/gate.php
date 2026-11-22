@@ -1220,7 +1220,7 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageType = $this->get_type_by_market($market);
@@ -1428,7 +1428,7 @@ class gate extends \ccxt\async\gate {
         for ($i = 0; $i < count($parsed); $i++) {
             $trade = $parsed[$i];
             $cachedTrades->append($trade);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol');
             if ($symbol !== null) {
                 $marketIds[$symbol] = true;
             }
@@ -1793,7 +1793,7 @@ class gate extends \ccxt\async\gate {
         if ($symbol !== null) {
             $marketResolved = $this->market($symbol);
             $market = $marketResolved;
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $type = null;
         $query = null;
@@ -2219,7 +2219,8 @@ class gate extends \ccxt\async\gate {
                             $marketType = $parsedChannel[0];
                         }
                         $symbol = $this->safe_symbol($payload[$i], null, '_', $marketType);
-                        $messageHashSymbol = $parsedChannel[1] . ':' . $symbol;
+                        $channelName = $this->safe_string($parsedChannel, 1, '');
+                        $messageHashSymbol = $channelName . ':' . $symbol;
                         if (($messageHashSymbol !== null) && (is_array($client->subscriptions) && array_key_exists($messageHashSymbol ?? '', $client->subscriptions))) {
                             unset($client->subscriptions[$messageHashSymbol]);
                         }

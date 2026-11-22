@@ -279,7 +279,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $marketId = $this->safe_string($keyParts, 2, '');
         $market = $this->safe_market($marketId);
         $timeframe = $this->find_timeframe($interval);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = $channel . ':' . $interval . ':' . $marketId;
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -410,7 +410,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $name = 'myTrade';
         $data = $this->safe_list($message, 2);
         $trade = $this->parse_ws_trade(array( 'result' => $data ));
-        $symbol = $trade['symbol'];
+        $symbol = $this->safe_string($trade, 'symbol');
         $market = $this->market($symbol);
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = $name . ':' . $marketId;

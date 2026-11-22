@@ -3072,7 +3072,7 @@ class woo extends Exchange {
             $firstPart = $this->safe_string($parts, 0);
             $currencyId = $this->safe_string($parts, 1, $firstPart);
             if ($partsLength > 2) {
-                $currencyId .= '_' . $this->safe_string($parts, 2, '');
+                $currencyId = $this->safe_string($parts, 1, '') . '_' . $this->safe_string($parts, 2, '');
             }
             return $this->safe_currency($currencyId);
         }

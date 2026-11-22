@@ -3617,9 +3617,10 @@ class derive extends Exchange {
             if (Precise::string_gt($used, $totalUsdc)) {
                 $used = $totalUsdc;
             }
-            $usdcAccount['used'] = $used;
-            $usdcAccount['free'] = Precise::string_sub($totalUsdc, $used);
-            $result['USDC'] = $usdcAccount;
+            $result['USDC'] = $this->extend($usdcAccount, array(
+                'used' => $used,
+                'free' => Precise::string_sub($totalUsdc, $used),
+            ));
         }
         return $this->safe_balance($result);
     }

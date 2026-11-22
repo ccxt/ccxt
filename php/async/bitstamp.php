@@ -2310,7 +2310,8 @@ class bitstamp extends Exchange {
             // dt (destination tag) is embedded into the address field
             $addressParts = explode('?dt=', $addressRaw);
             $address = $this->safe_string($addressParts, 0);
-            if (strlen($addressParts) > 1) {
+            $addressPartsLength = count($addressParts);
+            if ($addressPartsLength > 1) {
                 $tag = $this->safe_string($addressParts, 1);
             }
         }

@@ -1084,7 +1084,7 @@ class hitbtc extends Exchange {
         }
         $paramsOmitted = $params;
         if (($network !== null) && ($code === 'USDT')) {
-            $paramsOmitted = $this->omit($params, 'network');
+            $paramsOmitted = $this->omit($paramsOmitted, 'network');
         }
         $response = Async\await($this->privatePostWalletCryptoAddress($this->extend($request, $paramsOmitted)));
         //
@@ -1132,7 +1132,7 @@ class hitbtc extends Exchange {
         }
         $paramsOmitted = $params;
         if (($network !== null) && ($code === 'USDT')) {
-            $paramsOmitted = $this->omit($params, 'network');
+            $paramsOmitted = $this->omit($paramsOmitted, 'network');
         }
         $response = Async\await($this->privateGetWalletCryptoAddress($this->extend($request, $paramsOmitted)));
         //

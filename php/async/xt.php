@@ -1916,7 +1916,7 @@ class xt extends Exchange {
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i], $market);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -2014,7 +2014,7 @@ class xt extends Exchange {
             }
             $marketInner = $this->safe_market($marketId, $market, '_', $marketType);
             $ticker = $this->parse_ticker($rawTicker, $marketInner);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -2075,7 +2075,7 @@ class xt extends Exchange {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 't');
         $open = $this->safe_string($ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -5424,7 +5424,8 @@ class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            $breakBySymbolSide[$this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '')] = $breakEntry;
+            $breakKey = $this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '');
+            $breakBySymbolSide[$breakKey] = $breakEntry;
         }
         return $breakBySymbolSide;
     }

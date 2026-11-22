@@ -1787,7 +1787,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'stock', false);
         if ($stock === true) {
             if (($timeframe !== '5m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
@@ -2027,7 +2027,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $params['callerMethodName'] = 'watchOHLCV';
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $params));
     }
@@ -4246,11 +4246,11 @@ class binance extends \ccxt\async\binance {
             $payload = $this->editContractOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
         }
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'editOrderWs', 'returnRateLimits', false);
-        $payload['returnRateLimits'] = $returnRateLimits;
+        $payloadWithLimits = $this->extend($payload, array( 'returnRateLimits' => $returnRateLimits ));
         $message = array(
             'id' => $messageHash,
             'method' => ($isSwap) ? 'order.modify' : 'order.cancelReplace',
-            'params' => $this->sign_params($this->extend($payload, $paramsReturnRateLimits)),
+            'params' => $this->sign_params($this->extend($payloadWithLimits, $paramsReturnRateLimits)),
         );
         $subscription = array(
             'method' => array($this, 'handle_edit_order_ws'),
@@ -5245,7 +5245,8 @@ class binance extends \ccxt\async\binance {
             ));
             $this->tickers[$symbol] = $parsed;
             $tickers[$symbol] = $parsed;
-            $client->resolve($parsed, 'stock:price:' . $symbol);
+            $priceSymbol = $this->safe_string($parsed, 'symbol', '');
+            $client->resolve($parsed, 'stock:price:' . $priceSymbol);
         }
         $client->resolve($tickers, 'stock:price');
     }
@@ -5268,7 +5269,8 @@ class binance extends \ccxt\async\binance {
             'info' => $message,
         ));
         $this->bidsasks[$symbol] = $parsed;
-        $client->resolve($parsed, 'stock:quote:' . $symbol);
+        $quoteSymbol = $this->safe_string($parsed, 'symbol', '');
+        $client->resolve($parsed, 'stock:quote:' . $quoteSymbol);
     }
 
     public function handle_options_order_update(Client $client, array $message) {
@@ -5318,7 +5320,8 @@ class binance extends \ccxt\async\binance {
             }
             $absQty = Precise::string_abs($rawQty);
             $executionType = 'NEW';
-            if (strlen($fills) > 0) {
+            $fillsLength = count($fills);
+            if ($fillsLength > 0) {
                 $executionType = 'TRADE';
             }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect

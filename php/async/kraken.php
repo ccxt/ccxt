@@ -1166,7 +1166,8 @@ class kraken extends Exchange {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
                 if ($this->safe_bool($market, 'active', false)) {
-                    $marketIds[] = $market['id'];
+                    $marketId = $this->safe_string($market, 'id', '');
+                    $marketIds[] = $marketId;
                 }
             }
             $request['pair'] = implode(',', $marketIds);
@@ -1178,7 +1179,7 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -1637,7 +1638,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $id = $market['id'];
+        $id = $this->safe_string($market, 'id');
         $request = array(
             'pair' => $id,
         );
@@ -2514,7 +2515,7 @@ class kraken extends Exchange {
         $query = $params;
         if ($clientOrderId !== null) {
             $request['userref'] = $clientOrderId;
-            $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+            $query = $this->omit($query, array( 'userref', 'clientOrderId' ));
         }
         $response = Async\await($this->privatePostQueryOrders($this->extend($request, $query)));
         //
@@ -2604,7 +2605,8 @@ class kraken extends Exchange {
         $batch = array();
         for ($i = 0; $i < $numTradeIds; $i++) {
             $batch[] = $tradeIds[$i];
-            if (strlen($batch) >= $batchSize) {
+            $batchLength = count($batch);
+            if ($batchLength >= $batchSize) {
                 $batches[] = $batch;
                 $batch = array();
             }
@@ -3596,7 +3598,7 @@ class kraken extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'tag');
         $currencyResolved = $this->safe_currency(null, $currency);
-        $code = $currencyResolved['code'];
+        $code = $this->safe_string($currencyResolved, 'code');
         $this->check_address($address);
         return array(
             'info' => $depositAddress,

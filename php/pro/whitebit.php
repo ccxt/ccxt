@@ -88,9 +88,9 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_integer($this->options['timeframes'], $timeframe);
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -130,7 +130,7 @@ class whitebit extends \ccxt\async\whitebit {
             $data = $params[$i];
             $marketId = $this->safe_string($data, 7);
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
             if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
@@ -278,7 +278,7 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $method = 'market_subscribe';
         $messageHash = 'ticker:' . $symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -345,7 +345,7 @@ class whitebit extends \ccxt\async\whitebit {
         $tickers = $this->safe_list($message, 'params', array());
         $marketId = $this->safe_string($tickers, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $rawTicker = $this->safe_dict($tickers, 1, array());
         $messageHash = 'ticker' . ':' . $symbol;
         $ticker = $this->parse_ticker($rawTicker, $market);
@@ -392,7 +392,7 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades' . ':' . $symbolValue;
         $method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -432,7 +432,7 @@ class whitebit extends \ccxt\async\whitebit {
         $params = $this->safe_list($message, 'params', array());
         $marketId = $this->safe_string($params, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -707,7 +707,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $timestamp = $this->safe_timestamp($order, 'ctime');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $rawSide = $this->safe_integer($order, 'side');
         $side = 'buy';
         if ($rawSide === 1) {
@@ -957,7 +957,7 @@ class whitebit extends \ccxt\async\whitebit {
         if ($client === null) {
             $subscription = array();
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             if ($marketId !== null) {
                 $subscription[$marketId] = true;
             }
@@ -976,7 +976,7 @@ class whitebit extends \ccxt\async\whitebit {
             $subscription = $this->safe_dict($client->subscriptions, $method, array());
             $hasSymbolSubscription = true;
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
             if (!$isSubscribed) {
                 if ($marketId !== null) {

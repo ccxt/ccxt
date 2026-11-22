@@ -186,7 +186,7 @@ class backpack extends \ccxt\async\backpack {
             } elseif (($this->safe_string($market, 'executionModel') === 'rfq') && ($market['stock'] !== true)) {
                 throw new NotSupported($this->id . ' ' . $methodName . '() RFQ venue tickers are only mapped for stock data');
             }
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = $kind . ':' . $symbol . '@' . $topic;
             $subscriptionKey = 'marketData:' . $topic;
             $subscriptions = $this->safe_dict($client->subscriptions, $subscriptionKey, array());
@@ -463,7 +463,7 @@ class backpack extends \ccxt\async\backpack {
         //
         $ticker = $this->safe_dict($message, 'data', array());
         $stream = $this->safe_string($message, 'stream', '');
-        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $subscriptions = $this->extend(array(), $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array()));
         $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
         $hashesLength = count($hashes);
         for ($i = 0; $i < $hashesLength; $i++) {
@@ -548,7 +548,7 @@ class backpack extends \ccxt\async\backpack {
          */
         $data = $this->safe_dict($message, 'data', array());
         $stream = $this->safe_string($message, 'stream', '');
-        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $subscriptions = $this->extend(array(), $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array()));
         $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
         $hashesLength = count($hashes);
         for ($i = 0; $i < $hashesLength; $i++) {
@@ -636,7 +636,7 @@ class backpack extends \ccxt\async\backpack {
         //     }
         $data = $this->safe_dict($message, 'data', array());
         $stream = $this->safe_string($message, 'stream', '');
-        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $subscriptions = $this->extend(array(), $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array()));
         $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
         $hashesLength = count($hashes);
         for ($i = 0; $i < $hashesLength; $i++) {
@@ -851,7 +851,7 @@ class backpack extends \ccxt\async\backpack {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stream = $this->safe_string($message, 'stream', '');
         $parts = explode('.', $stream);
         $timeframe = $this->safe_string($parts, 1, '');
@@ -1044,7 +1044,7 @@ class backpack extends \ccxt\async\backpack {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
@@ -1625,7 +1625,7 @@ class backpack extends \ccxt\async\backpack {
         $status = $this->parse_ws_order_status($this->safe_string($order, 'X'), $market);
         $marketId = $this->safe_string($order, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $type = $this->safe_string_lower($order, 'o');
         $timeInForce = $this->safe_string($order, 'f');
         $side = $this->parse_ws_order_side($this->safe_string($order, 'S'));

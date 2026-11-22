@@ -3398,8 +3398,8 @@ class grvt extends Exchange {
         $secretOrPrivkey = $usesPrivKey ? $this->privateKey : $this->secret;
         $privateKeyWithoutZero = $this->remove0x_prefix($secretOrPrivkey);
         $signature = $this->ecdsa($this->hash($ethEncodedMessage, 'keccak', 'hex'), $privateKeyWithoutZero, 'secp256k1', null);
-        $request['signature'] = array(
-            'signer' => ($signerAddress === null) ? $this->eth_get_address_from_private_key('0x' . $privateKeyWithoutZero) : $signerAddress,
+        $signatureEntry = array(
+            'signer' => null,
             'r' => $this->format_signature_rs($signature['r']),
             's' => $this->format_signature_rs($signature['s']),
             'v' => $this->sum(27, $signature['v']),
@@ -3407,6 +3407,12 @@ class grvt extends Exchange {
             'nonce' => $requestSignature['nonce'],
             'chain_id' => $requestSignature['chain_id'],
         );
+        if ($signerAddress === null) {
+            $signatureEntry['signer'] = $this->eth_get_address_from_private_key('0x' . $privateKeyWithoutZero);
+        } else {
+            $signatureEntry['signer'] = $signerAddress;
+        }
+        $request['signature'] = $signatureEntry;
         return $request;
     }
 

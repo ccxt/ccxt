@@ -3486,7 +3486,7 @@ class aster extends Exchange {
             'symbol' => $market['id'],
             'amount' => $amountValue,
         );
-        $code = $market['quote'];
+        $code = $this->safe_string($market, 'quote');
         $response = Async\await($this->fapiPrivatePostV3PositionMargin($this->extend($request, $params)));
         //
         //     {

@@ -262,7 +262,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book(array $orderbook, ?string $symbol, ?int $timestamp = null, ?string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+    public function custom_parse_order_book(array $orderbook, ?string $symbol, ?int $timestamp = null, ?string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2): array {
         $bids = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
         $asks = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
@@ -284,7 +284,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function custom_parse_bid_ask(mixed $bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
+    public function custom_parse_bid_ask(mixed $bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2): array {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );

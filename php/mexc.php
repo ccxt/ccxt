@@ -5727,7 +5727,7 @@ class mexc extends Exchange {
         }
         $paramsOmitted = $params;
         if ($isIsolatedMargin) {
-            $paramsOmitted = $this->omit($params, 'symbol');
+            $paramsOmitted = $this->omit($paramsOmitted, 'symbol');
         }
         $response = $this->spotPrivatePostCapitalTransfer($this->extend($request, $paramsOmitted));
         //

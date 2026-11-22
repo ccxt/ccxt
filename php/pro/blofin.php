@@ -935,15 +935,15 @@ class blofin extends \ccxt\async\blofin {
             for ($i = 0; $i < count($symbols); $i++) {
                 $current = $symbols[$i];
                 $market = null;
-                $channel = $channelName;
+                $interval = '';
                 if ($isOHLCV) {
                     $market = $this->market($current);
                     $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1, '');
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                    $channel = $channel . $interval;
                 } else {
                     $market = $this->market($current);
                 }
+                $channel = '' . $channelName . $interval;
                 $topic = array(
                     'channel' => $channel,
                     'instId' => $market['id'],
@@ -995,12 +995,12 @@ class blofin extends \ccxt\async\blofin {
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market($this->safe_string($symbols, $i));
-            $channel = $channelName;
+            $interval = '';
             if ($isOHLCV) {
                 $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1, '');
                 $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $channel = $channel . $interval;
             }
+            $channel = $channelName . $interval;
             $topic = array(
                 'channel' => $channel,
                 'instId' => $market['id'],

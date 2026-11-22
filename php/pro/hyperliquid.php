@@ -362,7 +362,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $coin = $this->safe_string($entry, 'coin');
         $marketId = $this->coinToMarketId($coin);
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $rawData = $this->safe_list($entry, 'levels', array());
         $data = array(
             'bids' => $this->safe_list($rawData, 0, array()),
@@ -721,7 +721,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 $name = $keys[$i];
                 $marketId = $this->coinToMarketId($name);
                 $market = $this->safe_market($marketId, null, null, 'swap');
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_string($market, 'symbol', '');
                 $ticker = $this->parse_ws_ticker(array(
                     'price' => $this->safe_number($mids, $name),
                 ), $market);
@@ -764,7 +764,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $coin = $this->safe_string($data, 'coin');
         $marketId = $this->coinToMarketId($coin);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $ctx = $this->safe_dict($data, 'ctx', array());
         $ticker = $this->parse_ws_ticker($ctx, $market);
         $this->tickers[$symbol] = $ticker;
@@ -823,7 +823,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol', '');
             $symbols[$symbol] = true;
             $trades->append($parsed);
         }
@@ -991,7 +991,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $coin = $this->safe_string($first, 'coin');
         $marketId = $this->coinToMarketId($coin);
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);

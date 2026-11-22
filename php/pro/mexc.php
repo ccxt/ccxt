@@ -655,7 +655,8 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'candles:' . $symbolValue . ':' . $timeframe;
         $ohlcv = null;
         if ($this->safe_bool($market, 'spot', false)) {
-            $spotChannel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
+            $spotTimeframeId = $this->safe_string($timeframes, $timeframe, '');
+            $spotChannel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $spotTimeframeId;
             $ohlcv = Async\await($this->watch_spot_public($spotChannel, $messageHash, $params));
         } else {
             $channel = 'sub.kline';
@@ -2002,7 +2003,8 @@ class mexc extends \ccxt\async\mexc {
         $url = null;
         if ($this->safe_bool($market, 'spot', false)) {
             $url = $this->urls['api']['ws']['spot'];
-            $channel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
+            $spotTimeframeId = $this->safe_string($timeframes, $timeframe, '');
+            $channel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $spotTimeframeId;
             $params['unsubscribed'] = true;
             $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {

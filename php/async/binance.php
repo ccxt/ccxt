@@ -3241,7 +3241,7 @@ class binance extends Exchange {
             if ($parsed === null) {
                 throw new ExchangeError($this->id . ' parseCurrenciesCustom() could not resolve parsed');
             }
-            $code = $parsed['code'];
+            $code = $this->safe_string($parsed, 'code', '');
             if ($parsed === null) {
                 throw new ExchangeError($this->id . ' parseCurrenciesCustom() could not resolve parsed');
             }
@@ -4227,11 +4227,11 @@ class binance extends Exchange {
             $paramSymbols = $this->safe_list($paramsSubType, 'symbols');
             $query = $this->omit($query, 'symbols');
             if ($paramSymbols !== null) {
-                $symbols = '';
                 if ((gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols)))) {
+                    $symbols = '';
                     $mid = $this->market_id($this->safe_string($paramSymbols, 0));
                     if ($mid !== null) {
-                        $symbols = $mid;
+                        $symbols .= $mid;
                     }
                     for ($i = 1; $i < count($paramSymbols); $i++) {
                         $id = $this->market_id($this->safe_string($paramSymbols, $i));
@@ -4239,10 +4239,10 @@ class binance extends Exchange {
                             $symbols .= ',' . $id;
                         }
                     }
+                    $request['symbols'] = $symbols;
                 } else {
-                    $symbols = $paramSymbols;
+                    $request['symbols'] = $paramSymbols;
                 }
-                $request['symbols'] = $symbols;
             }
             $response = Async\await($this->sapiGetMarginIsolatedAccount($this->extend($request, $query)));
         } elseif (($type === 'margin') || ($marginMode === 'cross')) {
@@ -7308,30 +7308,31 @@ class binance extends Exchange {
         if ($method !== 'POST') {
             return $params;
         }
+        $generated = array();
         if (($path === 'order') || ($path === 'sor/order') || ($path === 'order/cancelReplace') || ($path === 'um/order') || ($path === 'cm/order') || ($path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             $clientOrderIdKey = ($api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'newClientOrderId');
             if ($clientOrderId === null) {
-                $params[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                $generated[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'algoOrder') || ($path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             $clientAlgoId = $this->safe_string($params, 'clientAlgoId');
             if ($clientAlgoId === null) {
-                $params['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
+                $generated['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'cm/conditional/order') || ($path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             $newClientStrategyId = $this->safe_string($params, 'newClientStrategyId');
             if ($newClientStrategyId === null) {
-                $params['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
+                $generated['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif ($path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             $equityClientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($equityClientOrderId === null) {
-                $params['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
+                $generated['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'order/oco') || ($path === 'margin/order/oco') || ($path === 'orderList/oco') || ($path === 'orderList/oto') || ($path === 'orderList/otoco') || ($path === 'orderList/opo') || ($path === 'orderList/opoco')) {
             // the order list endpoints take a listClientOrderId and one client order id per leg
@@ -7347,7 +7348,7 @@ class binance extends Exchange {
                 $currentClientOrderIdKey = $clientOrderIdKeys[$i];
                 $currentClientOrderId = $this->safe_string($params, $currentClientOrderIdKey);
                 if ($currentClientOrderId === null) {
-                    $params[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                    $generated[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
                 }
             }
         } elseif ($path === 'batchOrders') {
@@ -7367,7 +7368,8 @@ class binance extends Exchange {
                 $params['batchOrders'] = $checkedBatchOrders;
             }
         }
-        return $params;
+        $withIds = $this->extend($params, $generated);
+        return $withIds;
     }
 
     public function is_conditional_order($params = array()): bool {
@@ -9675,7 +9677,7 @@ class binance extends Exchange {
         $rows = $this->safe_integer($response, 'total', 0);
         $data = array();
         for ($i = 0; $i < $rows; $i++) {
-            $logs = $this->safe_list($results[$i], 'userAssetDribbletDetails', array());
+            $logs = $this->safe_list($this->safe_dict($results, $i), 'userAssetDribbletDetails', array());
             for ($j = 0; $j < count($logs); $j++) {
                 $data[] = $this->extend($logs[$j], array( 'isDustTrade' => true ));
             }
@@ -11041,7 +11043,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $type = $market['type'];
+        $type = $this->safe_string($market, 'type', '');
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchTradingFee', $market, $params);
         list($isPortfolioMargin, $paramsPapi) = $this->handle_option_bool_and_params_2($paramsSubType, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         $isLinear = $this->is_linear($type, $subType);
@@ -13711,7 +13713,12 @@ class binance extends Exchange {
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($origclientorderidlist);
                     if ($orderidlistLength > 0) {
-                        $query = $query . '&' . 'orderidlist=%5B' . implode('%2C', $orderidlist) . '%5D';
+                        $orderIdStrings = array();
+                        for ($i = 0; $i < $orderidlistLength; $i++) {
+                            $orderIdString = $this->safe_string($orderidlist, $i, '');
+                            $orderIdStrings[] = $orderIdString;
+                        }
+                        $query = $query . '&' . 'orderidlist=%5B' . implode('%2C', $orderIdStrings) . '%5D';
                     }
                     if ($origclientorderidlistLength > 0) {
                         // wrap clientOrderids around ""
@@ -13911,7 +13918,8 @@ class binance extends Exchange {
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
-                if ($limit !== null && $limit <= $this->safe_integer($entry, 0, 0)) {
+                $entryLimit = $this->safe_integer($entry, 0, 0);
+                if ($limit !== null && $limit <= $entryLimit) {
                     return $this->safe_integer($entry, 1);
                 }
             }

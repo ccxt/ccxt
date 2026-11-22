@@ -1037,7 +1037,7 @@ class pacifica extends Exchange {
             $setting = $settings[$i];
             $marketId = $this->safe_string($setting, 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $settingsBySymbol[$symbol] = $setting;
         }
         return $settingsBySymbol;

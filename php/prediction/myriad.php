@@ -2245,6 +2245,7 @@ class myriad extends Exchange {
         // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
         $compositeId = $this->safe_string($raw, 'networkId', '') . ':' . $this->safe_string($raw, 'id', '');
+        $compositeBaseId = $this->safe_string($raw, 'networkId', '') . ':' . $this->safe_string($raw, 'id', '');
         return array(
             'id' => $compositeId,
             'market' => $marketSymbol,
@@ -2253,7 +2254,7 @@ class myriad extends Exchange {
             'base' => $slug,
             'quote' => $quoteCurrency,
             'settle' => null,
-            'baseId' => $networkId . ':' . $marketId,
+            'baseId' => $compositeBaseId,
             'quoteId' => $quoteCurrency,
             'settleId' => null,
             'type' => 'prediction',
@@ -2532,7 +2533,8 @@ class myriad extends Exchange {
         $percentage = null;
         for ($i = 0; $i < count($outcomes); $i++) {
             $o = $this->safe_dict($outcomes, $i);
-            if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
+            $entryOutcomeId = $this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id'));
+            if ($entryOutcomeId === $outcomeId) {
                 $priceValue = $this->safe_number($o, 'price');
                 $changeValue = $this->safe_number($o, 'priceChange24h');
                 $price = $priceValue;
@@ -2696,7 +2698,8 @@ class myriad extends Exchange {
         $ask = null;
         for ($i = 0; $i < count($outcomes); $i++) {
             $o = $this->safe_dict($outcomes, $i);
-            if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
+            $entryOutcomeId = $this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id'));
+            if ($entryOutcomeId === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
                 if ($price !== null) {
                     if ($price > 0.001) {
@@ -3704,12 +3707,12 @@ class myriad extends Exchange {
         $seenChannels = array();
         $resolvedSymbols = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $outcomeObj = $this->outcome($outcomes[$i]);
+            $outcomeObj = $this->outcome($this->safe_string($outcomes, $i, ''));
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $networkId = $this->safe_string($info, 'networkId', '');
             $marketId = $this->safe_string($info, 'marketId', '');
             $channel = 'prices:' . $networkId . ':' . $marketId;
-            $resolvedSymbols[] = $this->safe_outcome_symbol($outcomes[$i], $outcomeObj);
+            $resolvedSymbols[] = $this->safe_outcome_symbol($this->safe_string($outcomes, $i, ''), $outcomeObj);
             if (!(is_array($seenChannels) && array_key_exists($channel ?? '', $seenChannels))) {
                 $seenChannels[$channel] = true;
                 $requestId = $this->request_id($url);

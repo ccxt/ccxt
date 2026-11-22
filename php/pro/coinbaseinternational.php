@@ -584,8 +584,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             if ($this->safe_string($position, 'side') === null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 $position['side'] = 'long';
-                $shortPosition = $this->clone($position);
-                $shortPosition['side'] = 'short';
+                $shortPosition = $this->extend($position, array( 'side' => 'short' ));
                 $this->positions->append($shortPosition);
             }
             $this->positions->append($position);
@@ -1428,7 +1427,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $isGrouped = $channelPartsLength === 5;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $this->orderbooks[$symbol] = $isGrouped ? $this->order_book(array(), $limit) : $this->counted_order_book(array(), $limit);
+            if ($isGrouped) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            } else {
+                $this->orderbooks[$symbol] = $this->counted_order_book(array(), $limit);
+            }
         }
         $orderbook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($orderbook, 'nonce');

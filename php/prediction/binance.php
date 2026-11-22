@@ -480,7 +480,7 @@ class binance extends Exchange {
         }
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
-                'query' => $queries[$qi],
+                'query' => $this->safe_string($queries, $qi),
             );
             $request['topK'] = $limitResolved;
             $response = Async\await($this->sapiPrivateGetMarketSearch($this->extend($request, $rest)));
@@ -1028,7 +1028,8 @@ class binance extends Exchange {
             $outcome = $this->safe_string_upper($order, 'outcome');
             $market = $this->safe_market($marketId);
             $marketName = $this->safe_string($market, 'market', $marketId);
-            $outcomeObjResolved = $this->safe_outcome($marketName . ':' . $outcome);
+            $outcomeKey = $marketName . ':' . $outcome;
+            $outcomeObjResolved = $this->safe_outcome($outcomeKey);
         }
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'createTime');
@@ -1575,7 +1576,8 @@ class binance extends Exchange {
             $outcome = $this->safe_string_upper($trade, 'outcome');
             $market = $this->safe_market($marketId);
             $marketName = $this->safe_string($market, 'market', $marketId);
-            $outcomeObjResolved = $this->safe_outcome($marketName . ':' . $outcome);
+            $outcomeKey = $marketName . ':' . $outcome;
+            $outcomeObjResolved = $this->safe_outcome($outcomeKey);
         }
         $timestamp = $this->safe_integer($trade, 'createTime');
         $filled = $this->safe_string($trade, 'filledShareQty');

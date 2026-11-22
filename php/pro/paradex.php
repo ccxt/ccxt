@@ -1020,7 +1020,7 @@ class paradex extends \ccxt\async\paradex {
             if (($storedNonce === null) || ($nonce === null) || ($nonce <= $storedNonce)) {
                 return;
             }
-            if ($nonce !== $this->sum($storedNonce, 1)) {
+            if ($nonce !== $storedNonce + 1) {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 $stored['nonce'] = null;
                 $this->spawn(array($this, 'resubscribe_order_book'), $client, $deltasChannel, $messageHash);
@@ -1345,8 +1345,8 @@ class paradex extends \ccxt\async\paradex {
                 ),
             );
         } else {
-            $request = $this->subscribe_request($channel);
-            $request['params']['markets'] = $missing;
+            $subscribeParams = array( 'channel' => $channel, 'markets' => $missing );
+            $request = $this->extend($this->subscribe_request($channel), array( 'params' => $subscribeParams ));
             $subscribeHashes[] = $scopedHash;
         }
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
@@ -1928,7 +1928,7 @@ class paradex extends \ccxt\async\paradex {
         $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $channel = $this->safe_string($params, 'channel');
         $ticker = $this->parse_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;

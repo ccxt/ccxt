@@ -2140,7 +2140,7 @@ class bitteam extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'pair');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string_2($trade, 'id', 'trade_id');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'quantity', 'base_volume');

@@ -3345,7 +3345,7 @@ class bybit extends Exchange {
             $marketType = $this->safe_string($market, 'type');
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $amountString = $this->safe_string_n($trade, array( 'execQty', 'orderQty', 'size' ));
         $priceString = $this->safe_string_n($trade, array( 'execPrice', 'orderPrice', 'price' ));
         $costString = $this->safe_string($trade, 'execValue');
@@ -4061,7 +4061,7 @@ class bybit extends Exchange {
             $marketType = $isContract ? 'contract' : 'spot';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_2($order, 'createdTime', 'createdAt');
         $marketUnit = $this->safe_string($order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -8247,7 +8247,7 @@ class bybit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -9033,7 +9033,7 @@ class bybit extends Exchange {
                 $entry[$j]['id'] = $id;
             }
             $market = $this->safe_market($marketId, null, null, 'contract');
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $tiers[$symbol] = $this->parse_market_leverage_tiers($this->sort_by($entry, 'id'), $market);
         }
         return $tiers;

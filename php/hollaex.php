@@ -698,7 +698,7 @@ class hollaex extends Exchange {
             $ticker = $this->safe_dict($tickers, $key, array());
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = $this->extend($this->parse_ticker($ticker, $market), $params);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
@@ -733,7 +733,7 @@ class hollaex extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
         $close = $this->safe_string($ticker, 'close');
         return $this->safe_ticker(array(
@@ -822,7 +822,7 @@ class hollaex extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');

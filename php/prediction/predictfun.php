@@ -375,7 +375,8 @@ class predictfun extends Exchange {
         } else {
             $request = array();
             $tags = $this->safe_list($paramsValue, 'tags', array());
-            if (strlen($tags) > 0) {
+            $tagsLength = count($tags);
+            if ($tagsLength > 0) {
                 $request['tagIds'] = implode(',', $tags);
             }
             $postOmitKeys[] = 'limit';

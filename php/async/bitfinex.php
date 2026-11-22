@@ -3222,8 +3222,6 @@ class bitfinex extends Exchange {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($this->id . ' ' . $body);
             }
-        } elseif ($response === '') {
-            throw new ExchangeError($this->id . ' returned empty response');
         }
         if ($code === 429) {
             throw new RateLimitExceeded($this->id . ' ' . $body);

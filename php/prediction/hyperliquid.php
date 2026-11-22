@@ -1776,12 +1776,7 @@ class hyperliquid extends Exchange {
         );
         // recentTrades returns the coin's most recent public trades (newest first)
         $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
-        $trades = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $trades = $response;
-        } elseif (gettype($response) !== 'string') {
-            $trades = $this->to_array($response);
-        }
+        $trades = $this->info_list($response);
         return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
     }
 
@@ -1826,12 +1821,7 @@ class hyperliquid extends Exchange {
             $request['endTime'] = $until;
         }
         $response = Async\await($this->publicPostInfo($this->extend($request, $paramsOmitted)));
-        $fills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $fills = $response;
-        } elseif (gettype($response) !== 'string') {
-            $fills = $this->to_array($response);
-        }
+        $fills = $this->info_list($response);
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         $parsedTrades = $this->parse_prediction_trades($fills, null);
@@ -2342,7 +2332,7 @@ class hyperliquid extends Exchange {
     }
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
+        if (is_array($config) && array_key_exists('byType' ?? '', $config)) {
             $type = $this->safe_string($params, 'type');
             $byType = $config['byType'];
             if ($type !== null) {

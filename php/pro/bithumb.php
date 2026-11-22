@@ -403,7 +403,7 @@ class bithumb extends \ccxt\async\bithumb {
         $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook' . ':' . $symbolValue;
         $request = array(
             'type' => 'orderbookdepth',
@@ -582,7 +582,7 @@ class bithumb extends \ccxt\async\bithumb {
         $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbolValue;
         $request = array(
             'type' => 'transaction',

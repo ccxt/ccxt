@@ -807,7 +807,7 @@ class blofin extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($marketResolved, 'spot', false);
@@ -965,7 +965,7 @@ class blofin extends Exchange {
         $id = $this->safe_string($trade, 'tradeId');
         $marketId = $this->safe_string($trade, 'instId');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($trade, 'ts');
         $price = $this->safe_string_2($trade, 'price', 'fillPrice');
         $amount = $this->safe_string_2($trade, 'size', 'fillSize');

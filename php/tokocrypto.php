@@ -1490,12 +1490,6 @@ class tokocrypto extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = null;
-        if ($this->is_native_market($market)) {
-            $response = $this->publicGetOpenV1MarketKlines($this->extend($request, $paramsOmitted));
-        } else {
-            $response = $this->binanceGetKlines($this->extend($request, $paramsOmitted));
-        }
         //
         // binanceGetKlines
         //
@@ -1530,9 +1524,8 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $data = $response;
-        } else {
+        if ($this->is_native_market($market)) {
+            $response = $this->publicGetOpenV1MarketKlines($this->extend($request, $paramsOmitted));
             $dataList = $this->safe_list($response, 'data');
             if ($dataList !== null) {
                 $data = $dataList;
@@ -1540,6 +1533,8 @@ class tokocrypto extends Exchange {
                 $dataDict = $this->safe_dict($response, 'data', array());
                 $data = $this->safe_list($dataDict, 'list', array());
             }
+        } else {
+            $data = $this->binanceGetKlines($this->extend($request, $paramsOmitted));
         }
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitValue);
     }

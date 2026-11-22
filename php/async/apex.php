@@ -1259,7 +1259,7 @@ class apex extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientId');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
         $orderType = $this->safe_string($order, 'type');
@@ -1545,7 +1545,8 @@ class apex extends Exchange {
         $subAccountId = $this->safe_string($spotAccount, 'defaultSubAccountId', '0');
         $subAccounts = $this->safe_list($spotAccount, 'subAccounts', array());
         $nonce = '0';
-        if (strlen($subAccounts) > 0) {
+        $subAccountsLength = count($subAccounts);
+        if ($subAccountsLength > 0) {
             $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
         }
         $finalNonce = $nonce; // java req
@@ -2065,7 +2066,7 @@ class apex extends Exchange {
         // }
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'size');
         $timestamp = $this->safe_integer($position, 'updatedTime');

@@ -1433,7 +1433,9 @@ class onetrading extends \ccxt\async\onetrading {
             $subscription[$marketId] = true;
         }
         $request['type'] = $type;
-        $request['channels'][0]['instrument_codes'] = is_array($subscription) ? array_keys($subscription) : array();
+        $instrumentCodes = is_array($subscription) ? array_keys($subscription) : array();
+        $channel = $this->extend($this->safe_dict($this->safe_list($request, 'channels', array()), 0, array()), array( 'instrument_codes' => $instrumentCodes ));
+        $request['channels'] = array( $channel );
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
     }
 

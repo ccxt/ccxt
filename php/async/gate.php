@@ -4856,7 +4856,8 @@ class gate extends Exchange {
             }
         }
         $priceResolved = $price;
-        if ($isMarketOrder && ($contract === true)) {
+        $zeroPrice = $isMarketOrder && ($contract === true);
+        if ($zeroPrice) {
             $priceResolved = 0;
         }
         $contractAmount = 0;
@@ -4898,7 +4899,7 @@ class gate extends Exchange {
                 if ($isMarketOrder) {
                     $request['price'] = '0'; // set to 0 for market orders
                 } else {
-                    $request['price'] = ($priceResolved === 0) ? '0' : $this->price_to_precision($symbol, $priceResolved);
+                    $request['price'] = $zeroPrice ? '0' : $this->price_to_precision($symbol, $priceResolved);
                 }
                 if ($reduceOnly !== null) {
                     $request['reduce_only'] = $reduceOnly;
@@ -4995,7 +4996,7 @@ class gate extends Exchange {
                 if ($type === 'market') {
                     $initial['price'] = '0';
                 } else {
-                    $initial['price'] = ($priceResolved === 0) ? '0' : $this->price_to_precision($symbol, $priceResolved);
+                    $initial['price'] = $zeroPrice ? '0' : $this->price_to_precision($symbol, $priceResolved);
                 }
                 if ($reduceOnly !== null) {
                     $initial['reduce_only'] = $reduceOnly;
@@ -6411,7 +6412,7 @@ class gate extends Exchange {
         $isMarginTransfer = ($fromId === 'margin') || ($toId === 'margin');
         $query = $params;
         if ($isMarginTransfer) {
-            $query = $this->omit($params, 'symbol');
+            $query = $this->omit($query, 'symbol');
         }
         $response = Async\await($this->privateWalletPostTransfers($this->extend($request, $query)));
         //

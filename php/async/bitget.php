@@ -2324,7 +2324,7 @@ class bitget extends Exchange {
             }
             $parsedMarket = $this->parse_market($market);
             if (($parsedMarket !== null) && $this->safe_bool($parsedMarket, 'spot', false)) {
-                $marketId = $parsedMarket['id'];
+                $marketId = $this->safe_string($parsedMarket, 'id', '');
                 $instrument = $this->safe_dict($spotInstruments, $marketId);
                 if ($instrument !== null) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument

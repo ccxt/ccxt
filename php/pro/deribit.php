@@ -936,7 +936,7 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($parts, 2);
         $rawTimeframe = $this->safe_string($parts, 3);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);

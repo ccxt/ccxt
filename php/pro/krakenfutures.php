@@ -891,7 +891,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 if (($previousFee['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
                     $stringOrderCost = $this->number_to_string($previousFee['cost']);
                     $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
-                    $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
+                    $previousFee['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
+                    $previousOrder['fee'] = $previousFee;
                 }
                 // update the newUpdates count
                 $orders->append($this->safe_order($previousOrder));

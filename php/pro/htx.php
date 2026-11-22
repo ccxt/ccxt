@@ -1639,7 +1639,7 @@ class htx extends \ccxt\async\htx {
         //
         $marketResolved = $this->safe_market(null, $market);
         $marketValue = $marketResolved;
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $tradeId = $this->safe_string($trade, 'tradeId');
         $price = $this->safe_string($trade, 'tradePrice');
         $amount = $this->safe_string($trade, 'tradeVolume');
@@ -1650,7 +1650,7 @@ class htx extends \ccxt\async\htx {
         if ($type !== null) {
             $typeParts = explode('-', $type);
             $side = $typeParts[0];
-            $type = $typeParts[1];
+            $type = $this->safe_string($typeParts, 1);
         }
         $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
@@ -1735,8 +1735,11 @@ class htx extends \ccxt\async\htx {
         }
         if ($isV5Linear) {
             $v5Market = null;
-            if (($symbolsNormalized !== null) && (strlen($symbolsNormalized) === 1)) {
-                $v5Market = $market;
+            if ($symbolsNormalized !== null) {
+                $symbolsNormalizedLength = count($symbolsNormalized);
+                if ($symbolsNormalizedLength === 1) {
+                    $v5Market = $market;
+                }
             }
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('positions', $v5Market, $paramsRequest);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);

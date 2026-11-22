@@ -477,7 +477,7 @@ class independentreserve extends Exchange {
             $defaultMarketId = $baseId . '/' . $quoteId;
         }
         $marketResolved = $this->safe_market($defaultMarketId, $market, '/');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'LastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

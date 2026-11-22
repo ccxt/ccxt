@@ -873,7 +873,7 @@ class bittrade extends Exchange {
         for ($i = 0; $i < count($tickers); $i++) {
             $marketId = $this->safe_string($tickers[$i], 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $ticker = $this->parse_ticker($tickers[$i], $market);
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);

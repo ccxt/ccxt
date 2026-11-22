@@ -1000,7 +1000,7 @@ class xt extends \ccxt\async\xt {
             $cv = $this->safe_string($data, 'cv');
             $isSpot = $cv !== null;
             $ticker = $this->parse_ticker($data);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
@@ -1096,7 +1096,7 @@ class xt extends \ccxt\async\xt {
         for ($i = 0; $i < count($data); $i++) {
             $tickerData = $data[$i];
             $ticker = $this->parse_ticker($tickerData);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
@@ -1661,7 +1661,7 @@ class xt extends \ccxt\async\xt {
         }
         $stored = $this->myTrades;
         $parsedTrade = $this->parse_trade($data);
-        $tradeSymbol = $parsedTrade['symbol'];
+        $tradeSymbol = $this->safe_string($parsedTrade, 'symbol');
         if ($tradeSymbol === null) {
             return;
         }

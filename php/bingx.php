@@ -2487,7 +2487,7 @@ class bingx extends Exchange {
             $type = 'spot';
         }
         if ($market !== null) {
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $type);
         $symbol = $this->safe_string($marketResolved, 'symbol');
@@ -6521,7 +6521,7 @@ class bingx extends Exchange {
     }
 
     public function parse_params(array $params): array {
-        $copied = $this->clone($params);
+        $copied = $this->extend(array(), $params);
         $sortedParams = $this->keysort($params);
         $rawKeys = is_array($sortedParams) ? array_keys($sortedParams) : array();
         $rawKeysLength = count($rawKeys);

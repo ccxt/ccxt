@@ -1078,7 +1078,7 @@ class btcmarkets extends Exchange {
         }
         $paramsTriggerPrice = $params;
         if ($triggerPriceIsRequired) {
-            $paramsTriggerPrice = $this->omit($params, 'triggerPrice');
+            $paramsTriggerPrice = $this->omit($paramsTriggerPrice, 'triggerPrice');
         }
         $paramsOmitted = $this->omit($paramsTriggerPrice, 'clientOrderId');
         $response = Async\await($this->privatePostOrders($this->extend($request, $paramsOmitted)));

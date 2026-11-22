@@ -1425,7 +1425,10 @@ class bybit extends \ccxt\async\bybit {
         $takerOrMaker = null;
         $m = $this->safe_value($trade, 'm');
         if ($side === null) {
-            $side = ($m === true) ? 'buy' : 'sell';
+            $side = 'sell';
+            if ($m === true) {
+                $side = 'buy';
+            }
         } else {
             // spot private
             $takerOrMaker = $m;
@@ -2595,7 +2598,7 @@ class bybit extends \ccxt\async\bybit {
             for ($i = 0; $i < $messageHashesLength; $i++) {
                 $messageHash = $messageHashes[$i];
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
-                    $newTopics[] = $topics[$i];
+                    $newTopics[] = $this->safe_string($topics, $i, '');
                 }
             }
         } else {

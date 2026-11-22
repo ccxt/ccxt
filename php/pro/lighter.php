@@ -191,7 +191,7 @@ class lighter extends \ccxt\async\lighter {
         $parts = explode(':', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer($message, 'timestamp');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
@@ -228,7 +228,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request = array(
             'channel' => 'order_book/' . $this->safe_string($market, 'id', ''),
         );
@@ -255,7 +255,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request = array(
             'channel' => 'order_book/' . $this->safe_string($market, 'id', ''),
         );
@@ -357,7 +357,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
         }
@@ -386,7 +386,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
         }
@@ -648,7 +648,7 @@ class lighter extends \ccxt\async\lighter {
         $parts = explode(':', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1045,7 +1045,7 @@ class lighter extends \ccxt\async\lighter {
         $parts = explode(':', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $stored = $this->safe_value($this->liquidations, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
@@ -1466,7 +1466,7 @@ class lighter extends \ccxt\async\lighter {
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $market);
                 $stored->append($order);
-                $symbol = $order['symbol'];
+                $symbol = $this->safe_string($order, 'symbol');
                 if ($symbol !== null) {
                     $symbolSpecificMessageHash = $this->get_message_hash('orders', $symbol);
                     $client->resolve($stored, $symbolSpecificMessageHash);

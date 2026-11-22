@@ -467,7 +467,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $marketId = $this->safe_string($message, 'instrument_name');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

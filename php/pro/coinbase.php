@@ -959,6 +959,7 @@ class coinbase extends \ccxt\async\coinbase {
             return;
         }
         $marketIds = array();
+        $seenMarketIds = array();
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -975,7 +976,8 @@ class coinbase extends \ccxt\async\coinbase {
                 $cachedOrders = $this->orders;
                 $marketId = $this->safe_string($responseOrder, 'product_id');
                 if ($marketId !== null) {
-                    if (!(is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
+                    if (!(is_array($seenMarketIds) && array_key_exists($marketId ?? '', $seenMarketIds))) {
+                        $seenMarketIds[$marketId] = true;
                         $marketIds[] = $marketId;
                     }
                 }

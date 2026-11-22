@@ -604,7 +604,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchTrades is only supported for swap markets');
         }
@@ -768,7 +768,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchOHLCV is only supported for swap markets');
         }

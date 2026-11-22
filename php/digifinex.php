@@ -2101,7 +2101,7 @@ class digifinex extends Exchange {
             if ($market === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument for swap markets');
             }
-            $marketSymbol = $market['symbol'];
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
             $orders = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $orderItem = array(

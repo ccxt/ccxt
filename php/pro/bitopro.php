@@ -125,7 +125,7 @@ class bitopro extends \ccxt\async\bitopro {
         //
         $marketId = $this->safe_string($message, 'pair');
         $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($message, 'event');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -192,7 +192,7 @@ class bitopro extends \ccxt\async\bitopro {
         //
         $marketId = $this->safe_string($message, 'pair');
         $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($message, 'event');
         $rawData = $this->safe_list($message, 'data', array());
         $trades = $this->parse_trades($rawData, $market);
@@ -425,7 +425,7 @@ class bitopro extends \ccxt\async\bitopro {
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($message, 'event');
         $result = $this->parse_ticker($message, $market);
         $result['symbol'] = $this->safe_string($market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object

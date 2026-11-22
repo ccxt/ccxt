@@ -590,7 +590,8 @@ class hyperliquid extends Exchange {
             $dex = $this->safe_dict($fetchDexes, $i, array());
             $secondPart = $i * 10000 - 10000;
             $offset = $this->sum(110000, $secondPart);
-            $perpDexesOffset[$this->safe_string($dex, 'name', '')] = $offset;
+            $dexKey = $this->safe_string($dex, 'name', '');
+            $perpDexesOffset[$dexKey] = $offset;
         }
         $fetchDexesList = array();
         $options = $this->safe_dict($this->options, 'fetchMarkets', array());
@@ -2420,7 +2421,7 @@ class hyperliquid extends Exchange {
             $price = $this->safe_string($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
-            $orderParams['slippage'] = $slippage;
+            $orderParams = $this->extend($orderParams, array( 'slippage' => $slippage ));
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
             $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
             $hasStopLoss = ($stopLoss !== null);
@@ -2811,7 +2812,7 @@ class hyperliquid extends Exchange {
         );
         $cancelAction = array(
             'type' => 'scheduleCancel',
-            'time' => $nonce . $timeout,
+            'time' => $nonce . $this->parse_to_int($timeout),
         );
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
@@ -3540,7 +3541,7 @@ class hyperliquid extends Exchange {
         } else {
             $marketResolved = $this->safe_market($marketId, $market);
         }
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($entry, 'timestamp');
         $status = $this->safe_string_2($order, 'status', 'ccxtStatus');
         $orderOmitted = $this->omit($order, array( 'ccxtStatus' ));
@@ -3718,7 +3719,7 @@ class hyperliquid extends Exchange {
         $coin = $this->safe_string($trade, 'coin');
         $marketId = $this->coin_to_market_id($coin);
         $marketResolved = $this->safe_market($marketId);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string($trade, 'tid');
         $side = $this->safe_string($trade, 'side');
         if ($side !== null) {
@@ -3840,7 +3841,7 @@ class hyperliquid extends Exchange {
         $timestamp = $this->safe_integer($liquidation, 'time');
         $marketId = $this->coin_to_market_id($this->safe_string($liquidation, 'coin'));
         $marketResolved = $this->safe_market($marketId);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         // swap ids are asset indexes, so the market is looked up by symbol
         if (($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
             $marketResolved = $this->market($symbol);
@@ -4012,7 +4013,7 @@ class hyperliquid extends Exchange {
         $coin = $this->safe_string($entry, 'coin');
         $marketId = $this->coin_to_market_id($coin);
         $marketResolved = $this->safe_market($marketId);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $leverage = $this->safe_dict($entry, 'leverage', array());
         $marginMode = $this->safe_string($leverage, 'type');
         $isIsolated = ($marginMode === 'isolated');

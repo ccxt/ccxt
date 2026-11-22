@@ -190,7 +190,7 @@ class gemini extends \ccxt\async\gemini {
         //     }
         //
         $trade = $this->parse_ws_trade($message);
-        $symbol = $trade['symbol'];
+        $symbol = $this->safe_string($trade, 'symbol');
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -200,7 +200,7 @@ class gemini extends \ccxt\async\gemini {
             }
         }
         $stored->append($trade);
-        $messageHash = 'trades:' . $symbol;
+        $messageHash = 'trades:' . $this->safe_string($trade, 'symbol', '');
         $client->resolve($stored, $messageHash);
     }
 

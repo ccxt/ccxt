@@ -1635,7 +1635,7 @@ class whitebit extends Exchange {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $ticker = $this->parse_ticker($this->safe_value($response, $marketId), $market);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             $result[$symbol] = $ticker;
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
@@ -1849,7 +1849,7 @@ class whitebit extends Exchange {
         $amount = $this->safe_string_2($trade, 'amount', 'quote_volume');
         $id = $this->safe_string_2($trade, 'id', 'tradeID');
         $side = $this->safe_string_2($trade, 'type', 'side');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $role = $this->safe_integer($trade, 'role');
         $takerOrMaker = null;
         if ($role !== null) {
@@ -2344,7 +2344,8 @@ class whitebit extends Exchange {
         // Sort by timestamp (most recent first)
         $sortedOrders = $this->sort_by($allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if ($limit !== null && strlen($sortedOrders) > $limit) {
+        $sortedOrdersLength = count($sortedOrders);
+        if ($limit !== null && $sortedOrdersLength > $limit) {
             return $this->array_slice($sortedOrders, 0, $limit);
         }
         return $sortedOrders;
@@ -2633,7 +2634,7 @@ class whitebit extends Exchange {
         //
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string($order, 'side');
         $filled = $this->safe_string($order, 'dealStock');
         $remaining = $this->safe_string($order, 'left');

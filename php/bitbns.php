@@ -932,11 +932,11 @@ class bitbns extends Exchange {
             $amountString = $this->safe_string($trade, 'base_volume');
             $costString = $this->safe_string($trade, 'quote_volume');
         }
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrencyCode = $marketResolved['quote'];
+            $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,

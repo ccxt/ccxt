@@ -1394,8 +1394,9 @@ class upbit extends Exchange {
         } else {
             throw new InvalidOrder($this->id . ' createOrder() supports only limit or market types in the type argument.');
         }
-        $paramsOrdType = ($customType === 'best') ? $this->omit($params, array( 'ordType', 'ord_type' )) : $params;
+        $paramsOrdType = $params;
         if ($customType === 'best') {
+            $paramsOrdType = $this->omit($paramsOrdType, array( 'ordType', 'ord_type' ));
             $request['ord_type'] = 'best';
             if ($side === 'buy') {
                 $orderPrice = $this->calc_order_price($symbol, $amount, $price, $paramsOrdType);

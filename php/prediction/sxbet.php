@@ -276,7 +276,8 @@ class sxbet extends Exchange {
             }
             $paginationKey = $this->safe_string($result, 'nextKey');
             $page = $page + 1;
-            $collectedLength = $this->parse_to_int(strlen($rawMarkets));
+            $rawMarketsCount = count($rawMarkets);
+            $collectedLength = $this->parse_to_int($rawMarketsCount);
             if (($pageMarketsLength < $pageSize) || ($page >= $maxPages) || ($paginationKey === null) || (($collectCap !== null) && ($collectedLength >= $collectCap))) {
                 break;
             }

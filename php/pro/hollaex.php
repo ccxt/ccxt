@@ -397,7 +397,8 @@ class hollaex extends \ccxt\async\hollaex {
             $rawOrders = array( $dataDict );
         }
         // usually the first message is an empty array
-        if (strlen($rawOrders) === 0) {
+        $rawOrdersLength = count($rawOrders);
+        if ($rawOrdersLength === 0) {
             return;
         }
         if ($this->orders === null) {

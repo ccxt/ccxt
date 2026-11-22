@@ -287,7 +287,7 @@ class bingx extends \ccxt\async\bingx {
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         $inverseUrl = $this->safe_string($this->urls['api']['ws'], 'inverse');
@@ -403,7 +403,7 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = null;
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchTrades', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchTrades', $market, $paramsMarketType, 'linear');
@@ -559,7 +559,7 @@ class bingx extends \ccxt\async\bingx {
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade::' . $symbol;
         if ($this->safe_dict($message, 'data') === null) {
             $trades = $this->parse_trades($dataList, $market);
@@ -754,7 +754,7 @@ class bingx extends \ccxt\async\bingx {
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             // const limit = [ 5, 10, 20, 50, 100 ]
@@ -905,7 +905,7 @@ class bingx extends \ccxt\async\bingx {
             $data = $this->safe_dict($message, 'data', array());
             $candles = array( $this->safe_dict($data, 'K', array()) );
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $timeframeParts = explode('_', $dataType);
         $rawTimeframe = $this->safe_string($timeframeParts, 1);

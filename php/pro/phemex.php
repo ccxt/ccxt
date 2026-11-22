@@ -640,6 +640,7 @@ class phemex extends \ccxt\async\phemex {
         }
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
@@ -655,7 +656,7 @@ class phemex extends \ccxt\async\phemex {
             'method' => $method,
             'id' => $requestId,
             'params' => array(
-                $market['id'],
+                $marketId,
             ),
         );
         $request = $this->deep_extend($subscribe, $params);
@@ -690,6 +691,7 @@ class phemex extends \ccxt\async\phemex {
         }
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
@@ -705,7 +707,7 @@ class phemex extends \ccxt\async\phemex {
             'method' => $method,
             'id' => $requestId,
             'params' => array(
-                $market['id'],
+                $marketId,
             ),
         );
         $request = $this->deep_extend($subscribe, $params);
@@ -737,6 +739,7 @@ class phemex extends \ccxt\async\phemex {
         }
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
@@ -752,7 +755,7 @@ class phemex extends \ccxt\async\phemex {
             'method' => $method,
             'id' => $requestId,
             'params' => array(
-                $market['id'],
+                $marketId,
                 $this->safe_integer($this->timeframes, $timeframe),
             ),
         );
@@ -805,8 +808,10 @@ class phemex extends \ccxt\async\phemex {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $isUsdtSwap = ($market['swap'] === true) && ($market['settle'] === 'USDT');
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
+        $isSwap = $market['swap'];
+        $isUsdtSwap = ($isSwap === true) && ($market['settle'] === 'USDT');
         $name = 'trade';
         if ($isUsdtSwap) {
             $name = 'trade_p';
@@ -815,7 +820,7 @@ class phemex extends \ccxt\async\phemex {
             'topic' => 'trades',
             'symbols' => array( $symbolValue ),
         );
-        return Async\await($this->un_subscribe_public($name . '.unsubscribe', 'trade:' . $symbolValue, array( $market['id'] ), $subscription, $params));
+        return Async\await($this->un_subscribe_public($name . '.unsubscribe', 'trade:' . $symbolValue, array( $marketId ), $subscription, $params));
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -837,8 +842,10 @@ class phemex extends \ccxt\async\phemex {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $isUsdtSwap = ($market['swap'] === true) && ($market['settle'] === 'USDT');
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
+        $isSwap = $market['swap'];
+        $isUsdtSwap = ($isSwap === true) && ($market['settle'] === 'USDT');
         $name = 'kline';
         if ($isUsdtSwap) {
             $name = 'kline_p';
@@ -848,7 +855,7 @@ class phemex extends \ccxt\async\phemex {
             'symbolsAndTimeframes' => array( array( $symbolValue, $timeframe ) ),
         );
         // phemex drops only the given interval when it is sent along with the symbol
-        $marketParams = array( $market['id'], $this->safe_integer($this->timeframes, $timeframe) );
+        $marketParams = array( $marketId, $this->safe_integer($this->timeframes, $timeframe) );
         return Async\await($this->un_subscribe_public($name . '.unsubscribe', 'kline:' . $timeframe . ':' . $symbolValue, $marketParams, $subscription, $params));
     }
 

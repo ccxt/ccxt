@@ -2228,7 +2228,7 @@ class kucoin extends Exchange {
          *
          * @return {any} ignore
          */
-        if (!(is_array($this->options) && array_key_exists('hf' ?? '', $this->options)) || ($this->options['hf'] === null) || $force) {
+        if (!(is_array($this->options) && array_key_exists('hf' ?? '', $this->options)) || ($this->safe_bool($this->options, 'hf') === null) || $force) {
             $result = $this->privateGetHfAccountsOpened();
             $this->options['hf'] = $this->safe_bool($result, 'data');
         }
@@ -4179,7 +4179,7 @@ class kucoin extends Exchange {
                 throw new BadRequest($this->id . ' createOrder does not support isolated margin for stop orders');
             } elseif ($marginMode === 'cross') {
                 $marginModes = $this->safe_dict($this->options, 'marginModes', array());
-                $request['tradeType'] = $marginModes[$marginMode];
+                $request['tradeType'] = $this->safe_string($marginModes, $marginMode);
             }
         } elseif ($isMarginOrder) {
             if ($marginMode === 'isolated') {
@@ -5309,7 +5309,7 @@ class kucoin extends Exchange {
         }
         if ($marginMode !== null) {
             $marginModes = $this->safe_dict($this->options, 'marginModes', array());
-            $request['tradeType'] = $marginModes[$marginMode];
+            $request['tradeType'] = $this->safe_string($marginModes, $marginMode);
             if ($marginMode === 'isolated' && ($trigger)) {
                 throw new BadRequest($this->id . ' cancelAllOrders does not support isolated margin for stop orders');
             }

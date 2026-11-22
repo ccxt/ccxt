@@ -3179,7 +3179,8 @@ class limitless extends Exchange {
         }
         $wanted = array();
         for ($i = 0; $i < count($tags); $i++) {
-            $wanted[] = strtolower($tags[$i]);
+            $tag = $this->safe_string($tags, $i, '');
+            $wanted[] = strtolower($tag);
         }
         $categoryIds = array();
         $categoriesLength = count($categories);

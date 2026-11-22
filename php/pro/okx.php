@@ -931,7 +931,7 @@ class okx extends \ccxt\async\okx {
             $messageHashes[] = $messageHash;
         }
         $market = $this->get_market_from_symbols($symbolsNormalized);
-        $marketType = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $market, $params)[0];
+        list($marketType) = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $market, $params);
         $channel = 'liquidation-orders';
         $type = $marketType;
         if ($marketType === 'spot') {
@@ -1730,7 +1730,7 @@ class okx extends \ccxt\async\okx {
         $data = $this->safe_list($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $depths = array(
             'bbo-tbt' => 1,
             'books' => 400,
@@ -2364,7 +2364,8 @@ class okx extends \ccxt\async\okx {
                 $stored->append($order);
                 $symbol = $this->safe_string($order, 'symbol', '');
                 $market = $this->market($symbol);
-                $marketIds[] = $market['id'];
+                $marketId = $this->safe_string($market, 'id', '');
+                $marketIds[] = $marketId;
             }
             $client->resolve($stored, $channel);
             for ($i = 0; $i < count($marketIds); $i++) {

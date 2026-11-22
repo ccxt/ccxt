@@ -373,8 +373,9 @@ class bullish extends \ccxt\async\bullish {
         );
         $parsed = $this->parse_order_book($snapshot, $symbol, $timestamp);
         $sequenceNumberRange = $this->safe_list($data, 'sequenceNumberRange', array());
-        if (strlen($sequenceNumberRange) > 0) {
-            $lastIndex = strlen($sequenceNumberRange) - 1;
+        $sequenceNumberRangeLength = count($sequenceNumberRange);
+        if ($sequenceNumberRangeLength > 0) {
+            $lastIndex = $sequenceNumberRangeLength - 1;
             $parsed['nonce'] = $this->safe_integer($sequenceNumberRange, $lastIndex);
         }
         $orderbook->reset($parsed);

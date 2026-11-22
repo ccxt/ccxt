@@ -412,7 +412,7 @@ class cex extends \ccxt\async\cex {
         //
         $data = $this->safe_dict($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         if ($symbol === null) {
             return;
         }

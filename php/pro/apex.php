@@ -801,7 +801,7 @@ class apex extends \ccxt\async\apex {
         for ($i = 0; $i < count($lists); $i++) {
             $rawTrade = $this->safe_dict($lists, $i, array());
             $parsed = $this->parse_ws_trade($rawTrade);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             $symbols[$symbol] = true;
             $trades->append($parsed);
         }
@@ -854,7 +854,7 @@ class apex extends \ccxt\async\apex {
         $symbols = array();
         for ($i = 0; $i < count($lists); $i++) {
             $parsed = $this->parse_order($this->safe_dict($lists, $i, array()));
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             $symbols[$symbol] = true;
             $orders->append($parsed);
         }

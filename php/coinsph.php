@@ -1289,7 +1289,7 @@ class coinsph extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'time');
@@ -1891,7 +1891,7 @@ class coinsph extends Exchange {
         $fees = $this->to_array($response);
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -1909,7 +1909,7 @@ class coinsph extends Exchange {
         //
         $marketId = $this->safe_string($fee, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return array(
             'info' => $fee,
             'symbol' => $symbol,

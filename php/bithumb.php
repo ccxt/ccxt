@@ -458,7 +458,7 @@ class bithumb extends Exchange {
                 if ($marketId !== null) {
                     $parts = explode('-', $marketId);
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    $baseId = $parts[1];
+                    $baseId = $this->safe_string($parts, 1);
                     $quoteId = $parts[0];
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);

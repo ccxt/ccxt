@@ -1069,7 +1069,7 @@ class paradex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($loadedFees); $i++) {
             $fee = $this->parse_trading_fee($loadedFees[$i]);
-            $symbol = $fee['symbol'];
+            $symbol = $this->safe_string($fee, 'symbol');
             $result[$symbol] = $fee;
         }
         return $result;
@@ -1226,7 +1226,7 @@ class paradex extends Exchange {
         if ($symbols !== null) {
             $symbolsLength = count($symbols);
             if ($symbolsLength === 1) {
-                return $this->market($symbols[0])['id'];
+                return $this->safe_string($this->market($symbols[0]), 'id', '');
             }
         }
         return 'ALL';
@@ -1331,7 +1331,7 @@ class paradex extends Exchange {
         $last = $this->safe_string($ticker, 'last_traded_price');
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'created_at');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1704,7 +1704,7 @@ class paradex extends Exchange {
         $timestamp = $this->safe_integer($interest, 'created_at');
         $marketId = $this->safe_string($interest, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'openInterestAmount' => $this->safe_string($interest, 'open_interest'),
@@ -1891,7 +1891,7 @@ class paradex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
         $orderType = $this->safe_string($order, 'type');
@@ -2638,8 +2638,7 @@ class paradex extends Exchange {
         $paginationCursor = $this->safe_string($response, 'next');
         $ordersLength = count($orders);
         if (($paginationCursor !== null) && ($ordersLength > 0)) {
-            $first = $orders[0];
-            $first['next'] = $paginationCursor;
+            $first = $this->extend($orders[0], array( 'next' => $paginationCursor ));
             $orders[0] = $first;
         }
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -2926,7 +2925,7 @@ class paradex extends Exchange {
         //
         $marketId = $this->safe_string($position, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower($position, 'side');
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         $quantity = Precise::string_abs($this->safe_string($position, 'size'));
@@ -3671,7 +3670,7 @@ class paradex extends Exchange {
         //
         $marketId = $this->safe_string($greeks, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, 'option');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($greeks, 'created_at');
         $greeksData = $this->safe_dict($greeks, 'greeks', array());
         return array(
@@ -3992,7 +3991,7 @@ class paradex extends Exchange {
             $requestUntil['start_at'] = $since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            $windowEnd = $this->sum($since, $pageSize * $rowSpacing);
+            $windowEnd = $this->sum($this->parse_to_int($since), $pageSize * $rowSpacing);
             $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
             if (($this->safe_integer($requestUntil, 'end_at') === null) || ($endAt > $windowEnd)) {
                 $requestUntil['end_at'] = $windowEnd;

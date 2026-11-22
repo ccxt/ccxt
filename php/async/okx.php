@@ -2733,7 +2733,7 @@ class okx extends Exchange {
         //         "0" // candlestick state
         //     ]
         //
-        $type = $this->handle_market_type_and_params('fetchOHLCV', $market, null)[0];
+        list($type) = $this->handle_market_type_and_params('fetchOHLCV', $market, null);
         $volumeIndex = ($type === 'spot') ? 5 : 6;
         return array(
             $this->safe_integer($ohlcv, 0),
