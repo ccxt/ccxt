@@ -2038,7 +2038,12 @@ export default class bitfinex extends Exchange {
                 'id': this.parseToInt (id),
             };
         }
-        const paramsOmitted = (cid !== undefined) ? this.omit (params, [ 'cid', 'clientOrderId' ]) : params;
+        let paramsOmitted: Dict = {};
+        if (cid !== undefined) {
+            paramsOmitted = this.omit (params, [ 'cid', 'clientOrderId' ]);
+        } else {
+            paramsOmitted = params;
+        }
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, paramsOmitted));
         const order = this.safeList (response, 4);
         const newOrder: Dict = { 'result': order };
