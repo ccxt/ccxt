@@ -1808,7 +1808,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const event = this.safeString (message, 'event');
         const messageHash = 'challenge';
         if (event !== 'error') {
-            const challenge = this.safeValue (message, 'message');
+            const challenge = this.safeString (message, 'message', '');
             const hashedChallenge = this.hash (this.encode (challenge), sha256, 'binary');
             const base64Secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (hashedChallenge, base64Secret, sha512, 'base64');
