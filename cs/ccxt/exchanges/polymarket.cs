@@ -1543,7 +1543,7 @@ public partial class polymarket : Exchange
             { "type", "createOrders" },
             { "args", entries },
         };
-        Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp, parameters));
+        Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp, parameters);
         List<object> response = await this.tradePostTradeOrders(signed);
         //
         //     [
@@ -1629,7 +1629,7 @@ public partial class polymarket : Exchange
                 { "type", "cancelOrdersCOID" },
                 { "args", clientOrderIds },
             };
-            Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp, paramsOmitted));
+            Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp, paramsOmitted);
             response = await this.tradeDeleteTradeOrdersCoid(signed);
         } else
         {
@@ -1643,7 +1643,7 @@ public partial class polymarket : Exchange
                 { "type", "cancelOrders" },
                 { "args", numericIds },
             };
-            Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp, paramsOmitted));
+            Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp, paramsOmitted);
             response = await this.tradeDeleteTradeOrders(signed);
         }
         //
@@ -1697,7 +1697,7 @@ public partial class polymarket : Exchange
             { "type", "cancelAll" },
             { "args", args },
         };
-        Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp));
+        Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp);
         Dictionary<string, object> response = await this.tradeDeleteTradeOrdersAll(signed);
         //
         //     { "status": "ok" }
@@ -1730,7 +1730,7 @@ public partial class polymarket : Exchange
                 { "time", deadline },
             } },
         };
-        Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp));
+        Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp);
         Dictionary<string, object> response = await this.tradePatchTradeAutoCancel(signed);
         //
         //     { "status": "ok", "deadline": 1788546570789 }
@@ -1773,7 +1773,7 @@ public partial class polymarket : Exchange
     { "qty", quantity },
 }} },
         };
-        Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp, parameters));
+        Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp, parameters);
         List<object> response = await this.tradePatchTradeOrders(signed);
         //
         //     [
@@ -2717,7 +2717,7 @@ public partial class polymarket : Exchange
                 { "lev", leverageInt },
             } },
         };
-        Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp));
+        Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp);
         Dictionary<string, object> response = await this.tradePatchTradeLeverage(signed);
         //
         //     { "status": "ok", "instrument_id": 1, "leverage": 10, "cross": true }
@@ -2789,7 +2789,7 @@ public partial class polymarket : Exchange
                 { "iid", instrumentId },
             } },
         };
-        Dictionary<string, object> signed = ((Dictionary<string, object>)await this.signPerpsOp(signable, bodyOp));
+        Dictionary<string, object> signed = await this.signPerpsOp(signable, bodyOp);
         Dictionary<string, object> response = await this.tradePatchTradeMargin(signed);
         //
         //     { "status": "ok" }
@@ -2977,7 +2977,7 @@ public partial class polymarket : Exchange
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public async virtual Task<object> signPerpsOp(object signable, IDictionary<string, object> bodyOp, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> signPerpsOp(object signable, IDictionary<string, object> bodyOp, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> credentials = await this.loadProxyCredentials();
@@ -3153,7 +3153,8 @@ public partial class polymarket : Exchange
         {
             if ((method == "GET"))
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
+                Dictionary<string, object> queryCopy = this.extend(new Dictionary<string, object>() {}, query);
+                List<object> keys = new List<object>(queryCopy.Keys);
                 int keysLength = keys.Count;
                 if (keysLength > 0)
                 {

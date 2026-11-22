@@ -382,7 +382,7 @@ public partial class ndax : ccxt.ndax
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            List<object> timeframes = new List<object>(((IDictionary<string,object>)(marketId != null && updates.ContainsKey(marketId) ? updates[marketId] : null)).Keys);
+            List<object> timeframes = new List<object>(((IDictionary<string,object>)this.safeDict(updates, marketId, new Dictionary<string, object>() {})).Keys);
             for (int j = 0; j < timeframes.Count; j++)
             {
                 string? timeframe = ((string)timeframes[j]);

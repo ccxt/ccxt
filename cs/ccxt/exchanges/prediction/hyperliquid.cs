@@ -2374,15 +2374,16 @@ public partial class hyperliquid : PredictionExchange
     {
         byte[] dataBinary = this.packb(action);
         string dataHex = this.binaryToBase16(dataBinary);
-        string? data = dataHex;
-        data = (data == null ? null : data + ("00000" + this.intToBase16(nonce)));
+        string data = dataHex;
+        data = data + ("00000" + this.intToBase16(nonce));
         if ((vaultAddress == null))
         {
-            data = (data == null ? null : data + "00");
+            data = data + "00";
         } else
         {
-            data = (data == null ? null : data + "01");
-            data = (data == null ? null : data + (string)(object)(vaultAddress));
+            string vaultHex = ((string)vaultAddress).ToLower();
+            data = data + "01";
+            data = data + vaultHex;
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }

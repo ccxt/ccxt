@@ -1316,9 +1316,8 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            object sym = getValue(symbolAndTimeframe, 0);
-            object tf = getValue(symbolAndTimeframe, 1);
+            string? sym = this.safeString((symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null), 0, "");
+            string? tf = this.safeString((symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null), 1, "");
             string? marketId = this.marketId(sym);
             string? interval = this.safeString(this.timeframes, tf, tf);
             string channel = ("candle" + interval);
@@ -1327,7 +1326,7 @@ public partial class okx : ccxt.okx
                 { "instId", marketId },
             };
             topics.Add(topic);
-            messageHashes.Add(((("multi:" + channel) + ":") + (sym)));
+            messageHashes.Add(((("multi:" + channel) + ":") + sym));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -1360,7 +1359,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57058 && ((hxArr57058 is IList<object>) || (hxArr57058.GetType().IsGenericType && hxArr57058.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57064 && ((hxArr57064 is IList<object>) || (hxArr57064.GetType().IsGenericType && hxArr57064.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1372,9 +1371,8 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            object sym = getValue(symbolAndTimeframe, 0);
-            object tf = getValue(symbolAndTimeframe, 1);
+            string? sym = this.safeString((symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null), 0, "");
+            string? tf = this.safeString((symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null), 1, "");
             string? marketId = this.marketId(sym);
             string? interval = this.safeString(this.timeframes, tf, tf);
             string channel = ("candle" + interval);
@@ -1383,7 +1381,7 @@ public partial class okx : ccxt.okx
                 { "instId", marketId },
             };
             topics.Add(topic);
-            messageHashes.Add(((("unsubscribe:multi:" + channel) + ":") + (sym)));
+            messageHashes.Add(((("unsubscribe:multi:" + channel) + ":") + sym));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },

@@ -1297,7 +1297,7 @@ public partial class deribit : Exchange
                     symbol = ((((bs + "/") + quote) + ":") + settle);
                     if (option || future)
                     {
-                        symbol = (symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry, "")));
+                        symbol = (symbol == null ? null : symbol + (string)(object)((("-" + this.yymmdd(expiry, "")))));
                         if (option)
                         {
                             strike = this.safeNumber(market, "strike");

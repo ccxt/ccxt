@@ -2624,7 +2624,8 @@ public partial class cryptocom : Exchange
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(depositAddresses, network));
             }
         }
-        List<object> keys = new List<object>(depositAddresses.Keys);
+        Dictionary<string, object> addressesCopy = this.extend(new Dictionary<string, object>() {}, depositAddresses);
+        List<object> keys = new List<object>(addressesCopy.Keys);
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(depositAddresses, this.safeString(keys, 0)));
     }
 
@@ -3994,7 +3995,8 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            Dictionary<string, object> objectDict = this.extend(new Dictionary<string, object>() {}, obj);
+            List<object> objectKeys = new List<object>(objectDict.Keys);
             paramsKeys = this.sort(objectKeys);
         }
         for (int i = 0; i < getArrayLength(paramsKeys); i++)

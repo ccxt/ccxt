@@ -1369,7 +1369,8 @@ public partial class mexc : Exchange
             //
             //     {}
             //
-            List<object> keys = new List<object>(spotResponse.Keys);
+            Dictionary<string, object> spotResponseCopy = this.extend(new Dictionary<string, object>() {}, spotResponse);
+            List<object> keys = new List<object>(spotResponseCopy.Keys);
             int length = keys.Count;
             status = (length > 0) ? this.json(response) : "ok";
         } else if ((marketType == "swap"))

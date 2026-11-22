@@ -1553,7 +1553,7 @@ public partial class backpack : Exchange
         {
             orderParams["clientOrderId"] = clientOrderId;
         }
-        object order = await this.createRfqOrder(this.safeSymbol(null, market), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new Dictionary<string, object>() {
+        Dictionary<string, object> order = await this.createRfqOrder(this.safeSymbol(null, market), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new Dictionary<string, object>() {
             { "stock", true },
         }));
         return ccxt.BaseExchange.ToConversion(this.parseConversion(order, this.currency(((string)fromCode)), this.currency(((string)toCode))));
@@ -2924,7 +2924,7 @@ public partial class backpack : Exchange
         });
         if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
         {
-            Dictionary<string, object> rfqResponse = ((Dictionary<string, object>)await this.createRfqOrder(symbol, type, side, amount, price, orderParams));
+            Dictionary<string, object> rfqResponse = await this.createRfqOrder(symbol, type, side, amount, price, orderParams);
             IDictionary<string, object> rfqOrder = this.safeDict(new Dictionary<string, object>() {
                 { "order", rfqResponse },
             }, "order");
@@ -2952,7 +2952,7 @@ public partial class backpack : Exchange
      * @param {int} [params.clientOrderId] requester client identifier
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> createRfqOrder(object symbol, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> createRfqOrder(object symbol, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -1209,7 +1209,8 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         IList<object> codesValue = this.marketCodes(codes);
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        Dictionary<string, object> feesById = this.extend(new Dictionary<string, object>() {}, response);
+        List<object> currencyIds = new List<object>(feesById.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? entry = ((string)currencyIds[i]);
@@ -1843,7 +1844,8 @@ public partial class whitebit : Exchange
             {
                 Dictionary<string, object> response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted));
                 // Search for order in executed orders response (object format)
-                List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+                Dictionary<string, object> executedById = this.extend(new Dictionary<string, object>() {}, response);
+                List<object> marketIds = new List<object>(executedById.Keys);
                 for (int i = 0; i < marketIds.Count; i++)
                 {
                     string? marketId = ((string)marketIds[i]);
@@ -2159,7 +2161,8 @@ public partial class whitebit : Exchange
         } else
         {
             List<object> results = new List<object>() {};
-            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            Dictionary<string, object> tradesById = this.extend(new Dictionary<string, object>() {}, response);
+            List<object> keys = new List<object>(tradesById.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? marketId = ((string)keys[i]);

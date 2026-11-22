@@ -424,22 +424,16 @@ public partial class limitless : PredictionExchange
             markets.Add(m);
             if (((eventKey != null)) && ((eventKey != "")))
             {
-                if (!((eventGroups != null && eventKey != null && eventGroups.ContainsKey(eventKey))))
-                {
-                    eventGroups[(string)eventKey] = new Dictionary<string, object>() {
-                        { "groupId", groupId },
-                        { "title", this.safeString2(raw, "groupTitle", "title", groupId) },
-                        { "raw", raw },
-                        { "markets", new List<object>() {} },
-                    };
-                }
-                IDictionary<string, object> eventGroup = ((IDictionary<string, object>)(eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null));
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+                IDictionary<string, object> eventGroup = this.safeDict(eventGroups, eventKey, new Dictionary<string, object>() {
+                    { "groupId", groupId },
+                    { "title", this.safeString2(raw, "groupTitle", "title", groupId) },
+                    { "raw", raw },
+                    { "markets", new List<object>() {} },
+                });
                 IList<object> groupMarkets = ((IList<object>)(eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null));
                 groupMarkets.Add(m);
                 eventGroup["markets"] = groupMarkets;
+                eventGroups[(string)eventKey] = eventGroup;
             }
         }
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
@@ -3436,22 +3430,16 @@ public partial class limitless : PredictionExchange
             this.markets[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
             if (((eventKey != null)) && (eventKey != ""))
             {
-                if (!(((eventKey != null) && (eventGroups?.ContainsKey(eventKey) == true))))
-                {
-                    eventGroups[(string)eventKey] = new Dictionary<string, object>() {
-                        { "groupId", groupId },
-                        { "title", this.safeString2(raw, "groupTitle", "title", groupId) },
-                        { "raw", raw },
-                        { "markets", new List<object>() {} },
-                    };
-                }
-                IDictionary<string, object> eventGroup = ((IDictionary<string, object>)(eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null));
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+                IDictionary<string, object> eventGroup = this.safeDict(eventGroups, eventKey, new Dictionary<string, object>() {
+                    { "groupId", groupId },
+                    { "title", this.safeString2(raw, "groupTitle", "title", groupId) },
+                    { "raw", raw },
+                    { "markets", new List<object>() {} },
+                });
                 IList<object> groupMarkets = ((IList<object>)(eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null));
                 groupMarkets.Add(m);
                 eventGroup["markets"] = groupMarkets;
+                eventGroups[(string)eventKey] = eventGroup;
             }
         }
         List<object> result = new List<object>() {};

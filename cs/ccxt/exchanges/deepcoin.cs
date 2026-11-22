@@ -742,7 +742,8 @@ public partial class deepcoin : Exchange
     public override IDictionary<string, object> setMarkets(object markets, object currencies = null)
     {
         IDictionary<string, object> result = base.setMarkets(markets, currencies);
-        List<object> symbols = new List<object>(result.Keys);
+        Dictionary<string, object> resultCopy = this.extend(new Dictionary<string, object>() {}, result);
+        List<object> symbols = new List<object>(resultCopy.Keys);
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);

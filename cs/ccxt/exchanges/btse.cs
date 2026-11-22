@@ -1314,7 +1314,7 @@ public partial class btse : Exchange
             IDictionary<string, object> entry = this.safeDict(data, i);
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             if ((symbolsNormalized == null) || this.inArray(symbol, symbolsNormalized))
             {
                 List<object> levels = this.safeList(entry, "riskLimits", new List<object>() {});

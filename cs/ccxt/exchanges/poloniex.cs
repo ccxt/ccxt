@@ -3302,12 +3302,11 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
-        var request = requestextraParamscurrencynetworkEntryVariable[0];
-        var extraParams = requestextraParamscurrencynetworkEntryVariable[1];
-        var currency = requestextraParamscurrencynetworkEntryVariable[2];
-        var networkEntry = requestextraParamscurrencynetworkEntryVariable[3];
-        object paramsValue = extraParams;
+        object prepared = this.prepareRequestForDepositAddress(code, parameters);
+        IDictionary<string, object> request = this.safeDict(prepared, "request");
+        IDictionary<string, object> paramsValue = this.safeDict(prepared, "query");
+        Dictionary<string, object> currency = this.currency(code);
+        IDictionary<string, object> networkEntry = this.safeDict(prepared, "networkEntry");
         Dictionary<string, object> response = await this.privatePostWalletsAddress(this.extend(request, paramsValue));
         //
         //     {
@@ -3330,12 +3329,11 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
-        var request = requestextraParamscurrencynetworkEntryVariable[0];
-        var extraParams = requestextraParamscurrencynetworkEntryVariable[1];
-        var currency = requestextraParamscurrencynetworkEntryVariable[2];
-        var networkEntry = requestextraParamscurrencynetworkEntryVariable[3];
-        object paramsValue = extraParams;
+        object prepared = this.prepareRequestForDepositAddress(code, parameters);
+        IDictionary<string, object> request = this.safeDict(prepared, "request");
+        IDictionary<string, object> paramsValue = this.safeDict(prepared, "query");
+        Dictionary<string, object> currency = this.currency(code);
+        IDictionary<string, object> networkEntry = this.safeDict(prepared, "networkEntry");
         Dictionary<string, object> response = await this.privateGetWalletsAddresses(this.extend(request, paramsValue));
         //
         //     {
@@ -3351,7 +3349,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddressSpecial(response, currency, networkEntry));
     }
 
-    public virtual List<object> prepareRequestForDepositAddress(string code, IDictionary<string, object> parameters = null)
+    public virtual object prepareRequestForDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!((this.currenciesDict != null && code != null && this.currenciesDict.ContainsKey(code))))
@@ -3381,10 +3379,15 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", exchangeNetworkId },
         };
-        return new List<object>() {request, query, currency, networkEntry};
+        return new Dictionary<string, object>() {
+            { "request", request },
+            { "query", query },
+            { "currency", currency },
+            { "networkEntry", networkEntry },
+        };
     }
 
-    public virtual object parseDepositAddressSpecial(IDictionary<string, object> response, object currency, object networkEntry)
+    public virtual object parseDepositAddressSpecial(IDictionary<string, object> response, IDictionary<string, object> currency, IDictionary<string, object> networkEntry)
     {
         string? address = this.safeString(response, "address");
         if ((address == null))

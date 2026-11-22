@@ -178,7 +178,8 @@ public partial class deepcoin : ccxt.deepcoin
     public async virtual Task<object> watchPrivate(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? listenKey = await this.authenticate();
+        await this.authenticate();
+        string? listenKey = this.safeString(this.options, "listenKey", "");
         return await this.watch(((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "") + "?listenKey=") + listenKey), messageHash, null, "private", parameters);
     }
 
@@ -1214,7 +1215,8 @@ public partial class deepcoin : ccxt.deepcoin
         {
             await this.loadMarkets();
         }
-        string? listenKey = await this.authenticate();
+        await this.authenticate();
+        string? listenKey = this.safeString(this.options, "listenKey", "");
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};

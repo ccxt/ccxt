@@ -1595,7 +1595,6 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             this.balance = new Dictionary<string, object>() {};
         }
-        object updatedBalance = null;
         if ((holding != null))
         {
             List<object> holdingKeys = new List<object>(holding.Keys); // cashAccount
@@ -1619,7 +1618,6 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             this.balance["cash"] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
             this.balance["cash"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null));
-            updatedBalance = (this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null);
         }
         if ((futures != null))
         {
@@ -1652,10 +1650,6 @@ public partial class krakenfutures : ccxt.krakenfutures
             this.balance["margin"] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
             this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), (messageHash + ":futures"));
-            if ((updatedBalance == null))
-            {
-                updatedBalance = (this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null);
-            }
         }
         if ((flexFutures != null))
         {
@@ -1685,18 +1679,20 @@ public partial class krakenfutures : ccxt.krakenfutures
             this.balance["flex"] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
             this.balance["flex"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), (messageHash + ":flex_futures"));
-            if ((updatedBalance == null))
-            {
-                updatedBalance = (this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null);
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if ((updatedBalance != null))
+        if ((holding != null))
         {
-            client.resolve(updatedBalance, messageHash);
+            client.resolve((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null), messageHash);
+        } else if ((futures != null))
+        {
+            client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), messageHash);
+        } else if ((flexFutures != null))
+        {
+            client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), messageHash);
         }
     }
 

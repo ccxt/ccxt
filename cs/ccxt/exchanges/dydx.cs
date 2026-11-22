@@ -1847,8 +1847,7 @@ public partial class dydx : Exchange
         object goodTillBlockTime = null;
         int defaultOrderFlags = isTrigger == true ? 32 : 64;
         Int64? orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
-        int subAccountId = 0;
-        (Int64?, object) subAccountIdOptionVariable = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId);
+        (Int64?, object) subAccountIdOptionVariable = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", 0);
         Int64? subAccountIdOption = subAccountIdOptionVariable.Item1;
         if ((orderFlags != 0) && (orderFlags != 64) && (orderFlags != 32))
         {
@@ -1941,8 +1940,7 @@ public partial class dydx : Exchange
         {
             throw new NotSupported ((this.id + " cancelOrders only support clientOrderIds.")) ;
         }
-        int subAccountId = 0;
-        (Int64?, object) subAccountIdOptionparamsSubAccountIdVariable = this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
+        (Int64?, object) subAccountIdOptionparamsSubAccountIdVariable = this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", 0);
         Int64? subAccountIdOption = subAccountIdOptionparamsSubAccountIdVariable.Item1;
         IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subAccountIdOptionparamsSubAccountIdVariable.Item2);
         Int64? goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
@@ -2445,9 +2443,8 @@ public partial class dydx : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
-        string? tag = (string)tagparamsWithdrawTagVariable[0];
-        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
+        string? tag = this.safeString(parameters, "tag");
+        Dictionary<string, object> paramsWithdrawTag = this.omit(parameters, "tag");
         if ((code != "USDC"))
         {
             throw new NotSupported ((this.id + " withdraw() only support USDC")) ;

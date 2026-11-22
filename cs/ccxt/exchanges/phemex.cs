@@ -2288,12 +2288,13 @@ public partial class phemex : Exchange
                 priceString = this.safeString(trade, "execPriceRp");
                 amountString = this.safeString(trade, "execQtyRq");
                 costString = this.safeString(trade, "execValueRv");
-                feeCostString = this.omitZero(this.safeString(trade, "execFeeRv"));
+                string? execFeeRv = ((string)this.omitZero(this.safeString(trade, "execFeeRv")));
                 feeRateString = this.safeString(trade, "feeRateRr");
-                if ((feeCostString != null))
+                if ((execFeeRv != null))
                 {
                     string? currencyId = this.safeString(trade, "currency");
                     feeCurrencyCode = this.safeCurrencyCode(currencyId);
+                    feeCostString = execFeeRv;
                 } else
                 {
                     string? ptFeeRv = ((string)this.omitZero(this.safeString(trade, "ptFeeRv")));
@@ -2334,10 +2335,11 @@ public partial class phemex : Exchange
                     }
                 } else
                 {
-                    feeCostString = this.safeString(trade, "ptFeeRv");
-                    if ((feeCostString != null))
+                    string? ptFeeRvString = this.safeString(trade, "ptFeeRv");
+                    if ((ptFeeRvString != null))
                     {
                         feeCurrencyCode = "PT";
+                        feeCostString = ptFeeRvString;
                     }
                 }
             }
@@ -3665,9 +3667,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList170731))
+        if ((data is IList<object> hxList170837))
         {
-            int numOrders = hxList170731.Count;
+            int numOrders = hxList170837.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))

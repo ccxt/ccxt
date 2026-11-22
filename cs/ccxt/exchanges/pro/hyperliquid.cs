@@ -1547,10 +1547,13 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (hasSymbols)
         {
             symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (hasSymbols && ((symbolsNormalized != null)))
-        {
-            messageHash = messageHash + ("::" + String.Join(",", symbolsNormalized.ToArray()));
+            List<object> joinParts = new List<object>() {};
+            for (int si = 0; si < (symbolsNormalized?.Count ?? 0); si++)
+            {
+                string? symbolEntry = this.safeString(symbolsNormalized, si, "");
+                joinParts.Add(symbolEntry);
+            }
+            messageHash = messageHash + ("::" + String.Join(",", joinParts.ToArray()));
         }
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

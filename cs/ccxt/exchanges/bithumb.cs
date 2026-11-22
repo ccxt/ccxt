@@ -1211,7 +1211,8 @@ public partial class bithumb : Exchange
                         tickers = new List<object>() {response};
                     } else
                     {
-                        List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
+                        Dictionary<string, object> responseDict = this.extend(new Dictionary<string, object>() {}, response);
+                        List<object> ids = new List<object>(responseDict.Keys);
                         for (int j = 0; j < ids.Count; j++)
                         {
                             string? id = ((string)ids[j]);
@@ -3654,7 +3655,8 @@ public partial class bithumb : Exchange
 
     public virtual string? urlencodeWithArrayBrackets(object query)
     {
-        List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
+        Dictionary<string, object> queryCopy = this.extend(new Dictionary<string, object>() {}, query);
+        List<object> keys = new List<object>(queryCopy.Keys);
         string result = "";
         for (int i = 0; i < keys.Count; i++)
         {

@@ -449,7 +449,9 @@ public partial class bingx : ccxt.bingx
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
+        (bool?, IDictionary<string, object>) ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "watchTrades", "ignoreDuplicates", true);
+        bool? ignoreDuplicates = ignoreDuplicatesVariable.Item1;
+        if ((ignoreDuplicates == true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");

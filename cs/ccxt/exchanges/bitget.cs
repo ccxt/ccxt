@@ -10585,14 +10585,15 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         string? symbol = this.safeString(parameters, "symbol");
-        object paramsOmitted = this.omit(parameters, "symbol");
+        Dictionary<string, object> paramsNoSymbol = this.omit(parameters, "symbol");
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
         }
         string? marketType = null;
-        IList<object> marketTypeparamsOmittedVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", market, paramsOmitted);
+        object paramsOmitted = null;
+        IList<object> marketTypeparamsOmittedVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", market, paramsNoSymbol);
         marketType = (string)marketTypeparamsOmittedVariable[0];
         paramsOmitted = marketTypeparamsOmittedVariable[1];
         bool? uta = null;
@@ -13506,7 +13507,8 @@ public partial class bitget : Exchange
             requestUntil["startTime"] = since;
         } else
         {
-            requestUntil["startTime"] = (this.milliseconds() - 7776000000);
+            Int64 defaultStart = (this.milliseconds() - 7776000000);
+            requestUntil["startTime"] = defaultStart;
         }
         if ((limit != null))
         {

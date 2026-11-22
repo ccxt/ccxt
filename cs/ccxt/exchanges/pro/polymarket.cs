@@ -789,12 +789,9 @@ public partial class polymarket : ccxt.polymarket
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         List<object> rows = new List<object>() {};
-        if ((data is IList<object> hxList33618))
-        {
-            rows = ((List<object>)data);
-        } else
+        if ((data != null))
         {
             rows.Add(data);
         }
@@ -1292,7 +1289,7 @@ public partial class polymarket : ccxt.polymarket
             }
             for (int i = 0; i < messageHashes.Count; i++)
             {
-                this.cleanUnsubscription(client, (subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null), messageHashes[i]);
+                this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i]);
             }
         }
     }

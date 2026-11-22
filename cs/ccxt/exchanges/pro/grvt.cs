@@ -127,7 +127,7 @@ public partial class grvt : ccxt.grvt
         {
             apiPart = "publicMarket";
         }
-        return await this.watchMultiple((this.urlsApiSections.ContainsKey("ws") && apiPart != null && this.urlsApiSections["ws"].ContainsKey(apiPart) ? this.urlsApiSections["ws"][apiPart] : null), messageHashes, payload, rawHashes);
+        return await this.watchMultiple(this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), apiPart), messageHashes, payload, rawHashes);
     }
 
     public override Int64 requestId()
@@ -733,7 +733,7 @@ public partial class grvt : ccxt.grvt
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            this.client((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("privateTrading") ? this.urlsApiSections["ws"]["privateTrading"] : null));
+            this.client(this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "privateTrading"));
         }
     }
 

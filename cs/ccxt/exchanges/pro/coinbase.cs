@@ -1186,13 +1186,16 @@ public partial class coinbase : ccxt.coinbase
         if (isUnsub && (subKeysLength == 0))
         {
             IDictionary<string, object> unSubObject = this.safeDict(this.options, "unSubscription", new Dictionary<string, object>() {});
-            List<object> messageHashes = this.safeList(unSubObject, "messageHashes", new List<object>() {});
+            List<object> messageHashes = this.safeStringList(unSubObject, new List<object>() {"messageHashes"});
             List<object> subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new List<object>() {});
-            for (int i = 0; i < messageHashes.Count; i++)
+            if ((messageHashes != null))
             {
-                object messageHash = messageHashes[i];
-                string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
-                this.cleanUnsubscription(client, subHash, messageHash);
+                for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
+                {
+                    object messageHash = messageHashes[i];
+                    string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
+                    this.cleanUnsubscription(client, subHash, messageHash);
+                }
             }
             this.cleanCache(unSubObject);
         }

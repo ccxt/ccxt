@@ -1066,7 +1066,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object method, object reqParams = null, object parameters = null)
+    public async virtual Task<object> watchPrivate(object messageHash, object method, IList<object>? reqParams = null, object parameters = null)
     {
         reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();

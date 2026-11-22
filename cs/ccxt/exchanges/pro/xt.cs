@@ -1842,13 +1842,16 @@ public partial class xt : ccxt.xt
 
     public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
-        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (int j = 0; j < messageHashes.Count; j++)
+        if ((messageHashes != null))
         {
-            object unsubHash = messageHashes[j];
-            string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
-            this.cleanUnsubscription(client, subHash, unsubHash);
+            for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
+            {
+                object unsubHash = messageHashes[j];
+                string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }

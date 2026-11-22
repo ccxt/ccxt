@@ -504,7 +504,9 @@ public partial class cryptocom : ccxt.cryptocom
         {
             stored.append(this.safeDict(parsedTrades, j));
         }
-        string channelReplaced = channel.Replace(("." + marketId), (string)"");
+        string? channelName = this.safeString(message, "channel", "");
+        string? marketIdName = this.safeString(message, "instrument_name", "");
+        string channelReplaced = channelName.Replace(("." + marketIdName), (string)"");
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -1707,13 +1709,16 @@ public partial class cryptocom : ccxt.cryptocom
                 {
                     continue;
                 }
-                List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+                List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
                 List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-                for (int j = 0; j < messageHashes.Count; j++)
+                if ((messageHashes != null))
                 {
-                    object unsubHash = messageHashes[j];
-                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                    for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
+                    {
+                        object unsubHash = messageHashes[j];
+                        string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                        this.cleanUnsubscription(client, subHash, unsubHash);
+                    }
                 }
                 this.cleanCache(subscription);
             }

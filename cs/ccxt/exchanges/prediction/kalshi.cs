@@ -764,7 +764,12 @@ public partial class kalshi : PredictionExchange
             int eventPartsLength = eventParts.Count;
             if (eventPartsLength > 1)
             {
-                IList<object> seriesParts = this.arraySlice(eventParts, 0, (eventPartsLength - 1));
+                List<object> seriesParts = new List<object>() {};
+                for (int si = 0; (si < (eventPartsLength - 1)); si++)
+                {
+                    string? seriesPart = this.safeString(eventParts, si, "");
+                    seriesParts.Add(seriesPart);
+                }
                 seriesTicker = String.Join("-", seriesParts.ToArray());
             }
         }
@@ -1120,7 +1125,7 @@ public partial class kalshi : PredictionExchange
         //     }
         //
         IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
-        string? outcomeLabel = ((market != null) && (market != null)) ? this.safeStringUpper(market, "label", this.safeStringUpper(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
+        string? outcomeLabel = ((market != null) && (market != null)) ? this.safeStringUpper(market, "label", this.safeStringUpper(this.safeDict(market, "info"), "outcomeLabel", "YES")) : "YES";
         bool isNo = outcomeLabel == "NO";
         Int64? timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         string? outcome = this.safeString(outcomeObj, "outcome");

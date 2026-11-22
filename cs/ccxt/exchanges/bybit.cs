@@ -10623,11 +10623,21 @@ public partial class bybit : Exchange
         int lastIndex = (total - 1);
         IDictionary<string, object> last = this.safeDict(result, lastIndex, new Dictionary<string, object>() {});
         string? cursorValue = this.safeString(first, "nextPageCursor");
-        last["info"] = new Dictionary<string, object>() {
-            { "nextPageCursor", cursorValue },
-        };
-        result[Convert.ToInt32(lastIndex)] = last;
-        return result;
+        Dictionary<string, object> lastRow = this.extend(last, new Dictionary<string, object>() {
+            { "info", new Dictionary<string, object>() {
+                { "nextPageCursor", cursorValue },
+            } },
+        });
+        List<object> rows = new List<object>() {};
+        for (int i = 0; i < lastIndex; i++)
+        {
+            rows.Add(this.safeDict(result, i, new Dictionary<string, object>() {}));
+        }
+        if (total > 0)
+        {
+            rows.Add(lastRow);
+        }
+        return rows;
     }
 
     /**
@@ -11942,13 +11952,10 @@ public partial class bybit : Exchange
                 });
                 Dictionary<string, object> sortedQuery = this.keysort(query);
                 string auth = this.rawencode(sortedQuery, true);
-                string? signature = null;
+                string signature = this.hmac(auth, this.secret, sha256);
                 if (this.secret.IndexOf("PRIVATE KEY", StringComparison.Ordinal) > -1)
                 {
                     signature = rsa(auth, this.secret, sha256);
-                } else
-                {
-                    signature = this.hmac(auth, this.secret, sha256);
                 }
                 if ((method == "POST"))
                 {

@@ -993,12 +993,13 @@ public partial class bit2me : Exchange
         {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            Int64? end = this.milliseconds();
             if (!(until == null))
             {
-                end = until;
+                request["startTime"] = (until - (requestLimit * duration));
+            } else
+            {
+                request["startTime"] = (this.milliseconds() - (requestLimit * duration));
             }
-            request["startTime"] = (end - (requestLimit * duration));
         }
         if (!(until == null))
         {
@@ -1460,9 +1461,14 @@ public partial class bit2me : Exchange
         if (((since != null)) || (!(until == null)))
         {
             Int64? start = ((since != null)) ? since : 0;
-            Int64? end = (!(until == null)) ? until : this.milliseconds();
             request["startTime"] = this.iso8601(start);
-            request["endTime"] = this.iso8601(end);
+            if (!(until == null))
+            {
+                request["endTime"] = this.iso8601(until);
+            } else
+            {
+                request["endTime"] = this.iso8601(this.milliseconds());
+            }
         }
         List<object> response = await this.privateGetV1TradingOrder(this.extend(request, query));
         //
@@ -1702,9 +1708,14 @@ public partial class bit2me : Exchange
         if (((since != null)) || (!(until == null)))
         {
             Int64? start = ((since != null)) ? since : 0;
-            Int64? end = (!(until == null)) ? until : this.milliseconds();
             request["startTime"] = this.iso8601(start);
-            request["endTime"] = this.iso8601(end);
+            if (!(until == null))
+            {
+                request["endTime"] = this.iso8601(until);
+            } else
+            {
+                request["endTime"] = this.iso8601(this.milliseconds());
+            }
         }
         Dictionary<string, object> response = await this.privateGetV1TradingTrade(this.extend(request, query));
         //

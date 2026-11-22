@@ -282,7 +282,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> parsed = this.parseBalanceList(data);
+        Dictionary<string, object> parsed = this.parseBalanceList(data, new List<object>() {data});
         this.balance = this.deepExtend(this.balance, parsed);
         client.resolve(this.balance, "balance");
     }
@@ -1077,7 +1077,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49770 && ((hxArr49770 is IList<object>) || (hxArr49770.GetType().IsGenericType && hxArr49770.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49780 && ((hxArr49780 is IList<object>) || (hxArr49780.GetType().IsGenericType && hxArr49780.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -2135,7 +2135,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int summariesLength = summaries.Count;
         for (int i = 0; i < summariesLength; i++)
         {
-            balance = this.deepExtend(balance, this.parseBalanceList((summaries != null && i < summaries.Count ? summaries[i] : null)));
+            balance = this.deepExtend(balance, this.parseBalanceList((summaries != null && i < summaries.Count ? summaries[i] : null), new List<object> {this.safeDict(summaries, i, new Dictionary<string, object>() {})}));
         }
         return ccxt.BaseExchange.ToBalances(this.safeBalance(balance));
     }

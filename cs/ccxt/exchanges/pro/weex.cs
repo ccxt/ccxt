@@ -2208,13 +2208,16 @@ public partial class weex : ccxt.weex
         if ((unsubscribe == true))
         {
             bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
-            List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+            List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
             List<object> subHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-            for (int i = 0; i < messageHashes.Count; i++)
+            if ((messageHashes != null))
             {
-                string? unSubHash = this.safeString(messageHashes, i);
-                string? subHash = this.safeString(subHashes, i);
-                this.cleanUnsubscription(client, subHash, unSubHash, subHashIsPrefix);
+                for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
+                {
+                    string? unSubHash = this.safeString(messageHashes, i);
+                    string? subHash = this.safeString(subHashes, i);
+                    this.cleanUnsubscription(client, subHash, unSubHash, subHashIsPrefix);
+                }
             }
             this.cleanCache(subscription);
         }

@@ -1720,7 +1720,8 @@ public partial class bitstamp : Exchange
         IDictionary<string, object> marketResolved = market;
         if ((market == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)trade).Keys);
+            Dictionary<string, object> tradeCopy = this.extend(new Dictionary<string, object>() {}, trade);
+            List<object> keys = new List<object>(tradeCopy.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currentKey = ((string)keys[i]);
@@ -1733,7 +1734,7 @@ public partial class bitstamp : Exchange
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if ((marketResolved == null))
+        if ((this.safeString(marketResolved, "id") == null))
         {
             marketResolved = this.getMarketFromTrade(trade);
         }
@@ -2121,7 +2122,7 @@ public partial class bitstamp : Exchange
         for (int i = 0; i < (feesList?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(feesList[i]);
-            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
+            string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -3121,7 +3122,7 @@ public partial class bitstamp : Exchange
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if ((market == null))
+            if ((this.safeString(market, "id") == null))
             {
                 market = this.getMarketFromTrade(item);
             }
@@ -3608,7 +3609,8 @@ public partial class bitstamp : Exchange
                 errors.Add(error);
             } else if ((error != null))
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)error).Keys);
+                Dictionary<string, object> errorDict = this.extend(new Dictionary<string, object>() {}, error);
+                List<object> keys = new List<object>(errorDict.Keys);
                 for (int i = 0; i < keys.Count; i++)
                 {
                     string? key = ((string)keys[i]);

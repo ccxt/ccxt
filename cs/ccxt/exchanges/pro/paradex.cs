@@ -1399,7 +1399,7 @@ public partial class paradex : ccxt.paradex
             if (!((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash))))
             {
                 missing.Add(marketId);
-                missingHashes.Add((messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
+                missingHashes.Add(this.safeString(messageHashes, i, ""));
             }
         }
         int missingLength = (missing?.Count ?? 0);
@@ -1512,7 +1512,8 @@ public partial class paradex : ccxt.paradex
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(newBidAsk, "symbol")] = newBidAsk;
+            string? bidAskSymbol = this.safeString(newBidAsk, "symbol", "");
+            result[(string)bidAskSymbol] = newBidAsk;
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));

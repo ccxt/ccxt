@@ -2446,7 +2446,8 @@ public partial class htx : Exchange
         paramsTypes = typesparamsTypesVariable[1];
         List<object> allMarkets = new List<object>() {};
         List<object> promises = new List<object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)types).Keys);
+        Dictionary<string, object> typesDict = this.extend(new Dictionary<string, object>() {}, types);
+        List<object> keys = new List<object>(typesDict.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -2958,7 +2959,7 @@ public partial class htx : Exchange
         string? askVolume = null;
         if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bid")))
         {
-            if (((((IDictionary<string,object>)ticker)["bid"]) is var hxArr119964 && ((hxArr119964 is IList<object>) || (hxArr119964.GetType().IsGenericType && hxArr119964.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((((IDictionary<string,object>)ticker)["bid"]) is var hxArr120025 && ((hxArr120025 is IList<object>) || (hxArr120025.GetType().IsGenericType && hxArr120025.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 bid = this.safeString(((IDictionary<string,object>)ticker)["bid"], 0);
                 bidVolume = this.safeString(((IDictionary<string,object>)ticker)["bid"], 1);
@@ -2970,7 +2971,7 @@ public partial class htx : Exchange
         }
         if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("ask")))
         {
-            if (((((IDictionary<string,object>)ticker)["ask"]) is var hxArr120331 && ((hxArr120331 is IList<object>) || (hxArr120331.GetType().IsGenericType && hxArr120331.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((((IDictionary<string,object>)ticker)["ask"]) is var hxArr120392 && ((hxArr120392 is IList<object>) || (hxArr120392.GetType().IsGenericType && hxArr120392.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 ask = this.safeString(((IDictionary<string,object>)ticker)["ask"], 0);
                 askVolume = this.safeString(((IDictionary<string,object>)ticker)["ask"], 1);
@@ -4010,10 +4011,8 @@ public partial class htx : Exchange
         };
         string? priceType = this.safeString2(paramsPaginate, "priceType", "price");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"priceType", "price"});
-        IList<object> untilParamparamsUntilVariable = (IList<object>)this.handleParamInteger(paramsOmitted, "until");
-        Int64? untilParam = (Int64?)untilParamparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable[1]);
-        Int64? until = this.safeInteger(paramsOmitted, "until", untilParam);
+        Int64? until = this.safeInteger(paramsOmitted, "until");
+        Dictionary<string, object> paramsUntil = this.omit(paramsOmitted, "until");
         Int64? untilSeconds = null;
         if ((until != null))
         {

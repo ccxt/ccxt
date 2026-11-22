@@ -1846,26 +1846,19 @@ public partial class coinbaseinternational : Exchange
             List<object> summaries = this.safeList(result, "summaries");
             if ((summaries != null))
             {
-                return ccxt.BaseExchange.ToBalances(this.parseBalanceList(summaries));
+                return ccxt.BaseExchange.ToBalances(this.parseBalanceList(summaries, summaries));
             }
-            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(this.safeDict(result, "summaries", new List<object>() {})));
+            // a missing summary row has no currency, so the loop skips it
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(this.safeDict(result, "summaries", new List<object>() {}), new List<object> {this.safeDict(result, "summaries", new Dictionary<string, object>() {})}));
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(result));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(result, this.safeList(result, "summaries", new List<object>() {result})));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response, IList<object> summaries)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> summaries = new List<object>() {response};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            summaries = ((List<object>)response);
-        } else if (this.isNativeDeribitCredentials())
-        {
-            summaries = this.safeList(response, "summaries", new List<object>() {response});
-        }
         for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
             IDictionary<string, object> data = this.safeDict(summaries, i);

@@ -2126,13 +2126,16 @@ public partial class kucoin : ccxt.kucoin
         bool? isUnSub = this.safeBool(subscription, "unsubscribe", false);
         if ((isUnSub == true))
         {
-            List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+            List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
             List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-            for (int i = 0; i < messageHashes.Count; i++)
+            if ((messageHashes != null))
             {
-                string? messageHash = this.safeString(messageHashes, i);
-                string? subHash = this.safeString(subMessageHashes, i);
-                this.cleanUnsubscription(client, subHash, messageHash);
+                for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
+                {
+                    string? messageHash = this.safeString(messageHashes, i);
+                    string? subHash = this.safeString(subMessageHashes, i);
+                    this.cleanUnsubscription(client, subHash, messageHash);
+                }
             }
             string? topic = this.safeString(subscription, "topic");
             if (topic == "fundingRate")
@@ -2141,8 +2144,8 @@ public partial class kucoin : ccxt.kucoin
                 List<object> symbols = this.safeList(subscription, "symbols", new List<object>() {});
                 for (int i = 0; i < symbols.Count; i++)
                 {
-                    string? symbol = ((string)symbols[i]);
-                    if (((symbol != null) && (this.fundingRates != null && symbol != null && this.fundingRates.ContainsKey(symbol))))
+                    string? symbol = this.safeString(symbols, i, "");
+                    if (((symbol != null) && (this.fundingRates != null && this.fundingRates.ContainsKey(symbol))))
                     {
                         this.fundingRates.Remove(symbol);
                     }
@@ -3284,7 +3287,7 @@ public partial class kucoin : ccxt.kucoin
         }
         string? url = await this.getUtaUrl();
         var client = this.client(url);
-        this.setPositionsCache(client, utaOption);
+        this.setPositionsCache(client, (utaOption == true));
         bool fetchPositionSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
         bool awaitPositionSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
@@ -3316,7 +3319,7 @@ public partial class kucoin : ccxt.kucoin
         return this.safeDict(values, 0);
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object uta)
+    public virtual void setPositionsCache(WebSocketClient client, bool? uta)
     {
         if (!(this.isEmpty(this.positions)))
         {
@@ -3337,7 +3340,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, object uta)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, bool? uta)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "uta", uta }, }));
         this.positions = new ArrayCacheBySymbolById();

@@ -2269,7 +2269,8 @@ public partial class foxbit : Exchange
         string signatureQuery = "";
         if ((method == "GET"))
         {
-            List<object> paramKeys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
+            Dictionary<string, object> paramsCopy = this.extend(new Dictionary<string, object>() {}, paramsOmitted);
+            List<object> paramKeys = new List<object>(paramsCopy.Keys);
             int paramKeysLength = paramKeys.Count;
             int lastKeyIndex = (paramKeysLength - 1);
             if (paramKeysLength > 0)

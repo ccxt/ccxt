@@ -2739,7 +2739,8 @@ public partial class bybit : ccxt.bybit
                 int recordedLength = recordedTopics.Count;
                 for (int j = 0; j < recordedLength; j++)
                 {
-                    subscribedTopics[(string)(recordedTopics != null && j < recordedTopics.Count ? recordedTopics[j] : null)] = true;
+                    string? recordedTopic = this.safeString(recordedTopics, j, "");
+                    subscribedTopics[(string)recordedTopic] = true;
                 }
             }
             for (int i = 0; i < topicsLength; i++)
@@ -3158,14 +3159,17 @@ public partial class bybit : ccxt.bybit
                 {
                     continue;
                 }
-                List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+                List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
                 List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-                for (int j = 0; j < messageHashes.Count; j++)
+                if ((messageHashes != null))
                 {
-                    object unsubHash = messageHashes[j];
-                    string? subHash = this.safeString(subMessageHashes, j);
-                    bool usePrefix = (subHash == "orders") || (subHash == "myTrades") || (subHash == "positions");
-                    this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
+                    for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
+                    {
+                        object unsubHash = messageHashes[j];
+                        string? subHash = this.safeString(subMessageHashes, j);
+                        bool usePrefix = (subHash == "orders") || (subHash == "myTrades") || (subHash == "positions");
+                        this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
+                    }
                 }
                 this.cleanCache(subscription);
             }

@@ -1338,7 +1338,9 @@ public partial class bitget : ccxt.bitget
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true);
-        if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
+        (bool?, IDictionary<string, object>) ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "watchTrades", "ignoreDuplicates", true);
+        bool? ignoreDuplicates = ignoreDuplicatesVariable.Item1;
+        if ((ignoreDuplicates == true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
@@ -2006,7 +2008,11 @@ public partial class bitget : ccxt.bitget
             instType = "UTA";
             channel = "order";
         }
-        subscriptionHash = ((subscriptionHash + ":") + instType);
+        string subscriptionHashInst = (subscriptionHash + ":");
+        if ((instType != null))
+        {
+            subscriptionHashInst = (subscriptionHashInst + instType);
+        }
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
@@ -2027,7 +2033,7 @@ public partial class bitget : ccxt.bitget
         {
             args["instId"] = instId;
         }
-        object orders = await this.watchPrivate(uta, messageHash, subscriptionHash, args, paramsRequest);
+        object orders = await this.watchPrivate(uta, messageHash, subscriptionHashInst, args, paramsRequest);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {

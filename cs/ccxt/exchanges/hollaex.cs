@@ -772,7 +772,8 @@ public partial class hollaex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        Dictionary<string, object> tickersDict = this.extend(new Dictionary<string, object>() {}, tickers);
+        List<object> keys = new List<object>(tickersDict.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);

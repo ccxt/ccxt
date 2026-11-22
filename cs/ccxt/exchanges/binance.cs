@@ -9068,7 +9068,7 @@ public partial class binance : Exchange
      * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    public virtual string? generateClientOrderId(IDictionary<string, object>? market = null, string? api = null, object path = null)
+    public virtual string? generateClientOrderId(IDictionary<string, object>? market = null, object api = null, object path = null)
     {
         string? idMarketType = null;
         if ((market != null))
@@ -9105,14 +9105,14 @@ public partial class binance : Exchange
         }
         if (((idMarketType == null)) && ((api != null)))
         {
-            bool isSpotOrMargin = (api.IndexOf("sapi", StringComparison.Ordinal) > -1 || (api == "private"));
+            bool isSpotOrMargin = (((string)api).IndexOf("sapi", StringComparison.Ordinal) > -1 || (api is "private"));
             if (isSpotOrMargin)
             {
                 idMarketType = "spot";
-            } else if (api.IndexOf("dapi", StringComparison.Ordinal) > -1)
+            } else if (((string)api).IndexOf("dapi", StringComparison.Ordinal) > -1)
             {
                 idMarketType = "inverse";
-            } else if (api.IndexOf("eapi", StringComparison.Ordinal) > -1)
+            } else if (((string)api).IndexOf("eapi", StringComparison.Ordinal) > -1)
             {
                 idMarketType = "option";
             } else
@@ -9153,20 +9153,21 @@ public partial class binance : Exchange
      * @param {string} method HTTP method
      * @returns {object} params with the injected client order id
      */
-    public virtual object handleClientOrderId(object parameters, string api, object path, object method)
+    public virtual object handleClientOrderId(object parameters, object api, object path, object method)
     {
         if (!(method is "POST"))
         {
             return parameters;
         }
+        Dictionary<string, object> generated = new Dictionary<string, object>() {};
         if (((path is "order")) || ((path is "sor/order")) || ((path is "order/cancelReplace")) || ((path is "um/order")) || ((path is "cm/order")) || ((path is "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
-            string clientOrderIdKey = ((api == "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+            string clientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
             string? clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if ((clientOrderId == null))
             {
-                ((IDictionary<string,object>)parameters)[clientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                generated[(string)clientOrderIdKey] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "algoOrder")) || ((path is "um/algo/order")))
         {
@@ -9174,7 +9175,7 @@ public partial class binance : Exchange
             string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
             if ((clientAlgoId == null))
             {
-                ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api, path);
+                generated["clientAlgoId"] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "cm/conditional/order")) || ((path is "um/conditional/order")))
         {
@@ -9182,7 +9183,7 @@ public partial class binance : Exchange
             string? newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
             if ((newClientStrategyId == null))
             {
-                ((IDictionary<string,object>)parameters)["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
+                generated["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
             }
         } else if ((path is "equity/order/place"))
         {
@@ -9190,7 +9191,7 @@ public partial class binance : Exchange
             string? equityClientOrderId = this.safeString(parameters, "clientOrderId");
             if ((equityClientOrderId == null))
             {
-                ((IDictionary<string,object>)parameters)["clientOrderId"] = this.generateClientOrderId(null, api, path);
+                generated["clientOrderId"] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "order/oco")) || ((path is "margin/order/oco")) || ((path is "orderList/oco")) || ((path is "orderList/oto")) || ((path is "orderList/otoco")) || ((path is "orderList/opo")) || ((path is "orderList/opoco")))
         {
@@ -9212,15 +9213,15 @@ public partial class binance : Exchange
                 string? currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if ((currentClientOrderId == null))
                 {
-                    ((IDictionary<string,object>)parameters)[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                    generated[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
                 }
             }
         } else if ((path is "batchOrders"))
         {
             // the batch legs take the same client order id fields as the single order endpoints
-            if (((api == "fapiPrivate")) || ((api == "dapiPrivate")) || ((api == "eapiPrivate")))
+            if (((api is "fapiPrivate")) || ((api is "dapiPrivate")) || ((api is "eapiPrivate")))
             {
-                string batchClientOrderIdKey = ((api == "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+                string batchClientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
                 List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
                 List<object> checkedBatchOrders = new List<object>() {};
                 for (int i = 0; i < batchOrders.Count; i++)
@@ -9236,7 +9237,8 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)parameters)["batchOrders"] = checkedBatchOrders;
             }
         }
-        return parameters;
+        Dictionary<string, object> withIds = this.extend(parameters, generated);
+        return withIds;
     }
 
     /**
@@ -16026,7 +16028,8 @@ public partial class binance : Exchange
                     extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
                     if (extendedParams.ContainsKey("symbol"))
                     {
-                        extendedParams["symbol"] = this.encodeURIComponent(this.safeString(extendedParams, "symbol", ""));
+                        string encodedSymbol = this.encodeURIComponent(this.safeString(extendedParams, "symbol", ""));
+                        extendedParams["symbol"] = encodedSymbol;
                     }
                     query = this.rawencode(extendedParams);
                     int orderidlistLength = orderidlist.Count;
@@ -16299,11 +16302,18 @@ public partial class binance : Exchange
 
     public async override Task<object> request(string path, IList<object> api = null, object method = null, object parameters = null, object config = null)
     {
+        // generate the client order ids once, so a retry inside fetch2 signs the same ids
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        object response = await this.fetch2(path, api, method, parameters, config);
+        Dictionary<string, object> route = new Dictionary<string, object>() {
+            { "path", path },
+            { "method", method },
+        };
+        string? requestPath = this.safeString(route, "path", "");
+        string? requestMethod = this.safeString(route, "method", "");
+        object response = await this.fetch2(requestPath, api, requestMethod, this.handleClientOrderId(parameters, (api != null && 0 < api.Count ? api[0] : null), requestPath, requestMethod), config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (((api != null && 0 < api.Count ? api[0] : null) is "private"))
         {

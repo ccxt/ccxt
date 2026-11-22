@@ -926,19 +926,19 @@ public partial class bitrue : Exchange
         }
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
-            object marketType = types[i];
-            if ((marketType is "spot"))
+            string? marketType = this.safeString(types, i, "");
+            if (marketType == "spot")
             {
                 promisesRaw.Add(this.spotV1PublicGetExchangeInfo(parameters));
-            } else if ((marketType is "linear"))
+            } else if (marketType == "linear")
             {
                 promisesRaw.Add(this.fapiV1PublicGetContracts(parameters));
-            } else if ((marketType is "inverse"))
+            } else if (marketType == "inverse")
             {
                 promisesRaw.Add(this.dapiV1PublicGetContracts(parameters));
             } else
             {
-                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + (marketType)) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesRaw);
@@ -1705,7 +1705,8 @@ public partial class bitrue : Exchange
         //     }
         //
         Dictionary<string, object> data = new Dictionary<string, object>() {};
-        data[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = response;
+        string? tickerKey = this.safeString(market, "id", "");
+        data[(string)tickerKey] = response;
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
@@ -1811,7 +1812,8 @@ public partial class bitrue : Exchange
                 continue;
             }
             Dictionary<string, object> market = this.safeMarket(marketId);
-            tickers[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = ticker;
+            string? tickerKey = this.safeString(market, "id", "");
+            tickers[(string)tickerKey] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }

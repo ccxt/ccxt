@@ -486,7 +486,7 @@ public partial class bitfinex : ccxt.bitfinex
             stored = new ArrayCache(tradesLimit);
             this.trades[(string)symbol] = stored;
         }
-        int messageLength = message?.Count ?? 0;
+        int messageLength = (message?.Count ?? 0);
         if ((messageLength == 2))
         {
             // initial snapshot
@@ -1090,13 +1090,16 @@ public partial class bitfinex : ccxt.bitfinex
         string? subMessageHash = this.safeString(client.subscriptions, unSubChannel, "");
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash));
         ((IDictionary<string,object>)client.subscriptions).Remove(unSubChannel);
-        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (int i = 0; i < messageHashes.Count; i++)
+        if ((messageHashes != null))
         {
-            object messageHash = messageHashes[i];
-            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
-            this.cleanUnsubscription(client, subHash, messageHash);
+            for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
+            {
+                object messageHash = messageHashes[i];
+                string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
+                this.cleanUnsubscription(client, subHash, messageHash);
+            }
         }
         this.cleanCache(subscription);
         return true;

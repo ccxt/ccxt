@@ -6984,7 +6984,8 @@ public partial class okx : Exchange
             return ccxt.BaseExchange.ToDepositAddress(this.safeDict(response, codeNetwork));
         }
         // if the network is not specified, return the first address
-        List<object> keys = new List<object>(response.Keys);
+        Dictionary<string, object> responseDict = this.extend(new Dictionary<string, object>() {}, response);
+        List<object> keys = new List<object>(responseDict.Keys);
         string? first = this.safeString(keys, 0, "");
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(response, first));
     }
@@ -7696,7 +7697,8 @@ public partial class okx : Exchange
             {
                 string? entry = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(entry);
-                marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+                string? marketId = this.safeString(market, "id", "");
+                marketIds.Add(marketId);
             }
             int marketIdsLength = (marketIds?.Count ?? 0);
             if (marketIdsLength > 0)

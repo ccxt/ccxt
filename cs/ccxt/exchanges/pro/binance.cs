@@ -842,7 +842,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
+        string? type = this.safeString(firstMarket, "type", "");
         if ((this.safeBool(firstMarket, "option", false) == true))
         {
             type = "option";
@@ -938,7 +938,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
+        string? type = this.safeString(firstMarket, "type", "");
         if ((this.safeBool(firstMarket, "option", false) == true))
         {
             type = "option";
@@ -1408,13 +1408,16 @@ public partial class binance : ccxt.binance
 
     public virtual void handleUnSubscription(WebSocketClient client, object subscription)
     {
-        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (int j = 0; j < messageHashes.Count; j++)
+        if ((messageHashes != null))
         {
-            object unsubHash = messageHashes[j];
-            string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
-            this.cleanUnsubscription(client, subHash, unsubHash);
+            for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
+            {
+                object unsubHash = messageHashes[j];
+                string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }
@@ -1459,7 +1462,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> paramsName = (nameparamsNameVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsName, "callerMethodName");
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
+        string? type = this.safeString(firstMarket, "type", "");
         bool? isOption = ((bool?)(firstMarket != null && firstMarket.ContainsKey("option") ? firstMarket["option"] : null));
         if ((isOption == true))
         {
@@ -1564,7 +1567,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> paramsName = (nameparamsNameVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsName, "callerMethodName");
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
+        string? type = this.safeString(firstMarket, "type", "");
         bool? isOption = ((bool?)(firstMarket != null && firstMarket.ContainsKey("option") ? firstMarket["option"] : null));
         if ((isOption == true))
         {
@@ -3959,7 +3962,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190420 && ((hxArr190420 is IList<object>) || (hxArr190420.GetType().IsGenericType && hxArr190420.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190586 && ((hxArr190586 is IList<object>) || (hxArr190586.GetType().IsGenericType && hxArr190586.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});

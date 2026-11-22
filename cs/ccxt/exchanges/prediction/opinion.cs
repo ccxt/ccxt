@@ -1831,7 +1831,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {object} raw response, result.deleted confirms revocation
      */
-    public async virtual Task<object> deleteApiKey(IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> deleteApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.opinionPrivateDeleteAuthApiKey(parameters);

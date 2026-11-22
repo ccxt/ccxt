@@ -351,7 +351,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            string tickerSymbol = ((string)getValue(ticker, "symbol"));
+            string? tickerSymbol = this.safeString(ticker, "symbol", "");
             result[(string)tickerSymbol] = ticker;
             return ccxt.BaseExchange.ToTickers(result);
         }
@@ -374,7 +374,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            string tickerSymbol = ((string)getValue(ticker, "symbol"));
+            string? tickerSymbol = this.safeString(ticker, "symbol", "");
             result[(string)tickerSymbol] = ticker;
             return ccxt.BaseExchange.ToTickers(result);
         }
@@ -571,7 +571,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? unifiedSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? unifiedSymbol = this.safeString(market, "symbol", "");
+        string? historyMarketId = this.safeString(market, "id", "");
         object url = await this.ibkrConnect();
         var client = this.client(url);
         string messageHash = ((("ohlcv::" + unifiedSymbol) + "::") + (timeframeVar));
@@ -587,10 +588,10 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             { "timeframe", timeframeVar },
         });
         // the history, it seeds the candles
-        string historyHash = ((("smh::" + ((market.ContainsKey("id") ? market["id"] : null))) + "::") + (timeframeVar));
+        string historyHash = ((("smh::" + historyMarketId) + "::") + (timeframeVar));
         if (!((client.subscriptions != null && client.subscriptions.ContainsKey(historyHash))))
         {
-            if (!(((unifiedSymbol != null) && (this.ohlcvs != null && unifiedSymbol != null && this.ohlcvs.ContainsKey(unifiedSymbol)))))
+            if (!(((unifiedSymbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(unifiedSymbol)))))
             {
                 this.ohlcvs[(string)unifiedSymbol] = new Dictionary<string, object>() {};
             }
@@ -610,7 +611,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 { "source", this.safeString(options, "source", "trades") },
             };
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            string request = ((("smh+" + ((market.ContainsKey("id") ? market["id"] : null))) + "+") + this.json(this.keysort(this.extend(historyRequest, query))));
+            string request = ((("smh+" + historyMarketId) + "+") + this.json(this.keysort(this.extend(historyRequest, query))));
             await this.ibkrSubscribe(client, historyHash, request, new Dictionary<string, object>() {
                 { "conid", (market.ContainsKey("id") ? market["id"] : null) },
                 { "symbol", unifiedSymbol },
@@ -644,10 +645,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? unifiedSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? unifiedSymbol = this.safeString(market, "symbol", "");
+        string? historyMarketId = this.safeString(market, "id", "");
         object url = await this.ibkrConnect();
         var client = this.client(url);
-        List<object> subHashes = new List<object>() {((("ohlcv::" + unifiedSymbol) + "::") + (timeframeVar)), ((("smh::" + ((market.ContainsKey("id") ? market["id"] : null))) + "::") + (timeframeVar))};
+        List<object> subHashes = new List<object>() {((("ohlcv::" + unifiedSymbol) + "::") + (timeframeVar)), ((("smh::" + historyMarketId) + "::") + (timeframeVar))};
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "ohlcv" },
             { "symbolsAndTimeframes", new List<object>() {new List<object>() {unifiedSymbol, timeframeVar}} },
@@ -864,8 +866,18 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 ccxt.pro.BaseCache.appendTo(stored, new List<object>() {candleTimestamp, price, price, price, price, size});
             } else
             {
-                object high = mathMax(getValue(candle, 2), price);
-                object low = mathMin(getValue(candle, 3), price);
+                double? high = price;
+                double? prevHigh = this.safeNumber(candle, 2);
+                if (((prevHigh != null)) && ((price != null)) && (prevHigh.Value > price.Value))
+                {
+                    high = prevHigh;
+                }
+                double? low = price;
+                double? prevLow = this.safeNumber(candle, 3);
+                if (((prevLow != null)) && ((price != null)) && (price.Value > prevLow.Value))
+                {
+                    low = prevLow;
+                }
                 object volume = this.sum(getValue(candle, 5), size);
                 ccxt.pro.BaseCache.appendTo(stored, new List<object>() {candleTimestamp, getValue(candle, 1), high, low, price, volume});
             }
@@ -1122,10 +1134,10 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             bool? fetchOrdersSnapshot = this.safeBool(options, "fetchOrdersSnapshot", true);
             if ((fetchOrdersSnapshot == true))
             {
-                object snapshot = await this.fetchLiveOrdersRaw();
-                for (int i = 0; i < getArrayLength(snapshot); i++)
+                List<object> snapshot = await this.fetchLiveOrdersRaw();
+                for (int i = 0; i < (snapshot?.Count ?? 0); i++)
                 {
-                    IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(snapshot, i));
+                    IDictionary<string, object> rawOrder = ((IDictionary<string, object>)snapshot[i]);
                     string? orderId = this.safeString(rawOrder, "orderId");
                     if ((orderId != null))
                     {
@@ -1379,8 +1391,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         {
             object rawTrade = args[i];
             ccxt.Trade trade = this.parseTrade(rawTrade);
-            object tradeTimestamp = (((object)trade.timestamp));
-            if (((threshold != null)) && (!(tradeTimestamp == null)) && (isLessThan(tradeTimestamp, threshold)))
+            Int64? tradeTimestamp = trade.timestamp;
+            if (((threshold != null)) && ((tradeTimestamp != null)) && (tradeTimestamp.Value < threshold.Value))
             {
                 continue;
             }

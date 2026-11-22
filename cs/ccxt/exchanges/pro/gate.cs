@@ -314,8 +314,10 @@ public partial class gate : ccxt.gate
         string channel = (messageType + ".order_cancel");
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
-        ((IDictionary<string,object>)request)["order_id"] = id.ToString();
-        object res = await this.requestPrivate(url, this.extend(request, requestParams), channel);
+        Dictionary<string, object> orderRequest = this.extend(request, new Dictionary<string, object>() {
+            { "order_id", id.ToString() },
+        });
+        object res = await this.requestPrivate(url, this.extend(orderRequest, requestParams), channel);
         return this.parseOrder(res, market);
     }
 
@@ -1207,7 +1209,7 @@ public partial class gate : ccxt.gate
         //
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList52968))
+        if ((rawResult is IList<object> hxList53011))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
@@ -2475,13 +2477,16 @@ public partial class gate : ccxt.gate
                 {
                     continue;
                 }
-                List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+                List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
                 List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-                for (int j = 0; j < messageHashes.Count; j++)
+                if ((messageHashes != null))
                 {
-                    object unsubHash = messageHashes[j];
-                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                    for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
+                    {
+                        object unsubHash = messageHashes[j];
+                        string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                        this.cleanUnsubscription(client, subHash, unsubHash);
+                    }
                 }
                 this.cleanCache(subscription);
             }
@@ -2849,12 +2854,8 @@ public partial class gate : ccxt.gate
             }
         }
         List<object> idArray = new List<object>() {this.uid};
-        List<object> payloadWithUid = ((payload == null)) ? idArray : this.arrayConcat(idArray, payload);
-        object payloadValue = payload;
-        if (requiresUid == true)
-        {
-            payloadValue = payloadWithUid;
-        }
+        bool noPayload = ((payload == null));
+        List<object> payloadWithUid = noPayload ? idArray : this.arrayConcat(idArray, payload);
         Int64 time = this.seconds();
         string eventVar = "subscribe";
         string signaturePayload = ((((((("channel=" + (channel)) + "&") + "event=") + eventVar) + "&") + "time=") + time.ToString());
@@ -2872,9 +2873,12 @@ public partial class gate : ccxt.gate
             { "event", eventVar },
             { "auth", auth },
         };
-        if ((payloadValue != null))
+        if (requiresUid == true)
         {
-            request["payload"] = payloadValue;
+            request["payload"] = payloadWithUid;
+        } else if (!noPayload)
+        {
+            request["payload"] = payload;
         }
         var client = this.client(url);
         if (!((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))

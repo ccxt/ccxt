@@ -7351,12 +7351,13 @@ public partial class bingx : Exchange
                     bool isString = ((arrayElement is string));
                     if (isString)
                     {
+                        string? elementStr = this.safeString(value, j, "");
                         if (j > 0)
                         {
-                            arrStr = (arrStr == null ? null : arrStr + ((("," + "\"") + arrayElement.ToString()) + "\""));
+                            arrStr = (arrStr == null ? null : arrStr + ((("," + "\"") + elementStr) + "\""));
                         } else
                         {
-                            arrStr = (("\"" + arrayElement.ToString()) + "\"");
+                            arrStr = (("\"" + elementStr) + "\"");
                         }
                     } else
                     {

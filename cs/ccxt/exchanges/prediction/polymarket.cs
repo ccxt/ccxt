@@ -1218,12 +1218,12 @@ public partial class polymarket : PredictionExchange
                 int ccxtMarketsLength = (ccxtMarkets?.Count ?? 0);
                 for (int i = 0; i < ccxtMarketsLength; i++)
                 {
-                    object mkt = (ccxtMarkets != null && i < ccxtMarkets.Count ? ccxtMarkets[i] : null);
+                    IDictionary<string, object> mkt = this.safeDict(ccxtMarkets, i);
                     if ((mkt == null))
                     {
                         throw new ExchangeError ((this.id + " fetchOutcome() could not resolve mkt")) ;
                     }
-                    this.markets[(string)getValue(mkt, "market")] = mkt;
+                    this.markets[(string)(mkt != null && mkt.ContainsKey("market") ? mkt["market"] : null)] = mkt;
                 }
                 this.populateOutcomes();
                 if ((this.safeDict(this.outcomes_by_id, outcomeSymbol) != null))
@@ -1294,12 +1294,12 @@ public partial class polymarket : PredictionExchange
                 });
                 for (int i = 0; i < (ccxtMarkets?.Count ?? 0); i++)
                 {
-                    object mkt = ccxtMarkets[i];
+                    IDictionary<string, object> mkt = this.safeDict(ccxtMarkets, i);
                     if ((mkt == null))
                     {
                         throw new ExchangeError ((this.id + " fetchOutcomes() could not resolve mkt")) ;
                     }
-                    this.markets[(string)getValue(mkt, "market")] = mkt;
+                    this.markets[(string)(mkt != null && mkt.ContainsKey("market") ? mkt["market"] : null)] = mkt;
                 }
                 startIndex = this.sum(startIndex, chunkSize);
             }
@@ -1668,8 +1668,13 @@ public partial class polymarket : PredictionExchange
             }
         } else
         {
-            object barCount = ((limitVar != null)) ? (object)limitVar : 100;
-            startS = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(nowS, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(barCount, fidelityMin), 60))));
+            if ((limitVar != null))
+            {
+                startS = this.parseToInt((nowS - (((limitVar * fidelityMin) * 60))));
+            } else
+            {
+                startS = this.parseToInt((nowS - (((100 * fidelityMin) * 60))));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -3101,12 +3106,12 @@ public partial class polymarket : PredictionExchange
             }
             for (int mi = 0; mi < (ccxtMarkets?.Count ?? 0); mi++)
             {
-                object m = ccxtMarkets[mi];
+                IDictionary<string, object> m = this.safeDict(ccxtMarkets, mi);
                 if ((m == null))
                 {
                     throw new ExchangeError ((this.id + " fetchEvents() missing m")) ;
                 }
-                this.markets[(string)getValue(m, "market")] = m;
+                this.markets[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
             }
             Dictionary<string, object> parsedEvent = this.parseEvent(eventForParsing);
             result.Add(parsedEvent);
@@ -3369,7 +3374,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152062 && ((hxArr152062 is IList<object>) || (hxArr152062.GetType().IsGenericType && hxArr152062.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152195 && ((hxArr152195 is IList<object>) || (hxArr152195.GetType().IsGenericType && hxArr152195.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3938,31 +3943,31 @@ public partial class polymarket : PredictionExchange
         }
         object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        List<object> bids = this.safeList(orderbook, "bids", new List<object>() {});
+        List<object> asks = this.safeList(orderbook, "asks", new List<object>() {});
         double? bestBid = null;
         double? bestBidVolume = null;
         int bidsLength = 0;
         if ((bids != null))
         {
-            bidsLength = getArrayLength(bids);
+            bidsLength = bids.Count;
         }
         if (((bids != null)) && (bidsLength > 0))
         {
-            bestBid = this.safeNumber(getValue(bids, 0), 0);
-            bestBidVolume = this.safeNumber(getValue(bids, 0), 1);
+            bestBid = this.safeNumber((bids != null && 0 < bids.Count ? bids[0] : null), 0);
+            bestBidVolume = this.safeNumber((bids != null && 0 < bids.Count ? bids[0] : null), 1);
         }
         double? bestAsk = null;
         double? bestAskVolume = null;
         int asksLength = 0;
         if ((asks != null))
         {
-            asksLength = getArrayLength(asks);
+            asksLength = asks.Count;
         }
         if (((asks != null)) && (asksLength > 0))
         {
-            bestAsk = this.safeNumber(getValue(asks, 0), 0);
-            bestAskVolume = this.safeNumber(getValue(asks, 0), 1);
+            bestAsk = this.safeNumber((asks != null && 0 < asks.Count ? asks[0] : null), 0);
+            bestAskVolume = this.safeNumber((asks != null && 0 < asks.Count ? asks[0] : null), 1);
         }
         double? mid = null;
         if (((bestBid != null)) && ((bestAsk != null)))

@@ -2359,18 +2359,18 @@ public partial class kraken : Exchange
         List<object> trades = new List<object>() {};
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            object rawTrade = rawTrades[i];
-            if ((rawTrade is string))
+            string? rawTradeId = this.safeString(rawTrades, i);
+            if ((rawTradeId != null))
             {
                 trades.Add(ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
-                    { "id", rawTrade },
+                    { "id", rawTradeId },
                     { "order", id },
                     { "symbol", symbol },
                     { "info", new Dictionary<string, object>() {} },
                 })));
             } else
             {
-                trades.Add(rawTrade);
+                trades.Add((rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null));
             }
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2800,13 +2800,13 @@ public partial class kraken : Exchange
         {
             for (int i = 0; i < orderTrades.Count; i++)
             {
-                object orderTrade = orderTrades[i];
-                if ((orderTrade is string))
+                string? orderTradeId = this.safeString(orderTrades, i);
+                if ((orderTradeId != null))
                 {
-                    tradeIds.Add(orderTrade);
+                    tradeIds.Add(orderTradeId);
                 } else
                 {
-                    tradeIds.Add(this.safeString(orderTrade, "id"));
+                    tradeIds.Add(this.safeString((orderTrades != null && i < orderTrades.Count ? orderTrades[i] : null), "id"));
                 }
             }
         }

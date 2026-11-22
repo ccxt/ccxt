@@ -3692,7 +3692,7 @@ public partial class lighter : Exchange
         Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
-            { "initial_margin_fraction", this.parseToInt(((double)10000 / this.parseToInt(leverage))) },
+            { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
             { "margin_mode", ((marginMode == "cross")) ? 0 : 1 },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
@@ -4043,7 +4043,8 @@ public partial class lighter : Exchange
                 { "Authorization", this.createAuth(parameters) },
             };
         }
-        if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
+        if ((new List<object>(query.Keys)).Count > 0)
         {
             if ((method == "POST"))
             {

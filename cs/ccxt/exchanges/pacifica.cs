@@ -3968,9 +3968,8 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
         }
-        IList<object> timestampparamsTimestampVariable = (IList<object>)this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.milliseconds());
-        Int64? timestamp = (Int64?)timestampparamsTimestampVariable[0];
-        IDictionary<string, object> paramsTimestamp = ((IDictionary<string, object>)timestampparamsTimestampVariable[1]);
+        Int64? timestamp = this.safeInteger(paramsSubAccountPrivateKey, "timestamp", this.milliseconds());
+        Dictionary<string, object> paramsTimestamp = this.omit(paramsSubAccountPrivateKey, "timestamp");
         (Int64?, object) expiryWindowparamsExpiryWindowVariable = this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000);
         Int64? expiryWindow = expiryWindowparamsExpiryWindowVariable.Item1;
         IDictionary<string, object> paramsExpiryWindow = ((IDictionary<string, object>)expiryWindowparamsExpiryWindowVariable.Item2);
@@ -4268,7 +4267,8 @@ public partial class pacifica : Exchange
         if (this.isDictionary(value))
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
+            Dictionary<string, object> valueCopy = this.extend(new Dictionary<string, object>() {}, value);
+            List<object> keys = new List<object>(valueCopy.Keys);
             List<string> sortedKeys = this.sort(keys);
             for (int i = 0; i < (sortedKeys?.Count ?? 0); i++)
             {

@@ -2183,7 +2183,7 @@ public partial class sxbet : PredictionExchange
         {
             for (int i = 0; i < hashesLength; i++)
             {
-                object marketHash = (hashesOrder != null && i < hashesOrder.Count ? hashesOrder[i] : null);
+                string? marketHash = this.safeString(hashesOrder, i, "");
                 IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
                 rowsByHash[(string)marketHash] = this.parseSxbetSnapshotBestOdds(snapshot);
             }
@@ -2783,8 +2783,8 @@ public partial class sxbet : PredictionExchange
             int refreshedLength = (refreshed?.Count ?? 0);
             for (int j = 0; j < refreshedLength; j++)
             {
-                object sym = (refreshed != null && j < refreshed.Count ? refreshed[j] : null);
-                client.resolve(this.safeOrderBook(this.orderbooks, sym), ("orderbook::" + (sym)));
+                string? sym = this.safeString(refreshed, j, "");
+                client.resolve(this.safeOrderBook(this.orderbooks, sym), ("orderbook::" + sym));
             }
         }
     }
@@ -2812,7 +2812,9 @@ public partial class sxbet : PredictionExchange
         var client = this.client(url);
         string channel = "best_odds_v3:global";
         bool hydrated = false;
-        if ((this.safeDict(this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {}), sym) == null))
+        IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
+        IDictionary<string, object> cachedTicker = this.safeDict(cachedTickers, sym);
+        if ((cachedTicker == null))
         {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire

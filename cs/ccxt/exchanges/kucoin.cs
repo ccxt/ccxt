@@ -2436,7 +2436,8 @@ public partial class kucoin : Exchange
             string type = "swap";
             if (future)
             {
-                symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
+                string expirySuffix = ("-" + this.yymmdd(expiry, ""));
+                symbol = (symbol + expirySuffix);
                 type = "future";
             }
             bool? inverse = this.safeBool(market, "isInverse");
