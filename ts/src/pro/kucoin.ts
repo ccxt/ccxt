@@ -1926,7 +1926,7 @@ export default class kucoin extends kucoinRest {
                 // todo: add fundingRate topic to cleanCache
                 const symbols = this.safeList (subscription, 'symbols', []);
                 for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
+                    const symbol: string = this.safeString (symbols, i, '');
                     if (symbol in this.fundingRates) {
                         delete this.fundingRates[symbol];
                     }
