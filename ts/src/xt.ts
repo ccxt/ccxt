@@ -1874,7 +1874,7 @@ export default class xt extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
-            const symbol: Str = ticker['symbol'];
+            const symbol: Str = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1968,7 +1968,7 @@ export default class xt extends Exchange {
             }
             const marketInner = this.safeMarket (marketId, market, '_', marketType);
             const ticker = this.parseTicker (rawTicker, marketInner);
-            const symbol: Str = ticker['symbol'];
+            const symbol: Str = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -2029,7 +2029,7 @@ export default class xt extends Exchange {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
-        const symbol: Str = marketResolved['symbol'];
+        const symbol: Str = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 't');
         const open = this.safeString (ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
