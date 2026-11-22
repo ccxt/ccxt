@@ -1043,11 +1043,12 @@ public class Latoken extends LatokenApi
         Map<String, Object> marketResolved = market;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = ((base + "/") + quote);
-            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
+            String knownSymbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(knownSymbol)))
             {
-                marketResolved = this.market(symbol);
+                marketResolved = this.market(knownSymbol);
             }
+            symbol = knownSymbol;
         }
         String last = this.safeString(ticker, "lastPrice");
         Long timestamp = (Long) this.safeIntegerOmitZero(ticker, "updateTimestamp", (Long) null); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1251,11 +1252,12 @@ public class Latoken extends LatokenApi
         Map<String, Object> marketResolved = market;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = ((base + "/") + quote);
-            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
+            String knownSymbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(knownSymbol)))
             {
-                marketResolved = this.market(symbol);
+                marketResolved = this.market(knownSymbol);
             }
+            symbol = knownSymbol;
         }
         String id = this.safeString(trade, "id");
         String orderId = this.safeString(trade, "order");
@@ -1584,11 +1586,16 @@ public class Latoken extends LatokenApi
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String symbol = null;
+        Boolean symbolKnown = false;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = ((base + "/") + quote);
+            String knownSymbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(knownSymbol)))
+            {
+                symbolKnown = true;
+            }
+            symbol = knownSymbol;
         }
-        Boolean symbolKnown = (!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol));
         Map<String, Object> marketResolved = market;
         if (Boolean.TRUE.equals(symbolKnown))
         {

@@ -600,7 +600,7 @@ public class Btcturk extends BtcturkApi
         //
         String marketId = this.safeString(ticker, "pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open");

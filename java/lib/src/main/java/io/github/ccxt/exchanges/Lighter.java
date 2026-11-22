@@ -1961,7 +1961,7 @@ public class Lighter extends LighterApi
         //
         String marketId = this.safeString(ticker, "market_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         String last = this.safeString(ticker, "last_trade_price");
         String high = this.safeString(ticker, "daily_price_high");
         String low = this.safeString(ticker, "daily_price_low");
@@ -3955,7 +3955,7 @@ public class Lighter extends LighterApi
         Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
         Map<String, Object> signRaw = new HashMap<String, Object>();
         signRaw.put("market_index", this.parseToInt(market.get("id")));
-        signRaw.put("initial_margin_fraction", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(10000, leverage)));
+        signRaw.put("initial_margin_fraction", this.parseToInt((((double) 10000) / ((double) this.parseToInt(leverage)))));
         signRaw.put("margin_mode", (((java.util.Objects.equals(marginMode, "cross")))) ? 0 : 1);
         signRaw.put("nonce", nonce);
         signRaw.put("api_key_index", apiKeyIndex);

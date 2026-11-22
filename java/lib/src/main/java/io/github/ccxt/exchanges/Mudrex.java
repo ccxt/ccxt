@@ -1640,7 +1640,7 @@ public class Mudrex extends MudrexApi
     private Object reduceMarginCore(String symbol, Object amount, Map<String, Object> parameters)
     {
 
-        return (this.addMargin(symbol, ((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(amount), parameters)).join();
+        return (this.addMargin(symbol, this.parseNumber(Precise.stringNeg(this.numberToString(amount))), parameters)).join();
 
     }
 

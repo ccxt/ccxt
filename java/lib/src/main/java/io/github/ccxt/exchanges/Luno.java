@@ -1180,7 +1180,7 @@ public class Luno extends LunoApi
         {
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             Object ticker = (tickers == null || id == null ? null : tickers.get(id));
             result.put(symbol, this.parseTicker(ticker, market));
         }

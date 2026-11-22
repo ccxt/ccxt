@@ -9642,7 +9642,7 @@ public Map<String, Object> describe()
     {
 
         Balances balance = (this.fetchBalance(parameters)).join();
-        return Helpers.GetValue(balance, part);
+        return (balance == null || part == null ? null : balance.get(part));
 
     }
 
@@ -11044,17 +11044,17 @@ public Map<String, Object> describe()
         return new ArrayList<Object>(Arrays.asList(triggerDirection, paramsOmitted));
     }
 
-    public Object handleTriggerAndParams(Object parameters)
+    public Object handleTriggerAndParams(Map<String, Object> parameters)
     {
         Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
-        Object paramsOmitted = (((java.util.Objects.equals(isTrigger, true)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop"))) : parameters;
+        Map<String, Object> paramsOmitted = (((java.util.Objects.equals(isTrigger, true)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop"))) : parameters;
         return new ArrayList<Object>(Arrays.asList(isTrigger, paramsOmitted));
     }
 
-    public Object isTriggerOrder(Object parameters)
+    public Object isTriggerOrder(Map<String, Object> parameters)
     {
         // for backwards compatibility
-        return this.handleTriggerAndParams(parameters);
+        return this.handleTriggerAndParams((Map<String, Object>) (parameters));
     }
 
     public Boolean isPostOnly(Object isMarketOrder, Boolean exchangeSpecificParam, Map<String, Object> parameters)

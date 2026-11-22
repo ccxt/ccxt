@@ -2101,9 +2101,9 @@ public class Toobit extends ToobitApi
         Map<String, Object> response = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            var requestparamsRequestVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            var request = ((List<Object>) requestparamsRequestVariable).get(0);
-            var paramsRequest = ((List<Object>) requestparamsRequestVariable).get(1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsRequestVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = requestparamsRequestVariable.first();
+            Map<String, Object> paramsRequest = requestparamsRequestVariable.second();
             response = (this.privatePostApiV1SpotOrder(this.extend(request, paramsRequest))).join();
         } else
         {
@@ -2139,7 +2139,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2182,7 +2182,7 @@ public class Toobit extends ToobitApi
         {
             request.put("type", ((String)type).toUpperCase());
         }
-        return new ArrayList<Object>(Arrays.asList(request, paramsPostOnly));
+        return new Pair<>(request, paramsPostOnly);
     }
 
     public Object createContractOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)

@@ -1045,8 +1045,6 @@ public Map<String, Object> describe()
         for (var i = 0; i < rawWords.size(); i++)
         {
             String word = (String) (rawWords == null || i < 0 || i >= rawWords.size() ? null : rawWords.get(i));
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if ((word.length() == 0))
             {
                 continue;

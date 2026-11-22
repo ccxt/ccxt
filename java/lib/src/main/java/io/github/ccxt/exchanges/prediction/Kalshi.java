@@ -848,6 +848,7 @@ public class Kalshi extends KalshiApi
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList("YES", "NO"));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcome = null;
+        String resultText = this.safeStringLower(raw, "result", "");
         for (var oi = 0; oi < outcomeLabels.size(); oi++)
         {
             String label = (String) (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
@@ -856,7 +857,7 @@ public class Kalshi extends KalshiApi
             Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")))
             {
-                winnerRaw = (java.util.Objects.equals(label.toLowerCase(), result));
+                winnerRaw = (java.util.Objects.equals(label.toLowerCase(), resultText));
                 settleFractionRaw = ((Boolean.TRUE.equals(winnerRaw))) ? 1 : 0;
                 if (Boolean.TRUE.equals(winnerRaw))
                 {

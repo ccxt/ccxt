@@ -427,10 +427,14 @@ public class Hyperliquid extends HyperliquidApi
             {
                 String unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 String quote = this.safeString(symbolParts, 1);
-                String newSymbol = ((this.safeCurrencyCode(unifiedBaseName, (Map<String, Object>) null) + "/") + quote);
-                if (((Map<?, ?>)this.markets).containsKey(newSymbol))
+                String unifiedBase = this.safeCurrencyCode(unifiedBaseName, (Map<String, Object>) null);
+                if ((!java.util.Objects.equals(unifiedBase, null)) && (!java.util.Objects.equals(quote, null)))
                 {
-                    return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(newSymbol)));
+                    String newSymbol = ((unifiedBase + "/") + quote);
+                    if (((Map<?, ?>)this.markets).containsKey(newSymbol))
+                    {
+                        return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(newSymbol)));
+                    }
                 }
             }
         }
@@ -1517,7 +1521,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             Object market = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
             String symbol = this.safeString(ticker, "symbol");
             result.put((String)symbol, ticker);
         }
@@ -1544,7 +1548,7 @@ public class Hyperliquid extends HyperliquidApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v3 -> (List<String>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v3.getClass().getName()); })), parameters)).join();
+        FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
         Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
         if (java.util.Objects.equals(rate, null))
         {
@@ -2578,9 +2582,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-        var order = ((List<Object>) orderglobalParamsVariable).get(0);
-        Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> order = orderglobalParamsVariable.first();
+        Map<String, Object> globalParams = orderglobalParamsVariable.second();
         List<Order> orders = (this.createOrders(new ArrayList<Object>(Arrays.asList(order)), globalParams)).join();
         Map<String, Object> created = this.safeDict(orders, 0, null);
         return created;
@@ -2624,7 +2628,7 @@ public class Hyperliquid extends HyperliquidApi
         String vaultAddressOption = vaultAddressOptionparamsVaultVariable.first();
         Map<String, Object> paramsVault = vaultAddressOptionparamsVaultVariable.second();
         String vaultAddress = this.formatVaultAddress(vaultAddressOption);
-        Double durationMins = (Math.floor(Double.parseDouble(java.util.Objects.toString(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(duration, 1000), 60), null)))); // convert from ms to minutes
+        Double durationMins = (Math.floor(Double.parseDouble(String.valueOf((((double) (((double) this.parseToInt(duration)) / ((double) 1000))) / ((double) 60)))))); // convert from ms to minutes
         Map<String, Object> orderObj = new HashMap<String, Object>() {{
             put( "a", Hyperliquid.this.parseToInt(market.get("baseId")) );
             put( "b", isBuy );
@@ -3571,9 +3575,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires an id argument")) ;
         }
-        var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-        var order = ((List<Object>) orderglobalParamsVariable).get(0);
-        Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> order = orderglobalParamsVariable.first();
+        Map<String, Object> globalParams = orderglobalParamsVariable.second();
         List<Order> orders = (this.editOrders(new ArrayList<Object>(Arrays.asList(order)), globalParams)).join();
         Map<String, Object> edited = this.safeDict(orders, 0, null);
         return edited;
@@ -6356,7 +6360,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.safeNumber(config, "cost", 1);
     }
 
-    public Object parseCreateEditOrderArgs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> parseCreateEditOrderArgs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         Pair<String, Map<String, Object>> vaultAddressOptionparams2Variable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "createOrder", "vaultAddress", "subAccountAddress", (String) null);
@@ -6381,7 +6385,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             order.put("id", id);
         }
-        return new ArrayList<Object>(Arrays.asList(order, globalParams));
+        return new Pair<>(order, globalParams);
     }
 
     /**

@@ -2605,7 +2605,8 @@ public class Cryptocom extends CryptocomApi
             String address = (String) (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
             String rawTag = (String) (addressParts == null || 1 >= addressParts.size() ? null : addressParts.get(1));
             List<Object> splitted = new ArrayList<Object>(Arrays.asList(rawTag.split(java.util.regex.Pattern.quote("="))));
-            return new ArrayList<Object>(Arrays.asList(address, (splitted == null || 1 >= splitted.size() ? null : splitted.get(1))));
+            String tag = this.safeString(splitted, 1);
+            return new ArrayList<Object>(Arrays.asList(address, tag));
         }
         return new ArrayList<Object>(Arrays.asList(addressString, null));
     }

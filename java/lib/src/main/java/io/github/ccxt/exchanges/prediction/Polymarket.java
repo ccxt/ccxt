@@ -1309,12 +1309,12 @@ public class Polymarket extends PolymarketApi
         List<String> tokenIds = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
         {
-            String outcomeSymbol = (String) (outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i));
+            String outcomeSymbol = this.safeString(outcomeSymbols, i, "");
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
             // matches mb_strpos's false return
-            if ((outcomeSymbol.indexOf(":") < 0) && (java.util.Objects.equals(this.outcomeSearchQuery(outcomeSymbol), null)))
+            if ((((String)outcomeSymbol).indexOf(":") < 0) && (java.util.Objects.equals(this.outcomeSearchQuery(outcomeSymbol), null)))
             {
                 tokenIds.add(outcomeSymbol);
             }
@@ -1367,9 +1367,10 @@ public class Polymarket extends PolymarketApi
         }
         for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
         {
-            if (!this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))))
+            String pendingSymbol = this.safeString(outcomeSymbols, i, "");
+            if (!this.hasOutcome((String) (pendingSymbol)))
             {
-                (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
+                (this.fetchOutcome(pendingSymbol)).join();
             }
         }
         return this.outcomes;
@@ -1820,8 +1821,20 @@ public class Polymarket extends PolymarketApi
                     }
                 }
                 Double open = this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 1, (Object) null);
+                Double high = price;
+                Double prevHigh = this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 2, (Object) null);
+                if ((!java.util.Objects.equals(prevHigh, null)) && (!java.util.Objects.equals(price, null)) && ((prevHigh != null && (price == null || prevHigh > price))))
+                {
+                    high = prevHigh;
+                }
+                Double low = price;
+                Double prevLow = this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 3, (Object) null);
+                if ((!java.util.Objects.equals(prevLow, null)) && (!java.util.Objects.equals(price, null)) && ((price != null && (prevLow == null || price > prevLow))))
+                {
+                    low = prevLow;
+                }
                 // close is the last tick
-                buckets.put(bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, open, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 2, (Object) null), price), ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 3, (Object) null), price), price, candleVol)));
+                buckets.put(bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, open, high, low, price, candleVol)));
             }
         }
         List<String> bucketKeys = new ArrayList<String>(buckets.keySet());
@@ -2325,7 +2338,8 @@ public class Polymarket extends PolymarketApi
         for (var i = 0; i < ((List<?>)outcomes).size(); i++)
         {
             Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-            wantedIds.put((String)outcomeObj.get("outcomeId"), true);
+            String outcomeId = this.safeString(outcomeObj, "outcomeId", "");
+            wantedIds.put(outcomeId, true);
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)

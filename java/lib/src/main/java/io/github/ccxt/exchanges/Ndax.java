@@ -1324,12 +1324,7 @@ public class Ndax extends NdaxApi
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        List<Object> candles = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
-        {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+        return this.parseOHLCVs(response, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 

@@ -1496,18 +1496,18 @@ public class Paradex extends ParadexApi
         {
             ((Map<String, Object>)requestUntil).put("start_at", since);
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            Object windowEnd = this.sum(this.parseToInt(since), (windowLength - 1L));
-            Object endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (!Boolean.TRUE.equals(hasEnd) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endAt, windowEnd)))
+            Long barWindowEnd = this.sum(this.parseToInt(since), (windowLength - 1L));
+            Long clampedEndAt = this.safeInteger(requestUntil, "end_at", barWindowEnd);
+            if (!Boolean.TRUE.equals(hasEnd) || ((clampedEndAt != null && (barWindowEnd == null || clampedEndAt > barWindowEnd))))
             {
-                requestUntil.put("end_at", windowEnd);
+                requestUntil.put("end_at", barWindowEnd);
             }
         } else
         {
             Long endAtRaw = this.safeInteger(requestUntil, "end_at", this.milliseconds());
             Long endAt = this.parseToInt(endAtRaw);
             ((Map<String, Object>)requestUntil).put("end_at", endAt);
-            ((Map<String, Object>)requestUntil).put("start_at", ((endAt - windowLength) + 1L));
+            ((Map<String, Object>)requestUntil).put("start_at", (endAt - ((windowLength - 1L))));
         }
         Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted))).join();
         //
@@ -3582,9 +3582,11 @@ public class Paradex extends ParadexApi
         List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         List<Object> matching = new ArrayList<Object>(Arrays.asList());
+        String marketId = this.safeString(market, "id", "");
         for (var i = 0; i < data.size(); i++)
         {
-            if (java.util.Objects.equals(this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "market"), market.get("id")))
+            String rowMarketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "market", "");
+            if (java.util.Objects.equals(rowMarketId, marketId))
             {
                 ((List<Object>)matching).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             }
@@ -3883,17 +3885,15 @@ public class Paradex extends ParadexApi
         List<Object> rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // the cursor pagination reads the next page cursor from the parsed entries
         String next = this.safeString(response, "next");
-        for (var i = 0; i < rows.size(); i++)
-        {
-            Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
-        }
         List<Object> deposits = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-            if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString(row, "kind"), "DEPOSIT")))
+            if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "kind"), "DEPOSIT")))
             {
-                ((List<Object>)deposits).add(row);
+                Map<String, Object> withCursor = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
+                    put( "next", next );
+                }});
+                ((List<Object>)deposits).add(withCursor);
             }
         }
         return this.parseTransactions(deposits, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
@@ -3977,17 +3977,15 @@ public class Paradex extends ParadexApi
         List<Object> rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // the cursor pagination reads the next page cursor from the parsed entries
         String next = this.safeString(response, "next");
-        for (var i = 0; i < rows.size(); i++)
-        {
-            Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
-        }
         List<Object> deposits = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-            if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString(row, "kind"), "WITHDRAWAL")))
+            if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "kind"), "WITHDRAWAL")))
             {
-                ((List<Object>)deposits).add(row);
+                Map<String, Object> withCursor = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
+                    put( "next", next );
+                }});
+                ((List<Object>)deposits).add(withCursor);
             }
         }
         return this.parseTransactions(deposits, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
@@ -4721,7 +4719,8 @@ public class Paradex extends ParadexApi
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 if (java.util.Objects.equals(market.get("option"), true))
                 {
-                    result.put((String)market.get("symbol"), this.parseOption(entry, (Map<String, Object>) null, market));
+                    String optionSymbol = this.safeString(market, "symbol", "");
+                    result.put(optionSymbol, this.parseOption(entry, (Map<String, Object>) null, market));
                 }
             }
         }
@@ -4979,11 +4978,11 @@ public class Paradex extends ParadexApi
             ((Map<String, Object>)requestUntil).put("start_at", since);
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            Object windowEnd = this.sum(this.parseToInt(since), (pageSize * rowSpacing));
-            Object endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if ((java.util.Objects.equals(this.safeInteger(requestUntil, "end_at"), null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endAt, windowEnd)))
+            Long pageWindowEnd = this.sum(this.parseToInt(since), (pageSize * rowSpacing));
+            Long pageEndAt = this.safeInteger(requestUntil, "end_at", pageWindowEnd);
+            if ((java.util.Objects.equals(this.safeInteger(requestUntil, "end_at"), null)) || ((pageEndAt != null && (pageWindowEnd == null || pageEndAt > pageWindowEnd))))
             {
-                requestUntil.put("end_at", windowEnd);
+                requestUntil.put("end_at", pageWindowEnd);
             }
         }
         Map<String, Object> response = (this.publicGetFundingData(this.extend(requestUntil, paramsUntil))).join();

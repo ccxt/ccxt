@@ -2297,8 +2297,12 @@ public class Binance extends BinanceApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)baseUrls.get("sapi")));
+        Map<String, Object> baseUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        String baseUrl = this.safeString(baseUrls, apiGroup, "");
+        if (java.util.Objects.equals(baseUrl, ""))
+        {
+            baseUrl = this.safeString(baseUrls, "sapi", "");
+        }
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         this.checkRequiredCredentials(true);

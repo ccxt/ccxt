@@ -993,12 +993,7 @@ public class Poloniex extends PoloniexApi
         //         ]
         //     ]
         //
-        List<Object> candles = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
-        {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+        return this.parseOHLCVs(response, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -4824,7 +4819,7 @@ public class Poloniex extends PoloniexApi
         Boolean isArray = (parameters instanceof List);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (((Map<?, ?>)parameters).containsKey("symbol")))
         {
-            ((Map<String, Object>)parameters).put("symbol", this.encodeURIComponent(((Map<String, Object>)parameters).get("symbol"))); // handle symbols like 索拉拉/USDT'
+            ((Map<String, Object>)parameters).put("symbol", this.encodeURIComponent(this.safeString(parameters, "symbol"))); // handle symbols like 索拉拉/USDT'
         }
         Object query = this.omit(parameters, this.extractParams(path));
         String implodedPath = (String) this.implodeParams(path, parameters);

@@ -1942,7 +1942,7 @@ public class Hashkey extends HashkeyApi
         Long timestamp = this.safeInteger(ticker, "t");
         String marketId = this.safeString(ticker, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String last = this.safeString(ticker, "c");
         String baseVolume = this.safeString(ticker, "v");
         String contractSizeValue = this.safeString(marketResolved, "contractSize");
@@ -3444,7 +3444,7 @@ public class Hashkey extends HashkeyApi
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeValue) + " type of markets")) ;
         }
         Order order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
-        ((Map<String, Object>)order).put("info", response);
+        order.put("info", response);
         return new ArrayList<Object>(Arrays.asList(order));
 
     }
@@ -3497,7 +3497,7 @@ public class Hashkey extends HashkeyApi
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;
         }
         Order order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
-        ((Map<String, Object>)order).put("info", response);
+        order.put("info", response);
         return new ArrayList<Object>(Arrays.asList(order));
 
     }
@@ -3878,12 +3878,12 @@ public class Hashkey extends HashkeyApi
         }
     }
 
-    public Object handleTriggerOptionAndParams(Object parameters, String methodName, Object defaultValue)
+    public Pair<Boolean, Map<String, Object>> handleTriggerOptionAndParams(Object parameters, String methodName, Object defaultValue)
     {
         Pair<Boolean, Map<String, Object>> isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), methodName, "stop", "trigger", defaultValue);
         Boolean isTriggerStop = isTriggerStopparamsStopVariable.first();
         Map<String, Object> paramsStop = isTriggerStopparamsStopVariable.second();
-        return new ArrayList<Object>(Arrays.asList(isTriggerStop, paramsStop));
+        return new Pair<>(isTriggerStop, paramsStop);
     }
 
     public Order parseOrder(Object order, Map<String, Object> market)
@@ -4421,7 +4421,7 @@ public class Hashkey extends HashkeyApi
     {
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "id", null );

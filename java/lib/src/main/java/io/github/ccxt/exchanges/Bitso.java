@@ -2165,10 +2165,27 @@ public class Bitso extends BitsoApi
                 Map<String, Object> resultValue = this.safeDict(result, code, null);
                 if (java.util.Objects.equals(resultValue, null))
                 {
-                    result.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    Map<String, Object> newInfo = new HashMap<String, Object>() {{}};
+                    newInfo.put(code, this.parseNumber((withdrawalResponse == null || currencyId == null ? null : withdrawalResponse.get(currencyId))));
+                    result.put(code, this.extend(this.depositWithdrawFee(newInfo), new HashMap<String, Object>() {{
+    put( "withdraw", new HashMap<String, Object>() {{
+        put( "fee", withdrawFee );
+        put( "percentage", null );
+    }} );
+}}));
+                } else
+                {
+                    Map<String, Object> infoUpdate = new HashMap<String, Object>() {{}};
+                    infoUpdate.put(code, this.parseNumber((withdrawalResponse == null || currencyId == null ? null : withdrawalResponse.get(currencyId))));
+                    Map<String, Object> withdraw = this.extend(this.safeDict(resultValue, "withdraw", new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
+                        put( "fee", withdrawFee );
+                    }});
+                    Map<String, Object> info = this.extend(this.safeDict(resultValue, "info", new HashMap<String, Object>() {{}}), infoUpdate);
+                    result.put(code, this.extend(resultValue, new HashMap<String, Object>() {{
+    put( "withdraw", withdraw );
+    put( "info", info );
+}}));
                 }
-                Helpers.addElementToObject(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "withdraw"), "fee", withdrawFee);
-                Helpers.addElementToObject(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info"), code, withdrawFee);
             }
         }
         return result;

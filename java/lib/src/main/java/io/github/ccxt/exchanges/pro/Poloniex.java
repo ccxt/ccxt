@@ -525,7 +525,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
         }
-        List<Object> ohlcv = (List<Object>) (this.subscribe((String) (channel), (String) (channel), false, new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe((String) (channel), (String) (channel), false, new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -815,7 +815,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
         List<String> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<String>(Arrays.asList(symbolResolved));
-        List<Object> orders = (List<Object>) (this.subscribe(name, name, true, symbols, parameters)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, name, true, symbols, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -853,7 +853,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
         List<String> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<String>(Arrays.asList(symbolResolved));
-        List<Object> trades = (List<Object>) (this.subscribe(name, messageHash, true, symbols, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, messageHash, true, symbols, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -952,8 +952,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         if (!(((Map<?, ?>)this.balance).containsKey("info")))
         {
             Helpers.addElementToObject(this.balance, "info", ((Map<String, Object>)response).get("info"));
-            Helpers.addElementToObject(this.balance, "timestamp", ((Map<String, Object>)response).get("timestamp"));
-            Helpers.addElementToObject(this.balance, "datetime", ((Map<String, Object>)response).get("datetime"));
+            Helpers.addElementToObject(this.balance, "timestamp", this.safeInteger(response, "timestamp"));
+            Helpers.addElementToObject(this.balance, "datetime", this.safeString(response, "datetime"));
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
@@ -1301,7 +1301,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)previousOrder.get("trades")).add(trade);
-                    previousOrder.put("lastTradeTimestamp", trade.get("timestamp"));
+                    previousOrder.put("lastTradeTimestamp", this.safeInteger(trade, "timestamp"));
                     String totalCost = "0";
                     String totalAmount = "0";
                     List<Object> previousOrderTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -1342,7 +1342,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     }
                     if ((!java.util.Objects.equals(this.safeString(previousOrder.get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                     {
-                        String stringOrderCost = this.numberToString(Helpers.GetValue(previousOrder.get("fee"), "cost"));
+                        String stringOrderCost = this.safeString(previousOrder.get("fee"), "cost");
                         String stringTradeCost = this.numberToString(this.safeNumber(trade.get("fee"), "cost", (Object) null));
                         Helpers.addElementToObject(previousOrder.get("fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }

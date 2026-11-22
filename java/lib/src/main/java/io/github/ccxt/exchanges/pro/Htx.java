@@ -3150,26 +3150,25 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String messageHash = this.safeString2(message, "ch", "topic");
         if (!java.util.Objects.equals(messageHash, null))
         {
-            Object data = this.safeValue(message, "data");
-            if (!java.util.Objects.equals(data, null))
+            boolean data = (this.safeValue(message, "data")) != null;
+            if (data)
             {
                 String contractCode = this.safeString(message, "contract_code");
                 Map<String, Object> market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode, (Map<String, Object>) null, (String) null, (String) null) : null;
-                if ((data instanceof List))
+                List<Object> dataList = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+                for (var i = 0; i < dataList.size(); i++)
                 {
-                    List<Object> dataList = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-                    for (var i = 0; i < dataList.size(); i++)
+                    Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))), market);
+                    String symbol = this.safeString(parsed, "symbol");
+                    if (!java.util.Objects.equals(symbol, null))
                     {
-                        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))), market);
-                        String symbol = this.safeString(parsed, "symbol");
-                        if (!java.util.Objects.equals(symbol, null))
-                        {
-                            cachedTrades.append(parsed);
-                        }
+                        cachedTrades.append(parsed);
                     }
-                } else
+                }
+                Map<String, Object> dataDict = this.safeDict(message, "data", null);
+                if (!java.util.Objects.equals(dataDict, null))
                 {
-                    Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), market);
+                    Map<String, Object> parsed = this.parseWsTrade(dataDict, market);
                     String symbol = this.safeString(parsed, "symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {

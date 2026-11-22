@@ -536,10 +536,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("myTrades:" + symbolValue);
         String method = "deals_subscribe";
-        List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
+        List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), true, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -692,10 +692,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("orders:" + symbolValue);
         String method = "ordersPending_subscribe";
-        List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
+        List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

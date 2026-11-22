@@ -1358,7 +1358,9 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (java.util.Objects.equals(this.safeString((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), "unit"), unit) && java.util.Objects.equals(this.safeString((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), "period"), period))
+            String rowUnit = this.safeString((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), "unit");
+            String rowPeriod = this.safeString((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), "period");
+            if (java.util.Objects.equals(rowUnit, unit) && java.util.Objects.equals(rowPeriod, period))
             {
                 return key;
             }

@@ -149,7 +149,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String topic = ("kline_" + interval);
         String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        List<Object> ohlcv = (List<Object>) (this.wathPublic(market, topic, messageHash, parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.wathPublic(market, topic, messageHash, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -331,7 +331,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String symbolValue = this.safeString(market, "symbol", "");
         String topic = "trade";
         String messageHash = ("trades:" + symbolValue);
-        List<Object> trades = (List<Object>) (this.wathPublic(market, topic, messageHash, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.wathPublic(market, topic, messageHash, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -500,7 +500,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             messageHash = (("orders" + ":") + symbolResolved);
         }
-        List<Object> orders = (List<Object>) (this.watchPrivate(messageHash)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -639,7 +639,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             messageHash = (("myTrades" + ":") + symbolResolved);
         }
-        List<Object> trades = (List<Object>) (this.watchPrivate(messageHash)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

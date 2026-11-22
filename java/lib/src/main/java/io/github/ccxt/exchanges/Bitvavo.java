@@ -2527,7 +2527,7 @@ public class Bitvavo extends BitvavoApi
         Long timestamp = this.safeInteger(order, "created");
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String side = this.safeString(order, "side");
         String type = this.safeString(order, "orderType");
@@ -3278,7 +3278,8 @@ public class Bitvavo extends BitvavoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noMarket")) && !(((Map<?, ?>)parameters).containsKey("market")))
+        String marketId = this.safeString(parameters, "market");
+        if ((config.containsKey("noMarket")) && (java.util.Objects.equals(marketId, null)))
         {
             return config.get("noMarket");
         }

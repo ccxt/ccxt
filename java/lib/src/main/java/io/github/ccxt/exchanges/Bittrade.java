@@ -699,8 +699,12 @@ public class Bittrade extends BittradeApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < symbolsResolved.size(); i++)
         {
-            String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
-            result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+            String symbol = this.safeString(symbolsResolved, i);
+            Map<String, Object> limits = (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join();
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                result.put(symbol, limits);
+            }
         }
         return result;
 

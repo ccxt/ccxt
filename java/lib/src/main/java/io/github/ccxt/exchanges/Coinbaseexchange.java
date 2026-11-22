@@ -2383,11 +2383,14 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
         List<Object> response = (this.privateGetAccountsIdLedger(this.extend(request, paramsUntil))).join();
         List<Object> entries = this.toArray(response);
+        List<Object> entriesWithCurrency = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < entries.size(); i++)
         {
-            Helpers.addElementToObject((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)), "currency", code);
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("currency", code);
+            ((List<Object>)entriesWithCurrency).add(this.extend((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)), j39v2));
         }
-        return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseLedger(entriesWithCurrency, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

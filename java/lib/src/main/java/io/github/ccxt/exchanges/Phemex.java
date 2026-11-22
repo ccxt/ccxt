@@ -4509,7 +4509,7 @@ public class Phemex extends PhemexApi
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        String code = (String) currencyResolved.get("code");
+        String code = this.safeString(currencyResolved, "code");
         String networkId = this.safeString(transaction, "chainName");
         Long timestamp = this.safeIntegerN(transaction, new ArrayList<Object>(Arrays.asList("createdAt", "submitedAt", "submittedAt")));
         String type = this.safeStringLower(transaction, "type");
@@ -5589,16 +5589,18 @@ public class Phemex extends PhemexApi
             String payload = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
+                payload = this.json(parameters);
                 Boolean isOrderPlacement = (java.util.Objects.equals(path, "g-orders")) || (java.util.Objects.equals(path, "spot/orders")) || (java.util.Objects.equals(path, "orders"));
                 if (Boolean.TRUE.equals(isOrderPlacement))
                 {
                     if (java.util.Objects.equals(this.safeString(parameters, "clOrdID"), null))
                     {
                         String id = this.safeString(this.options, "brokerId", "CCXT123456");
-                        ((Map<String, Object>)parameters).put("clOrdID", (id + this.uuid16()));
+                        HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("clOrdID", (id + this.uuid16()));
+                        payload = this.json(this.extend(parameters, j39v2));
                     }
                 }
-                payload = this.json(parameters);
                 requestBody = payload;
                 privateHeaders.put("Content-Type", "application/json");
             }

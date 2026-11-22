@@ -2592,7 +2592,7 @@ public class Kraken extends KrakenApi
         return this.safeOrder(mapLiteral7, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
-    public Object orderRequest(String method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> orderRequest(String method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
     {
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
@@ -2755,7 +2755,7 @@ public class Kraken extends KrakenApi
             request.put("oflags", flags);
         }
         Map<String, Object> paramsOmitted3 = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
-        return new ArrayList<Object>(Arrays.asList(request, paramsOmitted3));
+        return new Pair<>(request, paramsOmitted3);
     }
 
     /**
@@ -2982,25 +2982,24 @@ public class Kraken extends KrakenApi
         Integer numTradeIds = tradeIds.size();
         // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
         List<Object> batches = new ArrayList<Object>(Arrays.asList());
-        List<Object> batch = new ArrayList<Object>(Arrays.asList());
+        List<String> batch = new ArrayList<String>(Arrays.asList());
         for (var i = 0; (numTradeIds != null && i < numTradeIds); i++)
         {
-            ((List<Object>)batch).add((tradeIds == null || i < 0 || i >= tradeIds.size() ? null : tradeIds.get(i)));
+            String tradeId = this.safeString(tradeIds, i, "");
+            batch.add(tradeId);
             Integer batchLength = batch.size();
             if ((batchSize == null || (batchLength != null && batchLength >= batchSize)))
             {
-                ((List<Object>)batches).add(batch);
-                batch = new ArrayList<Object>(Arrays.asList());
+                ((List<Object>)batches).add(String.join(",", (List<String>)batch));
+                batch = new ArrayList<String>(Arrays.asList());
             }
         }
-        ((List<Object>)batches).add(batch);
+        ((List<Object>)batches).add(String.join(",", (List<String>)batch));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var j = 0; j < batches.size(); j++)
         {
-            Object requestIds = (batches == null || j < 0 || j >= batches.size() ? null : batches.get(j));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "txid", String.join(",", (List<String>)requestIds) );
-            }};
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("txid", (batches == null || j < 0 || j >= batches.size() ? null : batches.get(j)));
             Map<String, Object> response = (this.privatePostQueryTrades(request)).join();
             //
             //     {
@@ -3023,13 +3022,13 @@ public class Kraken extends KrakenApi
             //         }
             //     }
             //
-            Object rawTrades = this.safeValue(response, "result");
-            List<Object> ids = ((List<Object>) switch ((Object)(rawTrades)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Map<String, Object> rawTrades = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<String> ids = new ArrayList<String>(rawTrades.keySet());
             Map<String, Object> rawTradesWithIds = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ids.size(); i++)
             {
-                String rawTradeId = (String) (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                Map<String, Object> rawTradeWithId = this.extend(new HashMap<String, Object>() {{}}, Helpers.GetValue(rawTrades, rawTradeId));
+                String rawTradeId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                Map<String, Object> rawTradeWithId = this.extend(new HashMap<String, Object>() {{}}, (rawTrades == null || rawTradeId == null ? null : rawTrades.get(rawTradeId)));
                 rawTradeWithId.put("id", rawTradeId);
                 rawTradesWithIds.put(rawTradeId, rawTradeWithId);
             }
@@ -4509,41 +4508,38 @@ public class Kraken extends KrakenApi
         }
         if (java.util.Objects.equals(this.safeString(body, 0), "{"))
         {
-            if (!(response instanceof String))
+            String message = ((this.id + " ") + body);
+            List<Object> errors = this.safeList(response, "error", null);
+            if (!java.util.Objects.equals(errors, null))
             {
-                String message = ((this.id + " ") + body);
-                List<Object> errors = this.safeList(response, "error", null);
-                if (!java.util.Objects.equals(errors, null))
+                Integer numErrors = errors.size();
+                if ((numErrors != null && numErrors > 0))
                 {
-                    Integer numErrors = errors.size();
-                    if ((numErrors != null && numErrors > 0))
+                    for (var i = 0; (numErrors != null && i < numErrors); i++)
                     {
-                        for (var i = 0; (numErrors != null && i < numErrors); i++)
-                        {
-                            Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), message);
-                            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (error), message);
-                        }
-                        throw new ExchangeError(message) ;
+                        Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
+                        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), message);
+                        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (error), message);
                     }
+                    throw new ExchangeError(message) ;
                 }
-                // handleCreateOrdersErrors:
-                Map<String, Object> result = this.safeDict(response, "result", null);
-                if (!java.util.Objects.equals(result, null))
+            }
+            // handleCreateOrdersErrors:
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            if (!java.util.Objects.equals(result, null))
+            {
+                if (result.containsKey("orders"))
                 {
-                    if (result.containsKey("orders"))
+                    List<Object> orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+                    for (var i = 0; i < orders.size(); i++)
                     {
-                        List<Object> orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
-                        for (var i = 0; i < orders.size(); i++)
+                        Map<String, Object> order = this.safeDict(orders, i, null);
+                        String error = this.safeString(order, "error");
+                        if (!java.util.Objects.equals(error, null))
                         {
-                            Map<String, Object> order = this.safeDict(orders, i, null);
-                            String error = this.safeString(order, "error");
-                            if (!java.util.Objects.equals(error, null))
-                            {
-                                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, message);
-                                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, message);
-                                throw new ExchangeError(message) ;
-                            }
+                            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, message);
+                            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, message);
+                            throw new ExchangeError(message) ;
                         }
                     }
                 }

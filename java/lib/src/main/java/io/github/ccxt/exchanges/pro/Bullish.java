@@ -839,8 +839,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             account.put("total", this.safeString(data, "availableQuantity"));
             account.put("used", this.safeString(data, "lockedQuantity"));
             String code = this.safeCurrencyCode((String) (assetId), (Map<String, Object>) null);
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
             Map<String, Object> deltaBalance = this.safeDict(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
+            deltaBalance.put("info", message);
             if ((!java.util.Objects.equals(tradingAccountId, null)) && (!java.util.Objects.equals(code, null)))
             {
                 deltaBalance.put(code, account);
@@ -883,9 +883,6 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (Boolean.TRUE.equals(hasSymbols))
         {
             symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        }
-        if (Boolean.TRUE.equals(hasSymbols) && (!java.util.Objects.equals(symbolsNormalized, null)))
-        {
             messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
         }
         Map<String, Object> request = new HashMap<String, Object>() {{

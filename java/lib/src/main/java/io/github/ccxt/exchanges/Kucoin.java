@@ -5197,7 +5197,8 @@ public class Kucoin extends KucoinApi
             {
                 throw new ArgumentsRequired((this.id + " requires an amount argument")) ;
             }
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(amount, 1))
+            Long amountInt = this.parseToInt(amount);
+            if (((amountInt == null || amountInt < 1)))
             {
                 throw new InvalidOrder((this.id + " createOrder() minimum contract order amount is 1")) ;
             }
@@ -9336,24 +9337,26 @@ public class Kucoin extends KucoinApi
         //
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        String address = this.safeString(transaction, "address");
+        Object address = this.safeString(transaction, "address");
         String amount = this.safeString(transaction, "amount");
-        String txid = this.safeString(transaction, "walletTxId");
-        if (!java.util.Objects.equals(txid, null))
+        String walletTxId = this.safeString(transaction, "walletTxId");
+        String txid = null;
+        if (!java.util.Objects.equals(walletTxId, null))
         {
-            List<Object> txidParts = new ArrayList<Object>(Arrays.asList(((String)txid).split(java.util.regex.Pattern.quote("@"))));
+            List<Object> txidParts = new ArrayList<Object>(Arrays.asList(((String)walletTxId).split(java.util.regex.Pattern.quote("@"))));
             Integer numTxidParts = txidParts.size();
             if ((numTxidParts != null && numTxidParts > 1))
             {
+                String txidAddress = (String) (txidParts == null || 1 >= txidParts.size() ? null : txidParts.get(1));
                 if (java.util.Objects.equals(address, null))
                 {
-                    if (((String)(txidParts == null || 1 >= txidParts.size() ? null : txidParts.get(1))).length() > 1)
+                    if (txidAddress.length() > 1)
                     {
-                        address = (String) (txidParts == null || 1 >= txidParts.size() ? null : txidParts.get(1));
+                        address = txidAddress;
                     }
                 }
             }
-            txid = (String) (txidParts == null || 0 >= txidParts.size() ? null : txidParts.get(0));
+            txid = this.safeString(txidParts, 0);
         }
         String type = "deposit";
         if (java.util.Objects.equals(txid, null))

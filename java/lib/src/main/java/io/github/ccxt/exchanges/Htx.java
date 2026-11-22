@@ -2505,7 +2505,7 @@ public class Htx extends HtxApi
     public String costToPrecision(Object symbol, Object cost)
     {
         Map<String, Object> market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("cost"), this.precisionMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeValue(market.get("precision"), "cost"), this.precisionMode);
     }
 
     /**
@@ -2953,9 +2953,10 @@ public class Htx extends HtxApi
             this.options.put("futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         }
         Map<String, Object> futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
-        if (futureMarketIdsForSymbols.containsKey(symbolOrMarketId))
+        String knownSymbol = this.safeString(futureMarketIdsForSymbols, symbolOrMarketId, "");
+        if (!java.util.Objects.equals(knownSymbol, ""))
         {
-            return (futureMarketIdsForSymbols == null || symbolOrMarketId == null ? null : futureMarketIdsForSymbols.get(symbolOrMarketId));
+            return knownSymbol;
         }
         List<Object> futureMarkets = this.filterBy(this.markets, "future", true);
         Map<String, Object> futuresCharsMaps = new HashMap<String, Object>() {{
@@ -9708,13 +9709,15 @@ public class Htx extends HtxApi
                 Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
                 String marginMode = marginModeparamsMarginModeVariable.first();
                 Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-                ((Map<String, Object>)request).put("margin_mode", marginMode);
-                request.put("contract_code", market.get("id"));
+                Map<String, Object> linearRequest = new HashMap<String, Object>() {{
+                    put( "margin_mode", marginMode );
+                    put( "contract_code", market.get("id") );
+                }};
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    linearRequest.put("limit", limit);
                 }
-                response = (this.contractPrivateGetV5AccountBills(this.extend(request, paramsMarginMode))).join();
+                response = (this.contractPrivateGetV5AccountBills(this.extend(this.extend(request, linearRequest), paramsMarginMode))).join();
             } else
             {
                 request.put("contract", market.get("id"));

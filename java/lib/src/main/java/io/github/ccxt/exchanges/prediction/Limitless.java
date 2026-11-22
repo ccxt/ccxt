@@ -423,12 +423,7 @@ public class Limitless extends LimitlessApi
                     page = this.sum(page, 1);
                     request.put("page", page);
                     Map<String, Object> response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
-                    List<Object> responseRows = new ArrayList<Object>(Arrays.asList());
-                    if ((response instanceof List))
-                    {
-                        responseRows = (List<Object>) response;
-                    }
-                    List<Object> page_markets = (List<Object>) this.safeList(response, "data", responseRows);
+                    List<Object> page_markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                     Integer pageMarketsLength = page_markets.size();
                     if (java.util.Objects.equals(pageMarketsLength, 0))
                     {

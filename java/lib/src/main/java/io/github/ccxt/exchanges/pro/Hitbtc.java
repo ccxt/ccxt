@@ -834,7 +834,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             request.put("limit", limit);
         }
         String name = "trades";
-        List<Object> trades = (List<Object>) (this.subscribePublic(name, "trades", new ArrayList<String>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(name, "trades", new ArrayList<String>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1013,7 +1013,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "params", subscribeParams );
         }};
-        List<Object> ohlcv = (List<Object>) (this.subscribePublic(name, name, new ArrayList<String>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(name, name, new ArrayList<String>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1179,7 +1179,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "swap", "futures_subscribe" );
             put( "future", "futures_subscribe" );
         }});
-        List<Object> orders = (List<Object>) (this.subscribePrivate((String) (name), symbol, paramsMarketType)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate((String) (name), symbol, paramsMarketType)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1499,9 +1499,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        var orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
-        var orderRequest = ((List<Object>) orderRequestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) orderRequestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
+        Map<String, Object> orderRequest = orderRequestparamsValueVariable.first();
+        Map<String, Object> paramsValue = orderRequestparamsValueVariable.second();
         Map<String, Object> request = this.extend(orderRequest, paramsValue);
         if (java.util.Objects.equals(marketType, "swap"))
         {
@@ -1897,7 +1897,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < subMessageHashes.size(); j++)
                 {
-                    this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), (String) ((messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j))), false);
+                    this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), this.safeString(messageHashes, j), false);
                 }
                 this.cleanCache(subscription);
                 return;

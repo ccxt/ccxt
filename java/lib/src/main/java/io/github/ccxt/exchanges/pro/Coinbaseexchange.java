@@ -855,7 +855,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         List<Object> previousTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)previousTrades).add(trade);
                         previousOrder.put("trades", previousTrades);
-                        previousOrder.put("lastTradeTimestamp", trade.get("timestamp"));
+                        previousOrder.put("lastTradeTimestamp", this.safeInteger(trade, "timestamp"));
                         String totalCost = "0";
                         String totalAmount = "0";
                         for (var i = 0; i < previousTrades.size(); i++)
@@ -880,10 +880,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         }
                         if (java.util.Objects.equals(this.safeDict(previousOrder, "fee", null), null))
                         {
-                            previousOrder.put("fee", new HashMap<String, Object>() {{
-    put( "cost", 0 );
-    put( "currency", Coinbaseexchange.this.safeString(trade.get("fee"), "currency") );
-}});
+                            Map<String, Object> newFee = new HashMap<String, Object>() {{
+                                put( "cost", 0 );
+                                put( "currency", Coinbaseexchange.this.safeString(trade.get("fee"), "currency") );
+                            }};
+                            previousOrder.put("fee", newFee);
                         }
                         Map<String, Object> previousOrderFee = this.safeDict(previousOrder, "fee", new HashMap<String, Object>() {{}});
                         if ((!java.util.Objects.equals(this.safeNumber(previousOrderFee, "cost", (Object) null), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))

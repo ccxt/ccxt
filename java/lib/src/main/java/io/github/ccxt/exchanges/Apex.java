@@ -1623,7 +1623,7 @@ public class Apex extends ApexApi
         Map<String, Object> fees = this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
         String taker = this.safeString(fees, "taker", "0.0005");
         String maker = this.safeString(fees, "maker", "0.0002");
-        Object pricePrecision = ((Map<String, Object>)market.get("precision")).get("price");
+        Double pricePrecision = this.safeNumber(market.get("precision"), "price", (Object) null);
         String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
         Long timeNow = this.milliseconds();
         String triggerPrice = this.safeString(parameters, "triggerPrice");

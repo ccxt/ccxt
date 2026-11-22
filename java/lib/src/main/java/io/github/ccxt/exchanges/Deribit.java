@@ -1916,7 +1916,7 @@ public class Deribit extends DeribitApi
         for (var i = 0; i < result.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((result == null || i < 0 || i >= result.size() ? null : result.get(i)), (Map<String, Object>) null);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 tickers.put(symbol, ticker);

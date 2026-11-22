@@ -980,8 +980,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", this.safeList(message, "B", new ArrayList<Object>(Arrays.asList())));
         Map<String, Object> typeBalance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        typeBalance.put("info", this.safeList(message, "B", new ArrayList<Object>(Arrays.asList())));
         typeBalance.put("timestamp", timestamp);
         typeBalance.put("datetime", this.iso8601(timestamp));
         for (var i = 0; i < data.size(); i++)

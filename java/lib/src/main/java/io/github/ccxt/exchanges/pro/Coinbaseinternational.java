@@ -370,7 +370,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
             channel = ((("user.trades." + this.safeString(market, "id", "")) + ".") + interval);
         }
-        List<Object> trades = (List<Object>) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
         return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true);
 
     }
@@ -468,7 +468,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
             channel = ((("user.orders." + this.safeString(market, "id", "")) + ".") + interval);
         }
-        List<Object> orders = (List<Object>) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -514,7 +514,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             channels.add(((("user.orders." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
         }
-        List<Object> orders = (List<Object>) (this.subscribe(channels, channels, true, paramsInterval)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe(channels, channels, true, paramsInterval)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1446,7 +1446,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
             channels.add(((("trades." + this.safeString(market, "id", "")) + ".") + interval));
         }
-        List<Object> trades = (List<Object>) (this.subscribe(channels, channels, isPrivate, paramsInterval)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(channels, channels, isPrivate, paramsInterval)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

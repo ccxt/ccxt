@@ -357,12 +357,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
         Map<String, Object> wsUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
-        Object baseUrl = wsUrls.get("stock");
+        String baseUrl = this.safeString(wsUrls, "stock", "");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(streamType, "market"), "combined"))
         {
-            return (String) (Helpers.replace(((String)baseUrl), "/ws", "/stream"));
+            return (String) (baseUrl.replaceFirst("/ws", "/stream"));
         }
-        return (String) (baseUrl);
+        return baseUrl;
     }
 
     public String getStockTickerFromSymbol(String symbol)
@@ -1147,8 +1147,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "method", "handleFetchOrderBook");
         }};
         Object snapshot = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        Helpers.addElementToObject(snapshot, "symbol", market.get("symbol"));
-        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot);
+        Map<String, Object> symbolEntry = new HashMap<String, Object>() {{
+            put( "symbol", market.get("symbol") );
+        }};
+        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(this.extend(snapshot, symbolEntry));
         return orderbook;
 
     }
@@ -1983,7 +1985,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             marketType = "spot";
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("trade::" + symbol);
         Map<String, Object> trade = this.parseWsTrade(message, market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -2380,7 +2382,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             marketType = "spot";
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         Boolean inverse = (Boolean) this.safeBool(market, "inverse", (Object) null);
         String volumeKey = (((java.util.Objects.equals(inverse, true)))) ? "q" : "v";
@@ -3438,6 +3440,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             unifiedPrefix = "ticker";
         }
         String channelName = null;
+        String batchMessageHash = "";
         List<String> resolvedMessageHashes = new ArrayList<String>(Arrays.asList());
         List<Object> rawTickers = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
@@ -3480,7 +3483,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 tickerMarketType = this.safeString(tickerMarketById, "type");
             }
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, tickerMarketType);
-            String symbol = (String) parsedTicker.get("symbol");
+            String symbol = this.safeString(parsedTicker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 newTickers.put(symbol, parsedTicker);
@@ -3498,15 +3501,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     this.tickers.put(symbol, parsedTicker);
                 }
             }
-            String messageHash = ((((unifiedPrefix + ":") + channelName) + "@") + symbol);
-            resolvedMessageHashes.add(messageHash);
-            client.resolve(parsedTicker, messageHash);
+            batchMessageHash = ((unifiedPrefix + "s:") + channelName);
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                String messageHash = ((((unifiedPrefix + ":") + channelName) + "@") + symbol);
+                resolvedMessageHashes.add(messageHash);
+                client.resolve(parsedTicker, messageHash);
+            }
         }
         // resolve batch endpoint
         Integer length = resolvedMessageHashes.size();
         if ((length != null && length > 0))
         {
-            String batchMessageHash = ((unifiedPrefix + "s:") + channelName);
             client.resolve(newTickers, batchMessageHash);
         }
     }
@@ -6065,9 +6071,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             mapLiteral12.put("info", rate);
             Ticker parsed = this.safeTicker(mapLiteral12, (Map<String, Object>) null);
             this.tickers.put(symbol, parsed);
-            tickers.put(symbol, parsed);
             String priceSymbol = this.safeString(parsed, "symbol", "");
             client.resolve(parsed, ("stock:price:" + priceSymbol));
+            tickers.put(priceSymbol, parsed);
         }
         client.resolve(tickers, "stock:price");
     }

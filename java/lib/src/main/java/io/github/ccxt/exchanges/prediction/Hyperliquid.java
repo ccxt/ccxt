@@ -582,9 +582,9 @@ public class Hyperliquid extends HyperliquidApi
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             List<Object> expParts = new ArrayList<Object>(Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-"))));
             Integer expPartsLength = expParts.size();
-            if (((expPartsLength != null && expPartsLength >= 1)) && (((String)(expParts == null || 0 >= expParts.size() ? null : expParts.get(0))).length() == 8))
+            String ymd = (String) (expParts == null || 0 >= expParts.size() ? null : expParts.get(0));
+            if (((expPartsLength != null && expPartsLength >= 1)) && (ymd.length() == 8))
             {
-                String ymd = (String) (expParts == null || 0 >= expParts.size() ? null : expParts.get(0));
                 Object hm = "0000";
                 if (((expPartsLength != null && expPartsLength >= 2)))
                 {
@@ -647,7 +647,7 @@ public class Hyperliquid extends HyperliquidApi
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", outcomeKey);
         mapLiteral3.put("market", parentSymbol);
-        mapLiteral3.put("base", Arrays.stream(((String)parentSymbol).split(java.util.regex.Pattern.quote("/"))).findFirst().orElse(null));
+        mapLiteral3.put("base", this.safeString(new ArrayList<Object>(Arrays.asList(((String)parentSymbol).split(java.util.regex.Pattern.quote("/")))), 0));
         mapLiteral3.put("quote", quoteCurrency);
         mapLiteral3.put("settle", null);
         mapLiteral3.put("baseId", outcomeKey);
@@ -2389,9 +2389,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)expiryRaw).split(java.util.regex.Pattern.quote("-"))));
             Integer partsLength = parts.size();
-            if (((partsLength != null && partsLength >= 1)) && (((String)(parts == null || 0 >= parts.size() ? null : parts.get(0))).length() == 8))
+            String ymd = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
+            if (((partsLength != null && partsLength >= 1)) && (ymd.length() == 8))
             {
-                String ymd = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
                 Object hm = "0000";
                 if (((partsLength != null && partsLength >= 2)))
                 {

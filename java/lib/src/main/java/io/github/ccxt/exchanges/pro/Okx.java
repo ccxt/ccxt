@@ -1409,7 +1409,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String symbolValue = this.symbol(symbol);
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String name = ("candle" + interval);
-        List<Object> ohlcv = (List<Object>) (this.subscribe("public", name, name, (String) (symbolValue), parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe("public", name, name, (String) (symbolValue), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2367,7 +2367,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("instType", uppercaseType);
-        List<Object> orders = (List<Object>) (this.subscribe("private", messageHash, channel, (String) (null), this.extend(request, paramsMarginMode))).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe("private", messageHash, channel, (String) (null), this.extend(request, paramsMarginMode))).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2616,7 +2616,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             channel = "orders-algo";
         }
-        List<Object> orders = (List<Object>) (this.subscribe("private", channel, channel, symbolResolved, this.extend(request, paramsMarginMode))).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe("private", channel, channel, symbolResolved, this.extend(request, paramsMarginMode))).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

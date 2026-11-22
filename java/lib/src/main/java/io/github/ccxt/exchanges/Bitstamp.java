@@ -3290,7 +3290,8 @@ public class Bitstamp extends BitstampApi
         {
             Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(item, (Map<String, Object>) null);
             Object market = null;
-            List<String> keys = new ArrayList<String>(item.keySet());
+            Map<String, Object> itemDict = this.extend(new HashMap<String, Object>() {{}}, item);
+            List<String> keys = new ArrayList<String>(itemDict.keySet());
             for (var i = 0; i < keys.size(); i++)
             {
                 String currentKey = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

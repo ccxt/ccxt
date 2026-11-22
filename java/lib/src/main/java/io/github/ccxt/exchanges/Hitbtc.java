@@ -2168,7 +2168,7 @@ public class Hitbtc extends HitbtcApi
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
-            String symbol = (String) fee.get("symbol");
+            String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, fee);
@@ -2954,9 +2954,9 @@ public class Hitbtc extends HitbtcApi
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        var requestparamsValueVariable = this.createOrderRequest(market, marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = this.createOrderRequest(market, marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         Map<String, Object> response = null;
         if (java.util.Objects.equals(marketType, "swap"))
         {
@@ -2972,7 +2972,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public List<Object> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
@@ -3041,7 +3041,7 @@ public class Hitbtc extends HitbtcApi
             // set default margin mode to cross
             request.put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
         }
-        return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
+        return new Pair<>(request, paramsOmitted);
     }
 
     public String parseOrderStatus(String status)
@@ -4406,7 +4406,8 @@ public class Hitbtc extends HitbtcApi
         {
             throw new BadSymbol((this.id + " setLeverage() supports swap contracts only")) ;
         }
-        if (((leverage == null || !(((Number) leverage).doubleValue() >= 1))) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(leverage, maxLeverage)))
+        Long leverageValue = this.parseToInt(leverage);
+        if ((((leverageValue == null || leverageValue < 1))) || ((leverageValue != null && (maxLeverage == null || leverageValue > maxLeverage))))
         {
             throw new BadRequest(((((this.id + " setLeverage() leverage should be between 1 and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
         }

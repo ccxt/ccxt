@@ -162,9 +162,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-        var order = ((List<Object>) orderglobalParamsVariable).get(0);
-        Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> order = orderglobalParamsVariable.first();
+        Map<String, Object> globalParams = orderglobalParamsVariable.second();
         List<Order> orders = (this.createOrdersWs(new ArrayList<Object>(Arrays.asList(((Object)order))), globalParams)).join();
         Integer ordersLength = orders.size();
         if (java.util.Objects.equals(ordersLength, 0))
@@ -211,9 +211,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         Map<String, Object> market = this.market(symbol);
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-        var order = ((List<Object>) orderglobalParamsVariable).get(0);
-        Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> order = orderglobalParamsVariable.first();
+        Map<String, Object> globalParams = orderglobalParamsVariable.second();
         Map<String, Object> postRequest = this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
         Map<String, Object> wrapped = this.wrapAsPostAction(postRequest);
         Map<String, Object> request = this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});

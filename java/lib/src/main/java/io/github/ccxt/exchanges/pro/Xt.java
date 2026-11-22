@@ -570,7 +570,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        List<Object> ohlcv = (List<Object>) (this.subscribe(((("kline@" + this.safeString(market, "id", "")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m")), "public", "watchOHLCV", market, (List<String>) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe(((("kline@" + this.safeString(market, "id", "")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m")), "public", "watchOHLCV", market, (List<String>) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -638,7 +638,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        List<Object> trades = (List<Object>) (this.subscribe(("trade@" + this.safeString(market, "id", "")), "public", "watchTrades", market, (List<String>) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(("trade@" + this.safeString(market, "id", "")), "public", "watchTrades", market, (List<String>) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -786,7 +786,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             market = this.market(symbol);
         }
-        List<Object> orders = (List<Object>) (this.subscribe(name, "private", "watchOrders", market, (List<String>) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, "private", "watchOrders", market, (List<String>) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -826,7 +826,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             market = this.market(symbol);
         }
-        List<Object> trades = (List<Object>) (this.subscribe(name, "private", "watchMyTrades", market, (List<String>) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, "private", "watchMyTrades", market, (List<String>) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

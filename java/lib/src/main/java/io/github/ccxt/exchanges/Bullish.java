@@ -2772,27 +2772,26 @@ public class Bullish extends BullishApi
         Pair<String, Map<String, Object>> tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
         String tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.first();
         Map<String, Object> paramsTradingAccountId = tradingAccountIdOptionparamsTradingAccountIdVariable.second();
-        if (!java.util.Objects.equals(tradingAccountIdOption, null))
+        String tradingAccountId = tradingAccountIdOption;
+        if (java.util.Objects.equals(tradingAccountId, null))
         {
-            this.options.put("tradingAccountId", tradingAccountIdOption);
-            return this.safeString(this.options, "tradingAccountId");
-        }
-        List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
-        List<Object> accounts = this.toArray(response);
-        for (var i = 0; i < accounts.size(); i++)
-        {
-            Map<String, Object> account = this.safeDict(accounts, i, null);
-            String name = this.safeString(account, "tradingAccountName");
-            if (java.util.Objects.equals(name, "Primary Account"))
+            List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
+            List<Object> accounts = this.toArray(response);
+            for (var i = 0; i < accounts.size(); i++)
             {
-                String primaryAccountId = this.safeString(account, "tradingAccountId");
-                if (!java.util.Objects.equals(primaryAccountId, null))
+                Map<String, Object> account = this.safeDict(accounts, i, null);
+                String name = this.safeString(account, "tradingAccountName");
+                if (java.util.Objects.equals(name, "Primary Account"))
                 {
-                    this.options.put("tradingAccountId", primaryAccountId);
-                    return this.safeString(this.options, "tradingAccountId");
+                    tradingAccountId = this.safeString(account, "tradingAccountId");
+                    break;
                 }
-                break;
             }
+        }
+        if (!java.util.Objects.equals(tradingAccountId, null))
+        {
+            this.options.put("tradingAccountId", tradingAccountId);
+            return this.safeString(this.options, "tradingAccountId");
         }
         throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
 

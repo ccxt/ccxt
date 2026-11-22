@@ -920,19 +920,19 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Map<String, Object> arg = this.safeDict(message, "arg", null);
         String channelName = this.safeString(arg, "channel");
         List<Object> data = this.safeList(message, "data", null);
-        List<Object> symbols = new ArrayList<Object>(Arrays.asList());
+        List<String> symbols = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             orders.append(order);
-            ((List<Object>)symbols).add(this.safeString(order, "symbol", ""));
+            symbols.add(this.safeString(order, "symbol", ""));
         }
         // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for (var i = 0; i < symbols.size(); i++)
         {
             if (!java.util.Objects.equals(channelName, null))
             {
-                client.resolve(orders, ((channelName + ":") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
+                client.resolve(orders, ((channelName + ":") + this.safeString(symbols, i, "")));
             }
             client.resolve(orders, channelName);
         }

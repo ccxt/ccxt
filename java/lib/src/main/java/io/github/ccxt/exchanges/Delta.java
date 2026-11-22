@@ -1642,7 +1642,7 @@ public class Delta extends DeltaApi
                 continue;
             }
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, ticker);

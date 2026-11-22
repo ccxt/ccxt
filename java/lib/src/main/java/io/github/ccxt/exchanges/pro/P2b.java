@@ -186,8 +186,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
         Map<String, Object> market = this.market(symbol);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)market.get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
-        Object tickerSubs = this.options.get("tickerSubs");
-        List<Object> request = ((List<Object>) switch ((Object)(tickerSubs)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> tickerSubs = this.safeDict(this.options, "tickerSubs", new HashMap<String, Object>() {{}});
+        List<String> request = new ArrayList<String>(tickerSubs.keySet());
         return (this.subscribe((nameOption + ".subscribe"), ((nameOption + "::") + this.safeString(market, "symbol", "")), request, paramsName)).join();
 
     }

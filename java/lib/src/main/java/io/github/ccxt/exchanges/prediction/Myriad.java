@@ -3003,7 +3003,7 @@ public class Myriad extends MyriadApi
         //         "externalSources": []
         //     }
         //
-        String outcomeId = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(market.get("info"), "outcomeId") : null;
+        String outcomeId = this.safeString(this.safeDict(market, "info", null), "outcomeId");
         List<Object> outcomes = this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Double price = null;
         Double change = null;
@@ -3024,7 +3024,7 @@ public class Myriad extends MyriadApi
                 {
                     Double previousCloseValue = (priceValue - changeValue);
                     previousClose = previousCloseValue;
-                    if ((previousCloseValue == null || previousCloseValue != 0))
+                    if (!(priceValue == null ? changeValue == null : (changeValue != null && priceValue.doubleValue() == changeValue.doubleValue())))
                     {
                         percentage = Helpers.multiply((((double) changeValue) / ((double) previousCloseValue)), 100);
                     }
@@ -3689,7 +3689,7 @@ public class Myriad extends MyriadApi
                 for (var i = 0; (requestedTagsLength != null && i < requestedTagsLength); i++)
                 {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    Object tagSlug = (requestedTags == null || i < 0 || i >= requestedTags.size() ? null : requestedTags.get(i));
+                    String tagSlug = this.safeString(requestedTags, i, "");
                     ((List<Object>)tagQueries).add((tagSlug == null ? null : ((String)tagSlug).replace("-", " ")));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -3928,7 +3928,7 @@ public class Myriad extends MyriadApi
         for (var i = 0; (linesLength != null && i < linesLength); i++)
         {
             String line = (String) (lines == null || i < 0 || i >= lines.size() ? null : lines.get(i));
-            if (line.length() > 0)
+            if (!java.util.Objects.equals(line, ""))
             {
                 Object parsed = Helpers.parseJson(line);
                 this.handleCentrifugoFrame(client, (Map<String, Object>) (parsed));

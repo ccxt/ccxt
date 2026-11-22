@@ -5928,7 +5928,7 @@ public class Mexc extends MexcApi
         if (!java.util.Objects.equals(code, null))
         {
             currency = this.currency((String) (code));
-            Object currencyId = currency.get("id");
+            String currencyId = this.safeString(currency, "id", "");
             request.put("coin", currencyId);
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side

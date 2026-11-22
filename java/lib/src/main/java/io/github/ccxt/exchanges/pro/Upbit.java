@@ -311,13 +311,13 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
-        String symbol = (String) ticker.get("symbol");
+        String symbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             this.tickers.put(symbol, ticker);
+            String messageHash = ("ticker:" + symbol);
+            client.resolve(ticker, messageHash);
         }
-        String messageHash = ("ticker:" + symbol);
-        client.resolve(ticker, messageHash);
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)

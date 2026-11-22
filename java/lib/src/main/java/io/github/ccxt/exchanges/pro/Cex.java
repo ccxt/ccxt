@@ -180,8 +180,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        String currentSymbol = this.safeString(this.options.get("watchTrades"), "symbol");
-        if (!java.util.Objects.equals(currentSymbol, null) && !java.util.Objects.equals(currentSymbol, symbol))
+        String currentSymbol = this.safeString(this.options.get("watchTrades"), "symbol", "");
+        if (!java.util.Objects.equals(currentSymbol, "") && !java.util.Objects.equals(currentSymbol, symbol))
         {
             throw new ArgumentsRequired((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
@@ -609,7 +609,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         (this.authenticate(parameters)).join();
         String url = this.safeString(this.urls.get("api"), "ws", "");
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("orders:" + symbolValue);
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "e", "open-orders" );

@@ -1606,15 +1606,7 @@ public class Alpaca extends AlpacaApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
-        if ((response instanceof List))
-        {
-            return this.parseOrders(response, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        } else
-        {
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-    put( "info", response );
-}}, (Map<String, Object>) null)));
-        }
+        return this.parseOrders(response, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 

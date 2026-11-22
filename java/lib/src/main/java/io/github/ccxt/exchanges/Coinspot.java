@@ -636,10 +636,11 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            List<Object> currencyIdsMap = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Map<String, Object> balancesDict = (Map<String, Object>) this.safeDict2(response, "balance", "balances", new HashMap<String, Object>() {{}});
+            List<String> currencyIdsMap = new ArrayList<String>(balancesDict.keySet());
             for (var i = 0; i < currencyIdsMap.size(); i++)
             {
-                String currencyId = (String) (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
+                String currencyId = (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balances, currencyId));

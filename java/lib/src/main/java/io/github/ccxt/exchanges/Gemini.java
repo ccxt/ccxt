@@ -1023,7 +1023,7 @@ public class Gemini extends GeminiApi
         List<Object> brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
         List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
         List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
-        if ((marketIdsRaw instanceof List))
+        if (!java.util.Objects.equals(marketIdsRaw, null))
         {
             allMarketIds = marketIdsRaw;
         }
@@ -2573,7 +2573,7 @@ public class Gemini extends GeminiApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> currency = this.currency((String) (code));
-        String codeValue = (String) currency.get("code");
+        String codeValue = this.safeString(currency, "code", "");
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
@@ -2764,12 +2764,7 @@ public class Gemini extends GeminiApi
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        List<Object> candles = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
-        {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+        return this.parseOHLCVs(response, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 

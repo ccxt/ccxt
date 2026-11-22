@@ -5117,7 +5117,8 @@ public class Binance extends BinanceApi
             Object res = this.safeValue(results, i);
             if (Boolean.TRUE.equals(fetchMargins) && (res instanceof List))
             {
-                List<Object> keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
+                Map<String,Object> resBySymbol = this.indexBy(res, "symbol");
+                List<String> keysList = new ArrayList<String>(resBySymbol.keySet());
                 Integer length = (switch ((Object)(this.options.get("crossMarginPairsData"))) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
                 // first one is the cross-margin promise
                 if ((length != null && length == 0))
@@ -9335,7 +9336,6 @@ public class Binance extends BinanceApi
         {
             return parameters;
         }
-        Map<String, Object> generated = new HashMap<String, Object>() {{}};
         if ((java.util.Objects.equals(path, "order")) || (java.util.Objects.equals(path, "sor/order")) || (java.util.Objects.equals(path, "order/cancelReplace")) || (java.util.Objects.equals(path, "um/order")) || (java.util.Objects.equals(path, "cm/order")) || (java.util.Objects.equals(path, "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
@@ -9343,7 +9343,7 @@ public class Binance extends BinanceApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                generated.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                parameters.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "algoOrder")) || (java.util.Objects.equals(path, "um/algo/order")))
         {
@@ -9351,7 +9351,7 @@ public class Binance extends BinanceApi
             String clientAlgoId = this.safeString(parameters, "clientAlgoId");
             if (java.util.Objects.equals(clientAlgoId, null))
             {
-                generated.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                parameters.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "cm/conditional/order")) || (java.util.Objects.equals(path, "um/conditional/order")))
         {
@@ -9359,7 +9359,7 @@ public class Binance extends BinanceApi
             String newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
             if (java.util.Objects.equals(newClientStrategyId, null))
             {
-                generated.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                parameters.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if (java.util.Objects.equals(path, "equity/order/place"))
         {
@@ -9367,7 +9367,7 @@ public class Binance extends BinanceApi
             String equityClientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(equityClientOrderId, null))
             {
-                generated.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                parameters.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "order/oco")) || (java.util.Objects.equals(path, "margin/order/oco")) || (java.util.Objects.equals(path, "orderList/oco")) || (java.util.Objects.equals(path, "orderList/oto")) || (java.util.Objects.equals(path, "orderList/otoco")) || (java.util.Objects.equals(path, "orderList/opo")) || (java.util.Objects.equals(path, "orderList/opoco")))
         {
@@ -9389,7 +9389,7 @@ public class Binance extends BinanceApi
                 String currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if (java.util.Objects.equals(currentClientOrderId, null))
                 {
-                    generated.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                    parameters.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
                 }
             }
         } else if (java.util.Objects.equals(path, "batchOrders"))
@@ -9413,8 +9413,7 @@ public class Binance extends BinanceApi
                 parameters.put("batchOrders", checkedBatchOrders);
             }
         }
-        Map<String, Object> withIds = this.extend(parameters, generated);
-        return withIds;
+        return parameters;
     }
 
     /**
@@ -12148,9 +12147,13 @@ public class Binance extends BinanceApi
         String earnedCurrency = (String) bnb.get("code");
         String applicantSymbol = ((earnedCurrency + "/") + tradedCurrency);
         Boolean tradedCurrencyIsQuote = false;
-        if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(applicantSymbol)))
+        if ((!java.util.Objects.equals(this.markets, null)) && (!java.util.Objects.equals(earnedCurrency, null)) && (!java.util.Objects.equals(tradedCurrency, null)))
         {
-            tradedCurrencyIsQuote = true;
+            String knownSymbol = ((earnedCurrency + "/") + tradedCurrency);
+            if (((Map<?, ?>)this.markets).containsKey(knownSymbol))
+            {
+                tradedCurrencyIsQuote = true;
+            }
         }
         String feeCostString = this.safeString(trade, "serviceChargeAmount");
         Map<String, Object> fee = new HashMap<String, Object>();
@@ -17789,7 +17792,7 @@ public class Binance extends BinanceApi
         if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
             List<Object> optionResponse = (this.eapiPublicGetOpenInterest(this.extend(request, parameters))).join();
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             List<Object> result = this.parseOpenInterestsHistory(optionResponse, market, (Long) null, (Long) null);
             for (var i = 0; i < result.size(); i++)
             {

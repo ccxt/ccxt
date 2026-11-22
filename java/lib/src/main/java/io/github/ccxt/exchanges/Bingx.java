@@ -5234,14 +5234,16 @@ public class Bingx extends BingxApi
         }};
         List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
+        Integer idsCount = ((List<?>)ids).size();
         Object idsToParse = ids;
         Boolean areClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null));
         if (Boolean.TRUE.equals(areClientOrderIds))
         {
+            idsCount = clientOrderIds.size();
             idsToParse = clientOrderIds;
         }
         List<String> parsedIds = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)idsToParse).size(); i++)
+        for (var i = 0; (idsCount != null && i < idsCount); i++)
         {
             String id = this.safeString(idsToParse, i, "");
             String stringId = String.valueOf(id);

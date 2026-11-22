@@ -2027,7 +2027,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         Map<String, Object> market = null;
         String marketId = null;
-        var isTriggerparamsTriggerVariable = this.isTriggerOrder(parameters);
+        var isTriggerparamsTriggerVariable = this.isTriggerOrder((Map<String, Object>) (parameters));
         var isTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(0);
         var paramsTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(1);
         String messageHash = "order";

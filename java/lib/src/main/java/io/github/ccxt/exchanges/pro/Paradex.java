@@ -899,7 +899,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
-        String symbol = (String) parsedTrade.get("symbol");
+        String symbol = this.safeString(parsedTrade, "symbol");
         String messageHash = this.safeString(parameters, "channel");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -923,7 +923,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 this.options.put("liquidationsBySymbol", caches);
             }
             ((io.github.ccxt.ws.ArrayCache) liquidations).append(liquidation);
-            client.resolve(liquidations, ("liquidations:" + symbol));
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                client.resolve(liquidations, ("liquidations:" + symbol));
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -1456,7 +1459,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             Object symbol = (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i));
             Map<String, Object> market = this.market(symbol);
-            String marketId = ((String)market.get("id"));
+            String marketId = this.safeString(market, "id", "");
             marketIds.add(marketId);
             subscribeHashes.add(((channel + ".") + marketId));
             ((List<Object>)subMessageHashes).add(((channel + ".") + symbol));
@@ -1562,7 +1565,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-            String marketId = ((String)market.get("id"));
+            String marketId = this.safeString(market, "id", "");
             String subscribeHash = ((channel + ".") + marketId);
             subscribeHashes.add(subscribeHash);
             if (!(client.subscriptions.containsKey(subscribeHash)))
@@ -1778,9 +1781,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> bidAsk = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
-        String symbol = (String) bidAsk.get("symbol");
+        String symbol = this.safeString(bidAsk, "symbol");
         this.bidsasks.put(symbol, bidAsk);
-        client.resolve(bidAsk, ("bidask:" + symbol));
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            client.resolve(bidAsk, ("bidask:" + symbol));
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(bidAsk, "bidask");
     }
@@ -2032,9 +2038,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             messageHashes.add(channel);
         } else
         {
-            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                messageHashes.add(((channel + ":") + (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i))));
+                for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+                {
+                    messageHashes.add(((channel + ":") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
+                }
             }
         }
         Map<String, Object> request = this.subscribeRequest(channel);
@@ -2084,7 +2093,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
-        String symbol = (String) position.get("symbol");
+        String symbol = this.safeString(position, "symbol");
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -2109,7 +2118,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         cache.append(position);
         ((List<Object>)newPositions).add(position);
         client.resolve(newPositions, "positions");
-        client.resolve(newPositions, ("positions:" + symbol));
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            client.resolve(newPositions, ("positions:" + symbol));
+        }
     }
 
     /**

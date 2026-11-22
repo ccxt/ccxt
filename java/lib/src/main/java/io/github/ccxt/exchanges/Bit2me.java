@@ -1303,17 +1303,14 @@ public class Bit2me extends Bit2meApi
             {
                 throw new InvalidOrder((this.id + " createOrder() does not support stop-market orders, use a limit price to place a stop-limit order")) ;
             }
-            String quoteAmount = null;
             if (!java.util.Objects.equals(cost, null))
             {
-                quoteAmount = cost;
+                request.put("amount", this.costToPrecision(symbol, cost));
+                request.put("amountInQuote", true);
             } else if ((java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(price, null)))
             {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
-            }
-            if (!java.util.Objects.equals(quoteAmount, null))
-            {
+                String quoteAmount = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
                 request.put("amount", this.costToPrecision(symbol, quoteAmount));
                 request.put("amountInQuote", true);
             } else

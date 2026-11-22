@@ -1500,7 +1500,7 @@ public class Cex extends CexApi
             marketId = ((currency1 + "-") + currency2);
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         Double feeAmount = this.safeNumber(order, "feeAmount", (Object) null);

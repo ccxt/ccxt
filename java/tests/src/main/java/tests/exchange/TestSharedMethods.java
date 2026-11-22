@@ -630,7 +630,7 @@ public class TestSharedMethods extends BaseTest {
         // ### OPEN STATUS
         //
         // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
-        Object strictOpen = Boolean.TRUE.equals(statusOpen) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isLessThan(filled, amount));
+        Object strictOpen = Boolean.TRUE.equals(statusOpen) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && (amount != null && (filled == null || filled.compareTo(amount) < 0)));
         // if non-strict check, then accept & ignore undefined values
         Object nonstrictOpen = (Boolean.TRUE.equals(statusOpen) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Precise.stringLt(filled, amount));
         // check

@@ -1662,6 +1662,7 @@ public class Dydx extends DydxApi
         Integer conditionalType = 0;
         String conditionalOrderTriggerSubticks = "0";
         Integer orderFlag = null;
+        Boolean isShortTerm = false;
         Integer timeInForceNumber = null;
         if (java.util.Objects.equals(timeInForce, "FOK"))
         {
@@ -1671,6 +1672,7 @@ public class Dydx extends DydxApi
         {
             // short-term
             orderFlag = 0;
+            isShortTerm = true;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (!java.util.Objects.equals(timeInForce, null))
             {
@@ -1683,6 +1685,7 @@ public class Dydx extends DydxApi
             {
                 // long-term
                 orderFlag = 64;
+                isShortTerm = false;
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForceNumber = 2;
@@ -1693,6 +1696,7 @@ public class Dydx extends DydxApi
             } else
             {
                 orderFlag = 0;
+                isShortTerm = true;
                 if (java.util.Objects.equals(timeInForce, "IOC"))
                 {
                     timeInForceNumber = 1;
@@ -1706,6 +1710,7 @@ public class Dydx extends DydxApi
         {
             // conditional
             orderFlag = 32;
+            isShortTerm = false;
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
                 conditionalType = 1;
@@ -1725,7 +1730,7 @@ public class Dydx extends DydxApi
         List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
         Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1);
-        if ((orderFlag != null && orderFlag == 0))
+        if (Boolean.TRUE.equals(isShortTerm))
         {
             if (java.util.Objects.equals(goodTillBlock, null))
             {

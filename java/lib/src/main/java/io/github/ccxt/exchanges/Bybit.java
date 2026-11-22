@@ -6599,7 +6599,7 @@ public class Bybit extends BybitApi
             throw new NotSupported((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        Object category = null;
+        String category = null;
         // getBybitType consumes its options from the params threaded through every order
         Map<String, Object> query = parameters;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
