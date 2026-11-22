@@ -1216,7 +1216,7 @@ public class Bullish extends BullishApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+        Map<String, Object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
         if (!java.util.Objects.equals(limit, null))
         {
             request.put("_pageSize", this.getClosestLimit(limit));
@@ -1290,7 +1290,7 @@ public class Bullish extends BullishApi
                 Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPagination, 100L, true)).join();
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            Map<String, Object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
@@ -1699,7 +1699,7 @@ public class Bullish extends BullishApi
         }
         int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
         Long maxDelta = ((((long) duration) * ((long) maxLimit)) * 1000L);
-        Object startTime = since;
+        Long startTime = since;
         // both of since and until are required
         if (java.util.Objects.equals(since, null) && java.util.Objects.equals(untilParam, null))
         {
@@ -1787,7 +1787,7 @@ public class Bullish extends BullishApi
         {
             request.put("_pageSize", this.getClosestLimit(limit));
         }
-        Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
+        Map<String, Object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
         List<Object> response = (this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, paramsSinceAndUntil))).join();
         //
         //     [
@@ -1862,12 +1862,12 @@ public class Bullish extends BullishApi
             market = this.market(symbol);
             request.put("symbol", market.get("id"));
         }
-        Object paramsSinceAndUntil = this.handleSinceAndUntil(since, parameters, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+        Map<String, Object> paramsSinceAndUntil = this.handleSinceAndUntil(since, parameters, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
         if (!java.util.Objects.equals(limit, null))
         {
             request.put("_pageSize", this.getClosestLimit(limit));
         }
-        Pair<String, Map<String, Object>> methodResolvedparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", "privateGetV2HistoryOrders");
+        Pair<String, Map<String, Object>> methodResolvedparamsMethodVariable = this.handleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", "privateGetV2HistoryOrders");
         String methodResolved = methodResolvedparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodResolvedparamsMethodVariable.second();
         List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -2943,7 +2943,7 @@ public class Bullish extends BullishApi
         //
         List<Object> safeResponse = this.toArray(response);
         Integer length = safeResponse.size();
-        Object data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
         List<Object> networkAndParams = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkParam = (String) ((List<Object>)networkAndParams).get(0);
         Boolean networkDefinedByUser = !java.util.Objects.equals(networkParam, null);
@@ -2976,7 +2976,7 @@ public class Bullish extends BullishApi
                 }
             }
         }
-        return this.parseDepositAddress((Map<String, Object>) (data), currency);
+        return this.parseDepositAddress(data, currency);
 
     }
 

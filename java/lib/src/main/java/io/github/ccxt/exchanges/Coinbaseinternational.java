@@ -1926,28 +1926,21 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> summaries = this.safeList(result, "summaries", null);
             if (!java.util.Objects.equals(summaries, null))
             {
-                return this.parseBalanceList(summaries);
+                return this.parseBalanceList(summaries, summaries);
             }
-            return this.parseBalanceList(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())));
+            // a missing summary row has no currency, so the loop skips it
+            return this.parseBalanceList(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())), new ArrayList<Object>(Arrays.asList(this.safeDict(result, "summaries", new HashMap<String, Object>() {{}}))));
         }
-        return this.parseBalanceList(result);
+        return this.parseBalanceList(result, this.safeList(result, "summaries", new ArrayList<Object>(Arrays.asList(result))));
 
     }
 
-    public Balances parseBalanceList(Object response)
+    public Balances parseBalanceList(Object response, Object summaries)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> summaries = new ArrayList<Object>(Arrays.asList(response));
-        if ((response instanceof List))
-        {
-            summaries = (List<Object>) response;
-        } else if (this.isNativeDeribitCredentials())
-        {
-            summaries = (List<Object>) this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
-        }
-        for (var i = 0; i < summaries.size(); i++)
+        for (var i = 0; i < ((List<?>)summaries).size(); i++)
         {
             Map<String, Object> data = this.safeDict(summaries, i, null);
             String currencyId = this.safeString(data, "currency");

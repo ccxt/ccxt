@@ -4874,7 +4874,7 @@ public class Bingx extends BingxApi
         // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
         String stopLossString = this.safeString(orderData, "stopLoss");
         Boolean stopLossIsDict = !java.util.Objects.equals(this.safeDict(orderData, "stopLoss", null), null);
-        Object stopLossPrice = this.omitZero(this.safeString(this.safeDict(orderData, "stopLoss", new HashMap<String, Object>() {{}}), "stopPrice"));
+        String stopLossPrice = this.omitZero(this.safeString(this.safeDict(orderData, "stopLoss", new HashMap<String, Object>() {{}}), "stopPrice"));
         if (!Boolean.TRUE.equals(stopLossIsDict) && (!java.util.Objects.equals(stopLossString, null)) && ((((String)stopLossString).indexOf("{") == 0)))
         {
             stopLossPrice = this.omitZero(this.safeString(this.parseJson(stopLossString), "stopPrice"));
@@ -4882,7 +4882,7 @@ public class Bingx extends BingxApi
         // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
         String takeProfitString = this.safeString(orderData, "takeProfit");
         Boolean takeProfitIsDict = !java.util.Objects.equals(this.safeDict(orderData, "takeProfit", null), null);
-        Object takeProfitPrice = this.omitZero(this.safeString(this.safeDict(orderData, "takeProfit", new HashMap<String, Object>() {{}}), "stopPrice"));
+        String takeProfitPrice = this.omitZero(this.safeString(this.safeDict(orderData, "takeProfit", new HashMap<String, Object>() {{}}), "stopPrice"));
         if (!Boolean.TRUE.equals(takeProfitIsDict) && (!java.util.Objects.equals(takeProfitString, null)) && ((((String)takeProfitString).indexOf("{") == 0)))
         {
             takeProfitPrice = this.omitZero(this.safeString(this.parseJson(takeProfitString), "stopPrice"));
@@ -7782,12 +7782,13 @@ public class Bingx extends BingxApi
                     Boolean isString = ((arrayElement instanceof String));
                     if (Boolean.TRUE.equals(isString))
                     {
+                        String elementStr = this.safeString(value, j, "");
                         if (j > 0)
                         {
-                            arrStr = (arrStr + ((("," + "\"") + String.valueOf(arrayElement)) + "\""));
+                            arrStr = (arrStr + ((("," + "\"") + elementStr) + "\""));
                         } else
                         {
-                            arrStr = (("\"" + String.valueOf(arrayElement)) + "\"");
+                            arrStr = (("\"" + elementStr) + "\"");
                         }
                     } else
                     {

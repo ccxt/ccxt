@@ -1396,7 +1396,7 @@ public class Btse extends BtseApi
             Map<String, Object> entry = this.safeDict(data, i, null);
             String marketId = this.safeString(entry, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             if (java.util.Objects.equals(symbolsNormalized, null) || this.inArray(symbol, symbolsNormalized))
             {
                 List<Object> levels = this.safeList(entry, "riskLimits", new ArrayList<Object>(Arrays.asList()));

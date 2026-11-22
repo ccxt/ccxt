@@ -165,13 +165,13 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        Object symbol = null;
+        String symbol = null;
         if (java.util.Objects.equals(market, null))
         {
             symbol = null;
         } else
         {
-            symbol = market.get("symbol");
+            symbol = java.util.Objects.toString(market.get("symbol"), null);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("info", trade);

@@ -183,7 +183,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             apiPart = "publicMarket";
         }
-        return (this.watchMultiple((String) ((apiPart == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(apiPart))), messageHashes, payload, rawHashes, null)).join();
+        return (this.watchMultiple(this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), apiPart), messageHashes, payload, rawHashes, null)).join();
 
     }
 
@@ -838,7 +838,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             mapLiteral1.put("options", mapLiteral2);
             defaultOptions.put("ws", mapLiteral1);
             this.extendExchangeOptions(defaultOptions);
-            this.client(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateTrading"));
+            this.client(this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateTrading"));
         }
         return null;
 

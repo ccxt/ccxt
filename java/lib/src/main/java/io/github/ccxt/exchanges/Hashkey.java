@@ -2196,7 +2196,11 @@ public class Hashkey extends HashkeyApi
         List<Object> networkCodeInParamsparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkCodeInParams = (String) ((List<Object>) networkCodeInParamsparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeInParamsparamsNetworkCodeVariable).get(1);
-        String networkCode = (((java.util.Objects.equals(networkCodeInParams, null)))) ? this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork")) : networkCodeInParams;
+        String networkCode = networkCodeInParams;
+        if (java.util.Objects.equals(networkCode, null))
+        {
+            networkCode = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork"));
+        }
         request.put("chainType", this.networkCodeToId(networkCode, code));
         Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode))).join();
         //
@@ -4007,7 +4011,7 @@ public class Hashkey extends HashkeyApi
         {
             type = "market";
         }
-        Object price = this.omitZero(this.safeString(order, "price"));
+        String price = this.omitZero(this.safeString(order, "price"));
         if (java.util.Objects.equals(type, "STOP"))
         {
             if (java.util.Objects.equals(price, null))

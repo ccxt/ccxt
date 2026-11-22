@@ -634,7 +634,7 @@ public class Polymarket extends PolymarketApi
         for (var rei = 0; rei < rawEvents.size(); rei++)
         {
             Map<String, Object> rawEvent = (Map<String, Object>) (rawEvents == null || rei < 0 || rei >= rawEvents.size() ? null : rawEvents.get(rei));
-            List<Object> ccxtMarkets = (List<Object>) this.parseEventToMarkets(rawEvent);
+            List<Object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
             for (var mi = 0; mi < ccxtMarkets.size(); mi++)
             {
                 ((List<Object>)flatMarkets).add((ccxtMarkets == null || mi < 0 || mi >= ccxtMarkets.size() ? null : ccxtMarkets.get(mi)));
@@ -663,12 +663,12 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    public CompletableFuture<List<Object>> fetchRawEventsBySearch(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawEventsBySearch(List<Object> queries, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawEventsBySearchCore(queries, parameters));
     }
 
-    private List<Object> fetchRawEventsBySearchCore(Object queries, Map<String, Object> parameters)
+    private List<Object> fetchRawEventsBySearchCore(List<Object> queries, Map<String, Object> parameters)
     {
 
         Long resultLimit = this.safeInteger(parameters, "limit");
@@ -699,9 +699,9 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
-        for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
+        for (var qi = 0; qi < queries.size(); qi++)
         {
-            Object q = (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi));
+            Object q = (queries == null || qi < 0 || qi >= queries.size() ? null : queries.get(qi));
             Map<String, Object> baseRequest = new HashMap<String, Object>();
             baseRequest.put("q", q);
             baseRequest.put("limit_per_type", pageSize);
@@ -1271,7 +1271,7 @@ public class Polymarket extends PolymarketApi
                 Integer ccxtMarketsLength = ccxtMarkets.size();
                 for (var i = 0; (ccxtMarketsLength != null && i < ccxtMarketsLength); i++)
                 {
-                    Object mkt = (ccxtMarkets == null || i < 0 || i >= ccxtMarkets.size() ? null : ccxtMarkets.get(i));
+                    Map<String, Object> mkt = this.safeDict(ccxtMarkets, i, null);
                     if (java.util.Objects.equals(mkt, null))
                     {
                         throw new ExchangeError((this.id + " fetchOutcome() could not resolve mkt")) ;
@@ -1354,7 +1354,7 @@ public class Polymarket extends PolymarketApi
                 }});
                 for (var i = 0; i < ccxtMarkets.size(); i++)
                 {
-                    Object mkt = (ccxtMarkets == null || i < 0 || i >= ccxtMarkets.size() ? null : ccxtMarkets.get(i));
+                    Map<String, Object> mkt = this.safeDict(ccxtMarkets, i, null);
                     if (java.util.Objects.equals(mkt, null))
                     {
                         throw new ExchangeError((this.id + " fetchOutcomes() could not resolve mkt")) ;
@@ -1748,8 +1748,13 @@ public class Polymarket extends PolymarketApi
             }
         } else
         {
-            Long barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
-            startS = this.parseToInt((nowS - (((barCount * fidelityMin) * 60L))));
+            if (!java.util.Objects.equals(limit, null))
+            {
+                startS = this.parseToInt((nowS - (((limit * fidelityMin) * 60L))));
+            } else
+            {
+                startS = this.parseToInt((nowS - (((100L * fidelityMin) * 60L))));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -3248,7 +3253,7 @@ public class Polymarket extends PolymarketApi
             throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
         }
         Integer queriesLength = queries.size();
-        Object rawEvents = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
         if ((!java.util.Objects.equals(requestedEventId, null)) || (!java.util.Objects.equals(requestedSlug, null)))
         {
             // direct lookup by event id or slug via the events endpoint (returns a list)
@@ -3280,9 +3285,9 @@ public class Polymarket extends PolymarketApi
             this.markets = this.createSafeDictionary();
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var rei = 0; rei < ((List<?>)rawEvents).size(); rei++)
+        for (var rei = 0; rei < rawEvents.size(); rei++)
         {
-            Object rawEvent = (rawEvents == null || rei < 0 || rei >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(rei));
+            Object rawEvent = (rawEvents == null || rei < 0 || rei >= rawEvents.size() ? null : rawEvents.get(rei));
             Object eventForParsing = rawEvent;
             List<Object> ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
             Integer ccxtMarketsLength = ccxtMarkets.size();
@@ -3311,7 +3316,7 @@ public class Polymarket extends PolymarketApi
             }
             for (var mi = 0; mi < ccxtMarkets.size(); mi++)
             {
-                Object m = (ccxtMarkets == null || mi < 0 || mi >= ccxtMarkets.size() ? null : ccxtMarkets.get(mi));
+                Map<String, Object> m = this.safeDict(ccxtMarkets, mi, null);
                 if (java.util.Objects.equals(m, null))
                 {
                     throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
@@ -4196,14 +4201,14 @@ public class Polymarket extends PolymarketApi
         }
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+        List<Object> bids = this.safeList(orderbook, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
         Double bestBid = null;
         Double bestBidVolume = null;
         Integer bidsLength = 0;
         if (!java.util.Objects.equals(bids, null))
         {
-            bidsLength = ((List<?>)bids).size();
+            bidsLength = bids.size();
         }
         if ((!java.util.Objects.equals(bids, null)) && ((bidsLength != null && bidsLength > 0)))
         {
@@ -4215,7 +4220,7 @@ public class Polymarket extends PolymarketApi
         Integer asksLength = 0;
         if (!java.util.Objects.equals(asks, null))
         {
-            asksLength = ((List<?>)asks).size();
+            asksLength = asks.size();
         }
         if ((!java.util.Objects.equals(asks, null)) && ((asksLength != null && asksLength > 0)))
         {

@@ -1125,7 +1125,7 @@ public class Polymarket extends PolymarketApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> paramsOmitted = parameters;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         paramsOmitted = paramsPaginate;
@@ -1309,7 +1309,7 @@ public class Polymarket extends PolymarketApi
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> paramsOmitted = parameters;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         paramsOmitted = paramsPaginate;
@@ -1574,7 +1574,7 @@ public class Polymarket extends PolymarketApi
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
         List<Object> row = new ArrayList<Object>(Arrays.asList(instrumentId, isBuy, priceString, quantity, tif, postOnly, reduceOnlyValue, clientOrderId));
-        List<Object> signable = (List<Object>) this.compactSignable(row);
+        List<Object> signable = this.compactSignable(row);
         Map<String, Object> entry = new HashMap<String, Object>();
         entry.put("iid", instrumentId);
         entry.put("buy", isBuy);
@@ -3297,12 +3297,12 @@ public class Polymarket extends PolymarketApi
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public CompletableFuture<Map<String, Object>> signPerpsOp(Object signable, Map<String, Object> bodyOp, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> signPerpsOp(List<Object> signable, Map<String, Object> bodyOp, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.signPerpsOpCore(signable, bodyOp, parameters));
     }
 
-    private Map<String, Object> signPerpsOpCore(Object signable, Map<String, Object> bodyOp, Map<String, Object> parameters)
+    private Map<String, Object> signPerpsOpCore(List<Object> signable, Map<String, Object> bodyOp, Map<String, Object> parameters)
     {
 
         Map<String, Object> credentials = (this.loadProxyCredentials(new HashMap<String, Object>() {{}})).join();
@@ -3475,7 +3475,8 @@ public class Polymarket extends PolymarketApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                List<String> keys = new ArrayList<String>(((Map<String, Object>)query).keySet());
+                Map<String, Object> queryCopy = this.extend(new HashMap<String, Object>() {{}}, query);
+                List<String> keys = new ArrayList<String>(queryCopy.keySet());
                 Integer keysLength = keys.size();
                 if ((keysLength != null && keysLength > 0))
                 {

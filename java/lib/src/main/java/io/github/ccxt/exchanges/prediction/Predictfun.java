@@ -2085,7 +2085,7 @@ public class Predictfun extends PredictfunApi
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {object} a dictionary with the order hash and the signature
      */
-    public Map<String, Object> signPredictfunOrder(Map<String, Object> order, Object isNegRisk, Object isYieldBearing)
+    public Map<String, Object> signPredictfunOrder(Map<String, Object> order, Boolean isNegRisk, Boolean isYieldBearing)
     {
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
@@ -3117,7 +3117,7 @@ public class Predictfun extends PredictfunApi
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public String conditionalTokensAddress(Object isNegRisk, Object isYieldBearing)
+    public String conditionalTokensAddress(Boolean isNegRisk, Boolean isYieldBearing)
     {
         Long chainIdValue = this.safeInteger(this.options, "chainId", 56);
         Map<String, Object> tokens = this.safeDict(this.options, "conditionalTokens", new HashMap<String, Object>() {{}});
@@ -3144,7 +3144,7 @@ public class Predictfun extends PredictfunApi
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {string} the contract address on the active chain
      */
-    public String adapterAddress(Object isYieldBearing)
+    public String adapterAddress(Boolean isYieldBearing)
     {
         Long chainIdValue = this.safeInteger(this.options, "chainId", 56);
         Map<String, Object> adapters = this.safeDict(this.options, "adapters", new HashMap<String, Object>() {{}});
@@ -3397,7 +3397,7 @@ public class Predictfun extends PredictfunApi
             throw new ArgumentsRequired(((this.id + " unWatchOrderBook() could not resolve the market id of ") + outcome)) ;
         }
         String topic = ("predictOrderbook/" + marketId);
-        List<Object> outcomes = (List<Object>) this.outcomesByMarketId((String) (marketId));
+        List<Object> outcomes = this.outcomesByMarketId((String) (marketId));
         Integer outcomesLength = outcomes.size();
         List<String> handles = new ArrayList<String>(Arrays.asList());
         List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
@@ -3445,7 +3445,7 @@ public class Predictfun extends PredictfunApi
      */
     public Object orderBookMessageHashes(String marketId)
     {
-        List<Object> outcomes = (List<Object>) this.outcomesByMarketId((String) (marketId));
+        List<Object> outcomes = this.outcomesByMarketId((String) (marketId));
         Integer outcomesLength = outcomes.size();
         List<Object> hashes = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)

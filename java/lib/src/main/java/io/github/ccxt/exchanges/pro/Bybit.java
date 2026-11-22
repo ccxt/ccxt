@@ -2797,7 +2797,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         String messageHash = "balance";
         String topic = this.safeString(message, "topic");
-        Object info = null;
+        List<Object> info = null;
         List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
         if (java.util.Objects.equals(topic, "outboundAccountInfo"))
@@ -2820,7 +2820,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 account = this.safeStringLower(result, "accountType");
                 rawBalances = (List<Object>) this.arrayConcat(rawBalances, this.safeList(result, "coin", new ArrayList<Object>(Arrays.asList())));
             }
-            info = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            info = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         }
         for (var i = 0; i < rawBalances.size(); i++)
         {
@@ -2953,7 +2953,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Integer recordedLength = recordedTopics.size();
                 for (var j = 0; (recordedLength != null && j < recordedLength); j++)
                 {
-                    ((Map<Object, Object>) (Map<?, ?>) subscribedTopics).put((recordedTopics == null || j < 0 || j >= recordedTopics.size() ? null : recordedTopics.get(j)), true);
+                    String recordedTopic = this.safeString(recordedTopics, j, "");
+                    subscribedTopics.put(recordedTopic, true);
                 }
             }
             for (var i = 0; (topicsLength != null && i < topicsLength); i++)
@@ -3468,14 +3469,17 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 {
                     continue;
                 }
-                List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
                 List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < messageHashes.size(); j++)
+                if (!java.util.Objects.equals(messageHashes, null))
                 {
-                    String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                    String subHash = this.safeString(subMessageHashes, j);
-                    Boolean usePrefix = (java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")) || (java.util.Objects.equals(subHash, "positions"));
-                    this.cleanUnsubscription(client, (String) (subHash), unsubHash, usePrefix);
+                    for (var j = 0; j < messageHashes.size(); j++)
+                    {
+                        String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                        String subHash = this.safeString(subMessageHashes, j);
+                        Boolean usePrefix = (java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")) || (java.util.Objects.equals(subHash, "positions"));
+                        this.cleanUnsubscription(client, (String) (subHash), unsubHash, usePrefix);
+                    }
                 }
                 this.cleanCache(subscription);
             }

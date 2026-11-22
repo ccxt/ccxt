@@ -1797,7 +1797,7 @@ public class Pacifica extends PacificaApi
         //   "has_more": true   // not included to info!
         // }
         //
-        Object data = this.addPaginationCursorToResult(response);
+        List<Object> data = this.addPaginationCursorToResult(response);
         return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
@@ -2651,11 +2651,11 @@ public class Pacifica extends PacificaApi
         //   "has_more": true
         // }
         //
-        Object data = this.addPaginationCursorToResult(response);
+        List<Object> data = this.addPaginationCursorToResult(response);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Object entry = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Long timestamp = this.safeInteger(entry, "created_at");
             ((List<Object>)result).add(new HashMap<String, Object>() {{
                 put( "info", entry );
@@ -2998,7 +2998,7 @@ public class Pacifica extends PacificaApi
         //   "has_more": true
         // }
         //
-        Object data = this.addPaginationCursorToResult(response);
+        List<Object> data = this.addPaginationCursorToResult(response);
         return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
@@ -4286,9 +4286,8 @@ public class Pacifica extends PacificaApi
         {
             throw new ArgumentsRequired((this.id + " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
         }
-        List<Object> timestampparamsTimestampVariable = (List<Object>) this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.milliseconds());
-        Long timestamp = (Long) ((List<Object>) timestampparamsTimestampVariable).get(0);
-        Map<String, Object> paramsTimestamp = (Map<String, Object>) ((List<Object>) timestampparamsTimestampVariable).get(1);
+        Long timestamp = this.safeInteger(paramsSubAccountPrivateKey, "timestamp", this.milliseconds());
+        Map<String, Object> paramsTimestamp = this.omit(paramsSubAccountPrivateKey, "timestamp");
         List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000L);
         Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
         Map<String, Object> paramsExpiryWindow = (Map<String, Object>) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
@@ -4627,7 +4626,8 @@ public class Pacifica extends PacificaApi
         if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> keys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Map<String, Object> valueCopy = this.extend(new HashMap<String, Object>() {{}}, value);
+            List<String> keys = new ArrayList<String>(valueCopy.keySet());
             Object sortedKeys = this.sort(keys);
             for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {

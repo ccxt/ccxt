@@ -166,7 +166,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbolsRequested = this.symbols;
         }
         List<String> symbolsNormalized = this.marketSymbols(symbolsRequested, (Object) null, true, false, false);
-        String url = this.getUrl((String) (channel), access);
+        String url = this.getUrl(channel, access);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<Object> args = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(symbolsNormalized, null))
@@ -210,7 +210,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        String url = this.getUrl((String) (channel), access);
+        String url = this.getUrl(channel, access);
         Map<String, Object> firstArgument = new HashMap<String, Object>() {{
             put( "channel", channel );
         }};
@@ -1473,10 +1473,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
         {
-            List<?> symbolAndTimeframe = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-            String sym = (String) (symbolAndTimeframe == null || 0 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(0));
-            Object tf = (symbolAndTimeframe == null || 1 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(1));
-            String marketId = this.marketId(sym);
+            String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 0, "");
+            String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 1, "");
+            String marketId = this.marketId((String) (sym));
             String interval = this.safeString(this.timeframes, tf, tf);
             String channel = ("candle" + interval);
             Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1535,10 +1534,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
         {
-            List<?> symbolAndTimeframe = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-            String sym = (String) (symbolAndTimeframe == null || 0 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(0));
-            Object tf = (symbolAndTimeframe == null || 1 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(1));
-            String marketId = this.marketId(sym);
+            String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 0, "");
+            String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 1, "");
+            String marketId = this.marketId((String) (sym));
             String interval = this.safeString(this.timeframes, tf, tf);
             String channel = ("candle" + interval);
             Map<String, Object> topic = new HashMap<String, Object>() {{

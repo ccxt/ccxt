@@ -1691,10 +1691,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (Boolean.TRUE.equals(hasSymbols))
         {
             symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        }
-        if (Boolean.TRUE.equals(hasSymbols) && (!java.util.Objects.equals(symbolsNormalized, null)))
-        {
-            messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
+            List<String> joinParts = new ArrayList<String>(Arrays.asList());
+            for (var si = 0; si < symbolsNormalized.size(); si++)
+            {
+                String symbolEntry = this.safeString(symbolsNormalized, si, "");
+                joinParts.add(symbolEntry);
+            }
+            messageHash = (messageHash + ("::" + String.join(",", (List<String>)joinParts)));
         }
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
         Map<String, Object> subscription = new HashMap<String, Object>();

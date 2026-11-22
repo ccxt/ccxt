@@ -1184,9 +1184,9 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }}, (Map<String, Object>) null);
     }
 
-    public void handleOrderBookHelper(Object orderbook, Object updates)
+    public void handleOrderBookHelper(Object orderbook, List<Object> updates)
     {
-        for (var i = 0; i < ((List<?>)updates).size(); i++)
+        for (var i = 0; i < updates.size(); i++)
         {
             Map<String, Object> trade = this.safeDict(updates, i, null);
             String sideId = this.safeString(trade, "side");
@@ -1309,13 +1309,16 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         if (Boolean.TRUE.equals(isUnsub) && java.util.Objects.equals(subKeysLength, 0))
         {
             Map<String, Object> unSubObject = this.safeDict(this.options, "unSubscription", new HashMap<String, Object>() {{}});
-            List<Object> messageHashes = this.safeList(unSubObject, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> messageHashes = (List<Object>) this.safeStringList(unSubObject, new ArrayList<Object>(Arrays.asList("messageHashes")));
             List<Object> subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < messageHashes.size(); i++)
+            if (!java.util.Objects.equals(messageHashes, null))
             {
-                String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-                String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-                this.cleanUnsubscription(client, subHash, messageHash, false);
+                for (var i = 0; i < messageHashes.size(); i++)
+                {
+                    String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                    String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+                    this.cleanUnsubscription(client, subHash, messageHash, false);
+                }
             }
             this.cleanCache(unSubObject);
         }

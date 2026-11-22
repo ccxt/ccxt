@@ -1277,10 +1277,11 @@ public class Whitebit extends WhitebitApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        List<Object> currencyIds = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> feesById = this.extend(new HashMap<String, Object>() {{}}, response);
+        List<String> currencyIds = new ArrayList<String>(feesById.keySet());
         for (var i = 0; i < currencyIds.size(); i++)
         {
-            String entry = (String) (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String entry = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             List<Object> splitEntry = new ArrayList<Object>(Arrays.asList(entry.split(java.util.regex.Pattern.quote(" "))));
             String currencyId = (String) (splitEntry == null || 0 >= splitEntry.size() ? null : splitEntry.get(0));
             Map<String, Object> feeInfo = this.safeDict(response, entry, null);
@@ -1937,7 +1938,8 @@ public class Whitebit extends WhitebitApi
             {
                 Map<String, Object> response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted))).join();
                 // Search for order in executed orders response (object format)
-                List<String> marketIds = new ArrayList<String>(response.keySet());
+                Map<String, Object> executedById = this.extend(new HashMap<String, Object>() {{}}, response);
+                List<String> marketIds = new ArrayList<String>(executedById.keySet());
                 for (var i = 0; i < marketIds.size(); i++)
                 {
                     String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -2277,7 +2279,8 @@ public class Whitebit extends WhitebitApi
         } else
         {
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)response).keySet());
+            Map<String, Object> tradesById = this.extend(new HashMap<String, Object>() {{}}, response);
+            List<String> keys = new ArrayList<String>(tradesById.keySet());
             for (var i = 0; i < keys.size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

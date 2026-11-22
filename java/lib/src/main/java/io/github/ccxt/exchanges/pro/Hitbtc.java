@@ -783,10 +783,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
     public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(ticker, "t");
-        Object bidAskSymbol = null;
+        String bidAskSymbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            bidAskSymbol = market.get("symbol");
+            bidAskSymbol = java.util.Objects.toString(market.get("symbol"), null);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", bidAskSymbol);

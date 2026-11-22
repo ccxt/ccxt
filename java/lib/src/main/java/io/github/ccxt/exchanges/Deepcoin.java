@@ -790,7 +790,8 @@ public class Deepcoin extends DeepcoinApi
     public Map<String, Object> setMarkets(Object markets, Object currencies)
     {
         Map<String, Object> result = super.setMarkets(markets, currencies);
-        List<String> symbols = new ArrayList<String>(result.keySet());
+        Map<String, Object> resultCopy = this.extend(new HashMap<String, Object>() {{}}, result);
+        List<String> symbols = new ArrayList<String>(resultCopy.keySet());
         for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -2048,7 +2049,7 @@ public class Deepcoin extends DeepcoinApi
         {
             throw new BadRequest((this.id + " createOrder() requires a price argument for limit orders")) ;
         }
-        Object paramsRequest = null;
+        Map<String, Object> paramsRequest = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             String cost = this.safeString(paramsOrderType, "cost");
@@ -2900,7 +2901,7 @@ public class Deepcoin extends DeepcoinApi
             put( "OrderSysID", id );
         }};
         Map<String, Object> market = null;
-        Object symbolResolved = null;
+        String symbolResolved = null;
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
@@ -2908,7 +2909,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
             }
-            symbolResolved = market.get("symbol");
+            symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
         }
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", (Object) null);
         Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", (Object) null);

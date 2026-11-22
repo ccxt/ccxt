@@ -909,7 +909,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
         Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-        String type = (String) firstMarket.get("type");
+        String type = this.safeString(firstMarket, "type", "");
         if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
         {
             type = "option";
@@ -958,7 +958,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             subParams.add(symbolHash);
         }
         Integer messageHashesLength = messageHashes.size();
-        String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory(name))) + "/") + this.stream(type, streamHash, ((long) messageHashesLength)));
+        String url = ((this.getWsUrl((String) (type), (String) (this.getFutureWsCategory(name))) + "/") + this.stream((String) (type), streamHash, ((long) messageHashesLength)));
         Long requestId = this.requestId(url);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "method", "SUBSCRIBE" );
@@ -1010,7 +1010,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
         Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-        String type = (String) firstMarket.get("type");
+        String type = this.safeString(firstMarket, "type", "");
         if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
         {
             type = "option";
@@ -1039,7 +1039,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             subParams.add(symbolHash);
         }
         Integer messageHashesLength = subMessageHashes.size();
-        String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory("depth"))) + "/") + this.stream(type, streamHash, ((long) messageHashesLength)));
+        String url = ((this.getWsUrl((String) (type), (String) (this.getFutureWsCategory("depth"))) + "/") + this.stream((String) (type), streamHash, ((long) messageHashesLength)));
         Long requestId = this.requestId(url);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "method", "UNSUBSCRIBE" );
@@ -1500,13 +1500,16 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public void handleUnSubscription(Client client, Map<String, Object> subscription)
     {
-        List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < messageHashes.size(); j++)
+        if (!java.util.Objects.equals(messageHashes, null))
         {
-            String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-            String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-            this.cleanUnsubscription(client, subHash, unsubHash, false);
+            for (var j = 0; j < messageHashes.size(); j++)
+            {
+                String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
+                this.cleanUnsubscription(client, subHash, unsubHash, false);
+            }
         }
         this.cleanCache(subscription);
     }
@@ -1556,7 +1559,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> paramsName = nameparamsNameVariable.second();
         Map<String, Object> paramsOmitted = this.omit(paramsName, "callerMethodName");
         Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-        String type = (String) firstMarket.get("type");
+        String type = this.safeString(firstMarket, "type", "");
         Boolean isOption = (Boolean) firstMarket.get("option");
         if (java.util.Objects.equals(isOption, true))
         {
@@ -1602,7 +1605,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Map<String, Object> query = this.omit(paramsOmitted, "type");
         Integer subParamsLength = subParams.size();
-        String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory(name))) + "/") + this.stream(type, streamHash, ((long) subParamsLength)));
+        String url = ((this.getWsUrl((String) (type), (String) (this.getFutureWsCategory(name))) + "/") + this.stream((String) (type), streamHash, ((long) subParamsLength)));
         Long requestId = this.requestId(url);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "method", "SUBSCRIBE" );
@@ -1667,7 +1670,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> paramsName = nameparamsNameVariable.second();
         Map<String, Object> paramsOmitted = this.omit(paramsName, "callerMethodName");
         Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-        String type = (String) firstMarket.get("type");
+        String type = this.safeString(firstMarket, "type", "");
         Boolean isOption = (Boolean) firstMarket.get("option");
         if (java.util.Objects.equals(isOption, true))
         {
@@ -1713,7 +1716,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Map<String, Object> query = this.omit(paramsOmitted, "type");
         Integer subParamsLength = subParams.size();
-        String url = ((this.getWsUrl(type, (String) (this.getFutureWsCategory(name))) + "/") + this.stream(type, streamHash, ((long) subParamsLength)));
+        String url = ((this.getWsUrl((String) (type), (String) (this.getFutureWsCategory(name))) + "/") + this.stream((String) (type), streamHash, ((long) subParamsLength)));
         Long requestId = this.requestId(url);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "method", "UNSUBSCRIBE" );

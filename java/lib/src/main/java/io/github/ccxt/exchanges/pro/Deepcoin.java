@@ -211,7 +211,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     private Object watchPrivateCore(String messageHash, Map<String, Object> parameters)
     {
 
-        Object listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String listenKey = this.safeString(this.options, "listenKey", "");
         return (this.watch(((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private", "") + "?listenKey=") + listenKey), messageHash, null, "private", parameters)).join();
 
     }
@@ -1315,7 +1316,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Object listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String listenKey = this.safeString(this.options, "listenKey", "");
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         String messageHash = "positions";
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());

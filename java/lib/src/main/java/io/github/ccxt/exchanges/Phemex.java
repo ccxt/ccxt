@@ -2364,12 +2364,13 @@ public class Phemex extends PhemexApi
                 priceString = this.safeString(trade, "execPriceRp");
                 amountString = this.safeString(trade, "execQtyRq");
                 costString = this.safeString(trade, "execValueRv");
-                feeCostString = this.omitZero(this.safeString(trade, "execFeeRv"));
+                String execFeeRv = this.omitZero(this.safeString(trade, "execFeeRv"));
                 feeRateString = this.safeString(trade, "feeRateRr");
-                if (!java.util.Objects.equals(feeCostString, null))
+                if (!java.util.Objects.equals(execFeeRv, null))
                 {
                     String currencyId = this.safeString(trade, "currency");
                     feeCurrencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                    feeCostString = execFeeRv;
                 } else
                 {
                     String ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
@@ -2410,10 +2411,11 @@ public class Phemex extends PhemexApi
                     }
                 } else
                 {
-                    feeCostString = this.safeString(trade, "ptFeeRv");
-                    if (!java.util.Objects.equals(feeCostString, null))
+                    String ptFeeRvString = this.safeString(trade, "ptFeeRv");
+                    if (!java.util.Objects.equals(ptFeeRvString, null))
                     {
                         feeCurrencyCode = "PT";
+                        feeCostString = ptFeeRvString;
                     }
                 }
             }
@@ -3213,7 +3215,7 @@ public class Phemex extends PhemexApi
                 request.put("stopPxEp", this.toEp(triggerPrice, market));
             }
         }
-        Object orderParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice")));
+        Map<String, Object> orderParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice")));
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             String qtyType = this.safeString(orderParams, "qtyType", "ByBase");
@@ -5564,8 +5566,8 @@ public class Phemex extends PhemexApi
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object requestPath = ("/" + this.implodeParams(path, parameters));
-        Object url = requestPath;
+        String requestPath = ("/" + this.implodeParams(path, parameters));
+        String url = requestPath;
         String queryString = "";
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || (java.util.Objects.equals(url, "/positions/assign")))
         {
@@ -5612,7 +5614,7 @@ public class Phemex extends PhemexApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(this.implodeHostname(baseApiUrl), url);
+        url = (this.implodeHostname(baseApiUrl) + url);
         Boolean isPrivatePost = (java.util.Objects.equals(apiName, "private")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
         String bodyResolved = null;
         if (Boolean.TRUE.equals(isPrivatePost))

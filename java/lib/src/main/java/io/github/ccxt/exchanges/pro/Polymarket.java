@@ -882,12 +882,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data");
+        Map<String, Object> data = this.safeDict(message, "data", null);
         List<Object> rows = new ArrayList<Object>(Arrays.asList());
-        if ((data instanceof List))
-        {
-            rows = (List<Object>) data;
-        } else
+        if (!java.util.Objects.equals(data, null))
         {
             ((List<Object>)rows).add(data);
         }
@@ -1419,7 +1416,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             }
             for (var i = 0; i < messageHashes.size(); i++)
             {
-                this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), false);
+                this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), false);
             }
         }
     }

@@ -1425,7 +1425,7 @@ public class Paradex extends ParadexApi
         //
         List<Object> fees = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // markets left out by options.fetchMarkets.types are skipped
-        List<Object> loadedFees = (List<Object>) this.filterLoadedSummaries(fees, (String) null);
+        List<Object> loadedFees = this.filterLoadedSummaries(fees, (String) null);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < loadedFees.size(); i++)
         {
@@ -1506,8 +1506,9 @@ public class Paradex extends ParadexApi
         {
             Long endAtRaw = this.safeInteger(requestUntil, "end_at", this.milliseconds());
             Long endAt = this.parseToInt(endAtRaw);
+            Long startAt = (endAt - ((windowLength - 1L)));
             ((Map<String, Object>)requestUntil).put("end_at", endAt);
-            ((Map<String, Object>)requestUntil).put("start_at", (endAt - ((windowLength - 1L))));
+            ((Map<String, Object>)requestUntil).put("start_at", startAt);
         }
         Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted))).join();
         //
@@ -1630,7 +1631,7 @@ public class Paradex extends ParadexApi
      * @param {string} [marketType] keep this market type only
      * @returns {object[]} the rows of loaded markets
      */
-    public List<Object> filterLoadedSummaries(Object summaries, String marketType)
+    public List<Object> filterLoadedSummaries(List<Object> summaries, String marketType)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> marketsById = this.markets_by_id;
@@ -1638,9 +1639,9 @@ public class Paradex extends ParadexApi
         {
             return result;
         }
-        for (var i = 0; i < ((List<?>)summaries).size(); i++)
+        for (var i = 0; i < summaries.size(); i++)
         {
-            Object summary = (summaries == null || i < 0 || i >= ((List<?>)summaries).size() ? null : ((List<?>)summaries).get(i));
+            Object summary = (summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i));
             String marketId = this.safeString(summary, "symbol");
             if ((!java.util.Objects.equals(marketId, null)) && (marketsById.containsKey(marketId)))
             {
@@ -1826,7 +1827,7 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+        FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(this.safeString(market, "symbol", ""))), parameters)).join();
         Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
         if (java.util.Objects.equals(rate, null))
         {
@@ -2864,9 +2865,11 @@ public class Paradex extends ParadexApi
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
         request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags", "recv_window")));
-        request.put("order_id", id);
-        request.put("id", id);
-        request = (this.signOrderRequest(request, true)).join();
+        Map<String, Object> editRequest = this.extend(request, new HashMap<String, Object>() {{
+            put( "order_id", id );
+            put( "id", id );
+        }});
+        request = (this.signOrderRequest(editRequest, true)).join();
         Map<String, Object> response = (this.privatePutOrdersOrderId(request)).join();
         //
         //     {
@@ -3591,7 +3594,7 @@ public class Paradex extends ParadexApi
                 ((List<Object>)matching).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             }
         }
-        Object positions = this.parsePositions(matching, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
+        Object positions = this.parsePositions(matching, new ArrayList<String>(Arrays.asList(this.safeString(market, "symbol", ""))), new HashMap<String, Object>() {{}});
         return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
 
     }
@@ -3843,7 +3846,7 @@ public class Paradex extends ParadexApi
             Object transactions = (this.fetchPaginatedCallCursor("fetchDeposits", code, since, (Long) null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
                 put( "allKinds", true );
             }}), "next", "cursor", (Long) null, 100L)).join();
-            List<Object> transactionsOfKind = (List<Object>) this.filterTransactionsByKind(transactions, "DEPOSIT");
+            List<Object> transactionsOfKind = this.filterTransactionsByKind(transactions, "DEPOSIT");
             return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
         }
         Boolean allKinds = (Boolean) this.safeBool(paramsPaginate, "allKinds", false);
@@ -3935,7 +3938,7 @@ public class Paradex extends ParadexApi
             Object transactions = (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, (Long) null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
                 put( "allKinds", true );
             }}), "next", "cursor", (Long) null, 100L)).join();
-            List<Object> transactionsOfKind = (List<Object>) this.filterTransactionsByKind(transactions, "WITHDRAWAL");
+            List<Object> transactionsOfKind = this.filterTransactionsByKind(transactions, "WITHDRAWAL");
             return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
         }
         Boolean allKinds = (Boolean) this.safeBool(paramsPaginate, "allKinds", false);
@@ -5011,7 +5014,7 @@ public class Paradex extends ParadexApi
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < results.size(); i++)
         {
-            Map<String, Object> rate = (Map<String, Object>) (results == null || i < 0 || i >= results.size() ? null : results.get(i));
+            Map<String, Object> rate = this.extend(new HashMap<String, Object>() {{}}, (results == null || i < 0 || i >= results.size() ? null : results.get(i)));
             if (!java.util.Objects.equals(next, null))
             {
                 rate.put("next", next); // the cursor helper reads it from info, the last page has none

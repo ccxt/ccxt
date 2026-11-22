@@ -1084,7 +1084,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 25));
             if (java.util.Objects.equals(cacheLength, snapshotDelay))
             {
-                this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(this::loadOrderBook, client, messageHash, symbol, limit, new HashMap<String, Object>() {{}});
             }
             ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(data);
             return;
@@ -1109,7 +1109,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public void handleBooksideDelta(Object bookside, Object bidasks)
+    public void handleBooksideDelta(Object bookside, List<Object> bidasks)
     {
         //
         //    [{
@@ -1117,9 +1117,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (var i = 0; i < ((List<?>)bidasks).size(); i++)
+        for (var i = 0; i < bidasks.size(); i++)
         {
-            Object bidask = (bidasks == null || i < 0 || i >= ((List<?>)bidasks).size() ? null : ((List<?>)bidasks).get(i));
+            Object bidask = (bidasks == null || i < 0 || i >= bidasks.size() ? null : bidasks.get(i));
             if ((bidask instanceof List))
             {
                 ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidask);
@@ -2400,7 +2400,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         // spot ws client - the first caller fetches the listenKey, concurrent
         // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
-        Client client = this.client(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot"));
+        String spotUrl = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
+        Client client = this.client(spotUrl);
         String messageHash = "authenticate:listenKey";
         Boolean isFetching = (Boolean) this.safeBool(this.options, "listenKeyFetching", false);
         if (Boolean.TRUE.equals(isFetching))

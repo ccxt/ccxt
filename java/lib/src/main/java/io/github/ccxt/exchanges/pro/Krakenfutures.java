@@ -595,7 +595,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
         Boolean verbose = verboseparamsVerboseVariable.first();
         Map<String, Object> paramsVerbose = verboseparamsVerboseVariable.second();
-        Object name = "open_orders";
+        String name = "open_orders";
         String messageHash = "orders";
         if (Boolean.TRUE.equals(verbose))
         {
@@ -1706,7 +1706,6 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
-        Object updatedBalance = null;
         if (!java.util.Objects.equals(holding, null))
         {
             List<String> holdingKeys = new ArrayList<String>(holding.keySet()); // cashAccount
@@ -1730,7 +1729,6 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             this.balance.put("cash", this.pruneStaleBalanceKeys(cashBalance, holdingCodes));
             this.balance.put("cash", this.safeBalance(this.balance.get("cash")));
-            updatedBalance = this.balance.get("cash");
         }
         if (!java.util.Objects.equals(futures, null))
         {
@@ -1763,10 +1761,6 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             this.balance.put("margin", this.pruneStaleBalanceKeys(marginBalance, futuresSymbols));
             this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
             client.resolve(this.balance.get("margin"), (messageHash + ":futures"));
-            if (java.util.Objects.equals(updatedBalance, null))
-            {
-                updatedBalance = this.balance.get("margin");
-            }
         }
         if (!java.util.Objects.equals(flexFutures, null))
         {
@@ -1796,18 +1790,20 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             this.balance.put("flex", this.pruneStaleBalanceKeys(flexBalance, flexCodes));
             this.balance.put("flex", this.safeBalance(this.balance.get("flex")));
             client.resolve(this.balance.get("flex"), (messageHash + ":flex_futures"));
-            if (java.util.Objects.equals(updatedBalance, null))
-            {
-                updatedBalance = this.balance.get("flex");
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if (!java.util.Objects.equals(updatedBalance, null))
+        if (!java.util.Objects.equals(holding, null))
         {
-            client.resolve(updatedBalance, messageHash);
+            client.resolve(this.balance.get("cash"), messageHash);
+        } else if (!java.util.Objects.equals(futures, null))
+        {
+            client.resolve(this.balance.get("margin"), messageHash);
+        } else if (!java.util.Objects.equals(flexFutures, null))
+        {
+            client.resolve(this.balance.get("flex"), messageHash);
         }
     }
 

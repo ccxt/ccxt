@@ -1723,7 +1723,7 @@ public class Tokocrypto extends TokocryptoApi
         //         "timestamp": 1659492212507
         //     }
         //
-        Object data = new ArrayList<Object>(Arrays.asList());
+        List<Object> data = new ArrayList<Object>(Arrays.asList());
         if (this.isNativeMarket(market))
         {
             Map<String, Object> response = (this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted))).join();
@@ -1734,7 +1734,7 @@ public class Tokocrypto extends TokocryptoApi
             } else
             {
                 Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                data = this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
+                data = (List<Object>) this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
             }
         } else
         {

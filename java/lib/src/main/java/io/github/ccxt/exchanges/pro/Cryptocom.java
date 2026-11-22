@@ -588,7 +588,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             stored.append(this.safeDict(parsedTrades, j, null));
         }
-        String channelReplaced = (channel == null ? null : ((String)channel).replaceFirst(java.util.regex.Pattern.quote(("." + marketId)), ""));
+        String channelName = this.safeString(message, "channel", "");
+        String marketIdName = this.safeString(message, "instrument_name", "");
+        String channelReplaced = (channelName == null ? null : ((String)channelName).replaceFirst(java.util.regex.Pattern.quote(("." + marketIdName)), ""));
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -1950,13 +1952,16 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 {
                     continue;
                 }
-                List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
                 List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < messageHashes.size(); j++)
+                if (!java.util.Objects.equals(messageHashes, null))
                 {
-                    String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                    String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-                    this.cleanUnsubscription(client, subHash, unsubHash, false);
+                    for (var j = 0; j < messageHashes.size(); j++)
+                    {
+                        String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                        String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
+                        this.cleanUnsubscription(client, subHash, unsubHash, false);
+                    }
                 }
                 this.cleanCache(subscription);
             }

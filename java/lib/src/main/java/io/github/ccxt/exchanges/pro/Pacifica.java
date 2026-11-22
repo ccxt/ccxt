@@ -162,7 +162,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction((String) (operationType), (Map<String, Object>) (request));
+        Map<String, Object> wsRequest = this.wrapAsPostAction((String) (operationType), (Map<String, Object>) (request));
         String requestId = this.safeString(wsRequest, "id");
         if (java.util.Objects.equals(operationType, "create_stop_order"))
         {
@@ -272,7 +272,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, request);
+        Map<String, Object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         String requestId = this.safeString(wsRequest, "id");
         Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
         // {
@@ -359,7 +359,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, request);
+        Map<String, Object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         String requestId = this.safeString(wsRequest, "id");
         Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
         //
@@ -463,7 +463,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, request);
+        Map<String, Object> wsRequest = this.wrapAsPostAction(operationType, request);
         String requestId = this.safeString(wsRequest, "id");
         Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
         //
@@ -546,7 +546,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, request);
+        Map<String, Object> wsRequest = this.wrapAsPostAction(operationType, request);
         String requestId = this.safeString(wsRequest, "id");
         Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
         //  {

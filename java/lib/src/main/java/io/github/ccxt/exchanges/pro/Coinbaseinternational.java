@@ -327,7 +327,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     {
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsed = (Map<String, Object>) this.parseBalanceList(data);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseBalanceList(data, new ArrayList<Object>(Arrays.asList(data)));
         this.balance = this.deepExtend(this.balance, parsed);
         client.resolve(this.balance, "balance");
     }
@@ -2459,7 +2459,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Integer summariesLength = summaries.size();
         for (var i = 0; (summariesLength != null && i < summariesLength); i++)
         {
-            balance = this.deepExtend(balance, this.parseBalanceList((summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i))));
+            balance = this.deepExtend(balance, this.parseBalanceList((summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i)), new ArrayList<Object>(Arrays.asList(this.safeDict(summaries, i, new HashMap<String, Object>() {{}})))));
         }
         return this.safeBalance(balance);
 

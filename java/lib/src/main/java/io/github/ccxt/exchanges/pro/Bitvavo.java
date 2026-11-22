@@ -1140,12 +1140,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public CompletableFuture<Object> unWatchChannels(String topic, Object channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchChannels(String topic, List<Object> channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchChannelsCore(topic, channels, subMessageHashes, subscriptionArgs, parameters));
     }
 
-    private Object unWatchChannelsCore(String topic, Object channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
+    private Object unWatchChannelsCore(String topic, List<Object> channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
     {
 
         String url = this.safeString(this.urls.get("api"), "ws");

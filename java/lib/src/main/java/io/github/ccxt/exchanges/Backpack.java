@@ -1726,12 +1726,12 @@ public class Backpack extends BackpackApi
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    public List<Object> filterStockStructures(Object entries)
+    public List<Object> filterStockStructures(List<Object> entries)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)entries).size(); i++)
+        for (var i = 0; i < entries.size(); i++)
         {
-            Object entry = (entries == null || i < 0 || i >= ((List<?>)entries).size() ? null : ((List<?>)entries).get(i));
+            Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
             String symbol = this.safeString(entry, "symbol");
             Map<String, Object> market = this.safeDict(this.markets, symbol, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "stock", false)))

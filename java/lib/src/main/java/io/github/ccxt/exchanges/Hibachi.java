@@ -1071,7 +1071,7 @@ public class Hibachi extends HibachiApi
             priceInternal = this.priceToPrecision(symbol, price);
         }
         Object message = this.orderMessage(market, nonce, feeRate, (String) (type), (String) (side), amount, price);
-        Object signature = this.signMessage(message, (String) (this.privateKey));
+        String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", this.safeString(market, "id"));
         request.put("nonce", nonce);
@@ -1219,7 +1219,7 @@ public class Hibachi extends HibachiApi
         Double makerFee = this.safeNumber(market, "maker", 0);
         Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFee), this.numberToString(makerFee)));
         Object message = this.orderMessage(market, nonce, feeRate, (String) (type), (String) (side), amount, price);
-        Object signature = this.signMessage(message, (String) (this.privateKey));
+        String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );
             put( "nonce", nonce );
@@ -1339,7 +1339,7 @@ public class Hibachi extends HibachiApi
         String idbase16 = this.intToBase16(bigid);
         String idPadded = (((String)idbase16).length() >= 16 ? ((String)idbase16).substring(((String)idbase16).length() - 16) : String.format("%" + (16 - ((String)idbase16).length()) + "s", "").replace(' ', '0') + ((String)idbase16));
         Object message = this.base16ToBinary(idPadded);
-        Object signature = this.signMessage(message, (String) (this.privateKey));
+        String signature = this.signMessage(message, (String) (this.privateKey));
         return new HashMap<String, Object>() {{
             put( "orderId", id );
             put( "signature", signature );
@@ -1452,7 +1452,7 @@ public class Hibachi extends HibachiApi
         String nonce16 = this.intToBase16(nonce);
         String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
         Object message = this.base16ToBinary(noncePadded);
-        Object signature = this.signMessage(message, (String) (this.privateKey));
+        String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );
             put( "nonce", nonce );
@@ -1538,7 +1538,7 @@ public class Hibachi extends HibachiApi
         Double maxFees = this.safeNumber(feeConfig, "withdrawalFees", (Object) null);
         // Generate the signature
         Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
-        Object signature = this.signMessage(message, (String) (this.privateKey));
+        String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );
             put( "coin", "USDT" );
@@ -1587,7 +1587,7 @@ public class Hibachi extends HibachiApi
         return this.milliseconds();
     }
 
-    public Object signMessage(Object message, String privateKey)
+    public String signMessage(Object message, String privateKey)
     {
         if ((((String)privateKey).length() == 44))
         {

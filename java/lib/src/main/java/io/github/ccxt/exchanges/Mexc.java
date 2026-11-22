@@ -1407,7 +1407,7 @@ public class Mexc extends MexcApi
         Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
         String marketType = marketTypequeryVariable.first();
         Map<String, Object> query = marketTypequeryVariable.second();
-        Object response = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = new HashMap<String, Object>() {{}};
         String status = null;
         Long updated = null;
         if (java.util.Objects.equals(marketType, "spot"))
@@ -1417,7 +1417,8 @@ public class Mexc extends MexcApi
             //
             //     {}
             //
-            List<String> keys = new ArrayList<String>(spotResponse.keySet());
+            Map<String, Object> spotResponseCopy = this.extend(new HashMap<String, Object>() {{}}, spotResponse);
+            List<String> keys = new ArrayList<String>(spotResponseCopy.keySet());
             Integer length = keys.size();
             status = ((((length != null && length > 0)))) ? this.json(response) : "ok";
         } else if (java.util.Objects.equals(marketType, "swap"))
@@ -2107,7 +2108,7 @@ public class Mexc extends MexcApi
         Object id = null;
         Long timestamp = null;
         String orderId = null;
-        Object symbol = null;
+        String symbol = null;
         Map<String, Object> fee = null;
         String type = null;
         String side = null;
@@ -2134,7 +2135,7 @@ public class Mexc extends MexcApi
             //
             timestamp = this.safeInteger(trade, "t");
             marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
-            symbol = marketResolved.get("symbol");
+            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
             priceString = this.safeString(trade, "p");
             amountString = this.safeString(trade, "v");
             side = this.parseOrderSide(this.safeString(trade, "T"));
@@ -2193,7 +2194,7 @@ public class Mexc extends MexcApi
             //
             String marketId = this.safeString(trade, "symbol");
             marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-            symbol = marketResolved.get("symbol");
+            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
             id = this.safeString2(trade, "id", "a");
             priceString = this.safeString2(trade, "price", "p");
             orderId = this.safeString(trade, "orderId");

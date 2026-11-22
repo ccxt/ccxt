@@ -1071,13 +1071,13 @@ public class Btcmarkets extends BtcmarketsApi
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String marketId = this.safeString(trade, "marketId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        Object feeCurrencyCode = null;
+        String feeCurrencyCode = null;
         if (java.util.Objects.equals(marketResolved.get("quote"), "AUD"))
         {
-            feeCurrencyCode = marketResolved.get("quote");
+            feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
         } else
         {
-            feeCurrencyCode = marketResolved.get("base");
+            feeCurrencyCode = java.util.Objects.toString(marketResolved.get("base"), null);
         }
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "Bid"))

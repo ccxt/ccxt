@@ -1795,7 +1795,8 @@ public class Bitstamp extends BitstampApi
         Object marketResolved = market;
         if (java.util.Objects.equals(market, null))
         {
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)trade).keySet());
+            Map<String, Object> tradeCopy = this.extend(new HashMap<String, Object>() {{}}, trade);
+            List<String> keys = new ArrayList<String>(tradeCopy.keySet());
             for (var i = 0; i < keys.size(); i++)
             {
                 String currentKey = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1808,7 +1809,7 @@ public class Bitstamp extends BitstampApi
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (java.util.Objects.equals(marketResolved, null))
+        if (java.util.Objects.equals(this.safeString(marketResolved, "id"), null))
         {
             marketResolved = this.getMarketFromTrade((Map<String, Object>) (trade));
         }
@@ -2220,7 +2221,7 @@ public class Bitstamp extends BitstampApi
         for (var i = 0; i < feesList.size(); i++)
         {
             Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((feesList == null || i < 0 || i >= feesList.size() ? null : feesList.get(i))), (Map<String, Object>) null);
-            String symbol = (String) fee.get("symbol");
+            String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, fee);
@@ -3303,7 +3304,7 @@ public class Bitstamp extends BitstampApi
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if (java.util.Objects.equals(market, null))
+            if (java.util.Objects.equals(this.safeString(market, "id"), null))
             {
                 market = this.getMarketFromTrade(item);
             }
@@ -3799,7 +3800,7 @@ public class Bitstamp extends BitstampApi
             {
                 authBody = postBody;
             }
-            String auth = (((((((xAuth + java.util.Objects.requireNonNullElse(method, "GET")) + ((String)url).replaceFirst("https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
+            String auth = (((((((xAuth + java.util.Objects.requireNonNullElse(method, "GET")) + url.replaceFirst("https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
             String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             privateHeaders.put("X-Auth-Signature", signature);
         }
@@ -3835,10 +3836,11 @@ public class Bitstamp extends BitstampApi
                 ((List<Object>)errors).add(error);
             } else if (!java.util.Objects.equals(error, null))
             {
-                List<Object> keys = ((List<Object>) switch ((Object)(error)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                Map<String, Object> errorDict = this.extend(new HashMap<String, Object>() {{}}, error);
+                List<String> keys = new ArrayList<String>(errorDict.keySet());
                 for (var i = 0; i < keys.size(); i++)
                 {
-                    Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                    String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                     Object value = this.safeValue(error, key);
                     if ((value instanceof List))
                     {

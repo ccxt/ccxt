@@ -1063,12 +1063,13 @@ public class Bit2me extends Bit2meApi
         {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-            Long end = this.milliseconds();
             if (!java.util.Objects.equals(until, null))
             {
-                end = until;
+                request.put("startTime", (until - (requestLimit * duration)));
+            } else
+            {
+                request.put("startTime", (this.milliseconds() - (requestLimit * duration)));
             }
-            request.put("startTime", (end - (requestLimit * duration)));
         }
         if (!java.util.Objects.equals(until, null))
         {
@@ -1253,7 +1254,7 @@ public class Bit2me extends Bit2meApi
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
         String cost = this.safeString(parameters, "cost");
         // every order placed through the library is tagged with the broker id, CCXT-<id>
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (java.util.Objects.equals(clientOrderId, null))
         {
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
@@ -1569,9 +1570,14 @@ public class Bit2me extends Bit2meApi
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
         {
             Long start = (((!java.util.Objects.equals(since, null)))) ? since : 0;
-            Object end = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
             request.put("startTime", this.iso8601(start));
-            request.put("endTime", this.iso8601(end));
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("endTime", this.iso8601(until));
+            } else
+            {
+                request.put("endTime", this.iso8601(this.milliseconds()));
+            }
         }
         List<Object> response = (this.privateGetV1TradingOrder(this.extend(request, query))).join();
         //
@@ -1843,9 +1849,14 @@ public class Bit2me extends Bit2meApi
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
         {
             Long start = (((!java.util.Objects.equals(since, null)))) ? since : 0;
-            Object end = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
             request.put("startTime", this.iso8601(start));
-            request.put("endTime", this.iso8601(end));
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("endTime", this.iso8601(until));
+            } else
+            {
+                request.put("endTime", this.iso8601(this.milliseconds()));
+            }
         }
         Map<String, Object> response = (this.privateGetV1TradingTrade(this.extend(request, query))).join();
         //

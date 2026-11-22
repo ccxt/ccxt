@@ -1259,7 +1259,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Map<String, Object> getSubscriptionRequest(Object args)
+    public Map<String, Object> getSubscriptionRequest(List<Object> args)
     {
         return new HashMap<String, Object>() {{
             put( "op", "subscribe" );

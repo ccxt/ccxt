@@ -3502,19 +3502,18 @@ public class Poloniex extends PoloniexApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress((String) (code), parameters);
-        var request = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
-        var extraParams = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(1);
-        var currency = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(2);
-        var networkEntry = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(3);
-        Object paramsValue = extraParams;
+        Map<String, Object> prepared = this.prepareRequestForDepositAddress((String) (code), parameters);
+        Map<String, Object> request = this.safeDict(prepared, "request", null);
+        Map<String, Object> paramsValue = this.safeDict(prepared, "query", null);
+        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> networkEntry = this.safeDict(prepared, "networkEntry", null);
         Map<String, Object> response = (this.privatePostWalletsAddress(this.extend(request, paramsValue))).join();
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        return this.parseDepositAddressSpecial(response, (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
+        return this.parseDepositAddressSpecial(response, currency, networkEntry);
 
     }
 
@@ -3536,12 +3535,11 @@ public class Poloniex extends PoloniexApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress((String) (code), parameters);
-        var request = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
-        var extraParams = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(1);
-        var currency = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(2);
-        var networkEntry = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(3);
-        Object paramsValue = extraParams;
+        Map<String, Object> prepared = this.prepareRequestForDepositAddress((String) (code), parameters);
+        Map<String, Object> request = this.safeDict(prepared, "request", null);
+        Map<String, Object> paramsValue = this.safeDict(prepared, "query", null);
+        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> networkEntry = this.safeDict(prepared, "networkEntry", null);
         Map<String, Object> response = (this.privateGetWalletsAddresses(this.extend(request, paramsValue))).join();
         //
         //     {
@@ -3554,11 +3552,11 @@ public class Poloniex extends PoloniexApi
         {
             throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
         }
-        return this.parseDepositAddressSpecial(response, (Map<String, Object>) (currency), (Map<String, Object>) (networkEntry));
+        return this.parseDepositAddressSpecial(response, currency, networkEntry);
 
     }
 
-    public List<Object> prepareRequestForDepositAddress(String code, Map<String, Object> parameters)
+    public Map<String, Object> prepareRequestForDepositAddress(String code, Map<String, Object> parameters)
     {
         if (!(((Map<?, ?>)this.currencies).containsKey(code)))
         {
@@ -3586,10 +3584,17 @@ public class Poloniex extends PoloniexApi
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("currency", exchangeNetworkId);
-        return new ArrayList<Object>(Arrays.asList(request, query, currency, networkEntry));
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("request", request);
+            h2kMap0.put("query", query);
+            h2kMap0.put("currency", currency);
+            h2kMap0.put("networkEntry", networkEntry);
+            return h2kMap0;
+        }
     }
 
-    public Map<String, Object> parseDepositAddressSpecial(Map<String, Object> response, Map<String, Object> currency, Map<String, Object> networkEntry)
+    public Map<String, Object> parseDepositAddressSpecial(Map<String, Object> response, Map<String, Object> currency, Object networkEntry)
     {
         String address = this.safeString(response, "address");
         if (java.util.Objects.equals(address, null))
@@ -3608,13 +3613,13 @@ public class Poloniex extends PoloniexApi
             }
         }
         {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("info", response);
-            h2kMap0.put("currency", this.safeString(currency, "code"));
-            h2kMap0.put("network", this.safeString(networkEntry, "network"));
-            h2kMap0.put("address", address);
-            h2kMap0.put("tag", tag);
-            return h2kMap0;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", response);
+            h2kMap1.put("currency", this.safeString(currency, "code"));
+            h2kMap1.put("network", this.safeString(networkEntry, "network"));
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
         }
     }
 
@@ -4297,32 +4302,32 @@ public class Poloniex extends PoloniexApi
             amountString = Precise.stringSub(amountString, feeCostString);
         }
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("info", transactionValue);
-            h2kMap1.put("id", id);
-            h2kMap1.put("currency", code);
-            h2kMap1.put("amount", this.parseNumber(amountString));
-            h2kMap1.put("network", null);
-            h2kMap1.put("address", address);
-            h2kMap1.put("addressTo", null);
-            h2kMap1.put("addressFrom", null);
-            h2kMap1.put("tag", tag);
-            h2kMap1.put("tagTo", null);
-            h2kMap1.put("tagFrom", null);
-            h2kMap1.put("status", status);
-            h2kMap1.put("type", type);
-            h2kMap1.put("updated", null);
-            h2kMap1.put("txid", txid);
-            h2kMap1.put("timestamp", timestamp);
-            h2kMap1.put("datetime", this.iso8601(timestamp));
-            h2kMap1.put("comment", null);
-            h2kMap1.put("internal", null);
-            h2kMap1.put("fee", new HashMap<String, Object>() {{
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transactionValue);
+            h2kMap2.put("id", id);
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", this.parseNumber(amountString));
+            h2kMap2.put("network", null);
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressTo", null);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("tag", tag);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("status", status);
+            h2kMap2.put("type", type);
+            h2kMap2.put("updated", null);
+            h2kMap2.put("txid", txid);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("comment", null);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Poloniex.this.parseNumber(feeCostString) );
                 put( "rate", null );
             }});
-            return h2kMap1;
+            return h2kMap2;
         }
     }
 
@@ -4478,13 +4483,13 @@ public class Poloniex extends PoloniexApi
             }
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", leverage);
-            h2kMap2.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-            h2kMap2.put("marginMode", marginMode);
-            h2kMap2.put("longLeverage", longLeverage);
-            h2kMap2.put("shortLeverage", shortLeverage);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", leverage);
+            h2kMap3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap3.put("marginMode", marginMode);
+            h2kMap3.put("longLeverage", longLeverage);
+            h2kMap3.put("shortLeverage", shortLeverage);
+            return h2kMap3;
         }
     }
 
@@ -4878,12 +4883,12 @@ public class Poloniex extends PoloniexApi
         String bodyResolved = bodyJson;
         Map<String, Object> headersResolved = signedHeaders;
         {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("url", url);
-            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", bodyResolved);
-            h2kMap3.put("headers", headersResolved);
-            return h2kMap3;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResolved);
+            h2kMap4.put("headers", headersResolved);
+            return h2kMap4;
         }
     }
 

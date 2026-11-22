@@ -8571,7 +8571,7 @@ public class Bitget extends BitgetApi
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         String symbol = null;
-        Object marginMode = null;
+        String marginMode = null;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
@@ -8666,7 +8666,7 @@ public class Bitget extends BitgetApi
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         String symbol = null;
-        Object marginMode = null;
+        String marginMode = null;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
@@ -9823,7 +9823,7 @@ public class Bitget extends BitgetApi
             market = this.market(symbol);
             request.put("symbol", market.get("id"));
             String defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            Object marketType = defaultType;
+            String marketType = defaultType;
             String marketTypeValue = this.safeString(market, "type");
             if (!java.util.Objects.equals(marketTypeValue, null))
             {
@@ -10873,22 +10873,23 @@ public class Bitget extends BitgetApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String symbol = this.safeString(parameters, "symbol");
-        Map<String, Object> paramsOmitted = this.omit(parameters, "symbol");
+        Map<String, Object> paramsNoSymbol = this.omit(parameters, "symbol");
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
         }
         String marketType = null;
-        Pair<String, Map<String, Object>> marketTypeparamsOmittedVariable = this.handleMarketTypeAndParams("fetchLedger", market, paramsOmitted, (String) null);
+        Map<String, Object> paramsOmitted = null;
+        Pair<String, Map<String, Object>> marketTypeparamsOmittedVariable = this.handleMarketTypeAndParams("fetchLedger", market, paramsNoSymbol, (String) null);
         marketType = marketTypeparamsOmittedVariable.first();
         paramsOmitted = marketTypeparamsOmittedVariable.second();
         Boolean uta = null;
-        List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams(paramsOmitted, "fetchLedger", false)).join();
+        List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsOmitted), "fetchLedger", false)).join();
         uta = (Boolean) ((List<Object>) utaparamsOmittedVariable).get(0);
         paramsOmitted = (Map<String, Object>) ((List<Object>) utaparamsOmittedVariable).get(1);
         Boolean paginate = false;
-        Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchLedger", "paginate", false);
         paginate = paginateparamsOmittedVariable.first();
         paramsOmitted = paginateparamsOmittedVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -10931,7 +10932,7 @@ public class Bitget extends BitgetApi
             currency = this.currency((String) (code));
             request.put("coin", currency.get("id"));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endTime", request, paramsOmitted, 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsOmitted), 1);
         request = requestparamsOmittedVariable.first();
         paramsOmitted = requestparamsOmittedVariable.second();
         if (!java.util.Objects.equals(since, null))
@@ -13944,7 +13945,8 @@ public class Bitget extends BitgetApi
             ((Map<String, Object>)requestUntil).put("startTime", since);
         } else
         {
-            ((Map<String, Object>)requestUntil).put("startTime", (this.milliseconds() - 7776000000L));
+            Long defaultStart = (this.milliseconds() - 7776000000L);
+            ((Map<String, Object>)requestUntil).put("startTime", defaultStart);
         }
         if (!java.util.Objects.equals(limit, null))
         {

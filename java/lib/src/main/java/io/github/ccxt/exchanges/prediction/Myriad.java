@@ -354,12 +354,12 @@ public class Myriad extends MyriadApi
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public CompletableFuture<List<Object>> fetchRawMarketsBySearch(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawMarketsBySearch(List<Object> queries, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawMarketsBySearchCore(queries, parameters));
     }
 
-    private List<Object> fetchRawMarketsBySearchCore(Object queries, Map<String, Object> parameters)
+    private List<Object> fetchRawMarketsBySearchCore(List<Object> queries, Map<String, Object> parameters)
     {
 
         Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
@@ -367,9 +367,9 @@ public class Myriad extends MyriadApi
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "state")));
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)queries).size(); i++)
+        for (var i = 0; i < queries.size(); i++)
         {
-            Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
+            Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
             Map<String, Object> response = (this.myriadPublicGetMarkets(this.extend(new HashMap<String, Object>() {{
                 put( "keyword", q );
                 put( "state", state );
@@ -586,21 +586,21 @@ public class Myriad extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    public CompletableFuture<Object> fetchRawQuestionsBySearch(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchRawQuestionsBySearch(List<Object> queries, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawQuestionsBySearchCore(queries, parameters));
     }
 
-    private Object fetchRawQuestionsBySearchCore(Object queries, Map<String, Object> parameters)
+    private Object fetchRawQuestionsBySearchCore(List<Object> queries, Map<String, Object> parameters)
     {
 
         Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)queries).size(); i++)
+        for (var i = 0; i < queries.size(); i++)
         {
-            Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
+            Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
             Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(new HashMap<String, Object>() {{
                 put( "keyword", q );
                 put( "limit", limit );
@@ -2726,7 +2726,7 @@ public class Myriad extends MyriadApi
             h2kMap3.put("linear", null);
             h2kMap3.put("inverse", null);
             h2kMap3.put("contractSize", null);
-            h2kMap3.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            h2kMap3.put("expiry", this.parse8601(endDate));
             h2kMap3.put("expiryDatetime", endDate);
             h2kMap3.put("strike", null);
             h2kMap3.put("optionType", null);
@@ -3334,6 +3334,7 @@ public class Myriad extends MyriadApi
         //
         List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Object selectedOutcome = null;
+        Boolean outcomeSelected = false;
         for (var i = 0; i < outcomes.size(); i++)
         {
             Object oc = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
@@ -3344,9 +3345,10 @@ public class Myriad extends MyriadApi
                 selectedOutcome = oc;
                 break;
             }
-            if ((java.util.Objects.equals(selectedOutcome, null)) && (!java.util.Objects.equals(outcomeTitle, null)) && (java.util.Objects.equals(currentTitle, outcomeTitle)))
+            if ((!Boolean.TRUE.equals(outcomeSelected)) && (!java.util.Objects.equals(outcomeTitle, null)) && (java.util.Objects.equals(currentTitle, outcomeTitle)))
             {
                 selectedOutcome = oc;
+                outcomeSelected = true;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments

@@ -927,7 +927,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsUrls, "privateGen2", "");
         String messageHash = "myAsset";
-        List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
+        List<Object> request = this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
             put( "type", messageHash );
         }});
         Object balance = (this.watch(url, messageHash, request, messageHash, null)).join();

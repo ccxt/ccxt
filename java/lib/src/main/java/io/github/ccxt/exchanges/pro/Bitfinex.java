@@ -1183,13 +1183,16 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel, "");
         Map<String, Object> subscription = this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash), null);
         client.subscriptions.remove(unSubChannel);
-        List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < messageHashes.size(); i++)
+        if (!java.util.Objects.equals(messageHashes, null))
         {
-            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            this.cleanUnsubscription(client, subHash, messageHash, false);
+            for (var i = 0; i < messageHashes.size(); i++)
+            {
+                String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+                this.cleanUnsubscription(client, subHash, messageHash, false);
+            }
         }
         this.cleanCache(subscription);
         return true;

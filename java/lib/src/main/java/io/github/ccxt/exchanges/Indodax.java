@@ -960,7 +960,7 @@ public class Indodax extends IndodaxApi
         //
         String side = this.safeString(order, "type");
         String status = this.parseOrderStatus(this.safeString(order, "status", "open"));
-        Object symbol = null;
+        String symbol = null;
         String cost = null;
         String price = this.safeString(order, "price");
         String amount = null;
@@ -970,7 +970,7 @@ public class Indodax extends IndodaxApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         if (!java.util.Objects.equals(marketResolved, null))
         {
-            symbol = marketResolved.get("symbol");
+            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
             String quoteId = this.safeString(marketResolved, "quoteId", "");
             String baseId = this.safeString(marketResolved, "baseId", "");
             if ((java.util.Objects.equals(marketResolved.get("quoteId"), "idr")) && (!java.util.Objects.equals(this.safeString(order, "order_rp"), null)))

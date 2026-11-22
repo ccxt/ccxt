@@ -2407,13 +2407,16 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (Boolean.TRUE.equals(unsubscribe))
         {
             Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
-            List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
             List<Object> subHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < messageHashes.size(); i++)
+            if (!java.util.Objects.equals(messageHashes, null))
             {
-                String unSubHash = this.safeString(messageHashes, i);
-                String subHash = this.safeString(subHashes, i);
-                this.cleanUnsubscription(client, (String) (subHash), (String) (unSubHash), subHashIsPrefix);
+                for (var i = 0; i < messageHashes.size(); i++)
+                {
+                    String unSubHash = this.safeString(messageHashes, i);
+                    String subHash = this.safeString(subHashes, i);
+                    this.cleanUnsubscription(client, (String) (subHash), (String) (unSubHash), subHashIsPrefix);
+                }
             }
             this.cleanCache(subscription);
         }

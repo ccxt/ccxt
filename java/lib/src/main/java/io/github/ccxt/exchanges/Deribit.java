@@ -834,7 +834,7 @@ public class Deribit extends DeribitApi
     {
         // support expired option contracts
         String quote = "USD";
-        Object settle = "";
+        String settle = "";
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
@@ -1377,7 +1377,7 @@ public class Deribit extends DeribitApi
                     symbol = ((((base + "/") + quote) + ":") + settle);
                     if (Boolean.TRUE.equals(option) || Boolean.TRUE.equals(future))
                     {
-                        symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
+                        symbol = (symbol + (("-" + this.yymmdd(expiry, ""))));
                         if (Boolean.TRUE.equals(option))
                         {
                             strike = this.safeNumber(market, "strike", (Object) null);
@@ -1396,7 +1396,7 @@ public class Deribit extends DeribitApi
                 }
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    parsedMarkets.put(symbol, true);
+                    parsedMarkets.put((String)symbol, true);
                 }
                 Double minTradeAmount = this.safeNumber(market, "min_trade_amount", (Object) null);
                 Double tickSize = this.safeNumber(market, "tick_size", (Object) null);

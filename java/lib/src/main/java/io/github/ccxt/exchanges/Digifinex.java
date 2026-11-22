@@ -2308,7 +2308,7 @@ public class Digifinex extends DigifinexApi
         request.put(marketIdRequest, market.get("id"));
         Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsMarginMode);
         Integer postOnlyParsed = 0;
-        Object paramsRequest = null;
+        Map<String, Object> paramsRequest = null;
         if (Boolean.TRUE.equals(swap))
         {
             Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
@@ -2540,7 +2540,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new OrderNotFound((((this.id + " cancelOrder() ") + idValue) + " not found")) ;
             }
-            List<Object> orders = (List<Object>) this.parseCancelOrders(response, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseCancelOrders(response, new HashMap<String, Object>() {{}});
             Map<String, Object> canceled = this.safeDict(orders, 0, null);
             return canceled;
         } else

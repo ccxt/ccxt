@@ -1521,7 +1521,7 @@ public class Dydx extends DydxApi
         return signature;
     }
 
-    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
+    public String signDydxTx(String privateKey, Object message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
@@ -1886,7 +1886,7 @@ public class Dydx extends DydxApi
         Object orderId = ((List<Object>)orderRequestRes).get(0);
         Object orderRequest = ((List<Object>)orderRequestRes).get(1);
         String chainName = this.safeString(this.options, "chainName");
-        Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), orderRequest, "", chainName, account, null, (Object) null);
+        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), orderRequest, "", chainName, account, null, (Object) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -1963,7 +1963,7 @@ public class Dydx extends DydxApi
             throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
         }
         Long goodTillBlockOption = this.safeInteger(paramsOmitted, "goodTillBlock");
-        Object goodTillBlock = goodTillBlockOption;
+        Long goodTillBlock = goodTillBlockOption;
         Long goodTillBlockTimeInSeconds = 2592000L;
         // default is 30 days
         List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
@@ -1972,8 +1972,7 @@ public class Dydx extends DydxApi
         Object goodTillBlockTime = null;
         Integer defaultOrderFlags = ((Boolean.TRUE.equals(isTrigger))) ? 32 : 64;
         Long orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
-        Long subAccountId = 0L;
-        List<Object> subAccountIdOptionVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId);
+        List<Object> subAccountIdOptionVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", 0L);
         Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionVariable).get(0);
         if ((orderFlags == null || orderFlags != 0) && (orderFlags == null || orderFlags != 64) && (orderFlags == null || orderFlags != 32))
         {
@@ -1995,7 +1994,7 @@ public class Dydx extends DydxApi
             if (java.util.Objects.equals(goodTillBlock, null))
             {
                 Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
-                goodTillBlock = (latestBlockHeight + 20L);
+                goodTillBlock = (Long) (latestBlockHeight + 20L);
             }
         }
         Object credentials = this.retrieveCredentials();
@@ -2018,7 +2017,7 @@ public class Dydx extends DydxApi
             put( "value", cancelPayload );
         }};
         String chainName = this.safeString(this.options, "chainName");
-        Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, (Object) null);
+        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, (Object) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2073,15 +2072,14 @@ public class Dydx extends DydxApi
         {
             throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
         }
-        Long subAccountId = 0L;
-        List<Object> subAccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
+        List<Object> subAccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", 0L);
         Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(0);
         Map<String, Object> paramsSubAccountId = (Map<String, Object>) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(1);
-        Object goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
+        Long goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         if (java.util.Objects.equals(goodTillBlock, null))
         {
             Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
-            goodTillBlock = (latestBlockHeight + 20L);
+            goodTillBlock = (Long) (latestBlockHeight + 20L);
         }
         Object credentials = this.retrieveCredentials();
         Map<String, Object> account = (this.fetchDydxAccount()).join();
@@ -2101,7 +2099,7 @@ public class Dydx extends DydxApi
             put( "value", cancelPayload );
         }};
         String chainName = this.safeString(this.options, "chainName");
-        Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, (Object) null);
+        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, (Object) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2443,7 +2441,7 @@ public class Dydx extends DydxApi
         }
         Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
         String chainName = this.safeString(this.options, "chainName");
-        Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
+        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2621,9 +2619,8 @@ public class Dydx extends DydxApi
     private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
-        List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-        String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
-        Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
+        String tag = this.safeString(parameters, "tag");
+        Map<String, Object> paramsWithdrawTag = this.omit(parameters, "tag");
         if (!java.util.Objects.equals(code, "USDC"))
         {
             throw new NotSupported((this.id + " withdraw() only support USDC")) ;
@@ -2656,7 +2653,7 @@ public class Dydx extends DydxApi
         }};
         Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
         String chainName = this.safeString(this.options, "chainName");
-        Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
+        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};

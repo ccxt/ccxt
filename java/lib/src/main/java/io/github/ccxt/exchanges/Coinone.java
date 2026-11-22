@@ -1007,13 +1007,13 @@ public class Coinone extends CoinoneApi
             feeCostString = Precise.stringAbs(feeCostString);
             String feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
-            Object feeCurrencyCode = null;
+            String feeCurrencyCode = null;
             if (java.util.Objects.equals(side, "sell"))
             {
-                feeCurrencyCode = marketResolved.get("quote");
+                feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
             } else
             {
-                feeCurrencyCode = marketResolved.get("base");
+                feeCurrencyCode = java.util.Objects.toString(marketResolved.get("base"), null);
             }
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();

@@ -4104,7 +4104,7 @@ public class Gate extends GateApi
         {
             throw new NotSupported((this.id + " fetchTicker() not support this market type")) ;
         }
-        Object ticker = null;
+        Map<String, Object> ticker = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
             String optionMarketId = this.safeString(market, "id");
@@ -7435,7 +7435,7 @@ public class Gate extends GateApi
         //         }
         //     ]
         //
-        Object result = response;
+        List<Object> result = response;
         if (Boolean.TRUE.equals(openSpotOrders))
         {
             List<Object> spotResult = new ArrayList<Object>(Arrays.asList());

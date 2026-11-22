@@ -418,7 +418,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; i < marketIds.size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            List<Object> timeframes = ((List<Object>) switch ((Object)((updates == null || marketId == null ? null : updates.get(marketId)))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<String> timeframes = new ArrayList<String>(((Map<String, Object>)this.safeDict(updates, marketId, new HashMap<String, Object>() {{}})).keySet());
             for (var j = 0; j < timeframes.size(); j++)
             {
                 Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));

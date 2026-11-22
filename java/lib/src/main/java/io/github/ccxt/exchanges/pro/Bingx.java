@@ -499,7 +499,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
         }
         List<Object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        if (java.util.Objects.equals(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
+        Pair<Boolean, Map<String, Object>> ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "watchTrades", "ignoreDuplicates", true);
+        Boolean ignoreDuplicates = ignoreDuplicatesVariable.first();
+        if (Boolean.TRUE.equals(ignoreDuplicates))
         {
             Object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");

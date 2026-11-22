@@ -1498,7 +1498,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay));
             if (java.util.Objects.equals(cacheLength, snapshotDelay))
             {
-                this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(this::loadOrderBook, client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}});
             }
             return;
         } else if ((!java.util.Objects.equals(deltaNonce, null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))

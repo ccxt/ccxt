@@ -2504,18 +2504,18 @@ public class Kraken extends KrakenApi
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawTrades.size(); i++)
         {
-            Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-            if ((rawTrade instanceof String))
+            String rawTradeId = this.safeString(rawTrades, i);
+            if (!java.util.Objects.equals(rawTradeId, null))
             {
                 HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-                mapLiteral6.put("id", rawTrade);
+                mapLiteral6.put("id", rawTradeId);
                 mapLiteral6.put("order", id);
                 mapLiteral6.put("symbol", symbol);
                 mapLiteral6.put("info", new HashMap<String, Object>() {{}});
                 ((List<Object>)trades).add(this.safeTrade(mapLiteral6, (Map<String, Object>) null));
             } else
             {
-                ((List<Object>)trades).add(rawTrade);
+                ((List<Object>)trades).add((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)));
             }
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2954,7 +2954,7 @@ public class Kraken extends KrakenApi
     {
 
         List<Object> orderTrades = this.safeList(parameters, "trades", null);
-        List<Object> tradeIds = new ArrayList<Object>(Arrays.asList());
+        List<String> tradeIds = new ArrayList<String>(Arrays.asList());
         if (java.util.Objects.equals(orderTrades, null))
         {
             throw new ArgumentsRequired((this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
@@ -2962,13 +2962,13 @@ public class Kraken extends KrakenApi
         {
             for (var i = 0; i < orderTrades.size(); i++)
             {
-                Object orderTrade = (orderTrades == null || i < 0 || i >= orderTrades.size() ? null : orderTrades.get(i));
-                if ((orderTrade instanceof String))
+                String orderTradeId = this.safeString(orderTrades, i);
+                if (!java.util.Objects.equals(orderTradeId, null))
                 {
-                    ((List<Object>)tradeIds).add(orderTrade);
+                    tradeIds.add(orderTradeId);
                 } else
                 {
-                    ((List<Object>)tradeIds).add(this.safeString(orderTrade, "id"));
+                    tradeIds.add(this.safeString((orderTrades == null || i < 0 || i >= orderTrades.size() ? null : orderTrades.get(i)), "id"));
                 }
             }
         }
@@ -3890,7 +3890,7 @@ public class Kraken extends KrakenApi
         //        }
         //     }
         //
-        Object rawWithdrawals = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawWithdrawals = new ArrayList<Object>(Arrays.asList());
         List<Object> resultList = this.safeList(response, "result", null);
         if (!java.util.Objects.equals(resultList, null))
         {
@@ -3899,7 +3899,7 @@ public class Kraken extends KrakenApi
         {
             rawWithdrawals = this.addPaginationCursorToResult((Map<String, Object>) (this.safeDict(response, "result", new HashMap<String, Object>() {{}})));
         }
-        return this.parseTransactionsByType("withdrawal", (List<Object>) (rawWithdrawals), code, since, limit);
+        return this.parseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit);
 
     }
 

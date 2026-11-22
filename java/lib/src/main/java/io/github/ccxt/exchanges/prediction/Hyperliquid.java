@@ -260,7 +260,7 @@ public class Hyperliquid extends HyperliquidApi
             if ((((Integer) colonIndex) > -1))
             {
                 String key = (part == null ? null : part.substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? part.length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), part.length())));
-                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; })), null);
+                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; })), null);
                 result.put(key, value);
             }
         }
@@ -345,7 +345,7 @@ public class Hyperliquid extends HyperliquidApi
         String questionDescription = this.safeString(question, "description");
         if ((!java.util.Objects.equals(questionDescription, null)) && (!java.util.Objects.equals(questionDescription, "")))
         {
-            Map<String, Object> questionDesc = (Map<String, Object>) this.parseOutcomeDescription((String) (questionDescription));
+            Map<String, Object> questionDesc = this.parseOutcomeDescription(questionDescription);
             String questionClass = this.safeStringLower(questionDesc, "class");
             if (java.util.Objects.equals(questionClass, "pricebucket"))
             {
@@ -567,7 +567,7 @@ public class Hyperliquid extends HyperliquidApi
         String description = this.safeString(outcomeInfo, "description", "");
         String name = this.safeString(outcomeInfo, "name", "");
         List<Object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> desc = this.parseOutcomeDescription((String) (description));
+        Map<String, Object> desc = this.parseOutcomeDescription(description);
         String parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         Object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         Object noEncoding = this.outcomeEncoding(outcomeId, 1);
@@ -1660,7 +1660,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         Long assetId = this.safeInteger(outcomeInfo, "assetId");
         Long nonce = this.incrementingNonce();
-        Object clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+        List<Object> clientOrderIds = (List<Object>) this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         List<Object> cancelReq = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> cancelAction = new HashMap<String, Object>() {{
@@ -1670,11 +1670,11 @@ public class Hyperliquid extends HyperliquidApi
         if (!java.util.Objects.equals(clientOrderIds, null))
         {
             cancelAction.put("type", "cancelByCloid");
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                 j39v2.put("asset", assetId);
-                j39v2.put("cloid", (clientOrderIds == null || i < 0 || i >= ((List<?>)clientOrderIds).size() ? null : ((List<?>)clientOrderIds).get(i)));
+                j39v2.put("cloid", (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i)));
                 ((List<Object>)cancelReq).add(j39v2);
             }
         } else
@@ -2403,7 +2403,7 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         Long firstExpiry = this.safeInteger(firstMarket, "expiry");
-        Object title = parentSymbol;
+        String title = parentSymbol;
         if (!java.util.Objects.equals(underlying, null))
         {
             String titleSuffix = "";
@@ -2523,8 +2523,9 @@ public class Hyperliquid extends HyperliquidApi
             data = (data + "00");
         } else
         {
+            String vaultHex = ((String)vaultAddress).toLowerCase();
             data = (data + "01");
-            data = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(data, vaultAddress);
+            data = (data + vaultHex);
         }
         return this.hash(this.base16ToBinary(data), keccak(), "binary");
     }

@@ -819,7 +819,12 @@ public class Kalshi extends KalshiApi
             Integer eventPartsLength = eventParts.size();
             if ((eventPartsLength != null && eventPartsLength > 1))
             {
-                Object seriesParts = this.arraySlice(eventParts, 0, (((long) eventPartsLength) - 1L));
+                List<String> seriesParts = new ArrayList<String>(Arrays.asList());
+                for (var si = 0; si < (((long) eventPartsLength) - 1L); si++)
+                {
+                    String seriesPart = this.safeString(eventParts, si, "");
+                    seriesParts.add(seriesPart);
+                }
                 seriesTicker = String.join("-", (List<String>)seriesParts);
             }
         }
@@ -1198,7 +1203,7 @@ public class Kalshi extends KalshiApi
         //     }
         //
         Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
-        String outcomeLabel = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeStringUpper(market, "label", this.safeStringUpper(market.get("info"), "outcomeLabel", "YES")) : "YES";
+        String outcomeLabel = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeStringUpper(market, "label", this.safeStringUpper(this.safeDict(market, "info", null), "outcomeLabel", "YES")) : "YES";
         Boolean isNo = java.util.Objects.equals(outcomeLabel, "NO");
         Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         String outcome = this.safeString(outcomeObj, "outcome");
@@ -3042,16 +3047,16 @@ public class Kalshi extends KalshiApi
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public CompletableFuture<List<Object>> fetchSeriesEvents(Object seriesTickers, String status, Long limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchSeriesEvents(List<Object> seriesTickers, String status, Long limit, Map<String, Object> rest)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSeriesEventsCore(seriesTickers, status, limit, rest));
     }
 
-    private List<Object> fetchSeriesEventsCore(Object seriesTickers, String status, Long limit, Map<String, Object> rest)
+    private List<Object> fetchSeriesEventsCore(List<Object> seriesTickers, String status, Long limit, Map<String, Object> rest)
     {
 
         List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
-        Integer seriesTickersLength = ((List<?>)seriesTickers).size();
+        Integer seriesTickersLength = seriesTickers.size();
         Long pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 200));
         Long maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         Boolean hasLimit = (!java.util.Objects.equals(limit, null));

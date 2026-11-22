@@ -1264,10 +1264,11 @@ public class Bithumb extends BithumbApi
                         tickers = new ArrayList<Object>(Arrays.asList(response));
                     } else
                     {
-                        List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                        Map<String, Object> responseDict = this.extend(new HashMap<String, Object>() {{}}, response);
+                        List<String> ids = new ArrayList<String>(responseDict.keySet());
                         for (var j = 0; j < ids.size(); j++)
                         {
-                            Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
+                            String id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
                             Map<String, Object> ticker = this.safeDict(response, id, null);
                             if (!java.util.Objects.equals(ticker, null))
                             {
@@ -1716,7 +1717,7 @@ public class Bithumb extends BithumbApi
         //
         // a workaround for their bug in date format, hours are not 0-padded
         Long generationTwoTimestamp = this.safeInteger(trade, "timestamp");
-        Object timestamp = generationTwoTimestamp;
+        Long timestamp = generationTwoTimestamp;
         Boolean isGenerationTwo = (!java.util.Objects.equals(generationTwoTimestamp, null));
         String transactionDatetime = this.safeString(trade, "transaction_date");
         if (!java.util.Objects.equals(transactionDatetime, null))
@@ -1831,7 +1832,7 @@ public class Bithumb extends BithumbApi
         {
             request.put("count", limit);
         }
-        Object data = new ArrayList<Object>(Arrays.asList());
+        List<Object> data = new ArrayList<Object>(Arrays.asList());
         if ((generation != null && generation == 2))
         {
             request.put("market", this.getGen2MarketId(market));
@@ -1872,7 +1873,7 @@ public class Bithumb extends BithumbApi
             //         ]
             //     }
             //
-            data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         }
         return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
 
@@ -2139,13 +2140,13 @@ public class Bithumb extends BithumbApi
         {
             throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
         }
-        HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-        j39v6.put("info", response);
-        j39v6.put("symbol", symbol);
-        j39v6.put("type", type);
-        j39v6.put("side", side);
-        j39v6.put("id", id);
-        return this.extend(this.parseOrder(response, market), j39v6);
+        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+        j39v5.put("info", response);
+        j39v5.put("symbol", symbol);
+        j39v5.put("type", type);
+        j39v5.put("side", side);
+        j39v5.put("id", id);
+        return this.extend(this.parseOrder(response, market), j39v5);
 
     }
 
@@ -2797,7 +2798,7 @@ public class Bithumb extends BithumbApi
         {
             request.put("limit", limit);
         }
-        Object data = null;
+        List<Object> data = null;
         if (Boolean.TRUE.equals(twap))
         {
             Map<String, Object> response = (this.privateGetV1Twap(this.extend(request, paramsRequest))).join();
@@ -2825,7 +2826,7 @@ public class Bithumb extends BithumbApi
             //         ]
             //     }
             //
-            data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
         } else
         {
             List<Object> response = (this.privateGetV1Orders(this.extend(request, paramsRequest))).join();
@@ -3867,7 +3868,8 @@ public class Bithumb extends BithumbApi
 
     public String urlencodeWithArrayBrackets(Map<String, Object> query)
     {
-        List<String> keys = new ArrayList<String>(query.keySet());
+        Map<String, Object> queryCopy = this.extend(new HashMap<String, Object>() {{}}, query);
+        List<String> keys = new ArrayList<String>(queryCopy.keySet());
         String result = "";
         for (var i = 0; i < keys.size(); i++)
         {

@@ -1116,7 +1116,7 @@ public class Coinbase extends CoinbaseApi
     {
 
         // v2 did't have an endpoint for all historical trades
-        Map<String, Object> request = (Map<String, Object>) this.prepareAccountRequest(limit, parameters);
+        Map<String, Object> request = this.prepareAccountRequest(limit, parameters);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1149,7 +1149,7 @@ public class Coinbase extends CoinbaseApi
     {
 
         // v2 did't have an endpoint for all historical trades
-        Map<String, Object> request = (Map<String, Object>) this.prepareAccountRequest(limit, parameters);
+        Map<String, Object> request = this.prepareAccountRequest(limit, parameters);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1585,7 +1585,7 @@ public class Coinbase extends CoinbaseApi
         //         "side": "BUY"
         //     }
         //
-        Object symbol = null;
+        String symbol = null;
         Map<String, Object> totalObject = this.safeDict(trade, "total", new HashMap<String, Object>() {{}});
         Map<String, Object> amountObject = this.safeDict(trade, "amount", new HashMap<String, Object>() {{}});
         Map<String, Object> subtotalObject = this.safeDict(trade, "subtotal", new HashMap<String, Object>() {{}});
@@ -1594,7 +1594,7 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         if (!java.util.Objects.equals(marketResolved, null))
         {
-            symbol = marketResolved.get("symbol");
+            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
         } else
         {
             String baseId = this.safeString(amountObject, "currency");
@@ -6185,7 +6185,7 @@ public class Coinbase extends CoinbaseApi
             put( "portfolio_uuid", portfolioUuid );
         }};
         Map<String, Object> response = (this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters))).join();
-        List<Object> result = (List<Object>) this.parsePortfolioDetails(response);
+        List<Object> result = this.parsePortfolioDetails(response);
         return result;
 
     }

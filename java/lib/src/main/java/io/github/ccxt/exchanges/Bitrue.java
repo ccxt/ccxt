@@ -991,7 +991,7 @@ public class Bitrue extends BitrueApi
         }
         for (var i = 0; i < ((List<?>)types).size(); i++)
         {
-            Object marketType = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
+            String marketType = this.safeString(types, i, "");
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 promisesRaw.add(this.spotV1PublicGetExchangeInfo(parameters));
@@ -1798,7 +1798,8 @@ public class Bitrue extends BitrueApi
         //     }
         //
         Map<String, Object> data = new HashMap<String, Object>() {{}};
-        data.put((String)((String)market.get("id")), response);
+        String tickerKey = this.safeString(market, "id", "");
+        data.put(tickerKey, response);
         return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
@@ -1910,7 +1911,8 @@ public class Bitrue extends BitrueApi
                 continue;
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            tickers.put((String)((String)market.get("id")), ticker);
+            String tickerKey = this.safeString(market, "id", "");
+            tickers.put(tickerKey, ticker);
         }
         return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
 

@@ -296,11 +296,11 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
     }
 
-    public void handleTradesForMultidata(Client client, Object trades, Long timestamp)
+    public void handleTradesForMultidata(Client client, List<Object> trades, Long timestamp)
     {
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         Map<String, Object> storesForSymbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
             Map<String, Object> rawTrade = this.safeDict(trades, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(rawTrade, "symbol", "").toLowerCase();
@@ -589,7 +589,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public void handleBidsAsksForMultidata(Client client, Object rawBidAskChanges, Long timestamp, Long nonce)
+    public void handleBidsAsksForMultidata(Client client, List<Object> rawBidAskChanges, Long timestamp, Long nonce)
     {
         //
         // {
@@ -635,7 +635,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         String messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
-        for (var i = 0; i < ((List<?>)rawBidAskChanges).size(); i++)
+        for (var i = 0; i < rawBidAskChanges.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(rawBidAskChanges, i, null);
             String rawSide = this.safeString(entry, "side");
@@ -719,7 +719,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public void handleOrderBookForMultidata(Client client, Object rawOrderBookChanges, Long timestamp, Long nonce)
+    public void handleOrderBookForMultidata(Client client, List<Object> rawOrderBookChanges, Long timestamp, Long nonce)
     {
         //
         // rawOrderBookChanges
@@ -749,7 +749,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
-        for (var i = 0; i < ((List<?>)rawOrderBookChanges).size(); i++)
+        for (var i = 0; i < rawOrderBookChanges.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(rawOrderBookChanges, i, null);
             Double price = this.safeNumber(entry, "price", (Object) null);

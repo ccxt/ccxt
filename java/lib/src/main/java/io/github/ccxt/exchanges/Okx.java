@@ -4543,7 +4543,7 @@ public class Okx extends OkxApi
         Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), paramsReduceOnly);
         Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
         Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
-        Object orderParams = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice")));
+        Map<String, Object> orderParams = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice")));
         Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC")) || (java.util.Objects.equals(type, "ioc"));
         Boolean fok = (java.util.Objects.equals(timeInForce, "FOK")) || (java.util.Objects.equals(type, "fok"));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
@@ -4565,7 +4565,7 @@ public class Okx extends OkxApi
                 if (java.util.Objects.equals(tgtCcy, "quote_ccy"))
                 {
                     // quote_ccy: sz refers to units of quote currency
-                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (orderParams), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(orderParams, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                     Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                     Double notionalParam = this.safeNumber2(paramsRequiresPrice, "cost", "sz", (Object) null);
@@ -4782,7 +4782,7 @@ public class Okx extends OkxApi
         }
         // unified stp
         String selfTradePrevention = null;
-        Pair<String, Map<String, Object>> selfTradePreventionorderParamsVariable = this.handleOptionStringAndParams((Map<String, Object>) (orderParams), "createOrder", "selfTradePrevention", (String) null);
+        Pair<String, Map<String, Object>> selfTradePreventionorderParamsVariable = this.handleOptionStringAndParams(orderParams, "createOrder", "selfTradePrevention", (String) null);
         selfTradePrevention = selfTradePreventionorderParamsVariable.first();
         orderParams = selfTradePreventionorderParamsVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
@@ -7243,7 +7243,8 @@ public class Okx extends OkxApi
             return this.safeDict(response, codeNetwork, null);
         }
         // if the network is not specified, return the first address
-        List<String> keys = new ArrayList<String>(response.keySet());
+        Map<String, Object> responseDict = this.extend(new HashMap<String, Object>() {{}}, response);
+        List<String> keys = new ArrayList<String>(responseDict.keySet());
         String first = this.safeString(keys, 0, "");
         return this.safeDict(response, first, null);
 
@@ -8008,14 +8009,15 @@ public class Okx extends OkxApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbols, null))
         {
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbols.size(); i++)
             {
                 String entry = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(entry);
-                ((List<Object>)marketIds).add(market.get("id"));
+                String marketId = this.safeString(market, "id", "");
+                marketIds.add(marketId);
             }
-            Integer marketIdsLength = ((List<?>)marketIds).size();
+            Integer marketIdsLength = marketIds.size();
             if ((marketIdsLength != null && marketIdsLength > 0))
             {
                 request.put("instId", String.join(",", (List<String>)marketIds));
@@ -12088,10 +12090,10 @@ public class Okx extends OkxApi
     public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(info, "timestamp");
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = market.get("symbol");
+            symbol = java.util.Objects.toString(market.get("symbol"), null);
         }
         {
             HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();

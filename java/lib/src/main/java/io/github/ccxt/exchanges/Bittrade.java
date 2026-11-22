@@ -1979,13 +1979,13 @@ public class Bittrade extends BittradeApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Object feeCurrency = null;
+            String feeCurrency = null;
             if (java.util.Objects.equals(side, "sell"))
             {
-                feeCurrency = marketResolved.get("quote");
+                feeCurrency = java.util.Objects.toString(marketResolved.get("quote"), null);
             } else
             {
-                feeCurrency = marketResolved.get("base");
+                feeCurrency = java.util.Objects.toString(marketResolved.get("base"), null);
             }
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();

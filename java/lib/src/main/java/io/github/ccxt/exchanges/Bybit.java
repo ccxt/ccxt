@@ -4583,31 +4583,31 @@ public class Bybit extends BybitApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeRateString = this.safeString(trade, "feeRate");
-            Object feeCurrencyCode = null;
+            String feeCurrencyCode = null;
             if (Boolean.TRUE.equals(this.safeBool(marketResolved, "spot", false)))
             {
                 if (Precise.stringGt(feeCostString, "0"))
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
-                        feeCurrencyCode = marketResolved.get("base");
+                        feeCurrencyCode = java.util.Objects.toString(marketResolved.get("base"), null);
                     } else
                     {
-                        feeCurrencyCode = marketResolved.get("quote");
+                        feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
                     }
                 } else
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
-                        feeCurrencyCode = marketResolved.get("quote");
+                        feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
                     } else
                     {
-                        feeCurrencyCode = marketResolved.get("base");
+                        feeCurrencyCode = java.util.Objects.toString(marketResolved.get("base"), null);
                     }
                 }
             } else
             {
-                feeCurrencyCode = ((Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))))) ? marketResolved.get("base") : marketResolved.get("settle");
+                feeCurrencyCode = java.util.Objects.toString(((Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))))) ? marketResolved.get("base") : marketResolved.get("settle"), null);
             }
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
@@ -11135,11 +11135,21 @@ public class Bybit extends BybitApi
         Long lastIndex = (((long) total) - 1L);
         Map<String, Object> last = this.safeDict(result, lastIndex, new HashMap<String, Object>() {{}});
         String cursorValue = this.safeString(first, "nextPageCursor");
-        last.put("info", new HashMap<String, Object>() {{
-    put( "nextPageCursor", cursorValue );
-}});
-        result.set((int) (long) (lastIndex), last);
-        return this.toArray(result);
+        Map<String, Object> lastRow = this.extend(last, new HashMap<String, Object>() {{
+            put( "info", new HashMap<String, Object>() {{
+                put( "nextPageCursor", cursorValue );
+            }} );
+        }});
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; (lastIndex != null && i < lastIndex); i++)
+        {
+            ((List<Object>)rows).add(this.safeDict(result, i, new HashMap<String, Object>() {{}}));
+        }
+        if ((total != null && total > 0))
+        {
+            ((List<Object>)rows).add(lastRow);
+        }
+        return this.toArray(rows);
 
     }
 
@@ -12535,13 +12545,10 @@ public class Bybit extends BybitApi
                 Map<String, Object> query = this.extend(parameters, j39v13);
                 Map<String,Object> sortedQuery = this.keysort(query);
                 String auth = this.rawencode(sortedQuery, true);
-                String signature = null;
+                String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
                 {
                     signature = rsa(auth, this.secret, sha256());
-                } else
-                {
-                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 }
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {

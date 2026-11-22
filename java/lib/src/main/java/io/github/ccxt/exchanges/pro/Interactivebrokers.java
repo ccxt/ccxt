@@ -414,7 +414,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            String tickerSymbol = ((String)((Map<String, Object>)ticker).get("symbol"));
+            String tickerSymbol = this.safeString(ticker, "symbol", "");
             result.put(tickerSymbol, ticker);
             return result;
         }
@@ -443,7 +443,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            String tickerSymbol = ((String)((Map<String, Object>)ticker).get("symbol"));
+            String tickerSymbol = this.safeString(ticker, "symbol", "");
             result.put(tickerSymbol, ticker);
             return result;
         }
@@ -667,7 +667,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String unifiedSymbol = (String) market.get("symbol");
+        String unifiedSymbol = this.safeString(market, "symbol", "");
+        String historyMarketId = this.safeString(market, "id", "");
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
         String messageHash = ((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -683,7 +684,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             j39v2.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"));
             yield j39v2; } }))).join();
         // the history, it seeds the candles
-        String historyHash = ((("smh::" + market.get("id")) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        String historyHash = ((("smh::" + historyMarketId) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
         if (!(client.subscriptions.containsKey(historyHash)))
         {
             if (!(((Map<?, ?>)this.ohlcvs).containsKey(unifiedSymbol)))
@@ -705,7 +706,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             historyRequest.put("outsideRth", this.safeBool(options, "outsideRth", false));
             historyRequest.put("source", this.safeString(options, "source", "trades"));
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            String request = ((("smh+" + market.get("id")) + "+") + this.json(this.keysort(this.extend(historyRequest, query))));
+            String request = ((("smh+" + historyMarketId) + "+") + this.json(this.keysort(this.extend(historyRequest, query))));
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("conid", market.get("id"));
             j39v1.put("symbol", unifiedSymbol);
@@ -743,10 +744,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String unifiedSymbol = (String) market.get("symbol");
+        String unifiedSymbol = this.safeString(market, "symbol", "");
+        String historyMarketId = this.safeString(market, "id", "");
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
-        List<String> subHashes = new ArrayList<String>(Arrays.asList(((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m")), ((("smh::" + market.get("id")) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"))));
+        List<String> subHashes = new ArrayList<String>(Arrays.asList(((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m")), ((("smh::" + historyMarketId) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"))));
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "topic", "ohlcv" );
             put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(unifiedSymbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
@@ -825,7 +827,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(timestamp, 100000000000L))
             {
                 timestamp = Helpers.multiply(timestamp, 1000); // seconds
-                Helpers.addElementToObject(parsed, 0, timestamp);
+                parsed.set(0, timestamp);
             }
             ((List<Object>)bars).add(parsed);
             if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(timestamp, lastHistoryTimestamp)))
@@ -971,8 +973,18 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 ((io.github.ccxt.ws.ArrayCache) stored).append(new ArrayList<Object>(Arrays.asList(candleTimestamp, price, price, price, price, size)));
             } else
             {
-                Object high = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(Helpers.GetValue(candle, 2), price);
-                Object low = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(Helpers.GetValue(candle, 3), price);
+                Double high = price;
+                Double prevHigh = this.safeNumber(candle, 2, (Object) null);
+                if ((!java.util.Objects.equals(prevHigh, null)) && (!java.util.Objects.equals(price, null)) && ((prevHigh != null && (price == null || prevHigh > price))))
+                {
+                    high = prevHigh;
+                }
+                Double low = price;
+                Double prevLow = this.safeNumber(candle, 3, (Object) null);
+                if ((!java.util.Objects.equals(prevLow, null)) && (!java.util.Objects.equals(price, null)) && ((price != null && (prevLow == null || price > prevLow))))
+                {
+                    low = prevLow;
+                }
                 Object volume = this.sum(Helpers.GetValue(candle, 5), size);
                 ((io.github.ccxt.ws.ArrayCache) stored).append(new ArrayList<Object>(Arrays.asList(candleTimestamp, Helpers.GetValue(candle, 1), high, low, price, volume)));
             }
@@ -1503,7 +1515,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
         Map<String, Object> subscription = this.safeDict(client.subscriptions, "str", new HashMap<String, Object>() {{}});
         Boolean realtimeUpdatesOnly = (Boolean) this.safeBool(subscription, "realtimeUpdatesOnly", false);
-        Object threshold = null;
+        Long threshold = null;
         if (Boolean.TRUE.equals(realtimeUpdatesOnly))
         {
             Long subscribedAt = this.safeInteger(subscription, "subscribedAt");
@@ -1521,8 +1533,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         {
             Object rawTrade = (args == null || i < 0 || i >= args.size() ? null : args.get(i));
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, (Map<String, Object>) null);
-            Object tradeTimestamp = trade.get("timestamp");
-            if ((!java.util.Objects.equals(threshold, null)) && (!java.util.Objects.equals(tradeTimestamp, null)) && (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(tradeTimestamp, threshold)))
+            Long tradeTimestamp = this.safeInteger(trade, "timestamp");
+            if ((!java.util.Objects.equals(threshold, null)) && (!java.util.Objects.equals(tradeTimestamp, null)) && ((threshold != null && (tradeTimestamp == null || tradeTimestamp < threshold))))
             {
                 continue;
             }

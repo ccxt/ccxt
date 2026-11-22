@@ -2788,7 +2788,8 @@ public class Cryptocom extends CryptocomApi
                 return this.safeDict(depositAddresses, network, null);
             }
         }
-        List<String> keys = new ArrayList<String>(depositAddresses.keySet());
+        Map<String, Object> addressesCopy = this.extend(new HashMap<String, Object>() {{}}, depositAddresses);
+        List<String> keys = new ArrayList<String>(addressesCopy.keySet());
         return this.safeDict(depositAddresses, this.safeString(keys, 0), null);
 
     }
@@ -4223,7 +4224,8 @@ public class Cryptocom extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            List<Object> objectKeys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Map<String, Object> objectDict = this.extend(new HashMap<String, Object>() {{}}, obj);
+            List<String> objectKeys = new ArrayList<String>(objectDict.keySet());
             paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; i < ((List<?>)(List<String>)(paramsKeys)).size(); i++)

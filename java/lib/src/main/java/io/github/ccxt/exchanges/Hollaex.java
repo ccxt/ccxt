@@ -840,10 +840,11 @@ public class Hollaex extends HollaexApi
     public Map<String, Object> parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> keys = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> tickersDict = this.extend(new HashMap<String, Object>() {{}}, tickers);
+        List<String> keys = new ArrayList<String>(tickersDict.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> ticker = this.safeDict(tickers, key, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);

@@ -227,7 +227,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 6));
             if (java.util.Objects.equals(cacheLength, snapshotDelay))
             {
-                this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(this::loadOrderBook, client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}});
             }
             ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(delta);
             return;

@@ -3140,7 +3140,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Map<String, Object> parseTransactionRow(Object transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransactionRow(List<Object> transaction, Map<String, Object> currency)
     {
         //
         // withdraw
@@ -3193,7 +3193,7 @@ public class Bitfinex extends BitfinexApi
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        Integer transactionLength = ((List<?>)transaction).size();
+        Integer transactionLength = transaction.size();
         Long timestamp = null;
         Long updated = null;
         String code = null;
@@ -3501,7 +3501,7 @@ public class Bitfinex extends BitfinexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            ((List<Object>)result).add(this.parseTransactionRow(this.safeList(response, i, new ArrayList<Object>(Arrays.asList())), currency));
+            ((List<Object>)result).add(this.parseTransactionRow((List<Object>) (this.safeList(response, i, new ArrayList<Object>(Arrays.asList()))), currency));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, this.safeString(currency, "code"), since, limit, false);

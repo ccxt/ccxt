@@ -1117,7 +1117,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             throw new NotSupported((this.id + " createOrderWs() does not support trigger orders, use createOrder() instead")) ;
         }
-        Object response = (this.watchExecuteRequest((String) (requestIdString), request)).join();
+        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
         //
         //     {
         //         "status": "success",
@@ -1181,7 +1181,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
         }
         Map<String, Object> request = (this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsExtended)).join();
-        Object response = (this.watchExecuteRequest((String) (requestIdString), request)).join();
+        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
         //
         //     {
         //         "status": "success",
@@ -1271,7 +1271,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
         }
         Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, paramsExtended)).join();
-        Object response = (this.watchExecuteRequest((String) (requestIdString), request)).join();
+        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
         //
         //     {
         //         "status": "success",
@@ -1337,7 +1337,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
         }
         Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, paramsExtended)).join();
-        Object response = (this.watchExecuteRequest((String) (requestIdString), request)).join();
+        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2268,7 +2268,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(messageHash, null))
             {
                 this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash), false);
-                this.handleUnsubscriptionCache((String) (messageHash));
+                this.handleUnsubscriptionCache(messageHash);
             }
             client.resolve(true, unsubscribeHash);
             return;
@@ -2287,7 +2287,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(messageHash, null))
             {
                 this.cleanUnsubscription(client, (String) (messageHash), unsubscribeHash, false);
-                this.handleUnsubscriptionCache((String) (messageHash));
+                this.handleUnsubscriptionCache(messageHash);
             }
             client.resolve(true, unsubscribeHash);
             return;

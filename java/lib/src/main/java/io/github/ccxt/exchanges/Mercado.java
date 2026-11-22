@@ -1236,7 +1236,7 @@ public class Mercado extends MercadoApi
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         List<Object> ordersRaw = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = this.parseOrders(ordersRaw, market, since, limit, new HashMap<String, Object>() {{}});
-        List<Object> trades = (List<Object>) this.ordersToTrades(orders);
+        List<Object> trades = this.ordersToTrades(orders);
         return this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit, false);
 
     }

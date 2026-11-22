@@ -2521,7 +2521,8 @@ public class Kucoin extends KucoinApi
             String type = "swap";
             if (Boolean.TRUE.equals(future))
             {
-                symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
+                String expirySuffix = ("-" + this.yymmdd(expiry, ""));
+                symbol = (symbol + expirySuffix);
                 type = "future";
             }
             Boolean inverse = (Boolean) this.safeBool(market, "isInverse", (Object) null);
@@ -6648,7 +6649,7 @@ public class Kucoin extends KucoinApi
         Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersByStatus", "uta", uta);
         uta = utaparamsRequestVariable.first();
         paramsRequest = utaparamsRequestVariable.second();
-        Object marketType = null;
+        String marketType = null;
         if (java.util.Objects.equals(symbol, null))
         {
             String type = this.safeString(paramsRequest, "type"); // exchange has specific param for order type
@@ -6672,7 +6673,7 @@ public class Kucoin extends KucoinApi
         } else
         {
             Map<String, Object> market = this.market(symbol);
-            marketType = market.get("type");
+            marketType = java.util.Objects.toString(market.get("type"), null);
         }
         if (Boolean.TRUE.equals(uta))
         {
@@ -9337,7 +9338,7 @@ public class Kucoin extends KucoinApi
         //
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         String amount = this.safeString(transaction, "amount");
         String walletTxId = this.safeString(transaction, "walletTxId");
         String txid = null;
@@ -10923,12 +10924,12 @@ public class Kucoin extends KucoinApi
         List<Object> hfparamsRequestVariable = (List<Object>) this.handleHfAndParams(paramsRequest);
         hf = (Boolean) ((List<Object>) hfparamsRequestVariable).get(0);
         paramsRequest = (Map<String, Object>) ((List<Object>) hfparamsRequestVariable).get(1);
-        Object requestedType = null;
+        String requestedType = null;
         if (Boolean.TRUE.equals(uta))
         {
             requestedType = "UNIFIED";
         }
-        Pair<String, Map<String, Object>> requestedTypeparamsRequestVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsRequest, java.util.Objects.toString(requestedType, null));
+        Pair<String, Map<String, Object>> requestedTypeparamsRequestVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsRequest, requestedType);
         requestedType = requestedTypeparamsRequestVariable.first();
         paramsRequest = requestedTypeparamsRequestVariable.second();
         String marginMode = null;

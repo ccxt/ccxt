@@ -1439,7 +1439,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
         }
         List<Object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        if (java.util.Objects.equals(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
+        Pair<Boolean, Map<String, Object>> ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "watchTrades", "ignoreDuplicates", true);
+        Boolean ignoreDuplicates = ignoreDuplicatesVariable.first();
+        if (Boolean.TRUE.equals(ignoreDuplicates))
         {
             Object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
@@ -2124,7 +2126,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             instType = "UTA";
             channel = "order";
         }
-        subscriptionHash = ((subscriptionHash + ":") + instType);
+        String subscriptionHashInst = (subscriptionHash + ":");
+        if (!java.util.Objects.equals(instType, null))
+        {
+            subscriptionHashInst = (subscriptionHashInst + instType);
+        }
         Map<String, Object> args = new HashMap<String, Object>();
         args.put("instType", instType);
         String topicOrChannel = "channel";
@@ -2144,7 +2150,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             args.put("instId", instId);
         }
-        List<Object> orders = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, args, paramsRequest)).join();
+        List<Object> orders = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHashInst, args, paramsRequest)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

@@ -527,7 +527,7 @@ public class Lighter extends LighterApi
     private Object loadAccountCore(Object chainId, String privateKey, String apiKeyIndex, String accountIndex, Map<String, Object> parameters)
     {
 
-        this.initAuthObject((String) (accountIndex), (String) (apiKeyIndex));
+        this.initAuthObject(accountIndex, apiKeyIndex);
         Map<String, Object> cachedAuths = this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accountIndex, new HashMap<String, Object>() {{}}), apiKeyIndex, null);
         Object signer = this.safeValue(cachedAuths, "signer");
         if (!java.util.Objects.equals(signer, null))
@@ -3955,7 +3955,7 @@ public class Lighter extends LighterApi
         Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
         Map<String, Object> signRaw = new HashMap<String, Object>();
         signRaw.put("market_index", this.parseToInt(market.get("id")));
-        signRaw.put("initial_margin_fraction", this.parseToInt((((double) 10000) / ((double) this.parseToInt(leverage)))));
+        signRaw.put("initial_margin_fraction", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(10000, leverage)));
         signRaw.put("margin_mode", (((java.util.Objects.equals(marginMode, "cross")))) ? 0 : 1);
         signRaw.put("nonce", nonce);
         signRaw.put("api_key_index", apiKeyIndex);
@@ -4349,7 +4349,8 @@ public class Lighter extends LighterApi
                 put( "Authorization", Lighter.this.createAuth(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))) );
             }};
         }
-        if (((List<Object>) switch ((Object)(parameters)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
+        if (query.size() > 0)
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {

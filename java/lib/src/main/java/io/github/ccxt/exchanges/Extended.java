@@ -2270,7 +2270,7 @@ public class Extended extends ExtendedApi
         Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
         String amountString = (String) this.currencyToPrecision((String) (code), amount, (String) null);
         String accountId = this.safeString(account, "accountId");
-        Map<String, Object> settlement = (Map<String, Object>) this.createWithdrawalSettlementData((String) (address), (String) (amountString), currency, account, paramsWithdrawTag);
+        Map<String, Object> settlement = this.createWithdrawalSettlementData((String) (address), (String) (amountString), currency, account, paramsWithdrawTag);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("accountId", accountId);
         request.put("amount", amountString);
@@ -2413,7 +2413,7 @@ public class Extended extends ExtendedApi
             throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
         }
         String amountString = (String) this.currencyToPrecision((String) (code), amount, (String) null);
-        Map<String, Object> settlement = (Map<String, Object>) this.createTransferSettlementData((String) (amountString), currency, account, toVault, toL2Key, parameters);
+        Map<String, Object> settlement = this.createTransferSettlementData((String) (amountString), currency, account, toVault, toL2Key, parameters);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "fromAccount", currentAccountId );
             put( "toAccount", toAccount );

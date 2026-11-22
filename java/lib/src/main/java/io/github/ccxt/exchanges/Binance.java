@@ -4442,7 +4442,7 @@ public class Binance extends BinanceApi
                 // begin diff
                 if (Boolean.TRUE.equals(isLegacy) && Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
                 {
-                    Object settle = this.safeString(market, "base", "");
+                    String settle = this.safeString(market, "base", "");
                     if (Boolean.TRUE.equals(isLegacyLinear))
                     {
                         settle = this.safeString(market, "quote", "");
@@ -9336,6 +9336,7 @@ public class Binance extends BinanceApi
         {
             return parameters;
         }
+        Map<String, Object> generated = new HashMap<String, Object>() {{}};
         if ((java.util.Objects.equals(path, "order")) || (java.util.Objects.equals(path, "sor/order")) || (java.util.Objects.equals(path, "order/cancelReplace")) || (java.util.Objects.equals(path, "um/order")) || (java.util.Objects.equals(path, "cm/order")) || (java.util.Objects.equals(path, "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
@@ -9343,7 +9344,7 @@ public class Binance extends BinanceApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                parameters.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "algoOrder")) || (java.util.Objects.equals(path, "um/algo/order")))
         {
@@ -9351,7 +9352,7 @@ public class Binance extends BinanceApi
             String clientAlgoId = this.safeString(parameters, "clientAlgoId");
             if (java.util.Objects.equals(clientAlgoId, null))
             {
-                parameters.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "cm/conditional/order")) || (java.util.Objects.equals(path, "um/conditional/order")))
         {
@@ -9359,7 +9360,7 @@ public class Binance extends BinanceApi
             String newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
             if (java.util.Objects.equals(newClientStrategyId, null))
             {
-                parameters.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if (java.util.Objects.equals(path, "equity/order/place"))
         {
@@ -9367,7 +9368,7 @@ public class Binance extends BinanceApi
             String equityClientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(equityClientOrderId, null))
             {
-                parameters.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "order/oco")) || (java.util.Objects.equals(path, "margin/order/oco")) || (java.util.Objects.equals(path, "orderList/oco")) || (java.util.Objects.equals(path, "orderList/oto")) || (java.util.Objects.equals(path, "orderList/otoco")) || (java.util.Objects.equals(path, "orderList/opo")) || (java.util.Objects.equals(path, "orderList/opoco")))
         {
@@ -9389,7 +9390,7 @@ public class Binance extends BinanceApi
                 String currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if (java.util.Objects.equals(currentClientOrderId, null))
                 {
-                    parameters.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                    generated.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
                 }
             }
         } else if (java.util.Objects.equals(path, "batchOrders"))
@@ -9413,7 +9414,8 @@ public class Binance extends BinanceApi
                 parameters.put("batchOrders", checkedBatchOrders);
             }
         }
-        return parameters;
+        Map<String, Object> withIds = this.extend(parameters, generated);
+        return withIds;
     }
 
     /**
@@ -16481,7 +16483,8 @@ public class Binance extends BinanceApi
                     extendedParams = this.omit(extendedParams, new ArrayList<Object>(Arrays.asList("orderidlist", "origclientorderidlist", "origClientOrderIdList")));
                     if (extendedParams.containsKey("symbol"))
                     {
-                        extendedParams.put("symbol", this.encodeURIComponent(this.safeString(extendedParams, "symbol", "")));
+                        String encodedSymbol = this.encodeURIComponent(this.safeString(extendedParams, "symbol", ""));
+                        extendedParams.put("symbol", encodedSymbol);
                     }
                     query = this.rawencode(extendedParams);
                     Integer orderidlistLength = orderidlist.size();
@@ -16761,7 +16764,14 @@ public class Binance extends BinanceApi
     private Object requestCore(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
-        Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
+        // generate the client order ids once, so a retry inside fetch2 signs the same ids
+        Map<String, Object> route = new HashMap<String, Object>() {{
+            put( "path", path );
+            put( "method", java.util.Objects.requireNonNullElse(method, "GET") );
+        }};
+        String requestPath = this.safeString(route, "path", "");
+        String requestMethod = this.safeString(route, "method", "");
+        Object response = (this.fetch2(requestPath, api, requestMethod, this.handleClientOrderId((Map<String, Object>) (parameters), (String) ((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0))), requestPath, requestMethod), config)).join();
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
         {

@@ -268,12 +268,12 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    public CompletableFuture<List<Object>> fetchRawTopics(Object maxTopics, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchRawTopics(Long maxTopics, Map<String, Object> rest)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawTopicsCore(maxTopics, rest));
     }
 
-    private List<Object> fetchRawTopicsCore(Object maxTopics, Map<String, Object> rest)
+    private List<Object> fetchRawTopicsCore(Long maxTopics, Map<String, Object> rest)
     {
 
         Long maxTopicsOption = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
@@ -384,19 +384,19 @@ public class Binance extends BinanceApi
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<List<Object>> completeRawTopics(Object rawTopics)
+    public CompletableFuture<List<Object>> completeRawTopics(List<Object> rawTopics)
     {
         return BaseExchange.supplyAsync(() -> this.completeRawTopicsCore(rawTopics));
     }
 
-    private List<Object> completeRawTopicsCore(Object rawTopics)
+    private List<Object> completeRawTopicsCore(List<Object> rawTopics)
     {
 
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Integer rawTopicsLength = ((List<?>)rawTopics).size();
+        Integer rawTopicsLength = rawTopics.size();
         for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
         {
-            Object rawTopic = (rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i));
+            Object rawTopic = (rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i));
             List<Object> rawMarkets = this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer rawMarketsLength = rawMarkets.size();
             Boolean hasOutcomes = false;
@@ -415,7 +415,7 @@ public class Binance extends BinanceApi
                 String topicId = this.safeString(rawTopic, "marketTopicId");
                 if (!java.util.Objects.equals(topicId, null))
                 {
-                    Map<String, Object> detail = (this.fetchRawTopicDetail((String) (topicId), new HashMap<String, Object>() {{}})).join();
+                    Map<String, Object> detail = (this.fetchRawTopicDetail(topicId, new HashMap<String, Object>() {{}})).join();
                     ((List<Object>)result).add(detail);
                 }
             }
@@ -493,7 +493,7 @@ public class Binance extends BinanceApi
             rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, rest)).join();
         } else if (!java.util.Objects.equals(eventId, null))
         {
-            Map<String, Object> detail = (this.fetchRawTopicDetail((String) (eventId), rest)).join();
+            Map<String, Object> detail = (this.fetchRawTopicDetail(eventId, rest)).join();
             rawTopics = new ArrayList<Object>(Arrays.asList(detail));
         } else
         {

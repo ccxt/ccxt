@@ -235,7 +235,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
             put( "marketId", market.get("id") );
         }});
-        return (this.unsubscribePublic(market, (String) (subMessageHash), topic, parameters)).join();
+        return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
 
     }
 
@@ -365,7 +365,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String subMessageHash = (String) this.implodeParams(channel, new HashMap<String, Object>() {{
             put( "marketId", market.get("id") );
         }});
-        return (this.unsubscribePublic(market, (String) (subMessageHash), topic, parameters)).join();
+        return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
 
     }
 
@@ -1479,7 +1479,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             marketId = this.safeString2(data, "contract_code", "symbol");
         }
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object parsedOrder = null;
+        Map<String, Object> parsedOrder = null;
         if (!java.util.Objects.equals(data, null))
         {
             // spot updates
@@ -1509,12 +1509,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 parsedOrder = order;
             } else
             {
-                parsedOrder = this.parseWsOrder(data, market);
+                parsedOrder = (Map<String, Object>) this.parseWsOrder(data, market);
             }
         } else
         {
             // contract branch
-            parsedOrder = this.parseWsOrder(message, market);
+            parsedOrder = (Map<String, Object>) this.parseWsOrder(message, market);
             List<Object> rawTrades = this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
             Integer tradesLength = rawTrades.size();
             if ((tradesLength != null && tradesLength > 0))
@@ -2581,13 +2581,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < messageHashes.size(); i++)
+        if (!java.util.Objects.equals(messageHashes, null))
         {
-            String unsubHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            this.cleanUnsubscription(client, subHash, unsubHash, false);
+            for (var i = 0; i < messageHashes.size(); i++)
+            {
+                String unsubHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+                this.cleanUnsubscription(client, subHash, unsubHash, false);
+            }
         }
         this.cleanCache(subscription);
     }

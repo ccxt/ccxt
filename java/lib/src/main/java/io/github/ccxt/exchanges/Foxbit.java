@@ -2472,7 +2472,8 @@ public class Foxbit extends FoxbitApi
         String signatureQuery = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            List<String> paramKeys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
+            Map<String, Object> paramsCopy = this.extend(new HashMap<String, Object>() {{}}, paramsOmitted);
+            List<String> paramKeys = new ArrayList<String>(paramsCopy.keySet());
             Integer paramKeysLength = paramKeys.size();
             Long lastKeyIndex = (((long) paramKeysLength) - 1L);
             if ((paramKeysLength != null && paramKeysLength > 0))

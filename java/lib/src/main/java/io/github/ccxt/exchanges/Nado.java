@@ -3535,7 +3535,7 @@ public class Nado extends NadoApi
         return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
-    public String createOrderAppendix(Object isTriggerOrder, Map<String, Object> parameters)
+    public String createOrderAppendix(Boolean isTriggerOrder, Map<String, Object> parameters)
     {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |

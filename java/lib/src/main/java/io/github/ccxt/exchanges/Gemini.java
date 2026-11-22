@@ -1471,7 +1471,7 @@ public class Gemini extends GeminiApi
         //
         Map<String, Object> volume = this.safeDict(ticker, "volume", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(volume, "timestamp");
-        Object symbol = null;
+        String symbol = null;
         String marketId = this.safeStringLower(ticker, "pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String baseId = null;
@@ -1499,7 +1499,7 @@ public class Gemini extends GeminiApi
         }
         if ((java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(marketResolved, null)))
         {
-            symbol = marketResolved.get("symbol");
+            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
             baseId = this.safeStringUpper(marketResolved, "baseId");
             quoteId = this.safeStringUpper(marketResolved, "quoteId");
         }

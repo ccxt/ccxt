@@ -232,7 +232,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             Object channel = (channels == null || pending == null || 0 >= pending.size() || pending.get(0) == null || pending.get(0).intValue() < 0 || pending.get(0).intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(pending.get(0).intValue()));
             Map<String, Object> pendingRequest = this.subscribeRequest((String) (channel));
-            (this.sendRequest((String) (url), (Map<String, Object>) (this.deepExtend(pendingRequest, parameters)), java.util.Objects.toString(channel, null))).join();
+            (this.sendRequest(url, (Map<String, Object>) (this.deepExtend(pendingRequest, parameters)), java.util.Objects.toString(channel, null))).join();
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
         List<Long> missing = this.unsubscribedChannels(url, channels);
@@ -417,7 +417,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         subscription.put("subMessageHashes", hashes);
         subscription.put("symbols", channelSymbols);
         Map<String, Object> request = this.unsubscribeRequest((String) (channel));
-        return (this.sendUnsubscribe((String) (url), ("unsubscribe:" + channel), request, subscription, parameters)).join();
+        return (this.sendUnsubscribe(url, ("unsubscribe:" + channel), request, subscription, parameters)).join();
 
     }
 
@@ -491,7 +491,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             var error = new RequestTimeout((((this.id + " ") + unsubHash) + " was not acknowledged"));
             client.reject(error, unsubHash);
             // the subscriptions are forgotten, so that the next watch subscribes them again
-            this.cleanUnsubscribed(client, (String) (unsubHash), unsubscription);
+            this.cleanUnsubscribed(client, unsubHash, unsubscription);
         }
         return null;
 
@@ -1560,7 +1560,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String scopedHash = (channel + ":scoped");
         List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
         List<String> missing = new ArrayList<String>(Arrays.asList());
-        List<Object> missingHashes = new ArrayList<Object>(Arrays.asList());
+        List<String> missingHashes = new ArrayList<String>(Arrays.asList());
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
@@ -1571,7 +1571,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (!(client.subscriptions.containsKey(subscribeHash)))
             {
                 missing.add(marketId);
-                ((List<Object>)missingHashes).add((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)));
+                missingHashes.add(this.safeString(messageHashes, i, ""));
             }
         }
         Integer missingLength = missing.size();
@@ -1702,7 +1702,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            ((Map<Object, Object>) (Map<?, ?>) result).put(Helpers.GetValue(newBidAsk, "symbol"), newBidAsk);
+            String bidAskSymbol = this.safeString(newBidAsk, "symbol", "");
+            result.put(bidAskSymbol, newBidAsk);
             return result;
         }
         return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -2494,15 +2495,15 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             return null;
         }
-        Long blockLength = this.parseToInt(this.sbeReadUint((String) (frameHex), 0, 2));
-        Long templateId = this.parseToInt(this.sbeReadUint((String) (frameHex), 2, 2));
-        Long schemaId = this.parseToInt(this.sbeReadUint((String) (frameHex), 4, 2));
+        Long blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
+        Long templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
+        Long schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
         if (((schemaId == null || schemaId != 1)) || ((frameLength == null || (!(frameLength >= ((Number) this.sum(blockLength, 8)).doubleValue())))))
         {
             return null;
         }
         String channel = null;
-        Object data = null;
+        Map<String, Object> data = null;
         if ((templateId != null && templateId == 1))
         {
             data = this.parseSbeTrade(frameHex, blockLength, frameLength);
@@ -2595,11 +2596,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return this.parseToInt(result);
     }
 
-    public Object sbeReadInt64(String frameHex, Object offset)
+    public String sbeReadInt64(String frameHex, Object offset)
     {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        Long low = this.parseToInt(this.sbeReadUint((String) (frameHex), offset, 4));
-        Long high = this.parseToInt(this.sbeReadUint((String) (frameHex), this.sum(offset, 4), 4));
+        Long low = this.parseToInt(this.sbeReadUint(frameHex, offset, 4));
+        Long high = this.parseToInt(this.sbeReadUint(frameHex, this.sum(offset, 4), 4));
         if (((high != null && high == 2147483648L)) && ((low != null && low == 0)))
         {
             return null;
@@ -2616,10 +2617,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return result;
     }
 
-    public Object sbeReadDecimal(String frameHex, Object offset)
+    public String sbeReadDecimal(String frameHex, Object offset)
     {
         // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
-        Object mantissa = this.sbeReadInt64(frameHex, offset);
+        String mantissa = this.sbeReadInt64(frameHex, offset);
         if (java.util.Objects.equals(mantissa, null))
         {
             return null;
@@ -2631,7 +2632,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
-        Object microseconds = this.sbeReadInt64(frameHex, offset);
+        String microseconds = this.sbeReadInt64(frameHex, offset);
         if (java.util.Objects.equals(microseconds, null))
         {
             return null;
@@ -2641,11 +2642,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public String sbeReadEnum(String frameHex, Object offset, Map<String, Object> values)
     {
-        Long value = this.parseToInt(this.sbeReadUint((String) (frameHex), offset, 1));
+        Long value = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         return this.safeString(values, this.numberToString(value));
     }
 
-    public Object sbeReadString(String frameHex, Object offset, Object length)
+    public String sbeReadString(String frameHex, Object offset, Object length)
     {
         Long first = this.parseToInt(offset);
         Long size = this.parseToInt(length);
@@ -2690,7 +2691,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 return result;
             }
-            Long length = this.parseToInt(this.sbeReadUint((String) (frameHex), position, 1));
+            Long length = this.parseToInt(this.sbeReadUint(frameHex, position, 1));
             Long next = this.parseToInt(this.sum(position, 1, length));
             if ((next != null && (end == null || next > end)))
             {
@@ -2788,7 +2789,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             return null;
         }
-        Long pkgType = this.parseToInt(this.sbeReadUint((String) (frameHex), 24, 1));
+        Long pkgType = this.parseToInt(this.sbeReadUint(frameHex, 24, 1));
         if (((pkgType == null || pkgType != 0)) && ((pkgType == null || pkgType != 1)))
         {
             return null;
@@ -2803,8 +2804,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 return null;
             }
-            Long entryLength = this.parseToInt(this.sbeReadUint((String) (frameHex), position, 2));
-            Long numInGroup = this.parseToInt(this.sbeReadUint((String) (frameHex), (position + 2L), 2));
+            Long entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
+            Long numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2L), 2));
             position = (Long) (position + 4L);
             if ((((entryLength == null || entryLength < 16))) || (((frameEnd == null || this.parseToInt(this.sum(position, (numInGroup * entryLength))) > frameEnd))))
             {
@@ -2876,7 +2877,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
-        Object settlementTwapEstimate = null;
+        String settlementTwapEstimate = null;
         if (((blockSize != null && blockSize >= 248)))
         {
             settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
@@ -2924,7 +2925,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "funding_premium", Paradex.this.sbeReadDecimal(frameHex, 48) );
             put( "funding_rate", Paradex.this.sbeReadDecimal(frameHex, 24) );
             put( "funding_rate_8h", Paradex.this.sbeReadDecimal(frameHex, 56) );
-            put( "funding_period_hours", Paradex.this.sbeReadUint((String) (frameHex), 64, 2) );
+            put( "funding_period_hours", Paradex.this.sbeReadUint(frameHex, 64, 2) );
             put( "created_at", Paradex.this.sbeReadTimestamp(frameHex, 40) );
         }};
     }
@@ -3019,7 +3020,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<Object> flags = new ArrayList<Object>(Arrays.asList());
-        Long bits = this.parseToInt(this.sbeReadUint((String) (frameHex), offset, 1));
+        Long bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         for (var i = 0; i < names.size(); i++)
         {
             Long bit = this.parseToInt((((double) bits) % ((double) 2)));
@@ -3130,7 +3131,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String side = this.sbeReadEnum(frameHex, 24, sides);
         String account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
-        Object size = this.sbeReadDecimal(frameHex, 25);
+        String size = this.sbeReadDecimal(frameHex, 25);
         if ((java.util.Objects.equals(side, "SHORT")) && (!java.util.Objects.equals(size, "0")))
         {
             size = Precise.stringNeg(size);

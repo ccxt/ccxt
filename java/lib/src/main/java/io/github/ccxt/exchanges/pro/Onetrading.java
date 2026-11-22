@@ -297,7 +297,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public Object parseWSTicker(Map<String, Object> ticker, Map<String, Object> market, Object timestamp, String datetime)
+    public Object parseWSTicker(Map<String, Object> ticker, Map<String, Object> market, Long timestamp, String datetime)
     {
         //
         //     {

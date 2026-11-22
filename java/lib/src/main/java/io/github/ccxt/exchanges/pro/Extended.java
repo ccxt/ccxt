@@ -993,7 +993,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 1
         //     }
         //
-        Object subscription = this.findSubscription(client, "ohlcv");
+        Map<String, Object> subscription = this.findSubscription(client, "ohlcv");
         if (java.util.Objects.equals(subscription, null))
         {
             return;
@@ -1022,7 +1022,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             return;
         }
-        ((Map<String, Object>)subscription).put("nonce", nonce);
+        subscription.put("nonce", nonce);
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {

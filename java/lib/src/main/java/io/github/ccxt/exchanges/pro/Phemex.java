@@ -1266,7 +1266,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        Object type = null;
+        String type = null;
         for (var i = 0; (tradesLength != null && i < tradesLength); i++)
         {
             Object rawTrade = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
@@ -1278,7 +1278,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(type, null))
             {
                 String marketSettle = this.safeString(market, "settle");
-                type = (((java.util.Objects.equals(marketSettle, "USDT")))) ? "perpetual" : market.get("type");
+                type = java.util.Objects.toString((((java.util.Objects.equals(marketSettle, "USDT")))) ? "perpetual" : market.get("type"), null);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1565,7 +1565,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object type = null;
+        String type = null;
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < parsedOrders.size(); i++)
         {
@@ -1576,7 +1576,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(type, null))
             {
                 Boolean isUsdt = java.util.Objects.equals(market.get("settle"), "USDT");
-                type = ((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : market.get("type");
+                type = java.util.Objects.toString(((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : market.get("type"), null);
             }
             marketIds.put(symbol, true);
         }

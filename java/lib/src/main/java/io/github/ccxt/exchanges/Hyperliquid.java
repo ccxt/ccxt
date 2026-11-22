@@ -2704,7 +2704,7 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.initializeClient()).join();
-        Map<String, Object> request = (Map<String, Object>) this.createOrdersRequest(orders, parameters);
+        Map<String, Object> request = this.createOrdersRequest(orders, parameters);
         Map<String, Object> response = (this.privatePostExchange(request)).join();
         //
         //     {
@@ -3054,7 +3054,7 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.initializeClient()).join();
-        Map<String, Object> request = (Map<String, Object>) this.cancelOrdersRequest(ids, symbol, parameters);
+        Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
         Map<String, Object> response = (this.privatePostExchange(request)).join();
         //
         //     {
@@ -3179,7 +3179,7 @@ public class Hyperliquid extends HyperliquidApi
          * @returns {object} the raw request object to be sent to the exchange
          */
         Map<String, Object> market = this.market(symbol);
-        Object clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+        List<Object> clientOrderIds = (List<Object>) this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
         Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "fast")));
         Long nonce = this.incrementingNonce();
@@ -3195,7 +3195,7 @@ public class Hyperliquid extends HyperliquidApi
         if (!java.util.Objects.equals(clientOrderIds, null))
         {
             cancelAction.put("type", "cancelByCloid");
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
                 mapLiteral5.put("asset", baseId);
@@ -5786,7 +5786,7 @@ public class Hyperliquid extends HyperliquidApi
         //     }
         // ]
         //
-        List<Object> records = (List<Object>) this.extractTypeFromDelta(depositLedger);
+        List<Object> records = this.extractTypeFromDelta(depositLedger);
         String vaultAddress = null;
         Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
         vaultAddress = vaultAddressparams2Variable.first();
@@ -5872,7 +5872,7 @@ public class Hyperliquid extends HyperliquidApi
         //     }
         // ]
         //
-        List<Object> records = (List<Object>) this.extractTypeFromDelta(withdrawalLedger);
+        List<Object> records = this.extractTypeFromDelta(withdrawalLedger);
         String vaultAddress = null;
         Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
         vaultAddress = vaultAddressparams2Variable.first();
