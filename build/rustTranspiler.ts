@@ -4748,7 +4748,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
     const arg2Re = arg2.replace (/[()<>&]/g, '\\$&');
     // `parseCurrency` takes `&mut self` and builds through `safeCurrencyStructure`
     const me = fam === 'currency' ? '&mut self' : '&self';
-    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', \\w+: impl Into<crate::Value>' + arg2Re + '\\) -> Value \\{\\n');
+    // binance names the prediction market slot `outcomeObj`
+    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', \\w+: impl Into<crate::Value>' + (fam === 'prediction_order' ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + (fam === 'currency' || fam === 'market' ? '_structure(' : '(');
     const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
     const unbox = (body: string, wrap: string) => {
@@ -4854,7 +4855,7 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
                 + body.replace (probe, 'if let Some(__v) = crate::exchange::DerivedExchange::' + fn + '(self, ' + args + ') { return __v; }').replace (/Value::Null\n$/, 'Default::default()\n') + content.slice (e);
         }
     }
-    const call = new RegExp ('(?<![\\w.])(?:self(?:\\.parent)?\\.|<Self as crate::exchange_generated::ExchangeBase>::|<Self as crate::exchange::DerivedExchange>::)(' + [ fn, ...dictFns, ...optFns ].join ('|') + ')\\(', 'g');
+    const call = new RegExp ('(?<![\\w.])(?:self(?:\\.parent)?\\.|<Self as crate::exchange_generated::ExchangeBase>::|<Self as crate::prediction_exchange_generated::PredictionBase>::|<Self as crate::exchange::DerivedExchange>::)(' + [ fn, ...dictFns, ...optFns ].join ('|') + ')\\(', 'g');
     const starts: number[] = [];
     let m: RegExpExecArray | null;
     while ((m = call.exec (content)) !== null) starts.push (m.index);
@@ -5157,11 +5158,11 @@ function rustTypedSafeDict (content: string, fn: string, params: string, ret: st
         const at = body.indexOf (ret), close = balancedCloseIndex (body, at + ret.length);
         content = content.slice (0, base) + sig.replace (') -> Value {', ') -> crate::value::Dict {') + body.slice (0, at) + typed + body.slice (at + ret.length, close) + (ret.endsWith ('Map(') ? ')' : '') + body.slice (close + (ret.endsWith ('Map(') ? 1 : 0)) + '\n    Default::default()\n}' + content.slice (end + tail.length);
     }
-    const head = new RegExp ('(?<![\\w.])self\\.' + fn + '\\(', 'g'), starts: number[] = [];
+    const head = new RegExp ('(?<![\\w.])(?:self\\.|<Self as crate::prediction_exchange_generated::PredictionBase>::)' + fn + '\\(', 'g'), starts: number[] = [];
     let m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) starts.push (m.index);
     for (const s of starts.reverse ()) {
-        const close = balancedCloseIndex (content, s + ('self.' + fn + '(').length);
+        const close = balancedCloseIndex (content, content.indexOf (fn + '(', s) + fn.length + 1);
         if (close >= content.length) continue;
         const rest = content.slice (close + 1);
         if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
@@ -5231,6 +5232,9 @@ function rustTypedParsePositionFamilies (content: string): string {
     content = rustTypedParseFamily (content, 'deposit_withdraw_fee', 'fee');
     content = rustTypedParseFamily (content, 'borrow_interest', 'info');
     content = rustTypedParseFamily (content, 'last_price', 'price');
+    // `safePredictionOrder` returns one object literal: `Dict`; every venue `parsePredictionOrder` returns it
+    content = rustTypedSafeDict (content, 'safe_prediction_order', 'mut outcomeOrder: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new(');
+    content = rustTypedParseFamily (content, 'prediction_order', 'order');
     // `safeMarketStructure` answers `extend (cleanStructure, market)` or `extend (cleanStructure)`: a map on every input
     const sms = 'fn safe_market_structure(&self, optional_args: &[Value]) -> Value {', smsAt = content.indexOf (sms);
     if (smsAt >= 0) {
