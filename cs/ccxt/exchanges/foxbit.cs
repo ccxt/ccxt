@@ -1922,7 +1922,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "market_symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "spot");
@@ -2079,7 +2079,7 @@ public partial class foxbit : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         IDictionary<string, object> network = this.safeDict(depositAddress, "network");
         string? networkId = this.safeString(network, "code");
@@ -2113,7 +2113,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         IDictionary<string, object> cryptoDetails = this.safeDict(transaction, "details_crypto");
         string? address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
@@ -2179,7 +2179,7 @@ public partial class foxbit : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
@@ -2322,7 +2322,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {

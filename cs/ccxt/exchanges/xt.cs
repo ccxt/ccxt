@@ -2404,7 +2404,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -4877,7 +4877,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledger, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4980,7 +4980,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(result, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -5183,7 +5183,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(result, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -6747,7 +6747,7 @@ public partial class xt : Exchange
         return this.parseOrder(this.safeDict(response, "result", new Dictionary<string, object>() {}), market);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         // spot: error
@@ -6804,7 +6804,7 @@ public partial class xt : Exchange
         string? status = this.safeStringUpper2(response, "msgInfo", "mc");
         if ((status != null) && status != "SUCCESS")
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             IDictionary<string, object> error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             string? spotErrorCode = this.safeString(response, "mc");
             string? errorCode = this.safeString(error, "code", spotErrorCode);

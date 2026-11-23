@@ -1753,7 +1753,7 @@ public partial class lighter : Exchange
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -2502,7 +2502,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, paramsAccountIndex));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         //
         //     {
@@ -3242,7 +3242,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -4077,7 +4077,7 @@ public partial class lighter : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -4093,7 +4093,7 @@ public partial class lighter : Exchange
         string? message = this.safeString(response, "message");
         if ((codeError != null) && codeError != "0" && codeError != "200")
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;

@@ -296,13 +296,13 @@ public partial class independentreserve : ccxt.independentreserve
         return result;
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -333,7 +333,7 @@ public partial class independentreserve : ccxt.independentreserve
         return message;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? eventVar = this.safeString(message, "Event");
         Dictionary<string, object> handlers = new Dictionary<string, object>() {

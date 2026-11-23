@@ -221,7 +221,7 @@ public partial class bittrade : ccxt.bittrade
         }
         for (int i = 0; i < data.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(data[i], market);
+            ccxt.Trade trade = this.parseTrade(this.safeDict(data, i, new Dictionary<string, object>() {}), market);
             tradesCache.append(ccxt.BaseExchange.FromTrade(trade));
         }
         client.resolve(tradesCache, ch);
@@ -465,7 +465,7 @@ public partial class bittrade : ccxt.bittrade
         return null;
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         double? price = this.safeFloat(delta, 0);
         double? amount = this.safeFloat(delta, 1);
@@ -698,7 +698,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -745,7 +745,7 @@ public partial class bittrade : ccxt.bittrade
         return ((bool?)((object)(true)));
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.handleErrorMessage(client, message) == true))
         {

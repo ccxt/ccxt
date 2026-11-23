@@ -193,7 +193,7 @@ public partial class mexc : ccxt.mexc
             ticker["datetime"] = this.iso8601(timestamp);
         } else if ((rawTicker != null))
         {
-            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(rawTicker, market));
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(this.extend(new Dictionary<string, object>() {}, rawTicker), market));
         } else
         {
             return;
@@ -212,14 +212,14 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null);
         List<object> messageHashes = new List<object>() {};
         string? firstSymbol = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
@@ -335,14 +335,14 @@ public partial class mexc : ccxt.mexc
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(data != null && i < data.Count ? data[i] : null));
             Dictionary<string, object> ticker = null;
             if ((isSpot == true))
             {
                 ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(entry, market));
             } else
             {
-                ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(entry));
+                ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(data, i, new Dictionary<string, object>() {})));
             }
             string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
@@ -426,14 +426,14 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
         if ((symbolsNormalized == null))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
@@ -1190,10 +1190,10 @@ public partial class mexc : ccxt.mexc
             Dictionary<string, object> parsedTrade = null;
             if ((this.safeBool(market, "spot", false) == true))
             {
-                parsedTrade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(trades[j], market));
+                parsedTrade = ccxt.BaseExchange.FromTrade(this.parseWsTrade((trades != null && j < trades.Count ? trades[j] : null), market));
             } else
             {
-                parsedTrade = ccxt.BaseExchange.FromTrade(this.parseTrade(trades[j], market));
+                parsedTrade = ccxt.BaseExchange.FromTrade(this.parseTrade(this.safeDict(trades, j, new Dictionary<string, object>() {}), market));
             }
             stored.append(parsedTrade);
         }
@@ -1299,7 +1299,7 @@ public partial class mexc : ccxt.mexc
             trade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(data, market));
         } else if ((data != null))
         {
-            trade = ccxt.BaseExchange.FromTrade(this.parseTrade(data, market));
+            trade = ccxt.BaseExchange.FromTrade(this.parseTrade(this.extend(new Dictionary<string, object>() {}, data), market));
         } else
         {
             return;
@@ -1861,12 +1861,11 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("unsubscribe:fundingRate:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object url = null;
         string channel = "unsub.funding.rate";
         Dictionary<string, object> requestParams = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null));
         this.spawn(this.watchSwapPublic, new object[] { channel, messageHash, requestParams, parameters});
         var client = this.client(url);
         this.handleUnsubscriptions(client, new List<object>() {messageHash});
@@ -2047,7 +2046,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -2092,7 +2091,7 @@ public partial class mexc : ccxt.mexc
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2439,9 +2438,9 @@ public partial class mexc : ccxt.mexc
         this.handleProtobufMessage(client, decodedMessage);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("msg")))
+        if ((message != null && message.ContainsKey("msg")))
         {
             this.handleSubscriptionStatus(client, message);
             return;

@@ -23,7 +23,7 @@ public partial class testMainClass : BaseTest
         fetchTickersAmountsTest(exchange, skippedProperties, (results != null && 0 < results.Count ? results[0] : null));
         return results;
     }
-    async static public Task<object> fetchTickersHelperTest(BaseExchange exchange, object skippedProperties, object argSymbols, object argParams = null)
+    async static public Task<object> fetchTickersHelperTest(BaseExchange exchange, object skippedProperties, IList<object> argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
         string method = "fetchTickers";
@@ -31,9 +31,9 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
-        if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
+        if ((argSymbols != null) && ((argSymbols?.Count ?? 0) == 1))
         {
-            checkedSymbol = getValue(argSymbols, 0);
+            checkedSymbol = (argSymbols != null && 0 < argSymbols.Count ? argSymbols[0] : null);
         }
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         for (int i = 0; i < values.Count; i++)

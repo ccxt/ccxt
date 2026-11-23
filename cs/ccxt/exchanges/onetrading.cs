@@ -896,7 +896,7 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -1034,7 +1034,7 @@ public partial class onetrading : Exchange
         IList<object> rawTickers = response;
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            ccxt.Ticker ticker = this.parseTicker(rawTickers[i]);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(rawTickers, i, new Dictionary<string, object>() {}));
             string? symbol = ticker.symbol;
             if ((symbol != null))
             {
@@ -1320,7 +1320,7 @@ public partial class onetrading : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -2105,7 +2105,7 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2119,7 +2119,7 @@ public partial class onetrading : Exchange
         string? message = this.safeString(response, "error");
         if ((message != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;

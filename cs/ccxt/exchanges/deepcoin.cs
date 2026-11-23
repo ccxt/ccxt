@@ -956,7 +956,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1171,7 +1171,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -1321,7 +1321,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(items, currency, since, limit, transactionParams));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -1491,7 +1491,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressess, index, new Dictionary<string, object>() {}));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object response, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> response, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1601,7 +1601,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3383,7 +3383,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(rows, market, since, limit));
     }
 
-    public override object parseFundingRateHistory(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3626,7 +3626,7 @@ public partial class deepcoin : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? msg = this.safeString(response, "msg");
@@ -3644,7 +3644,7 @@ public partial class deepcoin : Exchange
             IDictionary<string, object> entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
             errorCode = this.safeString(entry, "errorCode");
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         if (((sCode == null)) && ((errorCode != null)))
         {
             sCode = errorCode;

@@ -1769,7 +1769,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,timeframeVar, sinceResolved, userLimit));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // spot
@@ -3668,9 +3668,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList170874))
+        if ((data is IList<object> hxList170884))
         {
-            int numOrders = hxList170874.Count;
+            int numOrders = hxList170884.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -4268,7 +4268,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -6149,7 +6149,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -6304,13 +6304,12 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; i++)
         {
-            IDictionary<string, object> rank = ((IDictionary<string, object>)ranks[i]);
-            result.Add(this.parseADLRank(rank));
+            result.Add(this.parseADLRank(ranks[i]));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false));
     }
 
-    public override object parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionADLRank: linear
@@ -6440,7 +6439,7 @@ public partial class phemex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -6457,7 +6456,7 @@ public partial class phemex : Exchange
         string? message = this.safeString(error, "msg");
         if (((errorCode != null)) && (errorCode != "0"))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;

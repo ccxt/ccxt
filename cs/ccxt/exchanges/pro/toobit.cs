@@ -103,7 +103,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // public
@@ -288,7 +288,7 @@ public partial class toobit : ccxt.toobit
 
     public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend(new Dictionary<string, object>() {}, trade), market);
     }
 
     /**
@@ -327,7 +327,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -366,10 +366,10 @@ public partial class toobit : ccxt.toobit
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
         var stored = ((IList<object>) symboltimeframestoredVariable)[2];
-        object limitResolved = limit;
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit));
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -484,14 +484,14 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -698,7 +698,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
@@ -1431,7 +1431,7 @@ public partial class toobit : ccxt.toobit
         return ((wsBaseUrl + "/api/v1/ws/") + listenKey);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {

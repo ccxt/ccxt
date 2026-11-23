@@ -935,7 +935,7 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         //
         //     {
@@ -1043,7 +1043,7 @@ public partial class coinbaseexchange : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTickers
@@ -2083,7 +2083,7 @@ public partial class coinbaseexchange : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //  {
         //      "id": "12087495079",
@@ -2412,7 +2412,7 @@ public partial class coinbaseexchange : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // privateGetTransfers
@@ -2600,11 +2600,11 @@ public partial class coinbaseexchange : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 400)) || ((code == 404)))
         {
-            if (((string)body).StartsWith("{"))
+            if (body.StartsWith("{"))
             {
                 string? message = this.safeString(response, "message");
                 string feedback = ((this.id + " ") + message);
@@ -2612,7 +2612,7 @@ public partial class coinbaseexchange : Exchange
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
             }
-            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

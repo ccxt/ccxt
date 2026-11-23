@@ -400,7 +400,7 @@ public partial class btcbox : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -472,7 +472,7 @@ public partial class btcbox : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? last = this.safeString(ticker, "last");
@@ -936,7 +936,7 @@ public partial class btcbox : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -953,7 +953,7 @@ public partial class btcbox : Exchange
             return null;  // either public API (no error codes expected) or success
         }
         string? codeError = this.safeString(response, "code");
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new ExchangeError (feedback) ;
     }

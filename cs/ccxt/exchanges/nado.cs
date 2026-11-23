@@ -1649,11 +1649,10 @@ public partial class nado : Exchange
             object tx = new Dictionary<string, object>() {};
             for (int j = 0; j < txs.Count; j++)
             {
-                object rawTx = txs[j];
-                string? txSubmissionIdx = this.safeString(rawTx, "submission_idx");
+                string? txSubmissionIdx = this.safeString(txs[j], "submission_idx");
                 if ((txSubmissionIdx == submissionIdx))
                 {
-                    tx = rawTx;
+                    tx = txs[j];
                     break;
                 }
             }
@@ -1736,11 +1735,10 @@ public partial class nado : Exchange
             object product = new Dictionary<string, object>() {};
             for (int j = 0; j < products.Count; j++)
             {
-                object rawProduct = products[j];
-                string? rawProductId = this.safeString(rawProduct, "product_id");
+                string? rawProductId = this.safeString(products[j], "product_id");
                 if ((rawProductId == productId))
                 {
-                    product = rawProduct;
+                    product = products[j];
                     break;
                 }
             }
@@ -2748,7 +2746,7 @@ public partial class nado : Exchange
         }, marketResolved);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "product_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -2810,7 +2808,7 @@ public partial class nado : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -2861,7 +2859,7 @@ public partial class nado : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3612,7 +3610,7 @@ public partial class nado : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -3632,7 +3630,7 @@ public partial class nado : Exchange
         string? error = this.safeString(response, "error");
         if ((status == "failure") || ((errorCode != null)) || ((error != null)))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;

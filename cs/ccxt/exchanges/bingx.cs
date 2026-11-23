@@ -1689,14 +1689,15 @@ public partial class bingx : Exchange
         IDictionary<string, object> paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
         if ((until != null))
         {
-            object endTime = until;
             if ((since != null))
             {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                endTime = Math.Min(until.Value, this.sum(since, (duration * requestLimit)));
+                request["endTime"] = Math.Min(until.Value, this.sum(since, (duration * requestLimit)));
+            } else
+            {
+                request["endTime"] = until;
             }
-            request["endTime"] = endTime;
         } else if ((this.safeBool(market, "inverse", false) == true) && ((since != null)))
         {
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
@@ -2426,7 +2427,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(data, market, since, limit));
     }
 
-    public override object parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2785,7 +2786,7 @@ public partial class bingx : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            results.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(rows[i], rowMarket)));
+            results.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(rows, i, new Dictionary<string, object>() {}), rowMarket)));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
@@ -2920,7 +2921,7 @@ public partial class bingx : Exchange
         {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));
         }
-        return this.parseTicker((response != null && response.ContainsKey("data") ? response["data"] : null), market);
+        return this.parseTicker(this.safeDict(response, "data", new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -2994,7 +2995,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // mark price
@@ -3056,7 +3057,7 @@ public partial class bingx : Exchange
         }
         if ((market != null))
         {
-            type = this.safeString(market, "type");
+            type = this.safeString(market, "type", type);
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, type);
         string? symbol = this.safeString(marketResolved, "symbol");
@@ -3168,7 +3169,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // standard
@@ -5867,7 +5868,7 @@ public partial class bingx : Exchange
         //     }
         //
         List<object> data = this.safeList(this.safeDict(response, "data"), "data", new List<object>() {});
-        List<object> parsed = ((List<object>)this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(data, new List<object> {this.safeString(currency, "code", "")}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -5906,7 +5907,7 @@ public partial class bingx : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         // {
@@ -6064,7 +6065,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -6436,7 +6437,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         //
         // linear swap
@@ -6881,7 +6882,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(liquidations, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -7228,11 +7229,11 @@ public partial class bingx : Exchange
         {
             marginType = "cross";
         }
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
             { "marginMode", marginType },
-        })));
+        };
     }
 
     /**
@@ -7582,7 +7583,7 @@ public partial class bingx : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -7605,7 +7606,7 @@ public partial class bingx : Exchange
             {
                 message = transferErrorMsg;
             }
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);

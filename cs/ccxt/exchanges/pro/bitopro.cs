@@ -577,7 +577,7 @@ public partial class bitopro : ccxt.bitopro
         client.resolve(this.balance, eventVar);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "TRADE", this.handleTrade },

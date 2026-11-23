@@ -2545,7 +2545,7 @@ public partial class sxbet : PredictionExchange
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
@@ -3111,7 +3111,7 @@ public partial class sxbet : PredictionExchange
         }
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
@@ -3135,7 +3135,7 @@ public partial class sxbet : PredictionExchange
         {
             messageString = message;
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptionsExact, messageString, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —

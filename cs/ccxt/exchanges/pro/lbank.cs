@@ -209,7 +209,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -493,7 +493,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTradesWs(string symbol, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTradesWs(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -504,7 +504,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchTradesWs");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = ("fetchTrades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object limitResolved = ((limit == null)) ? 10 : limit;
+        Int64? limitResolved = ((limit == null)) ? 10 : limit;
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "trade" },
@@ -730,8 +730,8 @@ public partial class lbank : ccxt.lbank
             message["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, messageHash, request);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limit, true));
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash, request));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -942,7 +942,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBookWs(string symbol, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBookWs(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -953,7 +953,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchOrderBookWs");
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = ("fetchOrderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "depth" },
@@ -1076,7 +1076,7 @@ public partial class lbank : ccxt.lbank
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1112,12 +1112,12 @@ public partial class lbank : ccxt.lbank
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? status = this.safeString(message, "status");
         if (status == "error")
         {
-            this.handleErrorMessage(client, (Dictionary<string, object>)message);
+            this.handleErrorMessage(client, message);
             return;
         }
         string? type = this.safeString2(message, "type", "action");

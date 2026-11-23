@@ -1614,7 +1614,7 @@ public partial class paradex : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -3540,7 +3540,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(data, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3860,7 +3860,7 @@ public partial class paradex : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits & fetchWithdrawals
@@ -3982,11 +3982,11 @@ public partial class paradex : Exchange
         string? marketId = this.safeString(rawMarginMode, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? marginMode = this.safeStringLower(rawMarginMode, "margin_type");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", rawMarginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "marginMode", marginMode },
-        })));
+        };
     }
 
     /**
@@ -4070,7 +4070,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(this.safeDict(configs, 0), market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -4249,7 +4249,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(results, symbolsNormalized));
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4414,7 +4414,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToOptionChain(result);
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4807,7 +4807,7 @@ public partial class paradex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -4854,7 +4854,7 @@ public partial class paradex : Exchange
                 }
             }
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         if ((errorCode == null))
         {
             if ((code >= 400) && ((message != null)))

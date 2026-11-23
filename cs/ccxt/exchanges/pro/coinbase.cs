@@ -165,7 +165,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> subscribeMultiple(string name, bool? isPrivate = null, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(string name, bool? isPrivate = null, IList<object>? symbols = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -175,7 +175,7 @@ public partial class coinbase : ccxt.coinbase
         }
         List<object> productIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
@@ -343,14 +343,14 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object symbolsResolved = symbols;
+        IList<object> symbolsResolved = symbols;
         if ((symbols == null))
         {
             symbolsResolved = this.symbols;
@@ -834,7 +834,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -923,8 +923,7 @@ public partial class coinbase : ccxt.coinbase
             int tradesLength = currentTrades.Count;
             for (Int64 j = 0; j < tradesLength; j++)
             {
-                IDictionary<string, object> item = ((IDictionary<string, object>)(currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null));
-                tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
+                tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(this.safeDict(currentTrades, ((tradesLength - j) - 1), new Dictionary<string, object>() {}))));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -1223,7 +1222,7 @@ public partial class coinbase : ccxt.coinbase
         return message;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? channel = this.safeString(message, "channel");
         Dictionary<string, object> methods = new Dictionary<string, object>() {

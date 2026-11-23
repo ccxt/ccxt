@@ -645,7 +645,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
             {
-                ccxt.Trade parsedTrade = this.parseTrade(rawTrades[i]);
+                ccxt.Trade parsedTrade = this.parseTrade(this.safeDict(rawTrades, i, new Dictionary<string, object>() {}));
                 trades.append(ccxt.BaseExchange.FromTrade(parsedTrade));
                 string? symbol = parsedTrade.symbol;
                 if ((symbol != null))
@@ -863,7 +863,7 @@ public partial class bullish : ccxt.bullish
         client.resolve(positions, "positions");
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -891,7 +891,7 @@ public partial class bullish : ccxt.bullish
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? dataType = this.safeString(message, "dataType");
         IDictionary<string, object> result = this.safeDict(message, "result");
@@ -930,7 +930,7 @@ public partial class bullish : ccxt.bullish
             }
             if (dataType == "V1TAErrorResponse")
             {
-                this.handleErrorMessage(client, (Dictionary<string, object>)message);
+                this.handleErrorMessage(client, message);
             }
         }
     }

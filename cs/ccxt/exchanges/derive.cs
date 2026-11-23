@@ -1389,7 +1389,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToGreeks(this.parseGreeks(result, market));
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(greeks, "t");
         IDictionary<string, object> pricing = this.safeDict(greeks, "option_pricing", new Dictionary<string, object>() {});
@@ -1446,7 +1446,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToOption(this.parseOption(result, null, market));
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(chain, "t");
         IDictionary<string, object> pricing = this.safeDict(chain, "option_pricing", new Dictionary<string, object>() {});
@@ -1634,7 +1634,7 @@ public partial class derive : Exchange
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
@@ -1867,14 +1867,14 @@ public partial class derive : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)tradesArray[i]);
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)(tradesArray != null && i < tradesArray.Count ? tradesArray[i] : null));
             bool isFetchTrades = ((this.safeString(rawTrade, "order_id") == null));
             string? liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (isFetchTrades && (liquidityRole == "maker"))
             {
                 continue;
             }
-            ccxt.Trade parsed = this.parseTrade(rawTrade, market);
+            ccxt.Trade parsed = this.parseTrade(this.safeDict(tradesArray, i, new Dictionary<string, object>() {}), market);
             Dictionary<string, object> trade = this.extend(ccxt.BaseExchange.FromTrade(parsed), parameters);
             result.Add(trade);
         }
@@ -4355,7 +4355,7 @@ public partial class derive : Exchange
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4400,7 +4400,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(sorted,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(info, "timestamp");
         return new Dictionary<string, object>() {
@@ -4628,7 +4628,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4764,7 +4764,7 @@ public partial class derive : Exchange
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {

@@ -611,7 +611,7 @@ public partial class ndax : ccxt.ndax
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -640,7 +640,7 @@ public partial class ndax : ccxt.ndax
         {
             return;
         }
-        ((IDictionary<string,object>)message)["o"] = JsonHelper.Deserialize(payload);
+        message["o"] = JsonHelper.Deserialize(payload);
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "SubscribeLevel2", this.handleSubscriptionStatus },
             { "SubscribeLevel1", this.handleTicker },

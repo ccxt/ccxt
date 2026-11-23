@@ -1637,7 +1637,7 @@ public partial class opinion : PredictionExchange
      * @param {object} response the raw user-balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -1864,12 +1864,12 @@ public partial class opinion : PredictionExchange
      * the wallet has no key yet; freshly created keys can take ~15 seconds to activate venue-side
      * @returns {string} the apiKey
      */
-    public async virtual Task<object> loadApiKey()
+    public async virtual Task<string?> loadApiKey()
     {
         bool hasDirectApiKey = !this.isEmptyString(this.apiKey);
         if (hasDirectApiKey)
         {
-            return this.apiKey;
+            return ((string?)((object)(this.apiKey)));
         }
         string? optionsKey = this.safeString(this.options, "apiKey");
         if ((optionsKey != null))
@@ -1960,7 +1960,7 @@ public partial class opinion : PredictionExchange
         return await this.watch<T>(url, messageHash, subscribeMsg, subscriptionKey);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
@@ -2458,7 +2458,7 @@ public partial class opinion : PredictionExchange
         client.resolve(stored, "myTrades");
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2468,7 +2468,7 @@ public partial class opinion : PredictionExchange
         if (((errno != null)) && ((errno != 0)))
         {
             string? errmsg = this.safeString(response, "errmsg", "");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, this.numberToString(errno), feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errmsg, feedback);
             throw new ExchangeError (feedback) ;

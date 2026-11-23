@@ -632,7 +632,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -761,7 +761,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1373,12 +1373,12 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? m = this.safeString(message, "m");
         if (((m != null)) && (m != "Success"))
         {
-            this.handleErrorMessage(client, (Dictionary<string, object>)message);
+            this.handleErrorMessage(client, message);
         }
         string? action = this.safeString2(message, "a", "action");
         if (action == "RecvTopicAction")
@@ -1451,7 +1451,7 @@ public partial class deepcoin : ccxt.deepcoin
         this.cleanCache(subscription);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

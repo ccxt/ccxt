@@ -1419,7 +1419,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async virtual Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchTickers() is not supported yet")) ;

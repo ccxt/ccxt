@@ -1165,7 +1165,7 @@ public partial class grvt : Exchange
         return this.parseTicker(result, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //  {
@@ -1589,7 +1589,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(result, market));
     }
 
-    public override object parseFundingRateHistory(object rawItem, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object rawItem, IDictionary<string, object> market = null)
     {
         //
         //            {
@@ -1673,7 +1673,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //        {
@@ -1900,7 +1900,7 @@ public partial class grvt : Exchange
         return transfers;
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2960,7 +2960,7 @@ public partial class grvt : Exchange
         return this.parseLeverage(response, market);
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         //
         // setLeverage
@@ -3037,11 +3037,11 @@ public partial class grvt : Exchange
         //            },
         //
         string? marketId = this.safeString(marginMode, "symbol");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market) },
             { "marginMode", this.safeStringLower(marginMode, "margin_type") },
-        })));
+        };
     }
 
     /**
@@ -3891,7 +3891,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (url.EndsWith("auth/api_key/login") || url.EndsWith("auth/wallet/login"))
         {
@@ -3911,7 +3911,7 @@ public partial class grvt : Exchange
             string? errorCode = this.safeString(response, "code");
             if ((errorCode != null))
             {
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             } else
@@ -3919,7 +3919,7 @@ public partial class grvt : Exchange
                 string? message = this.safeString(response, "message");
                 if ((message != null))
                 {
-                    string feedback = ((this.id + " ") + (body));
+                    string feedback = ((this.id + " ") + body);
                     this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                     throw new ExchangeError (feedback) ;
                 } else
@@ -3927,7 +3927,7 @@ public partial class grvt : Exchange
                     string? status = this.safeString(response, "status");
                     if ((status != null) && status != "success")
                     {
-                        string feedback = ((this.id + " ") + (body));
+                        string feedback = ((this.id + " ") + body);
                         throw new ExchangeError (feedback) ;
                     }
                 }

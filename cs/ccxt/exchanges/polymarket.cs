@@ -767,7 +767,7 @@ public partial class polymarket : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // merged row assembled by fetchTickers from the tickers, statistics and bbo endpoints
@@ -2361,7 +2361,7 @@ public partial class polymarket : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposit row
@@ -2645,7 +2645,7 @@ public partial class polymarket : Exchange
         throw new BadSymbol (((this.id + " fetchLeverage() could not find the configuration for ") + symbol)) ;
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "instrument_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -3177,7 +3177,7 @@ public partial class polymarket : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -3203,7 +3203,7 @@ public partial class polymarket : Exchange
         string? error = this.safeString(source, "error");
         if ((status == "err") || ((error != null)))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             if ((code == 400))

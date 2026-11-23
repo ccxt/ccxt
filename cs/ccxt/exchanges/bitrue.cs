@@ -1141,7 +1141,7 @@ public partial class bitrue : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // spot
@@ -1340,7 +1340,7 @@ public partial class bitrue : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchBidsAsks
@@ -1495,7 +1495,7 @@ public partial class bitrue : Exchange
         //         "time": 1699348013000
         //     }
         //
-        return this.parseTicker(data, market);
+        return this.parseTicker(((IDictionary<string, object>)data), market);
     }
 
     /**
@@ -2964,7 +2964,7 @@ public partial class bitrue : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3050,8 +3050,8 @@ public partial class bitrue : Exchange
         string? txid = this.safeString(transaction, "txid");
         Int64? timestamp = this.safeInteger(transaction, "createdAt");
         Int64? updated = this.safeInteger(transaction, "updatedAt");
-        bool payAmount = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("payAmount")));
-        bool ctime = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("ctime")));
+        bool payAmount = ((transaction != null && transaction.ContainsKey("payAmount")));
+        bool ctime = ((transaction != null && transaction.ContainsKey("ctime")));
         string type = "deposit";
         if (payAmount || ctime)
         {
@@ -3612,11 +3612,11 @@ public partial class bitrue : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 418)) || ((code == 429)))
         {
-            throw new DDoSProtection ((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + ((" " + (body))))) ;
+            throw new DDoSProtection ((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + ((" " + body)))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3624,17 +3624,17 @@ public partial class bitrue : Exchange
         Int64? statusCode = this.parseToInt(code);
         if (statusCode >= 400)
         {
-            if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
+            if (body.IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
-                throw new InvalidOrder ((string)((this.id + " order cost = amount * price is zero or less ") + (body))) ;
+                throw new InvalidOrder (((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (((string)body).IndexOf("LOT_SIZE", StringComparison.Ordinal) >= 0)
+            if (body.IndexOf("LOT_SIZE", StringComparison.Ordinal) >= 0)
             {
-                throw new InvalidOrder ((string)((this.id + " order amount should be evenly divisible by lot size ") + (body))) ;
+                throw new InvalidOrder (((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (((string)body).IndexOf("PRICE_FILTER", StringComparison.Ordinal) >= 0)
+            if (body.IndexOf("PRICE_FILTER", StringComparison.Ordinal) >= 0)
             {
-                throw new InvalidOrder ((string)((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + (body))) ;
+                throw new InvalidOrder (((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }
         }
         if ((response == null))
@@ -3675,15 +3675,15 @@ public partial class bitrue : Exchange
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error == "-2015") && (this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false) == true))
             {
-                throw new DDoSProtection ((string)((this.id + " temporary banned: ") + (body))) ;
+                throw new DDoSProtection (((this.id + " temporary banned: ") + body)) ;
             }
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if (success != true)
         {
-            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

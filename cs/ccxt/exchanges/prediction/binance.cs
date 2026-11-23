@@ -2081,7 +2081,7 @@ public partial class binance : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrderList(orders);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2091,7 +2091,7 @@ public partial class binance : PredictionExchange
         if (((errorCode != null)) && Precise.stringLt(errorCode, "0"))
         {
             string? message = this.safeString(response, "msg", "");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;

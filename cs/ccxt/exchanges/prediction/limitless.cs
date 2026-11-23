@@ -437,8 +437,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < eventKeys.Count; i++)
         {
             string? eventKey = ((string)eventKeys[i]);
-            object g = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
-            eventsDict[(string)eventKey] = this.parseEvent(g);
+            eventsDict[(string)eventKey] = this.parseEvent(this.safeDict(eventGroups, eventKey, new Dictionary<string, object>() {}));
         }
         this.events = eventsDict;
         int marketsLength = (markets?.Count ?? 0);
@@ -562,8 +561,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < tokenEntries.Count; i++)
         {
             string? outcomeLabel = ((string)tokenEntries[i]);
-            object tokenData = (outcomeLabel != null && tokens.ContainsKey(outcomeLabel) ? tokens[outcomeLabel] : null);
-            object tokenId = tokenData;
+            string? tokenId = this.safeString(tokens, outcomeLabel);
             string? outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -748,7 +746,7 @@ public partial class limitless : PredictionExchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseEvent(object eventVar)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> eventVar)
     {
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
@@ -1222,10 +1220,8 @@ public partial class limitless : PredictionExchange
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             List<object> rawBids = this.safeList(book, "bids", new List<object>() {});
             List<object> rawAsks = this.safeList(book, "asks", new List<object>() {});
-            int rawBidsLength = rawBids.Count;
-            int rawAsksLength = rawAsks.Count;
-            object yesBestBid = (rawBidsLength > 0) ? (rawBids != null && 0 < rawBids.Count ? rawBids[0] : null) : null;
-            object yesBestAsk = (rawAsksLength > 0) ? (rawAsks != null && 0 < rawAsks.Count ? rawAsks[0] : null) : null;
+            IDictionary<string, object> yesBestBid = this.safeDict(rawBids, 0);
+            IDictionary<string, object> yesBestAsk = this.safeDict(rawAsks, 0);
             string? yesBidPrice = this.safeString(yesBestBid, "price");
             string? yesBidSize = this.safeString(yesBestBid, "size");
             string? yesAskPrice = this.safeString(yesBestAsk, "price");
@@ -2285,7 +2281,7 @@ public partial class limitless : PredictionExchange
         }
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         string? accountId = this.safeString(account, "id");
         return new Dictionary<string, object>() {
@@ -2459,7 +2455,11 @@ public partial class limitless : PredictionExchange
                 } else
                 {
                     object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                    object costRequest = ((cost != null)) ? cost : quoteAmount;
+                    object costRequest = quoteAmount;
+                    if ((cost != null))
+                    {
+                        costRequest = cost;
+                    }
                     makerAmount = this.costToPredictionPrecision(outcome, costRequest);
                 }
             } else
@@ -2604,10 +2604,8 @@ public partial class limitless : PredictionExchange
         string payload = ("02" + this.rlpEncodeList(fields));
         string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
-        string? rHex = this.safeString(signature, "r");
-        string? sHex = this.safeString(signature, "s");
-        rHex = this.padHexToEven(rHex);
-        sHex = this.padHexToEven(sHex);
+        string? rHex = this.padHexToEven(this.safeString(signature, "r"));
+        string? sHex = this.padHexToEven(this.safeString(signature, "s"));
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = new List<object>() {};
         for (int i = 0; i < (fields?.Count ?? 0); i++)
@@ -3662,7 +3660,7 @@ public partial class limitless : PredictionExchange
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -3673,7 +3671,7 @@ public partial class limitless : PredictionExchange
         {
             return null;
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         // the API returns either a string message or an array of field-validation errors
         string? message = this.safeString(response, "message");
         if ((message != null))

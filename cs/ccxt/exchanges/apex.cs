@@ -383,7 +383,7 @@ public partial class apex : Exchange
         return this.safeInteger(data, "time") ?? 0;
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // {
@@ -432,7 +432,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         string? accountId = this.safeString(account, "id", "0");
         return new Dictionary<string, object>() {
@@ -797,7 +797,7 @@ public partial class apex : Exchange
         });
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // {
@@ -2253,7 +2253,7 @@ public partial class apex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
@@ -2266,7 +2266,7 @@ public partial class apex : Exchange
         Int64? errorCode = this.safeInteger(response, "code");
         if ((errorCode != null) && (errorCode != 0))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string status = ((object)code).ToString();

@@ -786,7 +786,7 @@ public partial class hollaex : Exchange
         return new ccxt.Tickers(this.filterByArrayTickers(result, "symbol", symbols)).tickers;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker
@@ -1093,7 +1093,7 @@ public partial class hollaex : Exchange
         return new List<object> {this.parse8601(this.safeString(ohlcv, "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Int64? timestamp = this.parse8601(this.safeString(response, "updated_at"));
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -1645,7 +1645,7 @@ public partial class hollaex : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1928,7 +1928,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchWithdrawals, fetchDeposits
@@ -2277,7 +2277,7 @@ public partial class hollaex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // { "message": "Invalid token" }
         if ((response == null))
@@ -2296,7 +2296,7 @@ public partial class hollaex : Exchange
             //
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString(response, "message");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string status = ((object)code).ToString();

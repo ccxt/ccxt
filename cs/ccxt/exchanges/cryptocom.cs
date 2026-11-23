@@ -1518,7 +1518,7 @@ public partial class cryptocom : Exchange
         return this.parseOrderBook(orderBook, symbol, timestamp);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(responseResult, "data", new List<object>() {});
@@ -2769,7 +2769,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawalList, currency, since, limit));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker
@@ -3058,7 +3058,7 @@ public partial class cryptocom : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3106,7 +3106,7 @@ public partial class cryptocom : Exchange
         string? type = null;
         string? rawStatus = this.safeString(transaction, "status");
         string? status = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("client_wid")))
+        if ((transaction != null && transaction.ContainsKey("client_wid")))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
@@ -3350,7 +3350,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledger, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3490,7 +3490,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         //
         //     {
@@ -4276,14 +4276,14 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         string? errorCode = this.safeString(response, "code");
         if (errorCode != "0")
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
-            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

@@ -859,7 +859,7 @@ public partial class bit2me : ccxt.bit2me
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
@@ -949,7 +949,7 @@ public partial class bit2me : ccxt.bit2me
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? eventVar = this.safeString(message, "event");
         if (eventVar == "authenticate")

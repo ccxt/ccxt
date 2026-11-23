@@ -5145,7 +5145,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToTransaction(withdrawal);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -5330,7 +5330,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(data, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -5458,7 +5458,7 @@ public partial class bitget : Exchange
         return this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, bidsKey, asksKey);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //   {
@@ -10764,7 +10764,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // spot
@@ -11431,8 +11431,7 @@ public partial class bitget : Exchange
             //
             result = this.safeList(response, "data", new List<object>() {});
         }
-        IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToPosition(this.parsePosition(first, market));
+        return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(result, 0, new Dictionary<string, object>() {}), market));
     }
 
     /**
@@ -12636,7 +12635,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marginMode = this.safeString(leverage, "marginMode");
         bool isCrossMarginMode = (marginMode == "crossed");
@@ -13587,7 +13586,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(liquidations, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         // isolated
@@ -13706,7 +13705,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToIsolatedBorrowRate(this.parseIsolatedBorrowRate(first, market));
     }
 
-    public override object parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -13897,7 +13896,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14006,7 +14005,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         //
         // isolated
@@ -14107,7 +14106,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> order = this.safeList2(data, "successList", "list", new List<object>() {});
-        return this.parseOrder((order != null && 0 < order.Count ? order[0] : null), market);
+        return this.parseOrder(this.safeDict(order, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -14215,11 +14214,11 @@ public partial class bitget : Exchange
         {
             marginType = "cross";
         }
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginType },
-        })));
+        };
     }
 
     /**
@@ -14464,7 +14463,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(dataList,code, "fromCoin", "toCoin", since, limit));
     }
 
-    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -14675,7 +14674,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(data, market));
     }
 
-    public override object parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLongShortRatio(object info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "symbol");
         Int64? timestamp = this.safeIntegerOmitZero(info, "ts");
@@ -14689,7 +14688,7 @@ public partial class bitget : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -14722,7 +14721,7 @@ public partial class bitget : Exchange
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
         string? message = this.safeString2(response, "err_msg", "msg");
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         bool nonEmptyMessage = (((message != null)) && (message != "") && (message != "success"));
         if (nonEmptyMessage)
         {

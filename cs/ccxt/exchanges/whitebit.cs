@@ -1461,7 +1461,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
      */
-    public async virtual Task<Dictionary<string, object>> FetchFundingLimits(object codes = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchFundingLimits(IList<object> codes = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1665,7 +1665,7 @@ public partial class whitebit : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //  FetchTicker (v1)
@@ -1825,13 +1825,13 @@ public partial class whitebit : Exchange
                 IList<object> orders = response;
                 for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
-                    IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
+                    IDictionary<string, object> order = ((IDictionary<string, object>)(orders != null && i < orders.Count ? orders[i] : null));
                     string? orderId = this.safeString(order, "orderId", "");
                     if ((orderId == id))
                     {
                         string? marketId = this.safeString(order, "market");
                         Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
-                        return this.parseOrder(order, marketNew);
+                        return this.parseOrder(this.safeDict(orders, i, new Dictionary<string, object>() {}), marketNew);
                     }
                 }
             } catch(Exception error)
@@ -1858,11 +1858,11 @@ public partial class whitebit : Exchange
                     List<object> marketOrders = this.safeList(response, marketId, new List<object>() {});
                     for (int j = 0; j < marketOrders.Count; j++)
                     {
-                        IDictionary<string, object> order = ((IDictionary<string, object>)marketOrders[j]);
+                        IDictionary<string, object> order = ((IDictionary<string, object>)(marketOrders != null && j < marketOrders.Count ? marketOrders[j] : null));
                         string? orderId = this.safeString(order, "id", "");
                         if ((orderId == id))
                         {
-                            return this.parseOrder(order, marketNew);
+                            return this.parseOrder(this.safeDict(marketOrders, j, new Dictionary<string, object>() {}), marketNew);
                         }
                     }
                 }
@@ -2003,7 +2003,7 @@ public partial class whitebit : Exchange
         {
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            ccxt.Ticker ticker = this.parseTicker(this.safeValue(response, marketId), market);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(response, marketId, new Dictionary<string, object>() {}), market);
             string? symbol = ticker.symbol;
             result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
@@ -2870,9 +2870,9 @@ public partial class whitebit : Exchange
         return response;
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
-        List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> balanceKeys = new List<object>(response.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < balanceKeys.Count; i++)
         {
@@ -3531,7 +3531,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(data, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3739,7 +3739,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToTransaction(this.extend(this.parseTransaction(response, currency), new Dictionary<string, object>() {             { "id", uniqueId },         }));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4001,7 +4001,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4041,7 +4041,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4553,7 +4553,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -4913,7 +4913,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(response, market, since, limit));
     }
 
-    public override object parseFundingRateHistory(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -4996,11 +4996,11 @@ public partial class whitebit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 418)) || ((code == 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + " ") + body)) ;
         }
         if ((code == 404))
         {
@@ -5020,7 +5020,7 @@ public partial class whitebit : Exchange
             bool hasErrorStatus = (status != null) && status != "200" && (errors != null);
             if (hasErrorStatus || (codeNew != null))
             {
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 string? errorInfo = message;
                 if (hasErrorStatus)
                 {
@@ -5048,14 +5048,14 @@ public partial class whitebit : Exchange
                 IDictionary<string, object> errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
                 List<object> errKeys = new List<object>(errMsg.Keys);
                 int errKeysLength = errKeys.Count;
-                object errorInfo = body;
+                string? errorInfo = body;
                 if (errKeysLength > 0)
                 {
                     string? errorKey = this.safeString(errKeys, 0, "");
                     List<object> errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
                     errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(this.exceptionsExact, errorInfo, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
                 throw new ExchangeError (feedback) ;

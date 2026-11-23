@@ -3605,7 +3605,7 @@ public partial class bitfinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // ["error", 11010, "ratelimit: error"]
         if ((response != null))
@@ -3613,15 +3613,15 @@ public partial class bitfinex : Exchange
             if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string? message = this.safeString2(response, "message", "error");
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-                throw new ExchangeError ((string)((this.id + " ") + (body))) ;
+                throw new ExchangeError (((this.id + " ") + body)) ;
             }
         }
         if ((code == 429))
         {
-            throw new RateLimitExceeded ((string)((this.id + " ") + (body))) ;
+            throw new RateLimitExceeded (((this.id + " ") + body)) ;
         }
         if ((code == 500))
         {
@@ -3666,7 +3666,7 @@ public partial class bitfinex : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     [
@@ -3929,7 +3929,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (rawRatesData?.Count ?? 0); i++)
         {
             object fr = rawRatesData[i];
-            IDictionary<string, object> rate = ((IDictionary<string, object>)this.parseFundingRateHistory(fr, market));
+            Dictionary<string, object> rate = this.parseFundingRateHistory(fr, market);
             rates.Add(rate);
         }
         List<object> reversedArray = new List<object>() {};
@@ -3999,7 +3999,7 @@ public partial class bitfinex : Exchange
         };
     }
 
-    public override object parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         // [
@@ -4368,7 +4368,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         //     [

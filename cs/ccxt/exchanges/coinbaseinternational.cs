@@ -1164,7 +1164,7 @@ public partial class coinbaseinternational : Exchange
         bool isArray = ((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (isArray)
         {
-            return this.toArray(ohlcv);
+            return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
         }
         return new List<object> {this.parse8601(this.safeString2(ohlcv, "start", "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
@@ -1259,7 +1259,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(rawRates, market, since, limit));
     }
 
-    public override object parseFundingRateHistory(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
         Dictionary<string, object> fundingRate = this.parseFundingRate(info, market);
         return new Dictionary<string, object>() {
@@ -1404,7 +1404,7 @@ public partial class coinbaseinternational : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -2398,7 +2398,7 @@ public partial class coinbaseinternational : Exchange
         }));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3521,7 +3521,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(result, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "instrument_name");
         object bothLeverage = this.safeInteger(leverage, "leverage");
@@ -3677,7 +3677,7 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    public async virtual Task<object> authenticateV2(IDictionary<string, object>? parameters = null)
+    public async virtual Task<string?> authenticateV2(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
@@ -3941,7 +3941,7 @@ public partial class coinbaseinternational : Exchange
         return ((this.apiKey.Length == 8)) && ((this.secret.Length == 43));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
@@ -3957,7 +3957,7 @@ public partial class coinbaseinternational : Exchange
         }
         string? errorCode = this.safeString(error, "code");
         string? errorMessage = this.safeString(error, "message");
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         throw new ExchangeError (feedback) ;

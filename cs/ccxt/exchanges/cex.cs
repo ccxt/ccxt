@@ -682,7 +682,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "id");
         string? symbol = this.safeSymbol(marketId, market);
@@ -1044,7 +1044,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(arrays, parameters));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         return new Dictionary<string, object>() {
             { "id", null },
@@ -1113,12 +1113,12 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(accountBalance));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -1656,7 +1656,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         string? amount = this.safeString(item, "amount");
         string? direction = null;
@@ -1765,7 +1765,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(transaction, "currency");
         string? direction = this.safeString(transaction, "direction");
@@ -2004,7 +2004,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(data, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         string? address = this.safeString(depositAddress, "address");
         string? currencyId = this.safeString(depositAddress, "currency");
@@ -2081,7 +2081,7 @@ public partial class cex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
@@ -2092,20 +2092,20 @@ public partial class cex : Exchange
             if ((body == null))
             {
                 throw new NullResponse ((this.id + " returned empty response")) ;
-            } else if (((string)body).StartsWith("{"))
+            } else if (body.StartsWith("{"))
             {
                 string? fixedVar = ((string)this.fixStringifiedJsonMembers(body));
                 responseFixed = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse ((string)((this.id + " returned unparsed response: ") + (body))) ;
+                throw new NullResponse (((this.id + " returned unparsed response: ") + body)) ;
             }
         }
         object responseParsed = ((response == null)) ? responseFixed : response;
         string? error = this.safeString(responseParsed, "error");
         if ((error != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;

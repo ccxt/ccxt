@@ -393,8 +393,7 @@ public partial class gemini : ccxt.gemini
         // reverse order of array to store candles in ascending order
         for (Int64 i = 0; i < changesLength; i++)
         {
-            IList<object> parsed = this.parseOHLCV(this.safeValue(changes, ((changesLength - i) - 1)), market);
-            stored.append(parsed);
+            stored.append(this.parseOHLCV(this.safeValue(changes, ((changesLength - i) - 1)), market));
         }
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
         client.resolve(stored, messageHash);
@@ -527,7 +526,7 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters));
@@ -609,7 +608,7 @@ public partial class gemini : ccxt.gemini
         client.resolve(bidsAsksDict, messageHash);
     }
 
-    public async virtual Task<object> helperForWatchMultipleConstruct(string itemHashName, object symbols = null, object parameters = null)
+    public async virtual Task<object> helperForWatchMultipleConstruct(string itemHashName, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -620,7 +619,7 @@ public partial class gemini : ccxt.gemini
         {
             throw new NotSupported ((this.id + " watchMultiple requires at least one symbol")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         if ((!(this.safeBool(firstMarket, "spot", false) == true)) && (!(this.safeBool(firstMarket, "linear", false) == true)))
         {
@@ -965,7 +964,7 @@ public partial class gemini : ccxt.gemini
         this.handleOrder(client, message);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //  public

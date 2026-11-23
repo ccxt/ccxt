@@ -1417,7 +1417,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // spot
@@ -1552,7 +1552,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2264,7 +2264,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(response, market, since, limit));
     }
 
-    public override object parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4028,7 +4028,7 @@ public partial class weex : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // spot
@@ -4641,11 +4641,11 @@ public partial class weex : Exchange
     {
         string? marketId = this.safeString(marginMode, "symbol");
         string? marginType = this.safeString(marginMode, "marginType");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "marginMode", this.parseMarginType(marginType) },
-        })));
+        };
     }
 
     public virtual string? parseMarginType(string? marginType)
@@ -4746,7 +4746,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbolsNormalized, "symbol", "swap"));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         string? marginType = this.safeString(leverage, "marginType");
@@ -5112,7 +5112,7 @@ public partial class weex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         //     {
@@ -5128,11 +5128,11 @@ public partial class weex : Exchange
             {
                 return null;
             }
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
-            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

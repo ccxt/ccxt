@@ -197,14 +197,14 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
         string subscriptionHash = "MARKET_TICKER";
         string messageHash = "tickers";
@@ -802,7 +802,7 @@ public partial class onetrading : ccxt.onetrading
             List<object> rawTrades = this.safeList((rawOrders != null && i < rawOrders.Count ? rawOrders[i] : null), "trades", new List<object>() {});
             for (int ii = 0; ii < rawTrades.Count; ii++)
             {
-                ccxt.Trade trade = this.parseTrade(rawTrades[ii]);
+                ccxt.Trade trade = this.parseTrade(this.safeDict(rawTrades, ii, new Dictionary<string, object>() {}));
                 symbol = this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", symbol);
                 this.myTrades.append(ccxt.BaseExchange.FromTrade(trade));
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
@@ -1335,12 +1335,12 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         throw new ExchangeError (((this.id + " ") + this.json(message))) ;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? error = this.safeString(message, "error");
         if ((error != null))

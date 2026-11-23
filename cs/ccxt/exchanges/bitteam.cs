@@ -1569,8 +1569,7 @@ public partial class bitteam : Exchange
         }
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)rawTickers[i]);
-            ccxt.Ticker ticker = this.parseTicker(rawTicker);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(rawTickers, i, new Dictionary<string, object>() {}));
             tickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
@@ -1785,7 +1784,7 @@ public partial class bitteam : Exchange
         return this.parseTicker(pair, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker
@@ -2263,7 +2262,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -2457,7 +2456,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2616,7 +2615,7 @@ public partial class bitteam : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2637,7 +2636,7 @@ public partial class bitteam : Exchange
                     throw new BadSymbol ((((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString(response, "message");
             string? responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);

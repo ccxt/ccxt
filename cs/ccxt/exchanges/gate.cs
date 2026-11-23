@@ -3302,7 +3302,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedById, selectedNetworkIdOrCode));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3942,10 +3942,10 @@ public partial class gate : Exchange
         {
             throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, ticker), market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // SPOT
@@ -5407,7 +5407,7 @@ public partial class gate : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -8569,7 +8569,7 @@ public partial class gate : Exchange
      * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8626,7 +8626,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "currency_pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -9405,7 +9405,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // spot
@@ -9764,7 +9764,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         // fetchLiquidations
@@ -9914,7 +9914,7 @@ public partial class gate : Exchange
         throw new NullResponse (((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10070,7 +10070,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbolsNormalized, marketIdRequest, "spot"));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString2(leverage, "currency_pair", "id");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -10215,7 +10215,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(response, null, "name"));
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10374,7 +10374,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -10391,7 +10391,7 @@ public partial class gate : Exchange
         string? label = this.safeString(response, "label");
         if ((label != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, label, feedback);
             throw new ExchangeError (feedback) ;
         }

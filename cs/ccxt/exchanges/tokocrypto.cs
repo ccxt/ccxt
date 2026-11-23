@@ -1315,7 +1315,7 @@ public partial class tokocrypto : Exchange
         return this.parseTrades(responseList, market, since, limit);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1499,7 +1499,7 @@ public partial class tokocrypto : Exchange
             IDictionary<string, object> firstTicker = this.safeDict(response, 0, new Dictionary<string, object>() {});
             return this.parseTicker(firstTicker, market);
         }
-        return this.parseTicker(response, market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -2724,7 +2724,7 @@ public partial class tokocrypto : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3010,28 +3010,28 @@ public partial class tokocrypto : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 418)) || ((code == 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + " ") + body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400)
         {
-            if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
+            if (body.IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
-                throw new InvalidOrder ((string)((this.id + " order cost = amount * price is zero or less ") + (body))) ;
+                throw new InvalidOrder (((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (((string)body).IndexOf("LOT_SIZE", StringComparison.Ordinal) >= 0)
+            if (body.IndexOf("LOT_SIZE", StringComparison.Ordinal) >= 0)
             {
-                throw new InvalidOrder ((string)((this.id + " order amount should be evenly divisible by lot size ") + (body))) ;
+                throw new InvalidOrder (((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (((string)body).IndexOf("PRICE_FILTER", StringComparison.Ordinal) >= 0)
+            if (body.IndexOf("PRICE_FILTER", StringComparison.Ordinal) >= 0)
             {
-                throw new InvalidOrder ((string)((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + (body))) ;
+                throw new InvalidOrder (((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }
         }
         if ((response == null))
@@ -3078,9 +3078,9 @@ public partial class tokocrypto : Exchange
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error == "-2015") && (this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false) == true))
             {
-                throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
+                throw new DDoSProtection (((this.id + " ") + body)) ;
             }
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             if (message == "No need to change margin type.")
             {
                 throw new MarginModeAlreadySet (feedback) ;
@@ -3090,7 +3090,7 @@ public partial class tokocrypto : Exchange
         }
         if (success != true)
         {
-            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

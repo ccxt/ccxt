@@ -950,7 +950,7 @@ public partial class blofin : Exchange
         return this.parseOrderBook(first, symbol, timestamp);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // response similar for REST & WS
@@ -1487,7 +1487,7 @@ public partial class blofin : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // "data" similar for REST & WS
@@ -2682,7 +2682,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(first, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         string? address = this.safeString(depositAddress, "address");
         string? currencyId = this.safeString(depositAddress, "currency");
@@ -3001,7 +3001,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //
@@ -3144,7 +3144,7 @@ public partial class blofin : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(item, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -3734,7 +3734,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "instId");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -3928,11 +3928,11 @@ public partial class blofin : Exchange
 
     public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", this.safeString(marginMode, "marginMode") },
-        })));
+        };
     }
 
     /**
@@ -4081,7 +4081,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbolsNormalized));
     }
 
-    public override object parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionsADLRank
@@ -4121,7 +4121,7 @@ public partial class blofin : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -4132,7 +4132,7 @@ public partial class blofin : Exchange
         //
         string? codeError = this.safeString(response, "code");
         string? message = this.safeString(response, "msg");
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         if ((codeError != null) && codeError != "0")
         {
             this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);

@@ -292,7 +292,7 @@ public partial class mudrex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null) || !(response is IDictionary<string, object>))
         {
@@ -495,7 +495,7 @@ public partial class mudrex : Exchange
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            IDictionary<string, object> t = ((IDictionary<string, object>)rows[i]);
+            IDictionary<string, object> t = ((IDictionary<string, object>)(rows != null && i < rows.Count ? rows[i] : null));
             string? sym = this.safeString(t, "symbol");
             if ((sym == null))
             {
@@ -507,12 +507,12 @@ public partial class mudrex : Exchange
             {
                 continue;
             }
-            resultTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(t, m));
+            resultTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(rows, i, new Dictionary<string, object>() {}), m));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(resultTickers, "symbol", symbols));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? ms = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
@@ -726,10 +726,10 @@ public partial class mudrex : Exchange
         {
             throw new NullResponse ((this.id + " fetchBalance() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(this.extend(response, new Dictionary<string, object>() {             { "currency", currency },         })));
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(this.extend(response, new Dictionary<string, object>() {     { "currency", currency }, })));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? currency = this.safeString(response, "currency", "USDT");
@@ -1326,7 +1326,7 @@ public partial class mudrex : Exchange
             notional = this.parseNumber(Precise.stringMul(Precise.stringMul(quantityString, entryPriceString), contractSizeString));
         }
         string? initialMargin = this.safeString(position, "initial_margin");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
             { "symbol", symbol },
@@ -1353,7 +1353,7 @@ public partial class mudrex : Exchange
             { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "marginMode", "isolated" },
             { "percentage", null },
-        })));
+        };
     }
 
     /**

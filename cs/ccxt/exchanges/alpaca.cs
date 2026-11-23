@@ -2014,7 +2014,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2245,7 +2245,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -2462,7 +2462,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
@@ -2581,7 +2581,7 @@ public partial class alpaca : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2591,7 +2591,7 @@ public partial class alpaca : Exchange
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         string? errorCode = this.safeString(response, "code");
         // code is an int: it is never undefined, the guard was dead
         this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);

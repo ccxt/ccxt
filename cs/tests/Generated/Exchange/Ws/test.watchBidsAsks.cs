@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         object withSymbol = testWatchBidsAsksHelper(exchange, skippedProperties, new List<object>() {symbol});
         await promiseAll(new List<object>() {withSymbol, withoutSymbol});
     }
-    async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
+    async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, IList<object> argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
         string method = "watchBidsAsks";
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
+                if ((e is ArgumentsRequired) && ((argSymbols == null) || ((argSymbols?.Count ?? 0) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return false;
@@ -57,9 +57,9 @@ public partial class testMainClass : BaseTest
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
+                if ((argSymbols != null) && ((argSymbols?.Count ?? 0) == 1))
                 {
-                    checkedSymbol = getValue(argSymbols, 0);
+                    checkedSymbol = (argSymbols != null && 0 < argSymbols.Count ? argSymbols[0] : null);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (int i = 0; i < values.Count; i++)

@@ -797,7 +797,7 @@ public partial class bitrue : ccxt.bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1058,9 +1058,9 @@ public partial class bitrue : ccxt.bitrue
         await client.send(pong);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("channel")))
+        if ((message != null && message.ContainsKey("channel")))
         {
             string? channel = this.safeString(message, "channel");
             if (channel.IndexOf("_depth_step", StringComparison.Ordinal) > -1)
@@ -1076,7 +1076,7 @@ public partial class bitrue : ccxt.bitrue
             {
                 this.handleTicker(client, (Dictionary<string, object>)message);
             }
-        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
+        } else if ((message != null && message.ContainsKey("ping")))
         {
             this.handlePing(client, message);
         } else

@@ -128,14 +128,14 @@ public partial class lighter : ccxt.lighter
         return await this.subscribePublic(messageHash, request);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         double? price = this.safeFloat(delta, "price");
         double? amount = this.safeFloat(delta, "size");
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -244,7 +244,7 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -324,7 +324,7 @@ public partial class lighter : ccxt.lighter
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                ccxt.Ticker ticker = this.parseTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+                ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, marketId, new Dictionary<string, object>() {}), market);
                 this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
                 client.resolve(ccxt.BaseExchange.FromTicker(ticker), this.getMessageHash("ticker", symbol));
                 client.resolve(ccxt.BaseExchange.FromTicker(ticker), this.getMessageHash("ticker"));
@@ -408,14 +408,14 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if (((firstMarket != null)) && (!(this.safeBool(firstMarket, "swap", false) == true)))
         {
@@ -1328,7 +1328,7 @@ public partial class lighter : ccxt.lighter
 
     public virtual Int64 requestId(object url)
     {
-        IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         options[(string)url] = newValue;
@@ -1529,7 +1529,7 @@ public partial class lighter : ccxt.lighter
         return true;
     }
 
-    public virtual bool handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1623,7 +1623,7 @@ public partial class lighter : ccxt.lighter
         return true;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if (!this.handleErrorMessage(client, message))
         {

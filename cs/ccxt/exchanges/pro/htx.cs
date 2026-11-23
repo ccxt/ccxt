@@ -363,7 +363,7 @@ public partial class htx : ccxt.htx
         }
         for (int i = 0; i < data.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(data[i], market);
+            ccxt.Trade trade = this.parseTrade(this.safeDict(data, i, new Dictionary<string, object>() {}), market);
             tradesCache.append(ccxt.BaseExchange.FromTrade(trade));
         }
         client.resolve(tradesCache, ch);
@@ -421,7 +421,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -560,7 +560,7 @@ public partial class htx : ccxt.htx
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -733,14 +733,14 @@ public partial class htx : ccxt.htx
         return null;
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         double? price = this.safeFloat(delta, 0);
         double? amount = this.safeFloat(delta, 1);
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -1755,7 +1755,7 @@ public partial class htx : ccxt.htx
         if ((type != null))
         {
             List<object> typeParts = type.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            side = ((string)(typeParts != null && 0 < typeParts.Count ? typeParts[0] : null));
+            side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
         bool? aggressor = this.safeBool(trade, "aggressor");
@@ -2737,7 +2737,7 @@ public partial class htx : ccxt.htx
         promise.resolve(message);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2840,7 +2840,7 @@ public partial class htx : ccxt.htx
         return ((bool?)((object)(true)));
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.handleErrorMessage(client, message) == true))
         {
@@ -2888,12 +2888,12 @@ public partial class htx : ccxt.htx
             //         }
             //     }
             //
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("id")))
+            if ((message != null && message.ContainsKey("id")))
             {
                 this.handleSubscriptionStatus(client, message);
                 return;
             }
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("action")))
+            if ((message != null && message.ContainsKey("action")))
             {
                 string? action = this.safeString(message, "action");
                 if (action == "ping")
@@ -2907,7 +2907,7 @@ public partial class htx : ccxt.htx
                     return;
                 }
             }
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ch")))
+            if ((message != null && message.ContainsKey("ch")))
             {
                 if ((this.safeString(message, "ch") == "auth"))
                 {
@@ -2920,7 +2920,7 @@ public partial class htx : ccxt.htx
                     return;
                 }
             }
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("op")))
+            if ((message != null && message.ContainsKey("op")))
             {
                 string? op = this.safeString(message, "op");
                 if (op == "ping")
@@ -2944,7 +2944,7 @@ public partial class htx : ccxt.htx
                     return;
                 }
             }
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
+            if ((message != null && message.ContainsKey("ping")))
             {
                 this.handlePing(client, message);
             }
@@ -3082,8 +3082,7 @@ public partial class htx : ccxt.htx
                 Dictionary<string, object> market = this.market(marketId);
                 for (int i = 0; i < rawTrades.Count; i++)
                 {
-                    IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
-                    Dictionary<string, object> parsedTrade = ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market));
+                    Dictionary<string, object> parsedTrade = ccxt.BaseExchange.FromTrade(this.parseTrade(this.safeDict(rawTrades, i, new Dictionary<string, object>() {}), market));
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
                     cachedTrades.append(parsedTrade);

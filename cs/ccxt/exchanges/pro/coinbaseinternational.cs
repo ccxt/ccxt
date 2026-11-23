@@ -788,7 +788,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchTickers", parameters);
@@ -796,7 +796,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
         (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
@@ -939,7 +939,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchBidsAsks", parameters);
@@ -947,7 +947,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
@@ -1076,7 +1076,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
@@ -1102,10 +1102,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? symbol = this.safeString(resolved, 0);
         string? timeframe = this.safeString(resolved, 1);
         object ohlcv = this.safeValue(resolved, 2);
-        object limitResolved = limit;
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit);
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
@@ -1123,7 +1123,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1328,7 +1328,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            ccxt.Trade trade = this.parseTrade((data != null && i < data.Count ? data[i] : null), market);
+            ccxt.Trade trade = this.parseTrade(this.safeDict(data, i, new Dictionary<string, object>() {}), market);
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = tradesArray;
@@ -1419,7 +1419,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOrderBook", parameters);
@@ -1561,7 +1561,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, isPrivate, new Dictionary<string, object>() {});
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         string? action = this.safeString(delta, 0);
         double? price = this.safeNumber(delta, 1);
@@ -1575,7 +1575,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         int deltasLength = deltas?.Count ?? 0;
         for (int i = 0; i < deltasLength; i++)
@@ -1584,7 +1584,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         IDictionary<string, object> error = this.safeDict(message, "error");
         if ((error == null))
@@ -1629,7 +1629,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.handleErrorMessage(client, message) == true))
         {
@@ -2055,7 +2055,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", parameters);
@@ -2092,7 +2092,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrdersWs(string symbol = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrdersWs(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrdersWs", parameters);
@@ -2159,7 +2159,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTradesWs(string symbol = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTradesWs(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", parameters);

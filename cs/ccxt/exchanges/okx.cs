@@ -2906,8 +2906,7 @@ public partial class okx : Exchange
             List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (optionsUnderlying?.Count ?? 0); i++)
             {
-                object underlying = optionsUnderlying[i];
-                request["uly"] = underlying;
+                request["uly"] = this.safeString(optionsUnderlying, i);
                 promises.Add(this.publicGetPublicInstruments(this.extend(request, parameters)));
             }
             List<object> promisesResult = new List<object>(await Task.WhenAll(promises));
@@ -3197,7 +3196,7 @@ public partial class okx : Exchange
         return this.parseOrderBook(first, symbol, timestamp);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -5131,8 +5130,7 @@ public partial class okx : Exchange
         Dictionary<string, object> response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     public virtual object parseIds(object ids)
@@ -5909,8 +5907,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -6725,7 +6722,7 @@ public partial class okx : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -6797,7 +6794,7 @@ public partial class okx : Exchange
         }, currencyResolved);
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -6942,7 +6939,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> filtered = this.filterBy(data, "selected", true);
-        List<object> parsed = ((List<object>)this.parseDepositAddresses(filtered, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(filtered, new List<object> {this.safeString(currency, "code", "")}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -7376,7 +7373,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -7562,7 +7559,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToLeverage(new Dictionary<string, object>() {             { "info", data },             { "symbol", this.safeSymbol(marketId, market) },             { "marginMode", rowMarginMode },             { "longLeverage", longLeverage },             { "shortLeverage", shortLeverage },         });
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "instId");
         string? positionSide = this.safeStringLower(leverage, "posSide");
@@ -8985,7 +8982,7 @@ public partial class okx : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseBorrowRateHistories(IList<object> response, object codes, Int64? since, Int64? limit)
+    public virtual Dictionary<string, object> parseBorrowRateHistories(IList<object> response, IList<object> codes, Int64? since, Int64? limit)
     {
         //
         //    [
@@ -9036,7 +9033,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(IList<object> codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9396,7 +9393,7 @@ public partial class okx : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9455,7 +9452,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         string? instId = this.safeString(info, "instId");
         object marketResolved = ((instId != null)) ? this.safeMarket(instId, market) : market;
@@ -10549,7 +10546,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(data, symbolsNormalized));
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10675,8 +10672,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -10784,7 +10780,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(result, null, "instId"));
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -11062,7 +11058,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(this.safeList(response, "data", new List<object>() {}),code, "baseCcy", "quoteCcy", since, limit));
     }
 
-    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -11206,7 +11202,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToCurrencies(result);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -11235,7 +11231,7 @@ public partial class okx : Exchange
         string? codeError = this.safeString(response, "code");
         if ((codeError != "0") && (codeError != "2"))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             List<object> data = this.safeList(response, "data", new List<object>() {});
             for (int i = 0; i < (data?.Count ?? 0); i++)
             {
@@ -11519,7 +11515,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(result, market, since, limit));
     }
 
-    public override object parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLongShortRatio(object info, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(info, "timestamp");
         string? symbol = null;

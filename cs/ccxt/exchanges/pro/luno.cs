@@ -506,7 +506,7 @@ public partial class luno : ccxt.luno
         return true;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Values);
         int subscriptionsLength = subscriptions.Count;

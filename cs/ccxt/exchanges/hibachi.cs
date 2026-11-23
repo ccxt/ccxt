@@ -494,7 +494,7 @@ public partial class hibachi : Exchange
         return result;
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -545,7 +545,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         IDictionary<string, object> prices = this.safeDict(ticker, "prices");
         IDictionary<string, object> stats = this.safeDict(ticker, "stats");
@@ -1991,7 +1991,7 @@ public partial class hibachi : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2006,7 +2006,7 @@ public partial class hibachi : Exchange
             if (status == "failed")
             {
                 string? codeError = this.safeString(response, "errorCode");
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
                 this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString(response, "message");
@@ -2039,7 +2039,7 @@ public partial class hibachi : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         string? transactionType = this.safeString(item, "transactionType");
         Int64? timestamp = null;
@@ -2241,7 +2241,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", "USDT" },             { "network", "ARBITRUM" },             { "address", this.safeString(response, "depositAddressEvm") },             { "tag", null },         });
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         Int64? timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         string? address = this.safeString(transaction, "withdrawalAddress");

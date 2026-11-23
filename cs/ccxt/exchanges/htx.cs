@@ -2902,7 +2902,7 @@ public partial class htx : Exchange
         return symbolOrMarketId;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker
@@ -2957,24 +2957,24 @@ public partial class htx : Exchange
         string? bidVolume = null;
         string? ask = null;
         string? askVolume = null;
-        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bid")))
+        if ((ticker != null && ticker.ContainsKey("bid")))
         {
-            if (((((IDictionary<string,object>)ticker)["bid"]) is var hxArr120025 && ((hxArr120025 is IList<object>) || (hxArr120025.GetType().IsGenericType && hxArr120025.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((ticker["bid"]) is var hxArr120025 && ((hxArr120025 is IList<object>) || (hxArr120025.GetType().IsGenericType && hxArr120025.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                bid = this.safeString(((IDictionary<string,object>)ticker)["bid"], 0);
-                bidVolume = this.safeString(((IDictionary<string,object>)ticker)["bid"], 1);
+                bid = this.safeString(ticker["bid"], 0);
+                bidVolume = this.safeString(ticker["bid"], 1);
             } else
             {
                 bid = this.safeString(ticker, "bid");
                 bidVolume = this.safeString(ticker, "bidSize");
             }
         }
-        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("ask")))
+        if ((ticker != null && ticker.ContainsKey("ask")))
         {
-            if (((((IDictionary<string,object>)ticker)["ask"]) is var hxArr120392 && ((hxArr120392 is IList<object>) || (hxArr120392.GetType().IsGenericType && hxArr120392.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((ticker["ask"]) is var hxArr120392 && ((hxArr120392 is IList<object>) || (hxArr120392.GetType().IsGenericType && hxArr120392.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                ask = this.safeString(((IDictionary<string,object>)ticker)["ask"], 0);
-                askVolume = this.safeString(((IDictionary<string,object>)ticker)["ask"], 1);
+                ask = this.safeString(ticker["ask"], 0);
+                askVolume = this.safeString(ticker["ask"], 1);
             } else
             {
                 ask = this.safeString(ticker, "ask");
@@ -3290,7 +3290,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(data, symbolsNormalized));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
     {
         // example responses are documented in fetchLastPrices
         string? marketId = this.safeString2(entry, "symbol", "contract_code");
@@ -3947,7 +3947,7 @@ public partial class htx : Exchange
             List<object> trades = this.safeList(data[i], "data", new List<object>() {});
             for (int j = 0; j < trades.Count; j++)
             {
-                ccxt.Trade trade = this.parseTrade(trades[j], market);
+                ccxt.Trade trade = this.parseTrade(this.safeDict(trades, j, new Dictionary<string, object>() {}), market);
                 result.Add(ccxt.BaseExchange.FromTrade(trade));
             }
         }
@@ -4196,7 +4196,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(data));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         //
         //     {
@@ -6154,14 +6154,20 @@ public partial class htx : Exchange
         Dictionary<string, object> fee = null;
         if (((feeCost != null)) && (feeCost != "0") && (feeCost != "0.0"))
         {
-            object feeCurrency = null;
+            string? feeCurrency = null;
             string? feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             if ((feeCurrencyId != null))
             {
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             } else
             {
-                feeCurrency = (side == "sell") ? (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) : (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
+                if (side == "sell")
+                {
+                    feeCurrency = this.safeString(marketResolved, "quote");
+                } else
+                {
+                    feeCurrency = this.safeString(marketResolved, "base");
+                }
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -6473,7 +6479,11 @@ public partial class htx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        string? orderType = ((string)(postOnly ? "post_only" : type));
+        string? orderType = type;
+        if (postOnly)
+        {
+            orderType = "post_only";
+        }
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("createOrder", market, paramsPostOnly);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -6641,7 +6651,7 @@ public partial class htx : Exchange
                 request["client_order_id"] = clientOrderId;
                 query = this.omit(query, new List<object>() {"clientOrderId"});
             }
-            if (orderType == "limit" || orderType == "ioc" || orderType == "fok" || orderType == "post_only")
+            if ((orderType == "limit") || (orderType == "ioc") || (orderType == "fok") || (orderType == "post_only"))
             {
                 if ((price != null))
                 {
@@ -7731,7 +7741,7 @@ public partial class htx : Exchange
         return response;
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -7794,7 +7804,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        List<object> parsed = ((List<object>)this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(data, new List<object> {this.safeString(currency, "code", "")}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -7850,7 +7860,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        List<object> allAddresses = ((List<object>)this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
+        List<object> allAddresses = ((List<object>)this.parseDepositAddresses(data, new List<object> {this.safeString(currency, "code", "")}, false));
         List<object> addresses = new List<object>() {};
         for (int i = 0; i < (allAddresses?.Count ?? 0); i++)
         {
@@ -7993,7 +8003,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limitValue));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -8514,7 +8524,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToIsolatedBorrowRates(this.parseIsolatedBorrowRates(data));
     }
 
-    public override object parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -8865,7 +8875,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8930,7 +8940,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         // isolated
         //    {
@@ -9212,7 +9222,7 @@ public partial class htx : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -9228,7 +9238,7 @@ public partial class htx : Exchange
             if (status == "error")
             {
                 string? codeError = this.safeString2(response, "err-code", "err_code");
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
                 this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString2(response, "err-msg", "err_msg");
@@ -9240,7 +9250,7 @@ public partial class htx : Exchange
         if ((responseCode != null))
         {
             // {code: '1003', message: 'invalid signature'}
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? codeError = responseCode;
             this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
         }
@@ -9251,7 +9261,7 @@ public partial class htx : Exchange
             IDictionary<string, object> first = this.safeDict(errorsList, 0);
             string? errcode = this.safeString(first, "err_code");
             string? errmessage = this.safeString(first, "err_msg");
-            string feedBack = ((this.id + " ") + (body));
+            string feedBack = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errcode, feedBack);
             this.throwExactlyMatchedException(this.exceptionsExact, errmessage, feedBack);
         }
@@ -9742,8 +9752,7 @@ public partial class htx : Exchange
         object data = this.safeValue(response, "data");
         if ((this.safeBool(market, "linear", false) == true))
         {
-            IDictionary<string, object> linearPosition = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToPosition(this.parsePosition(linearPosition, market));
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(data, 0, new Dictionary<string, object>() {}), market));
         }
         object account = null;
         if (((marginModeOption == null)) || ((marginModeOption == "cross")))
@@ -9800,7 +9809,7 @@ public partial class htx : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -11058,7 +11067,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(data, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -11295,7 +11304,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbolsNormalized));
     }
 
-    public override object parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionADLRank linear

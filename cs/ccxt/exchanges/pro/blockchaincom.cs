@@ -295,7 +295,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             return;
         } else if (eventVar == "snapshot")
         {
-            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(message, market));
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(((IDictionary<string, object>)message), market));
         } else if (eventVar == "updated")
         {
             IDictionary<string, object> lastTicker = this.safeDict(this.tickers, symbol);
@@ -795,13 +795,13 @@ public partial class blockchaincom : ccxt.blockchaincom
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         (bookside as IOrderBookSide).storeArray(bookArray);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -809,7 +809,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? channel = this.safeString(message, "channel");
         if (channel == "ticker")

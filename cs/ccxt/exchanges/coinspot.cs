@@ -581,7 +581,7 @@ public partial class coinspot : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -695,7 +695,7 @@ public partial class coinspot : Exchange
         return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buyorders", "sellorders", "rate", "amount");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -813,8 +813,7 @@ public partial class coinspot : Exchange
             if ((this.safeBool(market, "spot", false) == true))
             {
                 string? symbol = this.safeString(market, "symbol", "");
-                object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);
-                result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(prices, id, new Dictionary<string, object>() {}), market));
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -1083,7 +1082,7 @@ public partial class coinspot : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {

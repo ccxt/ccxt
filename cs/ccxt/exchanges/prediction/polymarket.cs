@@ -2129,7 +2129,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} response the raw balance-allowance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -3297,13 +3297,12 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawEvents?.Count ?? 0); i++)
         {
-            object rawEvent = (rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null);
-            result.Add(this.parseEvent(rawEvent));
+            result.Add(this.parseEvent((rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null)));
         }
         return result;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
@@ -3315,7 +3314,7 @@ public partial class polymarket : PredictionExchange
         string? errorMessage = this.safeString2(response, "error", "errorMsg");
         if ((errorMessage != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         }
@@ -3374,7 +3373,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152211 && ((hxArr152211 is IList<object>) || (hxArr152211.GetType().IsGenericType && hxArr152211.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152172 && ((hxArr152172 is IList<object>) || (hxArr152172.GetType().IsGenericType && hxArr152172.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3693,7 +3692,7 @@ public partial class polymarket : PredictionExchange
         client.lastPong = this.milliseconds();
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleMessageEvent(client, message);
     }

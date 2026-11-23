@@ -506,7 +506,7 @@ public partial class blockchaincom : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1032,7 +1032,7 @@ public partial class blockchaincom : Exchange
         return this.safeString(states, state, state);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposit
@@ -1424,7 +1424,7 @@ public partial class blockchaincom : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ((response == null))
@@ -1436,7 +1436,7 @@ public partial class blockchaincom : Exchange
         {
             if (text == "Insufficient Balance")
             {
-                throw new InsufficientFunds ((string)((this.id + " ") + (body))) ;
+                throw new InsufficientFunds (((this.id + " ") + body)) ;
             }
         }
         string? errorCode = this.safeString(response, "status");

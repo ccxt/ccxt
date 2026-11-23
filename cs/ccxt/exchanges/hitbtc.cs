@@ -1343,7 +1343,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1689,7 +1689,7 @@ public partial class hitbtc : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // transaction
@@ -3013,11 +3013,11 @@ public partial class hitbtc : Exchange
     public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market) },
             { "marginMode", this.safeStringLower(marginMode, "margin_mode") },
-        })));
+        };
     }
 
     /**
@@ -4050,7 +4050,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -4103,7 +4103,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "leverage", leverage.ToString() },
+            { "leverage", ((object)leverage).ToString() },
             { "margin_balance", this.amountToPrecision(symbol, amount) },
         };
         return await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters));
@@ -4287,7 +4287,7 @@ public partial class hitbtc : Exchange
         return (marginMode, paramsMarginMode);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         //     {
@@ -4309,7 +4309,7 @@ public partial class hitbtc : Exchange
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString2(error, "message", "description");
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);

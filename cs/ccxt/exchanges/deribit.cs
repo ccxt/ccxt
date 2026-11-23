@@ -1079,7 +1079,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(result));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         //
         //      {
@@ -1376,13 +1376,13 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object balance)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> balance)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
         List<object> summaries = new List<object>() {};
-        if ((balance != null && ((IDictionary<string, object>)balance).ContainsKey("summaries")))
+        if ((balance != null && balance.ContainsKey("summaries")))
         {
             summaries = this.safeList(balance, "summaries", new List<object>() {});
         } else
@@ -1567,7 +1567,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", null },         });
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker /public/ticker
@@ -3138,7 +3138,7 @@ public partial class deribit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchWithdrawals
@@ -4087,7 +4087,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlements, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4186,7 +4186,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToGreeks(this.parseGreeks(result, market));
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4370,7 +4370,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(result, "base_currency", "instrument_name"));
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4593,7 +4593,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -4617,7 +4617,7 @@ public partial class deribit : Exchange
         if ((error != null))
         {
             string? errorCode = this.safeString(error, "code");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }

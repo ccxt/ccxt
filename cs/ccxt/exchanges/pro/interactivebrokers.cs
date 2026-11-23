@@ -85,7 +85,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @see https://www.interactivebrokers.com/docs/web-api/ws/auth-status
      * @returns {string} the url of the websocket client
      */
-    public async virtual Task<object> ibkrConnect()
+    public async virtual Task<string?> ibkrConnect()
     {
         await this.authenticate();
         bool? useGateway = this.safeBool(this.options, "useGateway", false);
@@ -344,7 +344,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string[]} [params.fields] the market data fields to stream, default options.watchTicker.fields
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.ibkrWatchMarketData("ticker", symbols, parameters);
@@ -367,7 +367,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.ibkrWatchMarketData("bidask", symbols, parameters);
@@ -391,12 +391,12 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the updated ticker
      */
-    public async virtual Task<object> ibkrWatchMarketData(string topic, object symbols = null, object parameters = null)
+    public async virtual Task<object> ibkrWatchMarketData(string topic, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> marketSymbols = this.marketSymbols(this.toArray(symbols), null, false);
-        object url = await this.ibkrConnect();
+        IList<object> marketSymbols = this.marketSymbols(symbols, null, false);
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (marketSymbols?.Count ?? 0); i++)
@@ -471,7 +471,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false);
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         List<object> subHashes = new List<object>() {};
         for (int i = 0; i < (marketSymbols?.Count ?? 0); i++)
@@ -573,7 +573,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Dictionary<string, object> market = this.market(symbol);
         string? unifiedSymbol = this.safeString(market, "symbol", "");
         string? historyMarketId = this.safeString(market, "id", "");
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         string messageHash = ((("ohlcv::" + unifiedSymbol) + "::") + (timeframeVar));
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
@@ -638,7 +638,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -647,7 +647,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Dictionary<string, object> market = this.market(symbol);
         string? unifiedSymbol = this.safeString(market, "symbol", "");
         string? historyMarketId = this.safeString(market, "id", "");
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         List<object> subHashes = new List<object>() {((("ohlcv::" + unifiedSymbol) + "::") + (timeframeVar)), ((("smh::" + historyMarketId) + "::") + (timeframeVar))};
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -907,7 +907,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         var accountId = ((IList<object>) accountIdqueryVariable)[0];
         var query = ((IList<object>) accountIdqueryVariable)[1];
         string? bookExchange = this.safeString(query, "exchange");
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         string messageHash = ("orderbook::" + unifiedSymbol);
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
@@ -936,7 +936,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
      * @returns {boolean} true
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -945,7 +945,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         var accountIdqueryVariable = await this.loadAccountId(parameters);
         var accountId = ((IList<object>) accountIdqueryVariable)[0];
         var query = ((IList<object>) accountIdqueryVariable)[1];
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         Dictionary<string, object> subscription = this.extend(new Dictionary<string, object>() {
             { "topic", "orderbook" },
@@ -1123,7 +1123,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             unifiedSymbol = this.symbol(symbol);
             messageHash = ((messageHash + "::") + unifiedSymbol);
         }
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         // the sor updates of the orders that were not created on this connection carry only the orderId and the status,
         // the full raw orders are seeded from the rest snapshot, the updates are merged into them by orderId
@@ -1182,7 +1182,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
     public async override Task<object> unWatchOrders(string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         this.cleanUnsubscription(client, "orders", "unsubscribe::orders", true);
         string emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
@@ -1288,7 +1288,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             unifiedSymbol = this.symbol(symbol);
             messageHash = ((messageHash + "::") + unifiedSymbol);
         }
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         var future = client.reusableFuture(messageHash);
@@ -1327,7 +1327,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
     public async override Task<object> unWatchMyTrades(string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         this.cleanUnsubscription(client, "myTrades", "unsubscribe::myTrades", true);
         return await this.ibkrUnsubscribe(client, new List<object>() {"str"}, "utr", new Dictionary<string, object>() {
@@ -1389,8 +1389,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < args.Count; i++)
         {
-            object rawTrade = args[i];
-            ccxt.Trade trade = this.parseTrade(rawTrade);
+            object rawTrade = (args != null && i < args.Count ? args[i] : null);
+            ccxt.Trade trade = this.parseTrade(this.safeDict(args, i, new Dictionary<string, object>() {}));
             Int64? tradeTimestamp = trade.timestamp;
             if (((threshold != null)) && ((tradeTimestamp != null)) && (tradeTimestamp.Value < threshold.Value))
             {
@@ -1442,7 +1442,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         var accountIdqueryVariable = await this.loadAccountId(parameters);
         var accountId = ((IList<object>) accountIdqueryVariable)[0];
         var query = ((IList<object>) accountIdqueryVariable)[1];
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         string messageHash = "balance";
         string subscribeHash = ("sld::" + (accountId));
@@ -1486,7 +1486,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         var accountIdqueryVariable = await this.loadAccountId(parameters);
         var accountId = ((IList<object>) accountIdqueryVariable)[0];
         var query = ((IList<object>) accountIdqueryVariable)[1];
-        object url = await this.ibkrConnect();
+        string? url = await this.ibkrConnect();
         var client = this.client(url);
         this.balance = new Dictionary<string, object>() {};
         string emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
@@ -1569,7 +1569,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         }
     }
 
-    public virtual bool handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "topic": "smd+123", "error": "..." }
@@ -1603,7 +1603,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         client.lastPong = this.milliseconds();
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // every message (including the 10 second system heartbeats) proves the connection is alive

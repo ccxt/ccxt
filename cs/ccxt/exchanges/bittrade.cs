@@ -868,7 +868,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker
@@ -1091,10 +1091,10 @@ public partial class bittrade : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            string? marketId = this.safeString(tickers[i], "symbol");
+            string? marketId = this.safeString((tickers != null && i < tickers.Count ? tickers[i] : null), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");
-            ccxt.Ticker ticker = this.parseTicker(tickers[i], market);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(tickers, i, new Dictionary<string, object>() {}), market);
             ticker.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
             ticker.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
             result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
@@ -1313,7 +1313,7 @@ public partial class bittrade : Exchange
             List<object> trades = this.safeList(data[i], "data", new List<object>() {});
             for (int j = 0; j < trades.Count; j++)
             {
-                ccxt.Trade trade = this.parseTrade(trades[j], market);
+                ccxt.Trade trade = this.parseTrade(this.safeDict(trades, j, new Dictionary<string, object>() {}), market);
                 result.Add(ccxt.BaseExchange.FromTrade(trade));
             }
         }
@@ -1503,7 +1503,7 @@ public partial class bittrade : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(data, "list", new List<object>() {});
@@ -2169,7 +2169,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", data }, }))});
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2275,7 +2275,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limitResolved));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2523,7 +2523,7 @@ public partial class bittrade : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2538,7 +2538,7 @@ public partial class bittrade : Exchange
             if (status == "error")
             {
                 string? codeError = this.safeString(response, "err-code");
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
                 this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString(response, "err-msg");

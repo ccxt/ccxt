@@ -113,7 +113,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //    {
@@ -304,7 +304,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
         (bookside as IOrderBookSide).storeArray(bidAsk);
@@ -787,7 +787,7 @@ public partial class alpaca : ccxt.alpaca
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleTradingMessage(client, message);
     }

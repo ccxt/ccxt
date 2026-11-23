@@ -1810,7 +1810,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1894,7 +1894,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(entry, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1974,7 +1974,7 @@ public partial class hashkey : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseBalance(object balance)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> balance)
     {
         //
         //     {
@@ -2090,7 +2090,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToDepositAddress(depositAddress);
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2303,7 +2303,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //  fetchDeposits
@@ -2513,7 +2513,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(response, parameters));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         string? accountLabel = this.safeString(account, "accountLabel");
         string label = "";
@@ -2656,7 +2656,7 @@ public partial class hashkey : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4209,7 +4209,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(leverage, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marginMode = this.safeStringLower(leverage, "marginType");
         double? leverageValue = this.safeNumber(leverage, "leverage");
@@ -4735,7 +4735,7 @@ public partial class hashkey : Exchange
         return result;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -4760,7 +4760,7 @@ public partial class hashkey : Exchange
         }
         if (((code != 200)) || errorInArray)
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), responseCodeString, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, responseCodeString, feedback);
             throw new ExchangeError (feedback) ;

@@ -809,10 +809,10 @@ public partial class bitvavo : Exchange
         //         "timestamp":1590381666900
         //     }
         //
-        return this.parseTicker(response, market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker
@@ -1382,7 +1382,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         return new Dictionary<string, object>() {
             { "id", this.safeString(account, "id") },
@@ -2557,7 +2557,7 @@ public partial class bitvavo : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         string? rawType = this.safeString(item, "type");
         string? type = this.parseLedgerEntryType(rawType);
@@ -2795,7 +2795,7 @@ public partial class bitvavo : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -3029,7 +3029,7 @@ public partial class bitvavo : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -3044,7 +3044,7 @@ public partial class bitvavo : Exchange
         string? error = this.safeString(response, "error");
         if ((errorCode != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;

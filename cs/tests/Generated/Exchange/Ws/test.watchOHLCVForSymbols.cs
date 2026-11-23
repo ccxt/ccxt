@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             Int64 startTime = exchange.milliseconds();
             try
             {
-                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit));
+                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
                 if ((response == null))
                 {
                     throw new Exception (add(exchange.id, " watch returned undefined response")) ;

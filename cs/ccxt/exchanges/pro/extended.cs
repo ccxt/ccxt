@@ -136,14 +136,14 @@ public partial class extended : ccxt.extended
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         double? price = this.safeFloat(delta, "p");
         double? amount = this.safeFloat2(delta, "c", "q");
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -642,7 +642,7 @@ public partial class extended : ccxt.extended
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(message, "ts");
         Int64? fundingTimestamp = this.safeInteger(fundingRate, "T");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "markPrice", null },
@@ -661,7 +661,7 @@ public partial class extended : ccxt.extended
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
             { "interval", null },
-        })));
+        };
     }
 
     /**
@@ -813,7 +813,7 @@ public partial class extended : ccxt.extended
         subscription["nonce"] = nonce;
         for (int i = 0; i < data.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(data[i], market);
+            ccxt.Trade trade = this.parseTrade(this.safeDict(data, i, new Dictionary<string, object>() {}), market);
             stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         client.resolve(stored, messageHash);
@@ -955,7 +955,7 @@ public partial class extended : ccxt.extended
         return ((IDictionary<string, object>)((object)(null)));
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
@@ -973,7 +973,7 @@ public partial class extended : ccxt.extended
         throw new ExchangeError (feedback) ;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.handleErrorMessage(client, message) == true))
         {

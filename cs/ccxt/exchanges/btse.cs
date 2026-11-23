@@ -1125,7 +1125,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(result);
     }
 
-    public override object parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1445,7 +1445,7 @@ public partial class btse : Exchange
         return this.parseTicker(data, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
@@ -3283,7 +3283,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToTransactionList(await this.requestWalletHistoryRows("fetchWithdrawals", new List<object>() {"WITHDRAW"},code, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3433,7 +3433,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString2(item, "currency", "asset");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -3831,11 +3831,11 @@ public partial class btse : Exchange
         {
             marginModeValue = "isolated";
         }
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "marginMode", marginModeValue },
-        })));
+        };
     }
 
     /**
@@ -4052,7 +4052,7 @@ public partial class btse : Exchange
         return response;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
@@ -4074,7 +4074,7 @@ public partial class btse : Exchange
         {
             string? spotErrorCode = this.safeString(response, "code");
             string? spotMessage = this.safeString(response, "msg");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, spotErrorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), spotMessage, feedback);
             throw new ExchangeError (feedback) ;
@@ -4083,7 +4083,7 @@ public partial class btse : Exchange
         if ((errorCode != null))
         {
             string? message = this.safeString(response, "message");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
@@ -4105,7 +4105,7 @@ public partial class btse : Exchange
         if (((legacyErrorText != null)) && ((legacyEnumCode != null)))
         {
             string? legacyMessage = this.safeString(response, "message");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, legacyEnumCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), legacyMessage, feedback);
             throw new ExchangeError (feedback) ;
@@ -4130,7 +4130,7 @@ public partial class btse : Exchange
                 {
                     rowMessage = this.safeString(embedded, "default_msg", rowMessage);
                 }
-                string feedback = ((this.id + " ") + (body));
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), rowMessage, feedback);
             }

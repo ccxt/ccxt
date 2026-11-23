@@ -991,7 +991,7 @@ public partial class hashkey : ccxt.hashkey
         this.handleStreamMessage(client, this.safeDict(message, 0, new Dictionary<string, object>() {}));
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleStreamMessage(client, message);
     }

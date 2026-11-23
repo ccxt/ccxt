@@ -2884,7 +2884,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -2895,7 +2895,7 @@ public partial class predictfun : PredictionExchange
         {
             return null;
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -3210,7 +3210,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async override Task<object> unWatchOrderBook(object outcome, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? outcome, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -3219,7 +3219,7 @@ public partial class predictfun : PredictionExchange
         string? marketId = this.safeString(info, "marketId");
         if ((marketId == null))
         {
-            throw new ArgumentsRequired ((string)((this.id + " unWatchOrderBook() could not resolve the market id of ") + (outcome))) ;
+            throw new ArgumentsRequired (((this.id + " unWatchOrderBook() could not resolve the market id of ") + outcome)) ;
         }
         string topic = ("predictOrderbook/" + marketId);
         List<object> outcomes = this.outcomesByMarketId(marketId);
@@ -3491,7 +3491,7 @@ public partial class predictfun : PredictionExchange
      * @description the wallet topic, which carries the jwt inside the topic string itself
      * @returns {string} the topic to subscribe to
      */
-    public async virtual Task<string> walletEventsTopic()
+    public async virtual Task<string?> walletEventsTopic()
     {
         // authenticate () serves the cached token until it expires, so subscribe and unsubscribe
         // name the same topic. a re-minted token is a different topic, which is why the socket
@@ -3515,7 +3515,7 @@ public partial class predictfun : PredictionExchange
     public async virtual Task<object> watchWalletEvents(string? messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string topic = await this.walletEventsTopic();
+        string? topic = await this.walletEventsTopic();
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -3578,7 +3578,7 @@ public partial class predictfun : PredictionExchange
     public async virtual Task<object> unWatchWalletEvents(string channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string topic = await this.walletEventsTopic();
+        string? topic = await this.walletEventsTopic();
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -4194,7 +4194,7 @@ public partial class predictfun : PredictionExchange
      * @param {Client} client the websocket client
      * @param {object} message the raw message
      */
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? messageType = this.safeString(message, "type");
         if (messageType == "R")

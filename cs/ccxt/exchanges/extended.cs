@@ -707,7 +707,11 @@ public partial class extended : Exchange
         double? maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
         Int64? created = this.safeInteger(market, "createdAt");
         string? category = this.safeStringLower(market, "category");
-        object takerFees = (category == "rwa") ? this.safeDict(this.fees, "rwa", new Dictionary<string, object>() {}) : this.fees;
+        IDictionary<string, object> takerFees = ((IDictionary<string, object>)this.fees);
+        if (category == "rwa")
+        {
+            takerFees = this.safeDict(this.fees, "rwa", new Dictionary<string, object>() {});
+        }
         string? settleId = null;
         string? settle = null;
         string symbol = ((bs + "/") + quote);
@@ -997,7 +1001,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1602,7 +1606,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolValue, sinceResolved, limitResolved));
     }
 
-    public override object parseFundingRateHistory(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1844,7 +1848,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(data));
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         Int64? accountIndex = this.safeInteger(account, "accountIndex");
         string? type = null;
@@ -1913,7 +1917,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(result, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2339,7 +2343,7 @@ public partial class extended : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2563,7 +2567,7 @@ public partial class extended : Exchange
         return this.parseLeverage(data, market);
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2796,13 +2800,13 @@ public partial class extended : Exchange
         });
     }
 
-    public virtual string? getExtendedStarkAmount(string amount, Int64? resolution, object roundUp = null)
+    public virtual string? getExtendedStarkAmount(string amount, Int64? resolution, bool? roundUp = null)
     {
         roundUp ??= false;
         string? resolutionString = this.numberToString(resolution);
         string? precise = Precise.stringMul(amount, resolutionString);
         string result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
-        if (isTrue(roundUp) && Precise.stringGt(precise, result))
+        if (roundUp == true && Precise.stringGt(precise, result))
         {
             return Precise.stringAdd(result, "1");
         }
@@ -2835,10 +2839,8 @@ public partial class extended : Exchange
         Int64? syntheticResolution = this.safeInteger(parameters, "syntheticResolution");
         Int64? collateralResolution = this.safeInteger(parameters, "collateralResolution");
         string? quoteAmount = Precise.stringMul(amountString, priceString);
-        object baseRoundUp = isBuy;
-        object quoteRoundUp = isBuy;
-        string baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        string collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
+        string baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, isBuy);
+        string collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, isBuy);
         if (isBuy)
         {
             collateralAmount = Precise.stringNeg(collateralAmount);
@@ -3933,7 +3935,7 @@ public partial class extended : Exchange
         return ((string?)((object)(this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash}))));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {

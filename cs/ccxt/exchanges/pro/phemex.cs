@@ -544,8 +544,7 @@ public partial class phemex : ccxt.phemex
             }
             for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
             {
-                object candle = ohlcvs[i];
-                stored.append(candle);
+                stored.append(ohlcvs[i]);
             }
             client.resolve(stored, messageHash);
         }
@@ -603,14 +602,14 @@ public partial class phemex : ccxt.phemex
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string? first = ((string)(symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         Dictionary<string, object> market = this.market(first);
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
@@ -860,7 +859,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1450,8 +1449,7 @@ public partial class phemex : ccxt.phemex
             trades = this.safeList(ordersDict, "fills", new List<object>() {});
             for (int i = 0; i < (orders?.Count ?? 0); i++)
             {
-                IDictionary<string, object> rawOrder = ((IDictionary<string, object>)orders[i]);
-                ccxt.Order parsedOrder = this.parseOrder(rawOrder);
+                ccxt.Order parsedOrder = this.parseOrder(this.safeDict(orders, i, new Dictionary<string, object>() {}));
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
         } else
@@ -1685,7 +1683,7 @@ public partial class phemex : ccxt.phemex
         }, marketValue));
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // private spot update
         // {
@@ -1793,41 +1791,41 @@ public partial class phemex : ccxt.phemex
                 return;
             }
         }
-        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("result"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
+        if (((message != null && message.ContainsKey("result"))) || ((message != null && message.ContainsKey("error"))))
         {
             this.handleUnSubscription(client, message);
             return;
         }
         string? methodName = this.safeString(message, "method", "");
-        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("market24h"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("spot_market24h"))) || ((methodName?.IndexOf("perp_market24h_pack_p", StringComparison.Ordinal) ?? -1) >= 0))
+        if (((message != null && message.ContainsKey("market24h"))) || ((message != null && message.ContainsKey("spot_market24h"))) || ((methodName?.IndexOf("perp_market24h_pack_p", StringComparison.Ordinal) ?? -1) >= 0))
         {
             this.handleTicker(client, (Dictionary<string, object>)message);
             return;
-        } else if (((message != null && ((IDictionary<string, object>)message).ContainsKey("trades"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("trades_p"))))
+        } else if (((message != null && message.ContainsKey("trades"))) || ((message != null && message.ContainsKey("trades_p"))))
         {
             this.handleTrades(client, (Dictionary<string, object>)message);
             return;
-        } else if (((message != null && ((IDictionary<string, object>)message).ContainsKey("kline"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("kline_p"))))
+        } else if (((message != null && message.ContainsKey("kline"))) || ((message != null && message.ContainsKey("kline_p"))))
         {
             this.handleOHLCV(client, (Dictionary<string, object>)message);
             return;
-        } else if (((message != null && ((IDictionary<string, object>)message).ContainsKey("book"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("orderbook_p"))))
+        } else if (((message != null && message.ContainsKey("book"))) || ((message != null && message.ContainsKey("orderbook_p"))))
         {
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
         }
-        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("orders"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("orders_p"))))
+        if (((message != null && message.ContainsKey("orders"))) || ((message != null && message.ContainsKey("orders_p"))))
         {
             this.handleOrders(client, message);
         }
-        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("wallets"))))
+        if (((message != null && message.ContainsKey("accounts"))) || ((message != null && message.ContainsKey("accounts_p"))) || ((message != null && message.ContainsKey("wallets"))))
         {
             string type = "spot";
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts")))
+            if ((message != null && message.ContainsKey("accounts")))
             {
                 type = "swap";
             }
-            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p")))
+            if ((message != null && message.ContainsKey("accounts_p")))
             {
                 type = "perpetual";
             }

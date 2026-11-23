@@ -194,7 +194,7 @@ public partial class blofin : ccxt.blofin
 
     public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend(new Dictionary<string, object>() {}, trade), market);
     }
 
     /**
@@ -328,7 +328,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
@@ -370,7 +370,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            ccxt.Ticker ticker = this.parseWsTicker(this.safeDict(data, i, new Dictionary<string, object>() {}));
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", "");
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             if ((channelName != null))
@@ -379,11 +379,6 @@ public partial class blofin : ccxt.blofin
                 client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
             }
         }
-    }
-
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
-    {
-        return this.parseTicker(ticker, market);
     }
 
     /**
@@ -395,14 +390,14 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsList = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsList = this.marketSymbols(symbols, null, false);
         Dictionary<string, object> firstMarket = this.market((symbolsList != null && 0 < symbolsList.Count ? symbolsList[0] : null));
         string channel = "tickers";
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
@@ -500,7 +495,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
@@ -516,10 +511,10 @@ public partial class blofin : ccxt.blofin
         string? symbol = this.safeString(result, 0, "");
         string? timeframe = this.safeString(result, 1, "");
         object candles = this.safeValue(result, 2);
-        object limitResolved = limit;
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit));
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,timeframe, filtered));
@@ -535,7 +530,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -557,7 +552,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr24608 && ((hxArr24608 is IList<object>) || (hxArr24608.GetType().IsGenericType && hxArr24608.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr24496 && ((hxArr24496 is IList<object>) || (hxArr24496.GetType().IsGenericType && hxArr24496.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -679,7 +674,7 @@ public partial class blofin : ccxt.blofin
 
     public virtual Dictionary<string, object> parseWsBalance(object message)
     {
-        return this.parseBalance(message);
+        return this.parseBalance(((IDictionary<string, object>)message));
     }
 
     /**
@@ -1126,7 +1121,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // message examples

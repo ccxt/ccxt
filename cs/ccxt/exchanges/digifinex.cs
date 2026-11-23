@@ -1421,12 +1421,12 @@ public partial class digifinex : Exchange
         IDictionary<string, object> firstTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         if (!(this.safeBool(market, "swap", false) == true))
         {
-            return this.parseTicker(this.extend(new Dictionary<string, object>() {                 { "date", date },             }, firstTicker), market);
+            return this.parseTicker(this.extend(new Dictionary<string, object>() {     { "date", date }, }, firstTicker), market);
         }
         return this.parseTicker(this.safeDict(response, "data", new Dictionary<string, object>() {}), market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -3295,7 +3295,7 @@ public partial class digifinex : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // spot and margin
@@ -3464,7 +3464,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledger, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3522,7 +3522,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        Dictionary<string, object> addresses = this.indexBy(this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false), "currency");
+        Dictionary<string, object> addresses = this.indexBy(this.parseDepositAddresses(data, new List<object> {this.safeString(currency, "code", "")}, false), "currency");
         IDictionary<string, object> address = this.safeDict(addresses, code);
         if ((address == null))
         {
@@ -3628,7 +3628,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -3875,7 +3875,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3916,7 +3916,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -5438,7 +5438,7 @@ public partial class digifinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -5449,7 +5449,7 @@ public partial class digifinex : Exchange
         {
             return null;  // no error
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         if ((codeError == null))
         {
             throw new BadResponse (feedback) ;

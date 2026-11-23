@@ -1138,8 +1138,7 @@ public partial class toobit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (all?.Count ?? 0); i++)
         {
-            IDictionary<string, object> market = this.safeDict(all, i, new Dictionary<string, object>() {});
-            Dictionary<string, object> parsed = this.parseMarket(market);
+            Dictionary<string, object> parsed = this.parseMarket(this.safeDict(all, i, new Dictionary<string, object>() {}));
             if ((parsed != null))
             {
                 result.Add(parsed);
@@ -1602,7 +1601,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(rows, symbolsNormalized, paramsMarketType));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1679,7 +1678,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(entry, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1887,7 +1886,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(response, market, since, limit));
     }
 
-    public override object parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(contract, "settleTime");
         string? marketId = this.safeString(contract, "symbol");
@@ -2844,7 +2843,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(item, "coinId");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
@@ -3042,7 +3041,7 @@ public partial class toobit : Exchange
         return result;
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits & fetchWithdrawals
@@ -3200,7 +3199,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         string? address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
@@ -3374,7 +3373,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString2(leverage, "symbolId", "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -3575,7 +3574,7 @@ public partial class toobit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -3585,7 +3584,7 @@ public partial class toobit : Exchange
         string? message = this.safeString(response, "msg");
         if (((errorCode != null) && errorCode != "") && errorCode != "200" && errorCode != "0")
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;

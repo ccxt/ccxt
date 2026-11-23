@@ -1543,7 +1543,7 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(balanceResponse));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -1659,7 +1659,7 @@ public partial class interactivebrokers : Exchange
             result[(string)code] = usedAccount;
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
-        if (inOp(response, "orders"))
+        if ((response != null && response.ContainsKey("orders")))
         {
             List<object> codes = new List<object>(result.Keys);
             for (int i = 0; i < codes.Count; i++)
@@ -2838,7 +2838,7 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(entry, "conid");
         Dictionary<string, object> resolved = this.safeMarket(marketId, market);
@@ -3012,7 +3012,7 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "conid");
         Dictionary<string, object> resolved = this.safeMarket(marketId, market);
@@ -3197,7 +3197,7 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToAccountList(accounts);
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(object account)
     {
         //
         //     {
@@ -4178,7 +4178,7 @@ public partial class interactivebrokers : Exchange
         if ((since != null))
         {
             object daysPassed = ((double?)((this.milliseconds() - since)) / 86400000);
-            days = mathMin(7, mathMax(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed)))));
+            days = mathMin(7, Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed)))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "days", days },
@@ -4239,7 +4239,7 @@ public partial class interactivebrokers : Exchange
         if ((since != null))
         {
             object daysPassed = divide((subtract(this.milliseconds(), since)), 86400000);
-            days = mathMax(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed))));
+            days = Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "acctIds", new List<object>() {accountId} },
@@ -4894,14 +4894,14 @@ public partial class interactivebrokers : Exchange
         return null;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 401)) && (this.safeBool(this.options, "useGateway", false) == true))
         {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options["gatewayAuthenticatedTimestamp"] = null;
             string gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            throw new AuthenticationError ((string)((((((((this.id + " the client portal gateway is not logged in, log in again at ") + gatewayUrl) + " in a browser. Current action: ") + method) + " ") + url) + " ") + (body))) ;
+            throw new AuthenticationError ((string)((((((((this.id + " the client portal gateway is not logged in, log in again at ") + gatewayUrl) + " in a browser. Current action: ") + method) + " ") + url) + " ") + body)) ;
         }
         if ((response == null))
         {
@@ -4916,7 +4916,7 @@ public partial class interactivebrokers : Exchange
         string? errorMessage = this.safeString(response, "error");
         if ((errorMessage != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? statusCode = this.safeString(response, "statusCode");
             this.throwExactlyMatchedException(this.exceptionsExact, statusCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);

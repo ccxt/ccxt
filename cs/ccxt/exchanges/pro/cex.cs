@@ -335,14 +335,14 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string messageHash = "tickers";
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -1049,9 +1049,8 @@ public partial class cex : ccxt.cex
         ccxt.pro.ArrayCache myOrders = this.orders;
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> market = this.safeMarket(symbol);
-            ccxt.Order order = this.parseOrder(rawOrder, market);
+            ccxt.Order order = this.parseOrder(this.safeDict(rawOrders, i, new Dictionary<string, object>() {}), market);
             order.status = ccxt.BaseExchange.StructString("open");
             myOrders.append(ccxt.BaseExchange.FromOrder(order));
         }
@@ -1211,13 +1210,13 @@ public partial class cex : ccxt.cex
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -1450,7 +1449,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -1688,7 +1687,7 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         try
         {
@@ -1714,12 +1713,12 @@ public partial class cex : ccxt.cex
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? ok = this.safeString(message, "ok");
         if (ok == "error")
         {
-            this.handleErrorMessage(client, (Dictionary<string, object>)message);
+            this.handleErrorMessage(client, message);
             return;
         }
         string? eventVar = this.safeString(message, "e");

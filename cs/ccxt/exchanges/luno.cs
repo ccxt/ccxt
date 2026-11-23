@@ -732,7 +732,7 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToAccountList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         List<object> wallets = this.safeList(response, "balance", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -1014,7 +1014,7 @@ public partial class luno : Exchange
         return await this.FetchOrdersByState("COMPLETE", symbol, since, limit, parameters);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         // {
         //     "pair":"XBTAUD",
@@ -1621,7 +1621,7 @@ public partial class luno : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object entry, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> entry, IDictionary<string, object> currency = null)
     {
         // const details = this.safeValue (entry, 'details', {});
         string? id = this.safeString(entry, "row_index");
@@ -1774,7 +1774,7 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1880,7 +1880,7 @@ public partial class luno : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {

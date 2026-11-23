@@ -1273,7 +1273,7 @@ public partial class poloniex : Exchange
         return this.safeInteger(response, "serverTime") ?? 0;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //  spot:
@@ -3979,7 +3979,7 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposits
@@ -4018,7 +4018,7 @@ public partial class poloniex : Exchange
         //
         // if it's being parsed from "withdraw()" method, get the original response
         object transactionValue = transaction;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdrawNetworkEntry")))
+        if ((transaction != null && transaction.ContainsKey("withdrawNetworkEntry")))
         {
             transactionValue = this.safeDict(transaction, "response", new Dictionary<string, object>() {});
         }
@@ -4182,7 +4182,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         Int64? shortLeverage = null;
         Int64? longLeverage = null;
@@ -4580,7 +4580,7 @@ public partial class poloniex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -4596,7 +4596,7 @@ public partial class poloniex : Exchange
         if (((responseCode != null)) && (responseCode != "200"))
         {
             string? message = this.safeString2(response, "message", "msg");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;

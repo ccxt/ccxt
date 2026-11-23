@@ -569,7 +569,7 @@ public partial class independentreserve : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -1184,7 +1184,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -1269,7 +1269,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //    {

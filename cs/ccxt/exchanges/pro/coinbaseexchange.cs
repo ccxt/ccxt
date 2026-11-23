@@ -97,7 +97,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public async virtual Task<object> subscribeMultiple(string name, object symbols = null, string? messageHashStart = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(string name, IList<object>? symbols = null, string? messageHashStart = null, object parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
@@ -110,7 +110,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> productIds = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -164,7 +164,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -175,7 +175,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() symbols is required")) ;
         }
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             throw new BadSymbol ((this.id + " watchTickers requires a non-empty symbols array")) ;
@@ -922,7 +922,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return message;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -978,14 +978,14 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         });
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         double? price = this.safeNumber(delta, 0);
         double? amount = this.safeNumber(delta, 1);
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -1114,7 +1114,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? type = this.safeString(message, "type");
         Dictionary<string, object> methods = new Dictionary<string, object>() {

@@ -922,7 +922,7 @@ public partial class paradex : ccxt.paradex
      * @param {boolean} [params.deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
@@ -1178,14 +1178,14 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = 0;
         if ((symbolsNormalized != null))
         {
@@ -1478,14 +1478,14 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = 0;
         if ((symbolsNormalized != null))
         {
@@ -2216,7 +2216,7 @@ public partial class paradex : ccxt.paradex
         {
             interval = (fundingPeriod + "h");
         }
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
             { "markPrice", null },
@@ -2235,7 +2235,7 @@ public partial class paradex : ccxt.paradex
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
             { "interval", interval },
-        })));
+        };
     }
 
     public virtual object parseSbeMessage(WebSocketClient client, object message)
@@ -2961,7 +2961,7 @@ public partial class paradex : ccxt.paradex
         return account;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -3046,14 +3046,14 @@ public partial class paradex : ccxt.paradex
         this.handleStreamMessage(client, parsedMessage);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleStreamMessage(client, message);
     }
 
     public virtual void handleStreamMessage(WebSocketClient client, object message)
     {
-        if (!(this.handleErrorMessage(client, message) == true))
+        if (!(this.handleErrorMessage(client,((IDictionary<string, object>)message)) == true))
         {
             return;
         }

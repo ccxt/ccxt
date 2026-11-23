@@ -956,7 +956,7 @@ public partial class bithumb : Exchange
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1227,7 +1227,7 @@ public partial class bithumb : Exchange
                 }
                 for (int j = 0; j < (tickers?.Count ?? 0); j++)
                 {
-                    IDictionary<string, object> entry = ((IDictionary<string, object>)tickers[j]);
+                    IDictionary<string, object> entry = ((IDictionary<string, object>)(tickers != null && j < tickers.Count ? tickers[j] : null));
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
                     if ((marketId == null))
                     {
@@ -1239,7 +1239,7 @@ public partial class bithumb : Exchange
                     {
                         continue;
                     }
-                    result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(entry, market));
+                    result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(tickers, j, new Dictionary<string, object>() {}), market));
                 }
             }
         } else
@@ -1293,8 +1293,8 @@ public partial class bithumb : Exchange
                     string symbol = ((bs + "/") + (quote));
                     Dictionary<string, object> market = this.safeMarket(symbol);
                     result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.extend(ticker, new Dictionary<string, object>() {
-                        { "date", timestamp },
-                    }), market));
+    { "date", timestamp },
+}), market));
                 }
             }
         }
@@ -1388,7 +1388,7 @@ public partial class bithumb : Exchange
             //
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         }
-        return this.parseTicker(data, market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -3077,7 +3077,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // generation 1: withdraw
@@ -3604,7 +3604,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false, new Dictionary<string, object>() {}));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object response, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> response, Dictionary<string, object> currency = null)
     {
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
@@ -3788,7 +3788,7 @@ public partial class bithumb : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {

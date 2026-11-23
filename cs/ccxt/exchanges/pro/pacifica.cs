@@ -550,7 +550,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -561,7 +561,7 @@ public partial class pacifica : ccxt.pacifica
         (Int64?, object) aggLevelparamsAggLevelVariable = this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         Int64? aggLevel = aggLevelparamsAggLevelVariable.Item1;
         IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable.Item2);
-        string subMessageHash = ("orderbook:" + (symbol));
+        string subMessageHash = ("orderbook:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -675,7 +675,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
@@ -683,7 +683,7 @@ public partial class pacifica : ccxt.pacifica
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
         string messageHash = "tickers";
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -891,18 +891,13 @@ public partial class pacifica : ccxt.pacifica
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");
-            ccxt.Ticker ticker = this.parseWsTicker(info, market);
+            ccxt.Ticker ticker = this.parseTicker(info, market);
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             parsedTickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
         Dictionary<string, object> tickers = this.indexBy(parsedTickers, "symbol");
         client.resolve(tickers, "tickers");
         return true;
-    }
-
-    public virtual ccxt.Ticker parseWsTicker(object rawTicker, IDictionary<string, object>? market = null)
-    {
-        return this.parseTicker(rawTicker, market);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -1258,7 +1253,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1515,7 +1510,7 @@ public partial class pacifica : ccxt.pacifica
         client.resolve(stored, messageHash);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used
@@ -1534,7 +1529,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> wsHeadersFinal = this.safeDict(wsHeaders, "headers", new Dictionary<string, object>() {});
         try
         {
-            this.handleErrors(0L,error, "",postType, wsHeadersFinal, this.json(data), message, new Dictionary<string, object>() {}, "");
+            this.handleErrors(0L,error, "",postType, wsHeadersFinal,this.json(data), message, new Dictionary<string, object>() {}, "");
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -1676,7 +1671,7 @@ public partial class pacifica : ccxt.pacifica
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

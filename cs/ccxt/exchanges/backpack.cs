@@ -765,7 +765,10 @@ public partial class backpack : Exchange
         bool? withdraw = null;
         if (this.isEmpty(parsedNetworks))
         {
-            active = stock ? null : false;
+            if (!stock)
+            {
+                active = false;
+            }
             deposit = false;
             withdraw = false;
         }
@@ -1073,7 +1076,7 @@ public partial class backpack : Exchange
         bool? inverse = null;
         string? settle = null;
         string? settleId = null;
-        int? contractSize = null;
+        double? contractSize = null;
         if ((typeOfMarket == "spot") || rfq)
         {
             type = "spot";
@@ -1111,7 +1114,13 @@ public partial class backpack : Exchange
                 {
                     amountPrecision = this.parseNumber(stepSize);
                     minQuantity = this.parseNumber(minimum);
-                    maxQuantity = unbounded ? null : this.parseNumber(maximum);
+                    if (unbounded)
+                    {
+                        maxQuantity = null;
+                    } else
+                    {
+                        maxQuantity = this.parseNumber(maximum);
+                    }
                 }
             }
         } else if (typeOfMarket == "swap")
@@ -1122,7 +1131,7 @@ public partial class backpack : Exchange
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
             symbol = ((((bs + "/") + quote) + ":") + quote); // settle is the quote currency
-            contractSize = 1;
+            contractSize = this.parseNumber("1");
         } else
         {
             return null;
@@ -1313,7 +1322,7 @@ public partial class backpack : Exchange
      * @param {object} [toCurrency] destination currency
      * @returns {object} unified conversion structure
      */
-    public override object parseConversion(object order, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(object order, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         string? fromCode = this.safeString(fromCurrency, "code");
         string? toCode = this.safeString(toCurrency, "code");
@@ -1647,12 +1656,11 @@ public partial class backpack : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)(entries != null && i < entries.Count ? entries[i] : null));
-            string? symbol = this.safeString(entry, "symbol");
+            string? symbol = this.safeString((entries != null && i < entries.Count ? entries[i] : null), "symbol");
             IDictionary<string, object> market = this.safeDict(this.markets, symbol);
             if ((this.safeBool(market, "stock", false) == true))
             {
-                result.Add(entry);
+                result.Add((entries != null && i < entries.Count ? entries[i] : null));
             }
         }
         return result;
@@ -1795,7 +1803,7 @@ public partial class backpack : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker/fetchTickers
@@ -2318,11 +2326,10 @@ public partial class backpack : Exchange
             List<object> filtered = new List<object>() {};
             for (int i = 0; i < (rfqTrades?.Count ?? 0); i++)
             {
-                IDictionary<string, object> trade = ((IDictionary<string, object>)rfqTrades[i]);
-                Int64? timestamp = this.safeInteger(trade, "timestamp");
+                Int64? timestamp = this.safeInteger(rfqTrades[i], "timestamp");
                 if (((until == null)) || (((timestamp != null)) && ((timestamp == null || timestamp <= until))))
                 {
-                    filtered.Add(trade);
+                    filtered.Add(rfqTrades[i]);
                 }
             }
             List<object> sorted = this.sortBy(filtered, "timestamp");
@@ -2529,7 +2536,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -2540,7 +2547,7 @@ public partial class backpack : Exchange
         //         }
         //     }
         //
-        List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> balanceKeys = new List<object>(response.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < balanceKeys.Count; i++)
         {
@@ -2695,7 +2702,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2862,7 +2869,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3849,16 +3856,16 @@ public partial class backpack : Exchange
         double? entryPrice = this.safeNumber(position, "entryPrice");
         double? markPrice = this.safeNumber(position, "markPrice");
         string? netCost = this.safeString(position, "netCost");
-        bool? hedged = false;
-        string? side = "long";
-        if (Precise.stringLt(netCost, "0"))
+        bool? hedged = null;
+        string? side = null;
+        if ((netCost != null))
         {
-            side = "short";
-        }
-        if ((netCost == null))
-        {
-            hedged = null;
-            side = null;
+            hedged = false;
+            side = "long";
+            if (Precise.stringLt(netCost, "0"))
+            {
+                side = "short";
+            }
         }
         double? unrealizedPnl = this.safeNumber(position, "pnlUnrealized");
         double? realizedPnl = this.safeNumber(position, "pnlRealized");
@@ -4063,7 +4070,7 @@ public partial class backpack : Exchange
         return payload;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -4077,7 +4084,7 @@ public partial class backpack : Exchange
         string? message = this.safeString(response, "message");
         if ((errorCode != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);

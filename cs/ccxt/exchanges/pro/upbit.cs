@@ -104,7 +104,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object newTickers = await this.watchPublicMultiple(symbols, "ticker");
@@ -816,7 +816,7 @@ public partial class upbit : ccxt.upbit
         client.resolve(this.balance, messageHash);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "ticker", this.handleTicker },

@@ -817,7 +817,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //    {
@@ -3070,7 +3070,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //    {
@@ -3291,7 +3291,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToBalances(balance);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // cashAccount
@@ -4217,7 +4217,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "maxLeverage");
@@ -4230,7 +4230,7 @@ public partial class krakenfutures : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -4238,7 +4238,7 @@ public partial class krakenfutures : Exchange
         }
         if ((code == 429))
         {
-            throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
+            throw new DDoSProtection (((this.id + " ") + body)) ;
         }
         List<object> errors = this.safeList(response, "errors");
         IDictionary<string, object> firstError = this.safeDict(errors, 0);
@@ -4248,7 +4248,7 @@ public partial class krakenfutures : Exchange
         {
             return null;
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         if ((code == 400))

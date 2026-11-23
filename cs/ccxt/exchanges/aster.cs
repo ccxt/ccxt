@@ -1858,7 +1858,7 @@ public partial class aster : Exchange
         return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // fetchTicker & fetchTickers: both SPOT & PERP has similar format
@@ -2004,7 +2004,7 @@ public partial class aster : Exchange
         //        "askQty": "0.32399"            // only in SPOT
         //    }
         //
-        return this.parseTicker(response, market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -2130,7 +2130,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized2, false), "symbol"));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
     {
         //
         // spot & swap
@@ -2416,7 +2416,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(response, market));
     }
 
-    public override object parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3625,7 +3625,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbols, "symbol"));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3735,11 +3735,11 @@ public partial class aster : Exchange
         //
         string? marketId = this.safeString(marginMode, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "marginMode", this.safeStringLower(marginMode, "marginType") },
-        })));
+        };
     }
 
     /**
@@ -3970,7 +3970,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4835,7 +4835,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -5201,7 +5201,7 @@ public partial class aster : Exchange
         return ((bool?)((object)(null)));  // just c#
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -5217,7 +5217,7 @@ public partial class aster : Exchange
         string? message = this.safeString(response, "msg");
         if ((codeError != null) && codeError != "200")
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);

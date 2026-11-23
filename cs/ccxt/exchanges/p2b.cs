@@ -540,7 +540,7 @@ public partial class p2b : Exchange
         return this.parseTicker(result, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         // parseTickers
@@ -899,7 +899,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //    {
@@ -916,7 +916,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? currencyId = ((string)keys[i]);
@@ -1495,7 +1495,7 @@ public partial class p2b : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -1510,7 +1510,7 @@ public partial class p2b : Exchange
         if (success != true)
         {
             string? errorCode = this.safeString(response, "errorCode");
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             string codeAsString = ((object)code).ToString();
             Int64? statusCode = this.parseToInt(code);

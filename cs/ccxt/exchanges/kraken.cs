@@ -1184,7 +1184,7 @@ public partial class kraken : Exchange
         return this.parseOrderBook(orderbook, symbol);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -1305,8 +1305,7 @@ public partial class kraken : Exchange
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         IDictionary<string, object> tickerResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object ticker = this.safeValue(tickerResult, (market.ContainsKey("id") ? market["id"] : null));
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.safeDict(tickerResult, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {}), market);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1408,7 +1407,7 @@ public partial class kraken : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1427,9 +1426,7 @@ public partial class kraken : Exchange
         //
         string? id = this.safeString(item, "id");
         string? direction = null;
-        string? account = null;
         string? referenceId = this.safeString(item, "refid");
-        string? referenceAccount = null;
         string? type = this.parseLedgerEntryType(this.safeString(item, "type"));
         string? currencyId = this.safeString(item, "asset");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -1448,9 +1445,9 @@ public partial class kraken : Exchange
             { "info", item },
             { "id", id },
             { "direction", direction },
-            { "account", account },
+            { "account", null },
             { "referenceId", referenceId },
-            { "referenceAccount", referenceAccount },
+            { "referenceAccount", null },
             { "type", type },
             { "currency", code },
             { "amount", this.parseNumber(amount) },
@@ -1793,7 +1790,7 @@ public partial class kraken : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> balances = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -3360,7 +3357,7 @@ public partial class kraken : Exchange
         return this.safeString(withdrawMethods, network, network);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3830,7 +3827,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(firstResult, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4216,7 +4213,7 @@ public partial class kraken : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((code == 520))
         {
@@ -4228,7 +4225,7 @@ public partial class kraken : Exchange
         }
         if ((this.safeString(body, 0) == "{"))
         {
-            string message = ((this.id + " ") + (body));
+            string message = ((this.id + " ") + body);
             List<object> errors = this.safeList(response, "error");
             if ((errors != null))
             {
@@ -4237,7 +4234,7 @@ public partial class kraken : Exchange
                 {
                     for (int i = 0; i < numErrors; i++)
                     {
-                        object error = (errors != null && i < errors.Count ? errors[i] : null);
+                        string? error = this.safeString(errors, i);
                         this.throwExactlyMatchedException(this.exceptionsExact, error, message);
                         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, message);
                     }

@@ -544,7 +544,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
     {
         string? tickerSymbol = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(tickerSymbol, market, "/");
@@ -1809,7 +1809,7 @@ public partial class revolutx : Exchange
         return order;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         Int64? statusCode = this.parseToInt(code);
         if (statusCode >= 400)
@@ -1818,7 +1818,7 @@ public partial class revolutx : Exchange
             {
                 return null;
             }
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? errorMessage = this.safeString2(response, "message", "error");
             if ((errorMessage != null))
             {

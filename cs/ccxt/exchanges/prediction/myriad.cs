@@ -3669,7 +3669,7 @@ public partial class myriad : PredictionExchange
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
@@ -3873,7 +3873,7 @@ public partial class myriad : PredictionExchange
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = "myTrades";
-        object trades = await this.subscribeMyriadChannel<object>(messageHash, channel, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
         return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(this.toArray(trades), "outcome", sym, since, limit, "timestamp", true));
     }
 
@@ -4037,17 +4037,17 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes == null))
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        int symbolsLength = getArrayLength(outcomes);
+        int symbolsLength = outcomes?.Count ?? 0;
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
-        await this.loadOutcomes(this.toArray(outcomes));
+        await this.loadOutcomes(outcomes);
         var client = this.client(url);
         Dictionary<string, object> seenChannels = new Dictionary<string, object>() {};
         List<object> resolvedSymbols = new List<object>() {};
@@ -4184,7 +4184,7 @@ public partial class myriad : PredictionExchange
         }
         string channel = ((("orders:" + networkId) + ":") + trader);
         string messageHash = "orders";
-        object orders = await this.subscribeMyriadChannel<object>(messageHash, channel, parameters);
+        ccxt.pro.ArrayCache orders = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
         return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(this.toArray(orders), "outcome", outcomeResolved, since, limit, "timestamp", true));
     }
 
@@ -4278,12 +4278,12 @@ public partial class myriad : PredictionExchange
             } },
             { "id", requestId },
         };
-        object positions = await this.watch(url, messageHash, subscribeMsg, channel);
+        ccxt.pro.ArrayCache positions = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, subscribeMsg, channel));
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(this.toArray(positions), outcomes, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true));
     }
 
     public async virtual Task seedPositionBalances(string? trader)
@@ -4378,7 +4378,7 @@ public partial class myriad : PredictionExchange
         return this.ethGetAddressFromPrivateKey(this.privateKey).ToLower();
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ((response == null))
@@ -4390,7 +4390,7 @@ public partial class myriad : PredictionExchange
         {
             return null;
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
         throw new ExchangeError (feedback) ;
