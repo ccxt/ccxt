@@ -5797,6 +5797,22 @@ class NewTranspiler {
         return content;
     }
 
+    // a ws handler that only ever returns its own dict-typed message (never written, no lambda in the
+    // body) returns that message's type instead of `object`; dispatch through DynamicInvoke is unchanged
+    retypeWsHandlerSelfReturns (content: string): string {
+        const declRe = /^ {4}public virtual object (handle\w+)\(WebSocketClient client, ((?:I?Dictionary)<string, object>) (\w+)(?:, [^()]*)?\)\n {4}\{\n/gm;
+        return content.replace (declRe, (head, name, type, param, at) => {
+            const end = content.indexOf ('\n    }\n', at);
+            const body = content.substring (at + head.length, end);
+            const returns = body.match (/\breturn\b[^;]*;/g) ?? [];
+            const written = new RegExp ('(?<![\\w.])' + param + '\\s*(?:[-+*/?]?=(?!=)|\\+\\+|--)|\\b(?:ref|out) ' + param + '\\b').test (body);
+            if (returns.length === 0 || !returns.every ((r) => r === 'return ' + param + ';') || written || /=>|delegate\s*\(/.test (body)) {
+                return head;
+            }
+            return head.replace ('public virtual object ', 'public virtual ' + type + ' ');
+        });
+    }
+
     // top-level comma split of a C# parameter/argument list
     splitCsharpParams (plist: string): string[] {
         const out: string[] = [];
@@ -6621,7 +6637,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.typeVenueListArgs (this.retypeParseMarketParams (this.retypeDeclaredWsHandlerMessages (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)), ws), venueKey))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.typeVenueListArgs (this.retypeParseMarketParams (this.retypeWsHandlerSelfReturns (this.retypeDeclaredWsHandlerMessages (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)), ws)), venueKey))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
