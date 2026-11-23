@@ -15,9 +15,8 @@ import { nativeTypedList } from './javaUtilImports.js';
 
 export type JavaTier = 'rest' | 'ws' | 'prediction';
 
-// Hand-written base bodies (`completedFuture(this.currencies)`) consumed by setMarkets: they
-// stay `CompletableFuture<Object>` on the core; TypedSurface converts them.
-export const SURFACE_ONLY = new Set([ 'fetchMarkets', 'fetchCurrencies', 'loadMarkets' ]);
+// loadMarkets stays `CompletableFuture<Object>` on the core; TypedSurface converts it.
+export const SURFACE_ONLY = new Set([ 'loadMarkets' ]);
 
 const FUTURE = 'java.util.concurrent.CompletableFuture';
 const BASE_EXCHANGE_TS = './ts/src/base/Exchange.ts';
@@ -92,6 +91,10 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
             if (shared.has(m.name) && table.has(m.name)) table.set(m.name, m);
         }
     }
+    for (const m of list) {
+        const raw = LOAD_SOURCE_CORES[m.name];
+        if (raw !== undefined) table.set(m.name, { ...m, javaReturnType: raw, isArray: false, elementType: null, surface: m } as MethodInfo);
+    }
     return table;
 }
 
@@ -102,6 +105,8 @@ const BASE_ASYNC_HELPERS: MethodInfo[] = [
     // returns this.indexBy (x, k) (hand-written Map<String, Object>) or a Map-declared local
     { name: 'fetchDepositAddressesByNetwork', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
 ];
+// Promise<Market[]> / Promise<Currencies> on every tier: the raw rows setMarkets reads; TypedSurface wraps them
+const LOAD_SOURCE_CORES: Record<string, string> = { fetchMarkets: 'List<Object>', fetchCurrencies: 'Map<String, Object>' };
 // ral-84j7: base stubs of these typed cores take a type witness on failedFuture (no cast lambda)
 const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork' ]);
 // loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path

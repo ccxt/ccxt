@@ -2099,7 +2099,7 @@ public class BaseExchange {
         Object fetchCurrenciesFlag = (this.has != null) ? this.has.get("fetchCurrencies") : null;
         boolean hasFetchCurrencies = (fetchCurrenciesFlag instanceof Boolean) && (Boolean) fetchCurrenciesFlag;
 
-        java.util.concurrent.CompletableFuture<Object> currenciesFuture;
+        java.util.concurrent.CompletableFuture<Map<String, Object>> currenciesFuture;
         if (hasFetchCurrencies) {
             currenciesFuture = this.fetchCurrencies(new java.util.HashMap<String, Object>());
         } else {
@@ -2107,7 +2107,7 @@ public class BaseExchange {
         }
 
         return currenciesFuture.thenCompose(currencies -> {
-            this.setPendingCurrencies ((currencies == null) ? null : (Map<String, Object>) currencies);
+            this.setPendingCurrencies (currencies);
             return this.fetchMarkets(new java.util.HashMap<String, Object>()).thenApply(markets -> {
                 this.setPendingCurrencies (null);
                 // Pass currencies through so setMarkets() can merge fetched currencies
@@ -2190,12 +2190,12 @@ public class BaseExchange {
         return claim;
     }
 
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> params) {
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> params) {
         return CompletableFuture.completedFuture(this.currencies);
     }
 
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> params) {
-        return CompletableFuture.completedFuture(new ArrayList<>(((Map<String, Object>)this.markets).values()));
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> params) {
+        return CompletableFuture.completedFuture(new ArrayList<Object>(this.markets.values()));
     }
 
     public Throttler throttler = null;
