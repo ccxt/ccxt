@@ -2268,7 +2268,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
-        let uta = false;
+        let uta: boolean = false;
         if (this.checkRequiredCredentials (false)) {
             uta = await this.isUTAEnabled ();
         }
@@ -2356,11 +2356,10 @@ export default class kucoin extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const entry = currency;
-        const id = this.safeString (entry, 'currency');
+        const id = this.safeString (currency, 'currency');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains: Dict[] = this.safeList2 (entry, 'chains', 'items', []);
+        const chains: Dict[] = this.safeList2 (currency, 'chains', 'items', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict (chains, j);
@@ -2391,16 +2390,16 @@ export default class kucoin extends Exchange {
             }
         }
         // kucoin has determined 'fiat' currencies with below logic
-        const rawPrecision = this.safeString (entry, 'precision');
+        const rawPrecision = this.safeString (currency, 'precision');
         const precision = this.parseNumber (this.parsePrecision (rawPrecision));
         const isFiat = chainsLength === 0;
         return this.safeCurrencyStructure ({
             'id': id,
-            'name': this.safeString (entry, 'fullName'),
+            'name': this.safeString (currency, 'fullName'),
             'code': code,
             'type': isFiat ? 'fiat' : 'crypto',
             'precision': precision,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': undefined,
             'withdraw': undefined,
@@ -4731,7 +4730,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let isSpot = false;
-        let isContract = false;
+        let isContract: boolean = false;
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
@@ -8471,7 +8470,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let requestedType = 'unified';
+        let requestedType: string = 'unified';
         let paramsRequest: Dict;
         [ requestedType, paramsRequest ] = this.handleMarketTypeAndParams ('fetchUtaBalance', undefined, params, requestedType);
         if (requestedType === 'margin') {
@@ -11892,7 +11891,7 @@ export default class kucoin extends Exchange {
                 isUtaPrivate = true;
             }
         }
-        const query = this.omit (paramsOmitted, this.extractParams (path));
+        const query: Dict = this.omit (paramsOmitted, this.extractParams (path));
         let endpart: string = '';
         const headersBase: NullableDict = {};
         let bodyJson: Str = undefined;
@@ -11936,7 +11935,7 @@ export default class kucoin extends Exchange {
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headersSigned['KC-API-SIGN'] = signature;
-            let partner = this.safeDict (this.options, 'partner', {});
+            let partner: Dict = this.safeDict (this.options, 'partner', {});
             const isUtaFuturePrivate = isUtaPrivate && (tradeType === 'FUTURES');
             const isFuturePartner = isFuturePrivate || isUtaFuturePrivate;
             partner = isFuturePartner ? this.safeDict (partner, 'future', partner) : this.safeDict (partner, 'spot', partner);
