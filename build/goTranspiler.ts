@@ -1373,7 +1373,11 @@ function goChan3DeclaredVenueTypes (): Map<string, string> {
             for (let m = decl.exec (text); m !== null; m = decl.exec (text)) {
                 const [ , name, kind, body ] = m;
                 const rets = [ ...body.matchAll (/\breturn\b\s*([^;]*);/g) ].map ((r) => r[1].trim ());
-                if (!rets.length || !rets.every ((r) => kinds[kind][1].test (r)) || new RegExp ('\\n {4}(?:async )?' + name + ' \\(').test (base)) {
+                // or a returned local declared once and never reassigned, typed with the declared kind or bound to a defaulted safeDict
+                const local = (r: string) => /^\w+$/.test (r) && ((body.match (new RegExp ('\\b(?:const|let) ' + r + '\\b', 'g')) || []).length === 1)
+                    && !new RegExp ('(?<![\\w.]|(?:const|let) )' + r + ' =(?!=)').test (body)
+                    && new RegExp ('\\b(?:const|let) ' + r + '(?:: ' + kind + ' = |' + ((kind === 'Dict') ? ' = this\\.safeDict \\([^;\\n]*, \\{\\}\\);' : '(?!)') + ')').test (body);
+                if (!rets.length || !rets.every ((r) => kinds[kind][1].test (r) || local (r)) || new RegExp ('\\n {4}(?:async )?' + name + ' \\(').test (base)) {
                     continue;
                 }
                 out.set (capitalize (f.replace ('.ts', '')) + '.' + capitalize (name), kinds[kind][0]);
