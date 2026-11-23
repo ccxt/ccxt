@@ -13648,7 +13648,7 @@ export default class binance extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: string, path: string, params: Dict, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {
