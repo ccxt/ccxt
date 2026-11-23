@@ -9626,6 +9626,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'any[]': 'List<Object>',
     // venue-private order / deposit fetchers and market-type loaders: the raw dict / row list their parse* builds
     'Order': 'Map<String, Object>', 'Transaction': 'Map<String, Object>', 'Market[]': 'List<Object>',
+    // venue-private `Promise<NullableDict>` fetchers (wallet / account / ws request): a map or null, like Dict
+    'NullableDict': 'Map<String, Object>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
