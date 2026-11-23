@@ -793,7 +793,7 @@ public class BaseExchange {
                     // lowercase first letter
                     path = path.substring(0, 1).toLowerCase() + path.substring(1);
 
-                    Object apiObj = new ArrayList<>(paths);
+                    List<String> apiObj = new ArrayList<>(paths);
 
                     Map<String, Object> entry = new HashMap<>();
                     entry.put("method", key.toUpperCase());
@@ -3048,7 +3048,8 @@ public class BaseExchange {
 
             String method = (String) endpointInfo.get("method");
             String path   = (String) endpointInfo.get("path");
-            Object api    = endpointInfo.get("api");
+            @SuppressWarnings("unchecked")
+            List<String> api = (List<String>) endpointInfo.get("api"); // transformApiNew stores a List<String> copy of the path
 
             Object costObj = endpointInfo.get("cost");
             Object cost = (costObj != null) ? costObj : 1;
