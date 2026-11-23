@@ -6566,7 +6566,7 @@ export class BaseExchange {
         const ranksArray = this.toArray (ranks);
         const result: ADL[] = [];
         for (let i = 0; i < ranksArray.length; i++) {
-            const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
+            const rank = this.extend (this.parseADLRank (this.extend ({}, ranksArray[i])), params);
             result.push (rank);
         }
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
@@ -6576,7 +6576,7 @@ export class BaseExchange {
         const accountsArray = this.toArray (accounts);
         const result: Account[] = [];
         for (let i = 0; i < accountsArray.length; i++) {
-            const account = this.extend (this.parseAccount (accountsArray[i]), params);
+            const account = this.extend (this.parseAccount (this.extend ({}, accountsArray[i])), params);
             result.push (account);
         }
         return result;
@@ -8103,7 +8103,7 @@ export class BaseExchange {
     parseLastPricesList (pricesData: Dict[], symbols: Strings = undefined, params: Dict = {}): LastPrices {
         const results: LastPrice[] = [];
         for (let i = 0; i < pricesData.length; i++) {
-            results.push (this.extend (this.parseLastPrice (pricesData[i]), params));
+            results.push (this.extend (this.parseLastPrice (this.extend ({}, pricesData[i])), params));
         }
         return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol');
     }
@@ -8258,7 +8258,7 @@ export class BaseExchange {
     parseLongShortRatioHistory (response: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
         const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
-            rates.push (this.parseLongShortRatio (response[i], market));
+            rates.push (this.parseLongShortRatio (this.extend ({}, response[i]), market));
         }
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
@@ -8724,7 +8724,7 @@ export class BaseExchange {
          */
         const result: Dict[] = [];
         for (let i = 0; i < incomes.length; i++) {
-            result.push (this.parseIncome (incomes[i], market));
+            result.push (this.parseIncome (this.extend ({}, incomes[i]), market));
         }
         const sorted = this.sortBy (result, 'timestamp');
         const symbol = this.safeString (market, 'symbol');
