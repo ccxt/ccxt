@@ -10168,6 +10168,11 @@ function ternaryArmType (printer, node, depth = 0) {
             if (printer.printNode (arm, 0) === arm.text && printer.javaDeclaredTypeOf (arm) === LITERAL_STRING_TYPE) {
                 return { type: LITERAL_STRING_TYPE, cast: false };
             }
+            // a local or parameter the printer declared as the plain map type
+            if (printer.printNode (arm, 0) === arm.text
+                && /^(java\.util\.)?Map<String, ?Object>$/.test (String (printer.javaDeclaredTypeOf (arm) ?? '').trim ())) {
+                return { type: LITERAL_MAP_TYPE, cast: false };
+            }
         } catch (e) {
             return undefined;
         }
