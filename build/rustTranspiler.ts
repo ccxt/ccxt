@@ -4420,7 +4420,7 @@ function rustKeyDictReads (content: string): string {
 function rustSelfFieldReadClones (content: string): string {
     // `KeyRead` and `Rows` take `&Value`/`&Dict` alike, and `encode`/`base64_to_binary` take `impl Borrow<Value>`: lend the field.
     content = content.replace(/\bself\.((?:parent\.)?safe_[a-z0-9_]+)\(self\.(options|timeframes)\.clone\(\),/g, 'self.$1(&self.$2,');
-    content = content.replace(/\bself\.((?:parent\.)?(?:safe_(?:dict|dict_k|dict_t|value)|filter_by_array))\(self\.(balance|tickers|bidsasks)\.clone\(\),/g, 'self.$1(&self.$2,');
+    content = content.replace(/\bself\.((?:parent\.)?(?:safe_(?:dict|dict_k|dict_t|value)|filter_by_array(?:_list|_dict)?))\(self\.(balance|tickers|bidsasks)\.clone\(\),/g, 'self.$1(&self.$2,');
     content = content.replace(/\bself\.(encode|base64_to_binary)\(self\.secret\.clone\(\)(?=[,)])/g, 'self.$1(&self.secret');
     content = content.replace(/\bself\.([a-z_][a-z0-9_]*)\.clone\(\) (==|!=) Value::Null\b/g, 'self.$1 $2 Value::Null');
     return content.split('format!(').map((part, i) => {
@@ -8155,7 +8155,8 @@ function singleCopySymbolListArgs(content: string): string {
 }
 // Base collection helpers whose rows argument takes `impl Rows` (exchange_stubs.rs, and the generated
 // getListFromObjectValues below): a `Value` / list / dict local is lent as `&x` for `x.clone()`.
-const RUST_ROWS_LENT_FNS = ['index_by', 'index_by_safe', 'group_by', 'sort_by', 'sort_by_t', 'array_slice', 'get_list_from_object_values', 'filter_by_array'];
+const RUST_ROWS_LENT_FNS = ['index_by', 'index_by_safe', 'group_by', 'sort_by', 'sort_by_t', 'array_slice', 'get_list_from_object_values', 'filter_by_array',
+    'filter_by_array_list', 'filter_by_array_dict'];
 function lendCollectionRows(content: string): string {
     content = content.replace(/fn get_list_from_object_values\(&self, mut objects: Value, (mut key: Value\) -> (?:Value|crate::value::List) \{\n\s*let mut newArray: crate::value::List = self\.to_array_t\()objects\);/,
         (_m, mid) => `fn get_list_from_object_values(&self, objects: impl Rows, ${mid}Rows::rows(objects));`);

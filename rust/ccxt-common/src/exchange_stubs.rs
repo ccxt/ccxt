@@ -2191,6 +2191,23 @@ impl Exchange {
         if let Value::Arr(l) = self.sort_by(arr, key, optional_args) { l } else { crate::value::List::default() }
     }
 
+    /// Typed twins of `filter_by_array` with a literal `indexed`: the list (`false`) / map (`true`) the boxed result holds.
+    pub fn filter_by_array_list(&self, objects: impl crate::value::Rows, key: Value, values: impl Into<Value>) -> crate::value::List {
+        self.filter_rows_by(objects, &key, &Into::<Value>::into(values))
+    }
+    pub fn filter_by_array_dict(&self, objects: impl crate::value::Rows, key: Value, values: impl Into<Value>) -> crate::value::Dict {
+        let rows = self.filter_rows_by(objects, &key, &Into::<Value>::into(values));
+        self.index_by(&rows, key)
+    }
+    fn filter_rows_by(&self, objects: impl crate::value::Rows, key: &Value, values: &Value) -> crate::value::List {
+        let rows: crate::value::List = self.to_array_t(crate::value::Rows::rows(objects));
+        let num = values.as_f64().or_else(|| values.as_str().and_then(|s| s.parse::<f64>().ok())).or_else(|| values.as_bool().map(|b| if b { 1.0 } else { 0.0 }));
+        if values.is_null() || num == Some(0.0) || values.as_str() == Some("") {
+            return rows;
+        }
+        Arc::new(rows.iter().filter(|row| values.any_item(&mut |x| crate::value::KeyRead::read(*row, key).needle_eq(x))).cloned().collect())
+    }
+
     pub fn array_slice(&self, v: impl crate::value::Rows, start: Value, optional_args: &[Value]) -> crate::value::List {
         let Value::Arr(a) = crate::value::Rows::rows(v) else {
             return crate::value::List::default();
