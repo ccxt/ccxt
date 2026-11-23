@@ -5008,6 +5008,42 @@ function rustTypedWsTickers (content: string): string {
     return content;
 }
 
+// The `parseBalance` slot borrows its `Dict` response as `Option<&Dict>`: an absent or non-map value reaches the
+// override as `None`, which it boxes back to `Value::Null` (so `info` stays null, as in TypeScript).
+function rustBorrowedParseBalance (content: string): string {
+    const head = /\n    fn parse_balance\(&self, (\w+): impl Into<crate::Value>\)( -> [^\n]*\{\n)/g;
+    content = content.replace (head, (_m, p: string, rest: string, at: number) => {
+        const next = new RegExp ('^        let (mut )?' + p + ': Value = ' + p + '\\.into\\(\\);\\n').exec (content.slice (at + _m.length));
+        const unbox = p + '.map_or(Value::Null, Value::from)';
+        return '\n    fn parse_balance(&self, ' + p + ': Option<&crate::value::Dict>)' + rest + (next ? '\u0001' + (next[1] ?? '') + '\u0001' : '        let ' + p + ': Value = ' + unbox + ';\n');
+    });
+    content = content.replace (/\u0001(mut )?\u0001        let (?:mut )?(\w+): Value = \w+\.into\(\);\n/g, (_m, mut: string | undefined, p: string) => '        let ' + (mut ?? '') + p + ': Value = ' + p + '.map_or(Value::Null, Value::from);\n');
+    const fromBody = (v: string) => '<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').as_ref()';
+    const call = /(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)parse_balance\(self, /g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = call.exec (content)) !== null) {
+        const open = m.index + m[0].length, close = balancedCloseIndex (content, open);
+        const arg = content.slice (open, close).trim ();
+        let lent: string;
+        const ref = /^&(\w+)$/.exec (arg);
+        const fnAt = Math.max (content.lastIndexOf ('\n    fn ', m.index), content.lastIndexOf ('\n    pub ', m.index), 0);
+        if (ref !== null) {
+            const decl = content.slice (fnAt, m.index).match (new RegExp ('\\blet (?:mut )?' + ref[1] + ': ([^=\\n]+?) =', 'g'));
+            const ty = decl === null ? '' : decl[decl.length - 1];
+            if (ty.includes ('Option<crate::value::Dict>')) lent = ref[1] + '.as_ref()';
+            else if (ty.includes ('crate::value::Dict')) lent = 'Some(&' + ref[1] + ')';
+            else lent = fromBody (ref[1] + '.clone()');
+        } else if (/^Value::Dict\(\w+\)$/.test (arg)) lent = 'Some(&' + arg.slice ('Value::Dict('.length, -1) + ')';
+        else if (/^\w+$/.test (arg) && content.slice (fnAt, m.index).includes (arg + ': &crate::value::Dict')) lent = 'Some(' + arg + ')';
+        else if (/^\w+$/.test (arg) && content.slice (fnAt, m.index).includes (arg + ': Option<&crate::value::Dict>')) lent = arg;
+        else lent = fromBody (arg);
+        out += content.slice (last, open) + lent;
+        last = close;
+        call.lastIndex = close;
+    }
+    return out + content.slice (last);
+}
+
 // `safePosition` only writes keys into its map and returns it, so it takes and returns `Dict` (a non-map dispatch argument
 // comes back unchanged, as before). `parsePosition` / `parseTransfer` are typed like `parseOrder`; a venue `parseWsPosition`
 // / prediction `parseEvent` whose every return is a map returns `Dict`. Any unproven return throws.
@@ -5076,6 +5112,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     }
     content = rustTypedParseFamily (rustTypedParseFamily (rustTypedParseFamily (content, 'position'), 'transfer'), 'transaction');
     content = rustTypedParseFamily (content, 'balance');
+    content = rustBorrowedParseBalance (content);
     content = rustTypedParseFamily (rustTypedParseFamily (content, 'margin_modification', 'data'), 'income', 'info');
     content = rustTypedParseFamily (rustTypedParseFamily (content, 'margin_mode', 'marginMode'), 'account');
     content = rustTypedParseFamily (rustTypedParseFamily (rustTypedParseFamily (content, 'funding_rate', 'contract'), 'deposit_address', 'depositAddress'), 'leverage');
