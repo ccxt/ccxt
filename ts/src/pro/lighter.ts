@@ -797,7 +797,7 @@ export default class lighter extends lighterRest {
             const trades: Dict[] = this.safeList (data, marketId, []);
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
-                const jReversed = tradesLength - 1 - j;
+                const jReversed: int = tradesLength - 1 - j;
                 const tradeRaw = this.safeDict (trades, jReversed, {});
                 tradeRaw['accountIndex'] = accountIndex;
                 const trade = this.parseWsOrderTrade (tradeRaw, market);
@@ -1191,7 +1191,7 @@ export default class lighter extends lighterRest {
     }
 
     requestId (url: string): int {
-        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
+        const options: Dict = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue: int = this.sum (previousValue, 1);
         options[url] = newValue;
@@ -1228,7 +1228,7 @@ export default class lighter extends lighterRest {
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [ txType, txInfo, order ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
         const market = this.market (symbol);
-        const parsedTx = this.parseJson (txInfo);
+        const parsedTx: Dict = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
             'data': {
@@ -1264,7 +1264,7 @@ export default class lighter extends lighterRest {
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [ txType, txInfo ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
         const market = this.market (symbol);
-        const parsedTx = this.parseJson (txInfo);
+        const parsedTx: Dict = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
             'data': {
@@ -1298,7 +1298,7 @@ export default class lighter extends lighterRest {
         const requestId: string = nextId.toString ();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
-        const parsedTx = this.parseJson (txInfo);
+        const parsedTx: Dict = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
             'data': {
