@@ -3315,7 +3315,7 @@ export default class nado extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -1593,7 +1593,7 @@ export default class revolutx extends Exchange {
         return order;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         const statusCode = this.parseToInt (code);
         if (statusCode >= 400) {
             if (response === undefined) {

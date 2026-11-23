@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Endpoint } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Endpoint, Bool } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -2561,7 +2561,7 @@ export default class dydx extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

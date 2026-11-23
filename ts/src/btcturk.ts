@@ -1144,7 +1144,7 @@ export default class btcturk extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
         let feedback = this.id + ' ' + body;

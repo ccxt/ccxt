@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Dictionary, Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type{ Dictionary, Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1566,7 +1566,7 @@ export default class indodax extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

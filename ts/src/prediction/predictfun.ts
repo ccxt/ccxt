@@ -2669,7 +2669,7 @@ export default class predictfun extends Exchange {
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

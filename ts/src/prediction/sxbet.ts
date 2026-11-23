@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, Bool } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2713,7 +2713,7 @@ export default class sxbet extends Exchange {
         }
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the

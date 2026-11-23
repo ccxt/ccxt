@@ -8,7 +8,7 @@ import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, RateLimitExc
 import { TICK_SIZE, ROUND, TRUNCATE, SIGNIFICANT_DIGITS } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
-import type { NullableDict, NullableList, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification, Fee, FeeString } from './base/types.js';
+import type { NullableDict, NullableList, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification, Fee, FeeString, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2874,7 +2874,7 @@ export default class polymarket extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

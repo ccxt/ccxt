@@ -6,7 +6,7 @@ import Exchange from './abstract/bit2me.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1887,7 +1887,7 @@ export default class bit2me extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

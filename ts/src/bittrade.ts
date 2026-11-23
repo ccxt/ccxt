@@ -6,7 +6,7 @@ import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, Endpoint, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, Endpoint, DepositAddress, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2160,7 +2160,7 @@ export default class bittrade extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

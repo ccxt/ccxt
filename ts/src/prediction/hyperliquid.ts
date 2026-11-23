@@ -7,7 +7,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict,
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint } from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint, Bool } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -2268,7 +2268,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

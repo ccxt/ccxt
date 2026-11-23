@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Market, NullableDict, Endpoint, OrderBook } from './base/types.js';
+import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Market, NullableDict, Endpoint, OrderBook, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1405,7 +1405,7 @@ export default class p2b extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

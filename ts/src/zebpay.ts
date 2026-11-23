@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zebpay.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, InsufficientFunds } from './base/errors.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, List, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Endpoint, Position } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, List, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Endpoint, Position, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -2016,7 +2016,7 @@ export default class zebpay extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return undefined;

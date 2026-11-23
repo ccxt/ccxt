@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -3439,7 +3439,7 @@ export default class coinbaseinternational extends Exchange {
         return (this.apiKey.length === 8) && (this.secret.length === 43);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //

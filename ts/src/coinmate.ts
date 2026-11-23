@@ -6,7 +6,7 @@ import Exchange from './abstract/coinmate.js';
 import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1319,7 +1319,7 @@ export default class coinmate extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

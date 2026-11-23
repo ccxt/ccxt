@@ -5,7 +5,7 @@ import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2750,7 +2750,7 @@ export default class tokocrypto extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }

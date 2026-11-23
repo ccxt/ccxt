@@ -6,7 +6,7 @@ import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -889,7 +889,7 @@ export default class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

@@ -3143,7 +3143,7 @@ export default class deepcoin extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         const data = this.safeDict (response, 'data', {});
         let msg = this.safeString (response, 'msg');
         const messageCode = this.safeString (response, 'code');

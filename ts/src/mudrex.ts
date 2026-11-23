@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, FeeString, Endpoint } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, FeeString, Endpoint, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -218,7 +218,7 @@ export default class mudrex extends Exchange {
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined || typeof response !== 'object') {
             return undefined;
         }

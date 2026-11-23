@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2105,7 +2105,7 @@ export default class foxbit extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

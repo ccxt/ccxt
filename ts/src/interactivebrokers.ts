@@ -4,7 +4,7 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, InvalidProxySettings, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Dict, Endpoint, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Account, Balances, Dict, Endpoint, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int, Bool } from './base/types.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -4167,7 +4167,7 @@ export default class interactivebrokers extends Exchange {
         return undefined;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((code === 401) && this.safeBool (this.options, 'useGateway', false)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options['gatewayAuthenticatedTimestamp'] = undefined;

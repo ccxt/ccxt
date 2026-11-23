@@ -2100,7 +2100,7 @@ export default class gemini extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;

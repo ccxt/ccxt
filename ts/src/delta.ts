@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4234,7 +4234,7 @@ export default class delta extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

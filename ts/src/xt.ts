@@ -5820,7 +5820,7 @@ export default class xt extends Exchange {
         return this.parseOrder (this.safeDict (response, 'result', {}), market);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         //
         // spot: error
         //

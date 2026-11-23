@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1971,7 +1971,7 @@ export default class onetrading extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

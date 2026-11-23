@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, DepositWithdrawFees, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2841,7 +2841,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

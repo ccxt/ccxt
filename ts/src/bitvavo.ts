@@ -6,7 +6,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, Endpoint, List } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, Endpoint, List, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -2735,7 +2735,7 @@ export default class bitvavo extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

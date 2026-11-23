@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4069,7 +4069,7 @@ export default class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

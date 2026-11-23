@@ -4300,7 +4300,7 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -3,7 +3,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict, Endpoint, FundingHistory, OpenInterest } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict, Endpoint, FundingHistory, OpenInterest, Bool } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -2048,7 +2048,7 @@ export default class apex extends Exchange {
         return { 'url': url, 'method': method, 'body': signBody, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

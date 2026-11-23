@@ -3351,7 +3351,7 @@ export default class bitrue extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + (' ' + body));
         }

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -1081,7 +1081,7 @@ export default class mercado extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

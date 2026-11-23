@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status, Endpoint } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status, Endpoint, Bool } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -2781,7 +2781,7 @@ export default class ndax extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (code === 404) {
             throw new AuthenticationError (this.id + ' ' + body);
         }

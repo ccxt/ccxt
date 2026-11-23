@@ -6,7 +6,7 @@ import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, FeeString, List, FeeInterface, int, Endpoint } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, FeeString, List, FeeInterface, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2045,7 +2045,7 @@ export default class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

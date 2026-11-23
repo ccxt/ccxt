@@ -460,7 +460,7 @@ export default class kalshi extends Exchange {
         return this.outcomes;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall

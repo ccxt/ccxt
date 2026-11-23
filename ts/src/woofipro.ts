@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status, Endpoint, List, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3571,7 +3571,7 @@ export default class woofipro extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

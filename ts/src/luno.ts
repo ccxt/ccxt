@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dictionary, Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type { Dictionary, Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1731,7 +1731,7 @@ export default class luno extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

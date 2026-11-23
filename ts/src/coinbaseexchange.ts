@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, Fee, int, List, LedgerEntry, DepositAddress, NullableDict, Endpoint } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, Fee, int, List, LedgerEntry, DepositAddress, NullableDict, Endpoint, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -2273,7 +2273,7 @@ export default class coinbaseexchange extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((code === 400) || (code === 404)) {
             if (body.startsWith ('{')) {
                 const message = this.safeString (response, 'message');

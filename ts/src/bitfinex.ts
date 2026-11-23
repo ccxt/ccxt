@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationErro
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, FeeString, int, Status, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, FeeString, int, Status, Endpoint, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3106,7 +3106,7 @@ export default class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray (response)) {
@@ -3130,7 +3130,10 @@ export default class bitfinex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorText, feedback);
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
-        return response;
+        if (response === undefined) {
+            return undefined;
+        }
+        return true;
     }
 
     parseLedgerEntryType (type: Str): Str {

@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2117,7 +2117,7 @@ export default class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;

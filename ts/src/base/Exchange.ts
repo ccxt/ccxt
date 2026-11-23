@@ -7489,7 +7489,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
