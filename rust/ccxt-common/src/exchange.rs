@@ -240,7 +240,7 @@ pub trait DerivedExchange {
     fn parse_withdrawal(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_withdrawal(p, tx, currency)) }
     fn parse_ledger_entry(&self, entry: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_ledger_entry(p, entry, currency)) }
     fn parse_transfer(&self, transfer: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_transfer(p, transfer, currency)) }
-    fn parse_currency(&mut self, currency: impl Into<Value>) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::parse_currency(p, currency)) }
+    fn parse_currency(&mut self, currency: impl Into<Value>) -> Option<crate::value::Dict> { self.derived_parent_mut().and_then(|p| DerivedExchange::parse_currency(p, currency)) }
     fn parse_bid_ask(&self, bidask: Value, price_key: Value, amount_key: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_bid_ask(p, bidask, price_key, amount_key, market)) }
     fn parse_open_interest(&self, interest: impl Into<Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_open_interest(p, interest, market)) }
     fn parse_liquidation(&self, liquidation: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_liquidation(p, liquidation, market)) }
