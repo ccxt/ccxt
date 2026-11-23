@@ -3106,7 +3106,10 @@ export default class bitfinex extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorText, feedback);
             throw new ExchangeError(this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
-        return response;
+        if (response === undefined) {
+            return undefined;
+        }
+        return true;
     }
     parseLedgerEntryType(type) {
         if (type === undefined) {

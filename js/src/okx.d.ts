@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, OpenInterest, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, OpenInterest, Bool, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -1095,7 +1095,7 @@ export default class okx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchConvertCurrencies(params?: Dict): Promise<Currencies>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @method
      * @name okx#fetchMarginAdjustmentHistory

@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/myriad.js';
-import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
+import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Bool, NullableDict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class myriad
@@ -695,7 +695,7 @@ export default class myriad extends Exchange {
     seedPositionBalances(trader: string): Promise<void>;
     handlePosition(client: Client, data: Dict): void;
     walletAddressFromKeys(): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore
      * @method

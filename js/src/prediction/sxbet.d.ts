@@ -1,6 +1,6 @@
 import Exchange from '../abstract/prediction/sxbet.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, Bool } from '../base/types.js';
 /**
  * @class sxbet
  * @augments Exchange
@@ -574,7 +574,7 @@ export default class sxbet extends Exchange {
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     handleOrder(client: Client, rows: any[]): void;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore
      * @method

@@ -3907,7 +3907,8 @@ export default class digifinex extends Exchange {
         const positions = this.safeList(response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push(this.parsePosition(this.safeDict(positions, i, {}), market));
+            const parsedPosition = this.parsePosition(this.safeDict(positions, i, {}), market);
+            result.push(parsedPosition);
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }

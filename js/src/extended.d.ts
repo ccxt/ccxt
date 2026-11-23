@@ -1,5 +1,5 @@
 import Exchange from './abstract/extended.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 /**
  * @class extended
  * @augments Exchange
@@ -534,6 +534,6 @@ export default class extended extends Exchange {
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

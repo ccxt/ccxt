@@ -1031,7 +1031,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
      * @returns {Array} the account id and the params without accountId
      */
     async loadAccountId(params = {}) {
-        const [accountIdFromParams, query] = this.handleOptionAndParams(params, 'loadAccountId', 'accountId');
+        const [accountIdFromParams, query] = this.handleOptionStringAndParams(params, 'loadAccountId', 'accountId');
         let accountId = accountIdFromParams;
         if (accountId === undefined) {
             await this.fetchAccounts();

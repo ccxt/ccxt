@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/predictfun.js';
-import type { Dict, fetchEventsParams, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Bool, Dict, fetchEventsParams, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class predictfun
@@ -394,7 +394,7 @@ export default class predictfun extends Exchange {
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore
      * @method

@@ -3515,7 +3515,8 @@ export default class delta extends Exchange {
         //
         // {"result":{},"success":true}
         //
-        const position = this.parsePosition(this.safeDict(response, 'result', {}));
+        const positionRow = this.safeDict(response, 'result', {});
+        const position = this.parsePosition(positionRow);
         return [position];
     }
     /**

@@ -3514,7 +3514,8 @@ class delta extends delta$1["default"] {
         //
         // {"result":{},"success":true}
         //
-        const position = this.parsePosition(this.safeDict(response, 'result', {}));
+        const positionRow = this.safeDict(response, 'result', {});
+        const position = this.parsePosition(positionRow);
         return [position];
     }
     /**

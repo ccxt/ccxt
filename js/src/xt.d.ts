@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -623,7 +623,7 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;

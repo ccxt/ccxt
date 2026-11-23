@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, OpenInterest } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, OpenInterest } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -1144,7 +1144,7 @@ export default class bitget extends Exchange {
      */
     fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LongShortRatio[]>;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

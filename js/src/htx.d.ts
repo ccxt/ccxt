@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, MarketInterface, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, MarketInterface, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
 /**
  * @class htx
  * @augments Exchange
@@ -694,7 +694,7 @@ export default class htx extends Exchange {
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @method
      * @name htx#fetchFundingHistory

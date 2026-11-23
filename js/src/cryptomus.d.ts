@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptomus.js';
-import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Ticker, Trade, TradingFees, CurrencyInterface, List, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Ticker, Trade, TradingFees, CurrencyInterface, List, NullableDict, Bool } from './base/types.js';
 /**
  * @class cryptomus
  * @augments Exchange
@@ -147,5 +147,5 @@ export default class cryptomus extends Exchange {
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
     parseFeeTiers(feeTiers: any[], market?: Market): Dict;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

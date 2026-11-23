@@ -6916,10 +6916,13 @@ class bybit extends bybit$1["default"] {
             const rawPosition = positions[i];
             if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
                 // futures only
-                results.push(this.parsePosition(this.safeDict(rawPosition, 'data', {})));
+                const futuresData = this.safeDict(rawPosition, 'data', {});
+                const futuresPosition = this.parsePosition(futuresData);
+                results.push(futuresPosition);
             }
             else {
-                results.push(this.parsePosition(this.safeDict(positions, i, {})));
+                const parsedPosition = this.parsePosition(this.safeDict(positions, i, {}));
+                results.push(parsedPosition);
             }
         }
         return this.filterByArrayPositions(results, 'symbol', symbolsNormalized);

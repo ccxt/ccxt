@@ -1678,7 +1678,7 @@ class bithumb extends bithumb$1["default"] {
             if (side === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires each order to have a side');
             }
-            const amount = this.safeValue(rawOrder, 'amount');
+            const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);

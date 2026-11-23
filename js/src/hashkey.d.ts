@@ -638,5 +638,5 @@ export default class hashkey extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     customUrlencode(params?: Dict): Str;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

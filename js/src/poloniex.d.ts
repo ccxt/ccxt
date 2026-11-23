@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo, Bool } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -483,5 +483,5 @@ export default class poloniex extends Exchange {
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

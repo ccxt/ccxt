@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Bool } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -423,5 +423,5 @@ export default class delta extends Exchange {
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

@@ -397,5 +397,5 @@ export default class limitless extends Exchange {
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

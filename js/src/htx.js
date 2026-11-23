@@ -8645,7 +8645,9 @@ export default class htx extends Exchange {
         }
         const data = this.safeValue(response, 'data');
         if (this.safeBool(market, 'linear', false)) {
-            return this.parsePosition(this.safeDict(data, 0, {}), market);
+            const positionRows = this.safeList(response, 'data', []);
+            const positionRow = this.safeDict(positionRows, 0, {});
+            return this.parsePosition(positionRow, market);
         }
         let account = undefined;
         if ((marginModeOption === undefined) || (marginModeOption === 'cross')) {

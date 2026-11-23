@@ -3105,7 +3105,10 @@ class bitfinex extends bitfinex$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorText, feedback);
             throw new errors.ExchangeError(this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
-        return response;
+        if (response === undefined) {
+            return undefined;
+        }
+        return true;
     }
     parseLedgerEntryType(type) {
         if (type === undefined) {

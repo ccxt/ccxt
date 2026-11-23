@@ -3075,7 +3075,7 @@ export default class hitbtc extends Exchange {
         }
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchPositions', paramsMarketType);
         const paramsOmitted = this.omit(paramsMarginMode, ['marginMode', 'margin']);
-        let response;
+        let response = [];
         if (marginMode !== undefined) {
             response = await this.privateGetMarginAccount(this.extend(request, paramsOmitted));
         }
@@ -3124,7 +3124,8 @@ export default class hitbtc extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            result.push(this.parsePosition(this.safeDict(response, i, {})));
+            const position = this.parsePosition(this.safeDict(response, i, {}));
+            result.push(position);
         }
         return result;
     }

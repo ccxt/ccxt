@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitteam.js';
-import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Bool } from './base/types.js';
 /**
  * @class bitteam
  * @augments Exchange
@@ -221,5 +221,5 @@ export default class bitteam extends Exchange {
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

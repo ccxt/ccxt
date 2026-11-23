@@ -2719,7 +2719,8 @@ class pacifica extends pacifica$1["default"] {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parsePosition(this.safeDict(data, i, {}), undefined));
+            const parsedPosition = this.parsePosition(this.safeDict(data, i, {}), undefined);
+            result.push(parsedPosition);
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }

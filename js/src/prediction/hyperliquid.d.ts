@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Bool } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -389,7 +389,7 @@ export default class hyperliquid extends Exchange {
         body: Str;
         headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
     /**
      * @ignore

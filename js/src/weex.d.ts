@@ -1,5 +1,5 @@
 import Exchange from './abstract/weex.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class weex
  * @augments Exchange
@@ -728,5 +728,5 @@ export default class weex extends Exchange {
     fromSandboxMarketId(marketId: Str): Str;
     setSandboxMode(enable: boolean): void;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

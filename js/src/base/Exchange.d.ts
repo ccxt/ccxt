@@ -899,7 +899,7 @@ export declare class BaseExchange {
     throwExactlyMatchedException(exact: Dict, string: Str, message: Str): void;
     throwBroadlyMatchedException(broad: Dict, string: Str, message: Str): void;
     findBroadlyMatchedKey(broad: Dict, errorString: Str): Str;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     fetchSpotTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;

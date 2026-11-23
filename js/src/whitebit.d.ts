@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { Account, Balances, BorrowInterest, Conversion, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees, Status } from './base/types.js';
+import type { Account, Balances, Bool, BorrowInterest, Conversion, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -632,5 +632,5 @@ export default class whitebit extends Exchange {
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

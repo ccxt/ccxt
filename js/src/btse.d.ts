@@ -1,5 +1,5 @@
 import Exchange from './abstract/btse.js';
-import type { NullableDict, Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry, OpenInterest } from './base/types.js';
+import type { NullableDict, Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry, OpenInterest, Bool } from './base/types.js';
 /**
  * @class btse
  * @augments Exchange
@@ -592,7 +592,7 @@ export default class btse extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;

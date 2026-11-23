@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, NullableDict, DepositWithdrawFees, Bool } from './base/types.js';
 /**
  * @class lbank
  * @augments Exchange
@@ -334,5 +334,5 @@ export default class lbank extends Exchange {
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     convertSecretToPem(secret: any): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

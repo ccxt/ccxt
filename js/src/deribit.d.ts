@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import type { NullableDict, Balances, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, OpenInterest, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees, Status } from './base/types.js';
+import type { NullableDict, Balances, Bool, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, OpenInterest, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class deribit
  * @augments Exchange
@@ -497,5 +497,5 @@ export default class deribit extends Exchange {
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

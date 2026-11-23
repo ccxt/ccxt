@@ -901,7 +901,7 @@ class lighter extends lighter$1["default"] {
             const takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (stopLoss !== undefined) {
-                const orderObj = this.safeDict(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, {
+                const orderObj = this.safeDict(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0.0, stopLossOrderLimitPrice, this.extend(paramsRequest, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': true,
                 })), 0, {});
@@ -909,7 +909,7 @@ class lighter extends lighter$1["default"] {
                 orders.push(orderObj);
             }
             if (takeProfit !== undefined) {
-                const orderObj = this.safeDict(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, {
+                const orderObj = this.safeDict(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0.0, takeProfitOrderLimitPrice, this.extend(paramsRequest, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': true,
                 })), 0, {});

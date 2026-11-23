@@ -1,5 +1,5 @@
 import Exchange from './abstract/polymarket.js';
-import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
+import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification, Bool } from './base/types.js';
 /**
  * @class polymarket
  * @description Polymarket perpetual futures - a hybrid dex with an off-chain order book and on-chain settlement of collateral. The venue trades linear perpetual contracts on crypto, indices, equities and commodities, quoted using USD and collateralized exclusively with pUSD. The prediction-market CLOB is a separate product, integrated separately under ccxt.prediction.polymarket
@@ -543,5 +543,5 @@ export default class polymarket extends Exchange {
     amountToPrecision(symbol: Str, amount: any): Str;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: {}): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

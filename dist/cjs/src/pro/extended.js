@@ -430,12 +430,11 @@ class extended extends extended$1["default"] {
             return;
         }
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const marketId = this.safeString(rawPosition, 'market');
+            const marketId = this.safeString(rawPositions[i], 'market');
             if (marketId === undefined) {
                 continue;
             }
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
             newPositions.push(position);
             stored.append(position);
         }

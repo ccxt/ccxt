@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -359,6 +359,6 @@ export default class bitrue extends Exchange {
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
 }

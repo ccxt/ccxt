@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/binance.js';
-import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, NullableDict } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Dict, Bool, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, NullableDict } from '../base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -348,7 +348,7 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     cancelOrders(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore
      * @method

@@ -3338,10 +3338,10 @@ class cryptocom extends cryptocom$1["default"] {
         const positions = this.safeList(responseResult, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const entry = positions[i];
-            const marketId = this.safeString(entry, 'instrument_name');
+            const marketId = this.safeString(positions[i], 'instrument_name');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, marketInner));
+            const position = this.parsePosition(this.safeDict(positions, i, {}), marketInner);
+            result.push(position);
         }
         return this.filterByArrayPositions(result, 'symbol', undefined);
     }

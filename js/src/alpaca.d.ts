@@ -1,5 +1,5 @@
 import Exchange from './abstract/alpaca.js';
-import type { Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type { Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool } from './base/types.js';
 /**
  * @class alpaca
  * @augments Exchange
@@ -334,5 +334,5 @@ export default class alpaca extends Exchange {
     fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: Dict): Balances;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

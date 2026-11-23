@@ -1,5 +1,5 @@
 import Exchange from './abstract/interactivebrokers.js';
-import type { Account, Balances, Dict, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Account, Balances, Dict, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int, Bool } from './base/types.js';
 /**
  * @class interactivebrokers
  * @augments Exchange
@@ -120,7 +120,7 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    loadAccountId(params?: Dict): Promise<List>;
+    loadAccountId(params?: Dict): Promise<[Str, Dict]>;
     /**
      * @method
      * @name interactivebrokers#fetchBalance
@@ -666,5 +666,5 @@ export default class interactivebrokers extends Exchange {
      */
     ibkrIsAuthRequest(path: string): boolean;
     request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }
