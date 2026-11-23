@@ -27201,6 +27201,7 @@ const JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE = 'java.util.List<?>';
 // (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
 const JAVA_MAP_PARAM_SLOTS = {
     'invertFlatStringDictionary': [ 0 ],
+    'handleErrors': [ 4, 7 ],
 };
 // ws order-book slots: every caller passes a local the printer declares WsOrderBook
 const JAVA_ORDERBOOK_PARAM_SLOTS = {
@@ -27316,7 +27317,8 @@ export function installJavaListParamSlots (transpiler) {
             const isAnyList = (t) => checker.isArrayType (t) && !checker.isTupleType (t);
             const ok = slot === JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE ? isAnyList (argType) || printer.isJavaNullishUnion (argType, isAnyList)
                 : slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
-                : isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
+                // an object literal prints a HashMap<String, Object> instance
+                : ts.isObjectLiteralExpression (arg) || isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
             if (!ok) {
                 throw new Error (`java param slot: argument ${arg.getText ()} is not a proven ${slot}`);
             }

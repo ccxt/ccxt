@@ -2849,7 +2849,7 @@ public class BaseExchange {
             result = new String(bodyBytes, java.nio.charset.StandardCharsets.UTF_8);
         }
 
-        Map<String, String> responseHeaders = null;
+        Map<String, Object> responseHeaders = null;
         int httpStatusCode = -1;
         String httpStatusText = null;
 

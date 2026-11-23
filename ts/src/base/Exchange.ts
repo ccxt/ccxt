@@ -1465,7 +1465,7 @@ export class BaseExchange {
         return result;
     }
 
-    handleRestResponse (response: any, url: any, method = 'GET', requestHeaders: any = undefined, requestBody: any = undefined) {
+    handleRestResponse (response: any, url: any, method = 'GET', requestHeaders: NullableDict = undefined, requestBody: any = undefined) {
         const responseHeaders = this.getResponseHeaders (response);
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
             // native fetch responses have no buffer() method, polyfill it from arrayBuffer()
