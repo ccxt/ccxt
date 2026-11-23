@@ -342,8 +342,7 @@ export default class p2b extends p2bRest {
             this.trades[symbol as string] = tradesArray;
         }
         for (let i = 0; i < trades.length; i++) {
-            const item = trades[i];
-            const trade = this.parseTrade (item, market);
+            const trade = this.parseTrade (this.safeDict (trades, i, {}), market);
             tradesArray.append (trade);
         }
         const messageHash = 'deals::' + symbol;

@@ -1560,7 +1560,7 @@ export default class derive extends Exchange {
                 // skip maker trades
                 continue;
             }
-            const parsed = this.parseTrade (rawTrade, market);
+            const parsed = this.parseTrade (this.safeDict (tradesArray, i, {}), market);
             const trade = this.extend (parsed, params);
             result.push (trade);
         }

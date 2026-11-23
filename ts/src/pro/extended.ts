@@ -741,7 +741,7 @@ export default class extended extends extendedRest {
         }
         subscription['nonce'] = nonce;
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade (data[i], market);
+            const trade = this.parseTrade (this.safeDict (data, i, {}), market);
             stored.append (trade);
         }
         client.resolve (stored, messageHash);

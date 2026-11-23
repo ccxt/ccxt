@@ -184,7 +184,7 @@ export default class blofin extends blofinRest {
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        return this.parseTrade (trade, market);
+        return this.parseTrade (this.extend ({}, trade), market);
     }
 
     /**

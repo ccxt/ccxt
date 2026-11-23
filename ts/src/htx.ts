@@ -2987,7 +2987,7 @@ export default class htx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const trades: Dict[] = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade (trades[j], market);
+                const trade = this.parseTrade (this.safeDict (trades, j, {}), market);
                 result.push (trade);
             }
         }

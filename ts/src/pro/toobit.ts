@@ -271,7 +271,7 @@ export default class toobit extends toobitRest {
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        return this.parseTrade (trade, market);
+        return this.parseTrade (this.extend ({}, trade), market);
     }
 
     /**

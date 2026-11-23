@@ -339,7 +339,7 @@ export default class htx extends htxRest {
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade (data[i], market);
+            const trade = this.parseTrade (this.safeDict (data, i, {}), market);
             tradesCache.append (trade);
         }
         client.resolve (tradesCache, ch);
@@ -2769,8 +2769,7 @@ export default class htx extends htxRest {
                 const marketId = this.safeString (message, 'symbol');
                 const market = this.market (marketId);
                 for (let i = 0; i < rawTrades.length; i++) {
-                    const trade = rawTrades[i];
-                    let parsedTrade = this.parseTrade (trade, market);
+                    let parsedTrade = this.parseTrade (this.safeDict (rawTrades, i, {}), market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend (parsedTrade, extendParams);
                     cachedTrades.append (parsedTrade);

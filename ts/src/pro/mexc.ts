@@ -1126,7 +1126,7 @@ export default class mexc extends mexcRest {
             if (this.safeBool (market, 'spot', false)) {
                 parsedTrade = this.parseWsTrade (trades[j], market);
             } else {
-                parsedTrade = this.parseTrade (trades[j], market);
+                parsedTrade = this.parseTrade (this.safeDict (trades, j, {}), market);
             }
             stored.append (parsedTrade);
         }
@@ -1219,7 +1219,7 @@ export default class mexc extends mexcRest {
         if (this.safeBool (market, 'spot', false)) {
             trade = this.parseWsTrade (data, market);
         } else if (data !== undefined) {
-            trade = this.parseTrade (data, market);
+            trade = this.parseTrade (this.extend ({}, data), market);
         } else {
             return;
         }

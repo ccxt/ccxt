@@ -348,7 +348,7 @@ export default class okx extends okxRest {
         const data: Dict[] = this.safeList (message, 'data', []);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade (data[i]);
+            const trade = this.parseTrade (this.safeDict (data, i, {}));
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache (tradesLimit);

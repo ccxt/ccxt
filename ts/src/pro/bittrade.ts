@@ -206,7 +206,7 @@ export default class bittrade extends bittradeRest {
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade (data[i], market);
+            const trade = this.parseTrade (this.safeDict (data, i, {}), market);
             tradesCache.append (trade);
         }
         client.resolve (tradesCache, ch);
