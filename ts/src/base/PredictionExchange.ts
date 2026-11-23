@@ -1624,7 +1624,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray (positions);
         const results: PredictionPosition[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePredictionPosition (rows[i]);
+            const parsed = this.parsePredictionPosition (this.safeDict (rows, i, {}));
             const position = this.extend (parsed, params);
             results.push (position);
         }

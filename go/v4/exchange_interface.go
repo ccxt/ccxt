@@ -8,7 +8,7 @@ package ccxt
 type IPredictionDispatch interface {
 	ParsePredictionOrder(order any, optionalArgs ...any) map[string]any
 	ParsePredictionTrade(trade map[string]any, optionalArgs ...any) any
-	ParsePredictionPosition(position any, optionalArgs ...any) map[string]any
+	ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any
 }
 
 // createOrder/cancelOrder as prediction venues carry them (a prediction order map); regular venues
