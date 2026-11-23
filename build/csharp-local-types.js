@@ -24991,3 +24991,34 @@ function h30C06ConsumerOk (head) {
     }
     return head.startsWith (head.match (/^\s*/)[0] + H30C06_TYPES + ' ') && /^\s*\(Dictionary<string, object>, IDictionary<string, object>\) \w+ = (?:[^;]* [?:] )?$/.test (head);
 }
+
+// omit receiver: element 1 of `const [ a, p ] = await this.<H30C06_ASYNC helper> (...)`, which the
+// tuple pass above prints `IDictionary<string, object> p = holder.Item2`; the 2-argument omit then
+// binds a dict-receiver overload and returns the fresh Dictionary.
+function asyncTupleElement1Read (csharp, node) {
+    const read = stripParens (node);
+    if (read?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const element = resolveReference (csharp, read);
+    const pattern = element?.parent;
+    const declaration = pattern?.parent;
+    if (element?.kind !== ts.SyntaxKind.BindingElement || pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern
+            || pattern.elements.indexOf (element) !== 1 || element.initializer !== undefined || element.dotDotDotToken !== undefined
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || (declaration.parent?.flags & ts.NodeFlags.Const) === 0
+            || declaration.initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return false;
+    }
+    const call = declaration.initializer.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = call.expression.name?.text;
+    return Object.prototype.hasOwnProperty.call (H30C06_ASYNC, name) && H30C06_ASYNC[name][1] === CSHARP_ELEMENT_1_TYPE;
+}
+const asyncTupleUpstreamOmitReceiverIsDictionary = omitReceiverIsDictionary;
+// eslint-disable-next-line no-func-assign
+omitReceiverIsDictionary = function (csharp, receiver) {
+    return asyncTupleUpstreamOmitReceiverIsDictionary (csharp, receiver) || asyncTupleElement1Read (csharp, receiver);
+};
