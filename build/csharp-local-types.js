@@ -17053,6 +17053,10 @@ export const SIGNATURE_ARG_TYPES = {
     'handleMessage': { 1: 'IDictionary<string, object>' },
     // TS declares `Dict` on every declaration; every caller passes its own handler's message
     'handleErrorMessage': { 1: 'IDictionary<string, object>' },
+    // TS declares `response: Dict` on the base; no override writes it and every caller passes a dictionary
+    'parseBalance': { 0: 'IDictionary<string, object>' },
+    'parseDepositAddress': { 0: 'IDictionary<string, object>' },
+    'parseLeverage': { 0: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
