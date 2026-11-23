@@ -7298,6 +7298,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'watchLiquidationsForSymbols': { 0: '[]string' },
     'watchMyLiquidationsForSymbols': { 0: '[]string' },
     'watchOrdersForSymbols': { 0: '[]string' },
+    // base List row param with no override; every caller hands a `[]any` local
+    'parseADLRanks': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
