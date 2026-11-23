@@ -2807,7 +2807,6 @@ class okx extends \ccxt\async\okx {
 
     public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
-        return $message;
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {

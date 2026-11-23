@@ -1324,7 +1324,7 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function create_order_request(array $market, string $type, string $side, mixed $amount, mixed $price = null, $params = array()): array {
+    public function create_order_request(array $market, string $type, string $side, ?string $amount, mixed $price = null, $params = array()): array {
         /**
          * @ignore
          * builds one order for the createOrders operation, returning the compact $signable $row next to the structured body $entry

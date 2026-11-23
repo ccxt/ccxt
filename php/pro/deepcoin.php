@@ -109,7 +109,6 @@ class deepcoin extends \ccxt\async\deepcoin {
 
     public function handle_pong(Client $client, string $message) {
         $client->lastPong = $this->milliseconds();
-        return $message;
     }
 
     public function request_id(): int {

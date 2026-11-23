@@ -2020,7 +2020,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
-    public function verify_order_action_success(mixed $status, string $method, array $omit = array()) {
+    public function verify_order_action_success(?string $status, string $method, array $omit = array()) {
         $errors = array(
             'invalidOrderType' => '\\ccxt\\InvalidOrder',
             'invalidSide' => '\\ccxt\\InvalidOrder',
@@ -2043,8 +2043,10 @@ class krakenfutures extends Exchange {
             'filled' => '\\ccxt\\OrderNotFound',
             'notFound' => '\\ccxt\\OrderNotFound',
         );
-        if ((is_array($errors) && array_key_exists($status ?? '', $errors)) && !$this->in_array($status, $omit)) {
-            throw new $errors[$status]($this->id . ' => ' . $method . ' failed due to ' . $status);
+        if ($status !== null) {
+            if ((is_array($errors) && array_key_exists($status ?? '', $errors)) && !$this->in_array($status, $omit)) {
+                throw new $errors[$status]($this->id . ' => ' . $method . ' failed due to ' . $status);
+            }
         }
     }
 

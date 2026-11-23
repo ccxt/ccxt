@@ -3074,7 +3074,6 @@ class bitget extends \ccxt\async\bitget {
 
     public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
-        return $message;
     }
 
     public function handle_subscription_status(Client $client, array $message): array {

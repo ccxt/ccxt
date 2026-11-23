@@ -1290,7 +1290,6 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         $this->trades[$symbol] = $tradesArray;
         $client->resolve($tradesArray, $channel);
-        return $message;
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {

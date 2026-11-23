@@ -1856,7 +1856,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_authenticate(Client $client, array $message): array {
+    public function handle_authenticate(Client $client, array $message) {
         /**
          * @ignore
          * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
@@ -1885,6 +1885,5 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 unset($client->subscriptions[$messageHash]);
             }
         }
-        return $message;
     }
 }

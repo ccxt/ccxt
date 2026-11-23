@@ -2706,7 +2706,7 @@ class interactivebrokers extends Exchange {
         }
         $accounts = array();
         for ($i = 0; $i < count($portfolioAccounts); $i++) {
-            $accounts[] = $this->parse_account($portfolioAccounts[$i]);
+            $accounts[] = $this->parse_account($this->extend(array(), $portfolioAccounts[$i]));
         }
         return $accounts;
     }

@@ -564,7 +564,10 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             }
             $options = $this->safe_dict($this->options, 'watchOHLCV', array());
             $duration = $this->parse_timeframe($timeframe);
-            $historyLimit = ($limit === null) ? 100 : $limit;
+            $historyLimit = 100;
+            if ($limit !== null) {
+                $historyLimit = $this->parse_to_int($limit);
+            }
             $historyRequest = array(
                 'exchange' => $this->safe_string($options, 'exchange', 'SMART'),
                 'period' => $this->ibkr_ws_period($duration, $historyLimit),

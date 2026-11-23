@@ -557,7 +557,7 @@ class bittrade extends \ccxt\async\bittrade {
         //
         $id = $this->safe_string($message, 'id');
         if ($id === null) {
-            return $message;
+            return;
         }
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id);
@@ -565,17 +565,16 @@ class bittrade extends \ccxt\async\bittrade {
             $method = $this->safe_string($subscription, 'method');
             if ($method === 'handleOrderBookSnapshot') {
                 $this->handle_order_book_snapshot($client, $message, $subscription);
-                return null;
+                return;
             } elseif ($method === 'handleOrderBookSubscription') {
                 $this->handle_order_book_subscription($client, $message, $subscription);
-                return null;
+                return;
             }
             // clean up
             if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
-        return $message;
     }
 
     public function handle_system_status(Client $client, array $message): array {
