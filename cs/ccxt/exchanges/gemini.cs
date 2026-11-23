@@ -1072,7 +1072,7 @@ public partial class gemini : Exchange
         bool? linear = null;
         bool? inverse = null;
         bool isString = ((response is string));
-        bool isArray = (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+        bool isArray = (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         if (!isString && !isArray)
         {
             marketId = this.safeStringLower(response, "symbol");
@@ -1368,7 +1368,7 @@ public partial class gemini : Exchange
         Int64? timestamp = this.safeInteger(volume, "timestamp");
         string? symbol = null;
         string? marketId = this.safeStringLower(ticker, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? baseId = null;
         string? quoteId = null;
         string? bs = null;

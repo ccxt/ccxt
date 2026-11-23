@@ -92,10 +92,9 @@ public partial class deepcoin : ccxt.deepcoin
         return "ping";
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual void handlePong(WebSocketClient client, object message)
     {
         client.lastPong = this.milliseconds();
-        return message;
     }
 
     public virtual Int64 requestId()

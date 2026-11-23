@@ -1136,7 +1136,7 @@ public partial class bithumb : ccxt.bithumb
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
-            Dictionary<string, object> marketForFee = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            Dictionary<string, object> marketForFee = this.safeMarket(marketId, market);
             string? feeCurrency = this.safeString(marketForFee, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

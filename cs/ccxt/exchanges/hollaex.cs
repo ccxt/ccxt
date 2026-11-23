@@ -815,7 +815,7 @@ public partial class hollaex : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         string? close = this.safeString(ticker, "close");
@@ -908,7 +908,7 @@ public partial class hollaex : Exchange
         //  }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? datetime = this.safeString(trade, "timestamp");
         Int64? timestamp = this.parse8601(datetime);

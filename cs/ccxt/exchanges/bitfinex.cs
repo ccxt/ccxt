@@ -3610,7 +3610,7 @@ public partial class bitfinex : Exchange
         // ["error", 11010, "ratelimit: error"]
         if ((response != null))
         {
-            if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string? message = this.safeString2(response, "message", "error");
                 string feedback = ((this.id + " ") + body);

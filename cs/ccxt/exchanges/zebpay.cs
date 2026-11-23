@@ -1139,7 +1139,7 @@ public partial class zebpay : Exchange
         string? orderId = this.safeString2(trade, "id", "order");
         Int64? timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringLower(trade, "side");
         string? priceString = this.safeString(trade, "price");
@@ -1570,7 +1570,7 @@ public partial class zebpay : Exchange
         //      }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? type = this.safeString(order, "type");
         double? timestamp = this.safeNumber(order, "timestamp");

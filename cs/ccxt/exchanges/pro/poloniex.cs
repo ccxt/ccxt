@@ -986,7 +986,7 @@ public partial class poloniex : ccxt.poloniex
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "createTime");
         string? takerMaker = this.safeStringLower2(trade, "matchRole", "taker");
         return this.safeTrade(new Dictionary<string, object>() {

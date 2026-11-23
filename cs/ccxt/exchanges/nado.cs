@@ -2537,7 +2537,7 @@ public partial class nado : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeTimestamp(trade, "timestamp");
         IDictionary<string, object> rawOrder = this.safeDict(trade, "order");
         bool isArchiveMatch = (rawOrder != null);
@@ -2749,7 +2749,7 @@ public partial class nado : Exchange
     public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         object timestamp = null;
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -3104,7 +3104,7 @@ public partial class nado : Exchange
         {
             id = cancelOrderDigest;
             string? marketId = this.safeString(order, "product_id");
-            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            marketResolved = this.safeMarket(marketId, market);
             string? amountString = this.safeString(order, "amount");
             if ((amountString != null))
             {
@@ -3148,7 +3148,7 @@ public partial class nado : Exchange
         {
             id = cancelOrderDigest;
             string? marketId = this.safeString(order, "product_id");
-            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            marketResolved = this.safeMarket(marketId, market);
             string? amountString = this.safeString(order, "amount");
             if ((amountString != null))
             {
@@ -3171,7 +3171,7 @@ public partial class nado : Exchange
             IDictionary<string, object> placeOrder = this.safeDict2(order, "place_order", "order", new Dictionary<string, object>() {});
             IDictionary<string, object> rawOrder = this.safeDict(placeOrder, "order", new Dictionary<string, object>() {});
             string? marketId = this.safeString(placeOrder, "product_id");
-            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            marketResolved = this.safeMarket(marketId, market);
             IDictionary<string, object> data = this.safeDict(order, "data", new Dictionary<string, object>() {});
             id = this.safeString(data, "digest");
             if ((id == null))

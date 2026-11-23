@@ -7269,7 +7269,7 @@ public partial class kucoin : Exchange
             return new ccxt.Order(this.parseUtaOrder(order, market));
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         if (((marketResolved != null)) && (this.safeBool(marketResolved, "contract", false) == true))
         {
             return new ccxt.Order(this.parseContractOrder(order, marketResolved));
@@ -7658,7 +7658,7 @@ public partial class kucoin : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Int64? lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
@@ -8308,7 +8308,7 @@ public partial class kucoin : Exchange
             return new ccxt.Trade(this.parseMyUtaTrade(trade, market));
         }
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         if (((marketResolved == null)) || (this.safeBool(marketResolved, "spot", false) == true))
         {
             return new ccxt.Trade(this.parseSpotOrUtaTrade(trade, marketResolved));

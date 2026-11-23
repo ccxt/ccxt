@@ -980,7 +980,7 @@ public partial class deepcoin : Exchange
         //
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
@@ -1103,7 +1103,7 @@ public partial class deepcoin : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? side = this.safeString(trade, "side");
         string? execType = this.safeString(trade, "execType");
@@ -2874,7 +2874,7 @@ public partial class deepcoin : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(order, "cTime");
         string timestampString = this.safeString(order, "cTime", "");
         if (timestampString.Length < 13)

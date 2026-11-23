@@ -2458,7 +2458,7 @@ public partial class xt : Exchange
         {
             marketType = hasSpotKeys ? "spot" : "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_",marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_",marketType);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? open = this.safeString(ticker, "o");
@@ -2843,7 +2843,7 @@ public partial class xt : Exchange
         {
             marketType = hasSpotKeys ? "spot" : "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_",marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_",marketType);
         string? side = null;
         string? takerOrMaker = null;
         bool? isBuyerMaker = this.safeBool(trade, "b");
@@ -4686,7 +4686,7 @@ public partial class xt : Exchange
         string? resultId = this.safeString(order, "result");
         string? orderPositionSide = this.safeString(order, "positionSide");
         string marketType = ((resultId != null)) || ((orderPositionSide != null)) ? "contract" : "spot";
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         string? symbol = this.safeSymbol(marketId, marketResolved, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
         string? contractSize = this.safeString(marketResolved, "contractSize");

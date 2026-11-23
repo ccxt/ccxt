@@ -1752,7 +1752,7 @@ public partial class whitebit : Exchange
         //     }
         //
         string? marketId = this.safeString2(ticker, "tradingPairs", "ticker_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
         string? last = this.safeStringN(ticker, new List<object>() {"last", "last_price", "lastPrice"});
         // if "close" is provided, use it, otherwise use <last>
@@ -2160,7 +2160,7 @@ public partial class whitebit : Exchange
         //         },
         //     ]
         //
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return this.parseTrades(response, market, since, limit);
         } else
@@ -2226,7 +2226,7 @@ public partial class whitebit : Exchange
         //          "feeAsset": "USDT"
         //      }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         Int64? timestamp = this.safeTimestamp2(trade, "time", "trade_timestamp");
         string? orderId = this.safeString2(trade, "dealOrderId", "orderId");
         string? cost = this.safeString(trade, "deal");
@@ -3139,7 +3139,7 @@ public partial class whitebit : Exchange
         //      }
         //
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeString(order, "side");
         string? filled = this.safeString(order, "dealStock");

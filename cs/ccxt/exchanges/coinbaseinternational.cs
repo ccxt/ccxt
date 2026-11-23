@@ -1161,7 +1161,7 @@ public partial class coinbaseinternational : Exchange
 
     public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
-        bool isArray = ((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArray = ((ohlcv is IList<object>) || (ohlcv is not null && ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (isArray)
         {
             return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
@@ -2770,7 +2770,7 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         string? instrumentName = this.safeString(order, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(instrumentName,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(instrumentName, market);
         Int64? timestamp = this.safeInteger(order, "creation_timestamp");
         Int64? lastUpdateTimestamp = this.safeInteger(order, "last_update_timestamp");
         double? filled = this.safeNumber(order, "filled_amount");
@@ -3427,7 +3427,7 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         string? instrumentName = this.safeString(trade, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(instrumentName,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(instrumentName, market);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         double? price = this.safeNumber(trade, "price");
         double? amount = this.safeNumber(trade, "amount");

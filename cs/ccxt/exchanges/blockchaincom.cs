@@ -924,7 +924,7 @@ public partial class blockchaincom : Exchange
         string? amountString = this.safeString(trade, "qty");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? datetime = this.iso8601(timestamp);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");

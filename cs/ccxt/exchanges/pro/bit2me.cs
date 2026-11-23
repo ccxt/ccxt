@@ -228,7 +228,7 @@ public partial class bit2me : ccxt.bit2me
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
@@ -369,7 +369,7 @@ public partial class bit2me : ccxt.bit2me
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(order, "feeAmount");

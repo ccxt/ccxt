@@ -339,7 +339,7 @@ public partial class bitopro : ccxt.bitopro
         {
             symbol = this.symbol(((bs + "/") + quote));
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(symbol,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
         string? price = this.safeString(trade, "price");
         string? type = this.safeStringLower(trade, "orderType");
         string? side = this.safeString(trade, "side");

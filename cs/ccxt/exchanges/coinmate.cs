@@ -1057,7 +1057,7 @@ public partial class coinmate : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "currencyPair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
         string? side = this.safeStringLower2(trade, "type", "tradeType");

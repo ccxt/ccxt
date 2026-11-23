@@ -1647,7 +1647,7 @@ public partial class htx : ccxt.htx
         Int64? lastTradeTimestamp = this.safeIntegerN(order, new List<object>() {"lastActTime", "updated_time", "ts"});
         Int64? created = this.safeInteger2(order, "orderCreateTime", "created_time");
         string? marketId = this.safeString2(order, "contract_code", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? amount = this.safeString2(order, "orderSize", "volume");
         string? status = this.parseOrderStatus(this.safeStringN(order, new List<object>() {"orderStatus", "state", "status"}));
@@ -3152,7 +3152,7 @@ public partial class htx : ccxt.htx
         //     }
         //
         string? marketId = this.safeString2(trade, "symbol", "contract_code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringN(trade, new List<object>() {"side", "orderSide", "direction"});
         string? tradeId = this.safeStringN(trade, new List<object>() {"tradeId", "trade_id", "id"});

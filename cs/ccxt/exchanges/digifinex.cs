@@ -1475,7 +1475,7 @@ public partial class digifinex : Exchange
         }
         string? marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         Int64? timestamp = this.safeTimestamp(ticker, "date");
         if ((this.safeBool(marketResolved, "swap", false) == true))
         {
@@ -1582,7 +1582,7 @@ public partial class digifinex : Exchange
         {
             marketIdResolved = marketId;
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketIdResolved,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketIdResolved, market);
         Int64? timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         string? side = this.safeString2(trade, "type", "side");
         string? type = null;
@@ -4349,7 +4349,7 @@ public partial class digifinex : Exchange
         if ((symbolsNormalized != null))
         {
             object symbol = null;
-            if (((symbolsNormalized is IList<object>) || (symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((symbolsNormalized is IList<object>) || (symbolsNormalized is not null && symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 int symbolsLength = (symbolsNormalized?.Count ?? 0);
                 if (symbolsLength > 1)

@@ -818,7 +818,7 @@ public partial class apex : Exchange
         // }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? last = this.safeString(ticker, "lastPrice");
         string? percentage = this.safeString(ticker, "price24hPcnt");
@@ -1086,7 +1086,7 @@ public partial class apex : Exchange
         //  ]
         //
         string? marketId = this.safeString2(trade, "s", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? id = this.safeString2(trade, "i", "id");
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? priceString = this.safeString2(trade, "p", "price");
@@ -1310,7 +1310,7 @@ public partial class apex : Exchange
         string? orderId = this.safeString(order, "id");
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");

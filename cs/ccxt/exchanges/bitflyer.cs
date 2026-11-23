@@ -687,7 +687,7 @@ public partial class bitflyer : Exchange
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         string? id = this.safeString(trade, "id");
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },

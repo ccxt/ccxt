@@ -3237,7 +3237,7 @@ public partial class okx : Exchange
         }
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-",marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-",marketType);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
@@ -3524,7 +3524,7 @@ public partial class okx : Exchange
         //
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "fillPx", "px");
@@ -5658,7 +5658,7 @@ public partial class okx : Exchange
             type = "limit";
         }
         string? marketId = this.safeString(order, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, marketResolved, "-");
         string? filled = this.safeString(order, "accFillSz");
         string? price = this.safeString2(order, "px", "ordPx");
@@ -8267,7 +8267,7 @@ public partial class okx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArray = ((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         string request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
@@ -8293,7 +8293,7 @@ public partial class okx : Exchange
             if ((method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")))
             {
                 string brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
-                if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if (((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     for (int i = 0; i < getArrayLength(parameters); i++)
                     {
@@ -9939,7 +9939,7 @@ public partial class okx : Exchange
         double? openInterestAmount = null;
         double? openInterestValue = null;
         string? type = this.safeString(this.options, "defaultType");
-        if (((interest is IList<object>) || (interest.GetType().IsGenericType && interest.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((interest is IList<object>) || (interest is not null && interest.GetType().IsGenericType && interest.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             int numFields = getArrayLength(interest);
             if (numFields > 3)

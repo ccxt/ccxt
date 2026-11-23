@@ -560,7 +560,7 @@ public partial class btcbox : Exchange
         //      }
         //
         Int64? timestamp = this.safeTimestamp(trade, "date");
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
@@ -742,7 +742,7 @@ public partial class btcbox : Exchange
             }
         }
         string? trades = null; // todo: this.parseTrades (order['trades']);
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? side = this.safeString(order, "type");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },

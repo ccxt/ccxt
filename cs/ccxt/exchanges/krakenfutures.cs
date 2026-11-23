@@ -856,7 +856,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? open = this.safeString(ticker, "open24h");
@@ -1366,7 +1366,7 @@ public partial class krakenfutures : Exchange
             rawType = this.safeString(priorEdit, "type");
         }
         string? type = this.parseOrderType(rawType); // undefined stays undefined
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? cost = null;
         bool? linear = this.safeBool(marketResolved, "linear", false);
         if (((amount != null)) && ((price != null)) && ((marketResolved != null)))
@@ -2188,7 +2188,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(typesMap, orderType, orderType);
     }
 
-    public virtual void verifyOrderActionSuccess(object status, string? method, IList<object>? omit = null)
+    public virtual void verifyOrderActionSuccess(string? status, string? method, IList<object>? omit = null)
     {
         omit ??= new List<object>();
         Dictionary<string, object> errors = new Dictionary<string, object>() {
@@ -2213,9 +2213,12 @@ public partial class krakenfutures : Exchange
             { "filled", typeof(OrderNotFound) },
             { "notFound", typeof(OrderNotFound) },
         };
-        if (((status is string inOpKey1 && errors.ContainsKey(inOpKey1))) && !this.inArray(status, omit))
+        if ((status != null))
         {
-            throwDynamicException((errors != null && status != null && errors.ContainsKey((string)status) ? errors[(string)status] : null), ((((this.id + ": ") + method) + " failed due to ") + (status)));
+            if (((errors != null && status != null && errors.ContainsKey(status))) && !this.inArray(status, omit))
+            {
+                throwDynamicException((errors != null && status != null && errors.ContainsKey(status) ? errors[status] : null), ((((this.id + ": ") + method) + " failed due to ") + status));
+            }
         }
     }
 
@@ -2666,7 +2669,7 @@ public partial class krakenfutures : Exchange
         string? status = this.parseOrderStatus(statusId);
         bool isClosed = this.inArray(status, new List<object>() {"canceled", "rejected", "closed"});
         string? marketId = this.safeString2(details, "symbol", "tradeable");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString2(details, "timestamp", "receivedTime"));
         Int64? lastUpdateTimestamp = this.parse8601(this.safeString(details, "lastUpdateTime"));
@@ -4015,7 +4018,7 @@ public partial class krakenfutures : Exchange
             { "multiCollateral", "flex" },
             { "multiCollateralMargin", "flex" },
         };
-        if ((account is string inOpKey2 && accountByType.ContainsKey(inOpKey2)))
+        if ((account is string inOpKey1 && accountByType.ContainsKey(inOpKey1)))
         {
             return ((string?)((object)((accountByType != null && account != null && accountByType.ContainsKey((string)account) ? accountByType[(string)account] : null))));
         } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))

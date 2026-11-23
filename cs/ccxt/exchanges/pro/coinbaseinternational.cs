@@ -1081,7 +1081,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49934 && ((hxArr49934 is IList<object>) || (hxArr49934.GetType().IsGenericType && hxArr49934.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49934 && ((hxArr49934 is IList<object>) || (hxArr49934 is not null && hxArr49934.GetType().IsGenericType && hxArr49934.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -1309,7 +1309,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(channels, (interval == "raw"), paramsInterval);
     }
 
-    public virtual Dictionary<string, object> handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
@@ -1333,7 +1333,6 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, channel);
-        return message;
     }
 
     /**

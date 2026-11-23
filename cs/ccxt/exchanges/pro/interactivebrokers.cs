@@ -602,7 +602,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             }
             IDictionary<string, object> options = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
             int duration = this.parseTimeframe(timeframeVar);
-            Int64? historyLimit = ((limit == null)) ? 100 : limit;
+            Int64? historyLimit = 100;
+            if ((limit != null))
+            {
+                historyLimit = this.parseToInt(limit);
+            }
             Dictionary<string, object> historyRequest = new Dictionary<string, object>() {
                 { "exchange", this.safeString(options, "exchange", "SMART") },
                 { "period", this.ibkrWsPeriod(duration, historyLimit) },

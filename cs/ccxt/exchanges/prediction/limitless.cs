@@ -1617,7 +1617,7 @@ public partial class limitless : PredictionExchange
         //     ]
         //
         object responseRows = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             responseRows = response;
         }
@@ -3528,7 +3528,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         List<object> categoriesResponse = await this.limitlessPublicGetCategories();
         List<object> categories = new List<object>() {};
-        if (((categoriesResponse is IList<object>) || (categoriesResponse.GetType().IsGenericType && categoriesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((categoriesResponse is IList<object>) || (categoriesResponse is not null && categoriesResponse.GetType().IsGenericType && categoriesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             categories = categoriesResponse;
         }

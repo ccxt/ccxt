@@ -1420,7 +1420,7 @@ public partial class bitteam : Exchange
         //
         string? id = this.safeString(order, "id");
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? clientOrderId = this.safeString(order, "orderCid");
         Int64? timestamp = null;
         string? createdAt = this.safeString(order, "createdAt");
@@ -1563,7 +1563,7 @@ public partial class bitteam : Exchange
         //
         List<object> tickers = new List<object>() {};
         List<object> rawTickers = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             rawTickers = response;
         }
@@ -1866,7 +1866,7 @@ public partial class bitteam : Exchange
         //         "lowest_price_24h": 37574.894999
         //     }
         string? marketId = this.safeStringLower(ticker, "trading_pairs");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? bestBidPrice = null;
         string? bestAskPrice = null;
         string? bestBidVolume = null;
@@ -2187,7 +2187,7 @@ public partial class bitteam : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString2(trade, "id", "trade_id");
         string? price = this.safeString(trade, "price");

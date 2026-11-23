@@ -1383,7 +1383,7 @@ public partial class grvt : Exchange
         //            }
         //
         string? marketId = this.safeString(trade, "instrument");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         string? takerOrMaker = null;
         bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
@@ -3513,7 +3513,7 @@ public partial class grvt : Exchange
         int primaryOrderIndex = 0;
         IDictionary<string, object> firstLeg = this.safeDict(legs, primaryOrderIndex);
         string? legMarketId = this.safeString(firstLeg, "instrument");
-        IDictionary<string, object> marketResolved = ((firstLeg != null)) ? this.safeMarket(legMarketId,((IDictionary<string, object>)market)) : market;
+        IDictionary<string, object> marketResolved = ((firstLeg != null)) ? this.safeMarket(legMarketId, market) : market;
         if ((firstLeg != null))
         {
             size = this.safeString(firstLeg, "size");

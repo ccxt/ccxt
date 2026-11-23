@@ -326,7 +326,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? sideRaw = this.safeInteger(trade, "type");
         string side = "sell";
@@ -820,7 +820,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         string? triggerPrice = this.safeString(order, "stop_price");
         Int64? timestamp = this.safeTimestamp(order, "datetime");
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },

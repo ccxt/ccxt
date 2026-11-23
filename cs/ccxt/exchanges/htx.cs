@@ -2959,7 +2959,7 @@ public partial class htx : Exchange
         string? askVolume = null;
         if ((ticker != null && ticker.ContainsKey("bid")))
         {
-            if (((ticker["bid"]) is var hxArr120025 && ((hxArr120025 is IList<object>) || (hxArr120025.GetType().IsGenericType && hxArr120025.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((ticker["bid"]) is var hxArr120025 && ((hxArr120025 is IList<object>) || (hxArr120025 is not null && hxArr120025.GetType().IsGenericType && hxArr120025.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 bid = this.safeString(ticker["bid"], 0);
                 bidVolume = this.safeString(ticker["bid"], 1);
@@ -2971,7 +2971,7 @@ public partial class htx : Exchange
         }
         if ((ticker != null && ticker.ContainsKey("ask")))
         {
-            if (((ticker["ask"]) is var hxArr120392 && ((hxArr120392 is IList<object>) || (hxArr120392.GetType().IsGenericType && hxArr120392.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((ticker["ask"]) is var hxArr120392 && ((hxArr120392 is IList<object>) || (hxArr120392 is not null && hxArr120392.GetType().IsGenericType && hxArr120392.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 ask = this.safeString(ticker["ask"], 0);
                 askVolume = this.safeString(ticker["ask"], 1);
@@ -3520,7 +3520,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
@@ -6095,7 +6095,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString2(order, "contract_code", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
         string? status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
         if ((rejectedCreateOrders != null))
@@ -9019,7 +9019,7 @@ public partial class htx : Exchange
         string? signedBody = null;
         string pathString = path;
         string url = "/";
-        bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArrayParams = ((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object query = new Dictionary<string, object>() {};
         if (!isArrayParams)
         {

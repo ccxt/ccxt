@@ -1614,7 +1614,7 @@ public partial class aster : Exchange
         {
             marketType = "swap";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         string? currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         string? currencyCode = this.safeCurrencyCode(currencyId);
         string? amountString = this.safeString2(trade, "qty", "q");
@@ -1920,7 +1920,7 @@ public partial class aster : Exchange
             marketType = (!(this.safeInteger(ticker, "lastUpdateId") == null)) ? "swap" : "spot";
         }
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
@@ -2717,7 +2717,7 @@ public partial class aster : Exchange
             defaultType = "swap";
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,defaultType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,defaultType);
         string? side = this.safeStringLower(order, "side");
         Int64? timestamp = this.safeInteger(order, "time");
         string? statusId = this.safeStringUpper(order, "status");
@@ -4295,7 +4295,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))
         {
-            if (!((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((symbols is IList<object>) || (symbols is not null && symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositionsRisk() requires an array argument for symbols")) ;
             }
@@ -4635,7 +4635,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))
         {
-            if (!((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((symbols is IList<object>) || (symbols is not null && symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositions() requires an array argument for symbols")) ;
             }
@@ -5079,7 +5079,7 @@ public partial class aster : Exchange
         {
             string key = ((string)keys[i]);
             object value = (values != null && key != null && values.ContainsKey(key) ? values[key] : null);
-            bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || this.isDictionary(value);
+            bool isObj = ((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || this.isDictionary(value);
             string valueJsonified = isObj ? this.json(value) : value.ToString();
             string encoded = this.encodeURIComponent(valueJsonified);
             encodedString = encodedString + (((key + "=") + encoded) + "&");

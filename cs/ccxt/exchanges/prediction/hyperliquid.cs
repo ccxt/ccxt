@@ -2645,7 +2645,7 @@ public partial class hyperliquid : PredictionExchange
     public virtual List<object> infoList(object response)
     {
         object result = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             result = response;
         }
@@ -2661,7 +2661,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual object infoDict(object response)
     {
-        if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((!(response is string)) && !((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return response;
         }

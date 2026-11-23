@@ -1137,7 +1137,7 @@ public partial class pacifica : ccxt.pacifica
         string? price = this.safeString(trade, "p");
         string? amount = this.safeString(trade, "a");
         string? marketId = this.safeString(trade, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "h");
         string? fee = this.safeString(trade, "f");

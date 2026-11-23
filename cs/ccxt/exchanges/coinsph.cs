@@ -1154,7 +1154,7 @@ public partial class coinsph : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "closeTime");
         string? bid = this.safeString(ticker, "bidPrice");
         string? ask = this.safeString(ticker, "askPrice");
@@ -1469,7 +1469,7 @@ public partial class coinsph : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString2(trade, "id", "tradeId");
         string? orderId = this.safeString(trade, "orderId");
@@ -1956,7 +1956,7 @@ public partial class coinsph : Exchange
         //
         string? id = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "time", "transactTime");
         List<object> trades = this.safeList(order, "fills");
         string? triggerPrice = this.safeString(order, "stopPrice");
@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112089 && ((hxArr112089 is IList<object>) || (hxArr112089.GetType().IsGenericType && hxArr112089.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112089 && ((hxArr112089 is IList<object>) || (hxArr112089 is not null && hxArr112089.GetType().IsGenericType && hxArr112089.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

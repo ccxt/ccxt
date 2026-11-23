@@ -1066,7 +1066,7 @@ public partial class bit2c : Exchange
             amount = this.safeString(trade, "firstAmount");
             List<object> reference_parts = reference.Split(new [] {"|"}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             string? marketId = this.safeString(trade, "pair");
-            Dictionary<string, object> marketByPair = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            Dictionary<string, object> marketByPair = this.safeMarket(marketId, market);
             tradeMarket = this.safeMarket(((string)(reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null)), marketByPair);
             bool? isMaker = this.safeBool(trade, "isMaker", false);
             makerOrTaker = isMaker == true ? "maker" : "taker";
@@ -1097,7 +1097,7 @@ public partial class bit2c : Exchange
             id = this.safeString(trade, "tid");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "amount");
-            tradeMarket = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+            tradeMarket = this.safeMarket(((string)null), market);
             side = this.safeValue(trade, "isBid");
             if ((side != null))
             {

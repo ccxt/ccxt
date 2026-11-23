@@ -1640,7 +1640,7 @@ public partial class paradex : Exchange
         }
         string? last = this.safeString(ticker, "last_traded_price");
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "created_at");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1941,7 +1941,7 @@ public partial class paradex : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? id = this.safeString(trade, "id");
         Int64? timestamp = this.safeInteger(trade, "created_at");
         string? priceString = this.safeString(trade, "price");
@@ -2266,7 +2266,7 @@ public partial class paradex : Exchange
             clientOrderId = null;
         }
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");

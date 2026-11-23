@@ -1816,7 +1816,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "market_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? last = this.safeString(ticker, "last_trade_price");
         string? high = this.safeString(ticker, "daily_price_high");
@@ -2751,7 +2751,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "market_index");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeTimestamp(order, "timestamp");
         bool? isAsk = this.safeBool(order, "is_ask");
         Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
@@ -3557,7 +3557,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "market_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? accountIndex = this.safeString(trade, "account_index");
         string? askAccountId = this.safeString(trade, "ask_account_id");

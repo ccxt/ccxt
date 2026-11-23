@@ -1289,7 +1289,7 @@ public partial class coinbaseexchange : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? feeRate = null;
         string? takerOrMaker = null;
         string? cost = null;
@@ -1638,7 +1638,7 @@ public partial class coinbaseexchange : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(order, "created_at"));
         string? marketId = this.safeString(order, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? doneReason = this.safeString(order, "done_reason");
         if ((status == "closed") && (doneReason == "canceled"))

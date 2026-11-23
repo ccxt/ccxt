@@ -584,7 +584,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -597,7 +597,7 @@ public partial class bittrade : ccxt.bittrade
         string? id = this.safeString(message, "id");
         if ((id == null))
         {
-            return message;
+            return;
         }
         Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
@@ -607,11 +607,11 @@ public partial class bittrade : ccxt.bittrade
             if (method == "handleOrderBookSnapshot")
             {
                 this.handleOrderBookSnapshot(client, message, subscription);
-                return null;
+                return;
             } else if (method == "handleOrderBookSubscription")
             {
                 this.handleOrderBookSubscription(client, message, subscription);
-                return null;
+                return;
             }
             // clean up
             if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
@@ -619,7 +619,6 @@ public partial class bittrade : ccxt.bittrade
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
         }
-        return message;
     }
 
     public virtual Dictionary<string, object> handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)

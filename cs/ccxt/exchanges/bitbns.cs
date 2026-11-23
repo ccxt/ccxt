@@ -1033,7 +1033,7 @@ public partial class bitbns : Exchange
         //         "type":"buy"
         //     }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? orderId = this.safeString2(trade, "id", "tradeId");
         Int64? timestamp = this.parse8601(this.safeString(trade, "date"));
         timestamp = this.safeInteger(trade, "timestamp", timestamp);

@@ -661,7 +661,7 @@ public partial class coincheck : Exchange
         string? id = this.safeString(trade, "id");
         string? priceString = this.safeString(trade, "rate");
         string? marketId = this.safeString(trade, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? baseId = this.safeString(marketResolved, "baseId");
         string? quoteId = this.safeString(marketResolved, "quoteId");
         string? symbol = this.safeString(marketResolved, "symbol");

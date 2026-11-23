@@ -1437,7 +1437,7 @@ public partial class bybit : ccxt.bybit
             marketType = this.safeString(market, "type", marketType);
         }
         string? marketId = this.safeString(trade, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
@@ -2032,7 +2032,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88630 && ((hxArr88630 is IList<object>) || (hxArr88630.GetType().IsGenericType && hxArr88630.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88630 && ((hxArr88630 is IList<object>) || (hxArr88630 is not null && hxArr88630.GetType().IsGenericType && hxArr88630.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)

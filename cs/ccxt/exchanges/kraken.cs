@@ -1643,7 +1643,7 @@ public partial class kraken : Exchange
         string? orderId = null;
         Dictionary<string, object> fee = null;
         string? symbol = null;
-        bool tradeIsList = ((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool tradeIsList = ((trade is IList<object>) || (trade is not null && trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         bool tradeIsString = (trade is string);
         bool isOrderTrade = (!tradeIsList) && (!tradeIsString) && ((this.safeString(trade, "ordertxid") != null));
         IDictionary<string, object> marketResolved = market;

@@ -1414,7 +1414,7 @@ public partial class p2b : Exchange
         //
         Int64? timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "id", "orderId") },

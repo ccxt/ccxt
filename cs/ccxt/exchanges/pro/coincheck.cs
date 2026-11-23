@@ -214,7 +214,7 @@ public partial class coincheck : ccxt.coincheck
     public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         List<object> data = this.safeList(message, 0);
-        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             this.handleOrderBook(client, message);
         } else

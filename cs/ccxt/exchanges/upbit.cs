@@ -870,7 +870,7 @@ public partial class upbit : Exchange
         //
         Int64? timestamp = this.safeInteger(ticker, "trade_timestamp");
         string? marketId = this.safeString2(ticker, "market", "code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? last = this.safeString(ticker, "trade_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1083,7 +1083,7 @@ public partial class upbit : Exchange
         string? price = this.safeString2(trade, "trade_price", "price");
         string? amount = this.safeString2(trade, "trade_volume", "volume");
         string? marketId = this.safeString2(trade, "market", "code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, (askOrBid + "_fee"));
         if ((feeCost != null))
@@ -2143,7 +2143,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "paid_fee");
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(this.safeList(order, "trades", new List<object>() {}), marketResolved, null, null, new Dictionary<string, object>() {
             { "order", id },
             { "type", type },

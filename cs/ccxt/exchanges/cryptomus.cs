@@ -572,7 +572,7 @@ public partial class cryptomus : Exchange
         //         "price": "78450.4"
         //     }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? last = this.safeString(ticker, "price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1110,7 +1110,7 @@ public partial class cryptomus : Exchange
         //
         string? id = this.safeString2(order, "order_id", "id");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? dateTime = this.safeString(order, "createdAt");
         Int64? timestamp = this.parse8601(dateTime);
         IDictionary<string, object> deal = this.safeDict(order, "deal", new Dictionary<string, object>() {});

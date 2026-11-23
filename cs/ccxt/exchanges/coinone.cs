@@ -927,7 +927,7 @@ public partial class coinone : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if ((isSellerMaker != null))
@@ -1195,7 +1195,7 @@ public partial class coinone : Exchange
         {
             symbol = ((bs + "/") + quote);
         }
-        IDictionary<string, object> marketResolved = ((symbol != null)) ? this.safeMarket(symbol,((IDictionary<string, object>)market), "/") : market;
+        IDictionary<string, object> marketResolved = ((symbol != null)) ? this.safeMarket(symbol, market, "/") : market;
         Int64? timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if ((timestamp == null))
         {

@@ -783,7 +783,7 @@ public partial class cex : Exchange
         //
         string? dateStr = this.safeString(trade, "dateISO");
         Int64? timestamp = this.parse8601(dateStr);
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1372,7 +1372,7 @@ public partial class cex : Exchange
         {
             marketId = ((currency1 + "-") + currency2);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};

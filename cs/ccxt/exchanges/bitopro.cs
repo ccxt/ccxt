@@ -549,7 +549,7 @@ public partial class bitopro : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -735,7 +735,7 @@ public partial class bitopro : Exchange
             timestamp = this.safeInteger(trade, "timestamp");
         }
         string? marketId = this.safeString(trade, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(trade, "price");
         string? type = this.safeStringLower(trade, "type");
@@ -1182,7 +1182,7 @@ public partial class bitopro : Exchange
         string? amount = this.safeString2(order, "amount", "originalAmount");
         string? price = this.safeString(order, "price");
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? orderStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(orderStatus);

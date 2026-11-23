@@ -524,7 +524,7 @@ public partial class BaseExchange
         {
             return defaultValue as List<object>;
         }
-        if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return (List<object>)value;
         }
@@ -540,12 +540,12 @@ public partial class BaseExchange
          * @returns {Array | undefined}
          */
         object value = this.safeValue(dictionaryOrList, key1);
-        if (((value != null)) && ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((value != null)) && ((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return (List<object>)value;
         }
         object value2 = this.safeValue(dictionaryOrList, key2);
-        if (((value2 != null)) && ((value2 is IList<object>) || (value2.GetType().IsGenericType && value2.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((value2 != null)) && ((value2 is IList<object>) || (value2 is not null && value2.GetType().IsGenericType && value2.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return (List<object>)value2;
         }
@@ -581,7 +581,7 @@ public partial class BaseExchange
         {
             return defaultValue as List<object>;
         }
-        if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return (List<object>)value;
         }
@@ -2773,7 +2773,7 @@ public partial class BaseExchange
             return ccxt.BaseExchange.ToOrderList(new List<object>() {});
         }
         List<object> results = new List<object>() {};
-        if (((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((orders is IList<object>) || (orders is not null && orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(orders); i++)
             {
@@ -3690,7 +3690,7 @@ public partial class BaseExchange
 
     public virtual IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
-        if (((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((ohlcv is IList<object>) || (ohlcv is not null && ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
         }
@@ -3932,7 +3932,7 @@ public partial class BaseExchange
             symbolsLength = (symbolsNormalized?.Count ?? 0);
         }
         bool noSymbols = ((symbolsNormalized == null)) || ((symbolsLength == 0));
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(response); i++)
             {
@@ -7052,7 +7052,7 @@ public partial class BaseExchange
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
-        bool isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArray = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object dictResponse = new Dictionary<string, object>() {};
         int numEntries = 0;
         if (isArray)
@@ -7863,7 +7863,7 @@ public partial class BaseExchange
         // the value of greeks is either a dict or a list
         //
         parameters ??= new Dictionary<string, object>();
-        if (((greeks is IList<object>) || (greeks.GetType().IsGenericType && greeks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((greeks is IList<object>) || (greeks is not null && greeks.GetType().IsGenericType && greeks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return this.parseAllGreeksList(greeks, symbols, parameters);
         }

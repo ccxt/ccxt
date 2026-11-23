@@ -1533,7 +1533,7 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,tradeType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,tradeType);
         Int64? timestamp = this.safeInteger2(order, "ct", "createTime");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },

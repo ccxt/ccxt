@@ -274,7 +274,7 @@ public partial class dydx : ccxt.dydx
 
     public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
-        if (((delta is IList<object>) || (delta.GetType().IsGenericType && delta.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((delta is IList<object>) || (delta is not null && delta.GetType().IsGenericType && delta.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             double? price = this.safeFloat(delta, 0);
             double? amount = this.safeFloat(delta, 1);

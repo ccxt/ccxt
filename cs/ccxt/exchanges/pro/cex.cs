@@ -218,7 +218,7 @@ public partial class cex : ccxt.cex
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
         object tradeParts = trade;
-        if (!((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((trade is IList<object>) || (trade is not null && trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             tradeParts = ((string)trade).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         }

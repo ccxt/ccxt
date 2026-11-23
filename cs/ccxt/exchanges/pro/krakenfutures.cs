@@ -699,7 +699,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "time");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1955,7 +1955,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public virtual Dictionary<string, object> handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
     {
         /**
          * @ignore
@@ -1989,6 +1989,5 @@ public partial class krakenfutures : ccxt.krakenfutures
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
         }
-        return message;
     }
 }

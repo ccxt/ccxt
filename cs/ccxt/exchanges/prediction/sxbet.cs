@@ -2624,7 +2624,7 @@ public partial class sxbet : PredictionExchange
         }
         // rows arrive either shaped like one object or like an array of objects - normalize to a list
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             rows = ((List<object>)data);
         } else
@@ -3128,7 +3128,7 @@ public partial class sxbet : PredictionExchange
         }
         // validation failures arrive in string-array form, business errors in single-code-string form
         object messageString = null;
-        if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((message is IList<object>) || (message is not null && message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             messageString = String.Join(", ", ((IList<object>)message).ToArray());
         } else

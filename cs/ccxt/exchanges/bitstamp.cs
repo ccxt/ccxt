@@ -3615,7 +3615,7 @@ public partial class bitstamp : Exchange
                 {
                     string? key = ((string)keys[i]);
                     object value = this.safeValue(error, key);
-                    if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                    if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
                         errors = this.arrayConcat(errors, value);
                     } else

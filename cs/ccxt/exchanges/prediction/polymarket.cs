@@ -865,7 +865,7 @@ public partial class polymarket : PredictionExchange
         };
         firstPageRequest = this.extend(firstPageRequest, baseRequest);
         List<object> firstPageResponse = await this.gammaPublicGetEvents(firstPageRequest);
-        bool firstPageIsArray = ((firstPageResponse is IList<object>) || (firstPageResponse.GetType().IsGenericType && firstPageResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool firstPageIsArray = ((firstPageResponse is IList<object>) || (firstPageResponse is not null && firstPageResponse.GetType().IsGenericType && firstPageResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         List<object> firstPage = firstPageIsArray ? firstPageResponse : new List<object>() {};
         int firstPageLength = (firstPage?.Count ?? 0);
         List<object> allRawEvents = new List<object>() {};
@@ -1444,9 +1444,9 @@ public partial class polymarket : PredictionExchange
             object booksResponse = (responses != null && 0 < responses.Count ? responses[0] : null);
             object midpoints = (responses != null && 1 < responses.Count ? responses[1] : null);
             object lastTradesResponse = (responses != null && 2 < responses.Count ? responses[2] : null);
-            bool booksIsArray = ((booksResponse is IList<object>) || (booksResponse.GetType().IsGenericType && booksResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            bool booksIsArray = ((booksResponse is IList<object>) || (booksResponse is not null && booksResponse.GetType().IsGenericType && booksResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             List<object> books = ((List<object>)(booksIsArray ? booksResponse : new List<object>() {}));
-            bool lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            bool lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse is not null && lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             List<object> lastTrades = ((List<object>)(lastTradesIsArray ? lastTradesResponse : new List<object>() {}));
             Dictionary<string, object> lastTradesByTokenId = new Dictionary<string, object>() {};
             int lastTradesLength = (lastTrades?.Count ?? 0);
@@ -1941,7 +1941,7 @@ public partial class polymarket : PredictionExchange
         };
         request["limit"] = this.safeInteger(this.options, "tradesPageSize", 500);
         List<object> response = await this.dataPublicGetTrades(this.extend(request, parameters));
-        List<object> rawTrades = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
+        List<object> rawTrades = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
         List<object> filteredTrades = new List<object>() {};
         for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
         {
@@ -1980,7 +1980,7 @@ public partial class polymarket : PredictionExchange
             request["asset_id"] = this.safeString(outcomeObj, "outcomeId");
         }
         Dictionary<string, object> response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
-        object rawTrades = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
+        object rawTrades = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(this.toArray(rawTrades), outcomeObj, since, limit));
     }
 
@@ -2501,7 +2501,7 @@ public partial class polymarket : PredictionExchange
         }
         List<object> response = await this.clobPrivatePostOrders(bodies);
         List<object> result = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < (response?.Count ?? 0); i++)
             {
@@ -3056,7 +3056,7 @@ public partial class polymarket : PredictionExchange
                 lookup["slug"] = requestedSlug;
             }
             List<object> response = await this.gammaPublicGetEvents(lookup);
-            bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            bool responseIsArray = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             rawEvents = responseIsArray ? response : new List<object>() {};
         } else if (queriesLength > 0)
         {
@@ -3352,7 +3352,7 @@ public partial class polymarket : PredictionExchange
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
         bool isArrayBody = false;
-        if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             IList<object> paramsList = (IList<object>)(parameters);
             int paramsListLength = (paramsList?.Count ?? 0);
@@ -3373,7 +3373,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152178 && ((hxArr152178 is IList<object>) || (hxArr152178.GetType().IsGenericType && hxArr152178.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152178 && ((hxArr152178 is IList<object>) || (hxArr152178 is not null && hxArr152178.GetType().IsGenericType && hxArr152178.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }

@@ -587,7 +587,7 @@ public partial class coinspot : Exchange
             { "info", response },
         };
         object balances = this.safeValue2(response, "balance", "balances");
-        if (((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((balances is IList<object>) || (balances is not null && balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> rows = this.safeList2(response, "balance", "balances", new List<object>() {});
             int numRows = rows.Count;

@@ -1225,7 +1225,7 @@ public partial class testMainClass
 
     public virtual object assertPredictionEvents(BaseExchange exchange, object events)
     {
-        assert(((events is IList<object>) || (events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
+        assert(((events is IList<object>) || (events is not null && events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
         int eventsLength = getArrayLength(events);
         for (int i = 0; i < eventsLength; i++)
         {
@@ -1272,7 +1272,7 @@ public partial class testMainClass
         object tags = exchange.safeValue(eventVar, "tags");
         if ((tags != null))
         {
-            assert(((tags is IList<object>) || (tags.GetType().IsGenericType && tags.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(exchange.id, " event tags must be a list"), logText));
+            assert(((tags is IList<object>) || (tags is not null && tags.GetType().IsGenericType && tags.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(exchange.id, " event tags must be a list"), logText));
         }
         object info = exchange.safeValue(eventVar, "info");
         assert((info != null), add(add(exchange.id, " event missing info"), logText));
@@ -1744,7 +1744,7 @@ public partial class testMainClass
         {
             return true;
         }
-        if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return false;  // a non-empty container, `!value` is false for containers in js
         }
@@ -1772,7 +1772,7 @@ public partial class testMainClass
         {
             return true;
         }
-        if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(value); i++)
             {
@@ -1906,7 +1906,7 @@ public partial class testMainClass
                 // top-level wrapper.
                 this.assertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (((storedOutput != null)) && ((newOutput != null)) && ((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        } else if (((storedOutput != null)) && ((newOutput != null)) && ((storedOutput is IList<object>) || (storedOutput is not null && storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (((newOutput is IList<object>) || (newOutput is not null && newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             int storedArrayLength = getArrayLength(storedOutput);
             int newArrayLength = getArrayLength(newOutput);
@@ -2202,7 +2202,7 @@ public partial class testMainClass
     {
         if ((isEqual(method, "fetchPosition")) || (isEqual(method, "fetchPositions")) || (isEqual(method, "fetchPositionsForSymbol")) || (isEqual(method, "fetchPositionsRisk")))
         {
-            if (((output is IList<object>) || (output.GetType().IsGenericType && output.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((output is IList<object>) || (output is not null && output.GetType().IsGenericType && output.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 int outputLength = getArrayLength(output);
                 for (int i = 0; i < outputLength; i++)

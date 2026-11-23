@@ -535,7 +535,7 @@ public partial class polymarket : ccxt.polymarket
         //     }
         //
         string? marketId = this.safeString(trade, "iid");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? side = this.safeStringLower(trade, "side");
         if (side == "long")
@@ -1161,7 +1161,7 @@ public partial class polymarket : ccxt.polymarket
         //
         string? id = this.safeString(message, "id");
         object data = this.safeValue(message, "data");
-        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong

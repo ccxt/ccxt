@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
             return false;
         }
         // Verify that we have a subscription
-        assert(((positionsSubscription is IList<object>) || (positionsSubscription.GetType().IsGenericType && positionsSubscription.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
+        assert(((positionsSubscription is IList<object>) || (positionsSubscription is not null && positionsSubscription.GetType().IsGenericType && positionsSubscription.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
         // Assert unWatchPositions for one symbol is not supported
         object errorResponse = null;
         try
@@ -79,7 +79,7 @@ public partial class testMainClass : BaseTest
             throw new Exception (add(add(add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
-        assert(((resubscribeResponse is IList<object>) || (resubscribeResponse.GetType().IsGenericType && resubscribeResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
+        assert(((resubscribeResponse is IList<object>) || (resubscribeResponse is not null && resubscribeResponse.GetType().IsGenericType && resubscribeResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
         return true;
     }
 

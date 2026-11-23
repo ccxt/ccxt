@@ -546,7 +546,7 @@ public partial class whitebit : ccxt.whitebit
         string? price = this.safeString(trade, 4);
         string? amount = this.safeString(trade, 5);
         string? marketId = this.safeString(trade, 2);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, 6);
         if ((feeCost != null))
@@ -708,7 +708,7 @@ public partial class whitebit : ccxt.whitebit
         //
         Int64? status = this.safeInteger(order, "status");
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? id = this.safeString(order, "id");
         string? clientOrderId = ((string)this.omitZero(this.safeString(order, "client_order_id")));
         string? price = this.safeString(order, "price");

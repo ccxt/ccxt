@@ -606,7 +606,7 @@ public partial class hibachi : Exchange
         //          "timestamp": 1752543391
         //      }
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "id");
         string? price = this.safeString(trade, "price");
@@ -771,7 +771,7 @@ public partial class hibachi : Exchange
     public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? status = this.safeString(order, "status");
         string? type = this.safeStringLower(order, "orderType");
         string? price = this.safeString2(order, "price", "avgFillPrice");

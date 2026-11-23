@@ -3514,7 +3514,7 @@ public partial class bybit : Exchange
         {
             type = "spot";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,type);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,type);
         string? symbol = this.safeSymbol(marketId, marketResolved, null, type);
         string? last = this.safeString(ticker, "lastPrice");
         string? open = this.safeString(ticker, "prevPrice24h");
@@ -4389,7 +4389,7 @@ public partial class bybit : Exchange
         {
             marketType = this.safeString(market, "type", marketType);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? amountString = this.safeStringN(trade, new List<object>() {"execQty", "orderQty", "size"});
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
@@ -5176,7 +5176,7 @@ public partial class bybit : Exchange
         {
             marketType = isContract ? "contract" : "spot";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
@@ -8230,7 +8230,7 @@ public partial class bybit : Exchange
         }
         object symbol = null;
         IList<object> symbolsNormalized = null;
-        if (((symbols != null)) && ((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((symbols != null)) && ((symbols is IList<object>) || (symbols is not null && symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 1)

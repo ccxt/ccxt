@@ -1817,7 +1817,7 @@ public partial class bittrade : Exchange
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(order, "created-at");
         string? clientOrderId = this.safeString(order, "client-order-id");
         string? amount = this.safeString(order, "amount");

@@ -1553,7 +1553,7 @@ public partial class bitget : ccxt.bitget
         {
             instIdResolved = instId;
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(instIdResolved,((IDictionary<string, object>)market), null,defaultType);
+        Dictionary<string, object> marketResolved = this.safeMarket(instIdResolved, market, null,defaultType);
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts", "T", "execTime"});
         List<object> feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(feeDetail, 0);
@@ -2384,7 +2384,7 @@ public partial class bitget : ccxt.bitget
             isMargin = true;
         }
         string? marketId = this.safeString2(order, "instId", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
@@ -3353,10 +3353,9 @@ public partial class bitget : ccxt.bitget
         return "ping";
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual void handlePong(WebSocketClient client, object message)
     {
         client.lastPong = this.milliseconds();
-        return message;
     }
 
     public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)

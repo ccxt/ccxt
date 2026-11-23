@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "fetchOHLCV";
         object logText = testSharedMethods.logTemplate(exchange, method, new Dictionary<string, object>() {});
-        assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), logText));
+        assert(((ohlcvs is IList<object>) || (ohlcvs is not null && ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), logText));
         Int64 now = exchange.milliseconds();
         for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {

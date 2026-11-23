@@ -792,7 +792,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -954,7 +954,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString2(trade, "instrument_id", "iid");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(trade, "timestamp", "ts");
         string? side = this.safeStringLower(trade, "side");
         if (side == "long")
@@ -1375,7 +1375,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    public virtual Dictionary<string, object> createOrderRequest(IDictionary<string, object> market, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(IDictionary<string, object> market, object type, object side, string? amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "trailingAmount"});
@@ -1874,7 +1874,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString2(order, "instrument_id", "iid");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "created_timestamp", "cts");
         Int64? lastUpdateTimestamp = this.safeInteger2(order, "updated_timestamp", "uts");
         bool? isBuy = this.safeBool(order, "buy");
@@ -3193,7 +3193,7 @@ public partial class polymarket : Exchange
         //     }
         //
         object source = response;
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (code >= 400))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (code >= 400))
         {
             // request-level failures of the batch trade endpoints arrive
             // wrapped into a single-element array of the same error shape

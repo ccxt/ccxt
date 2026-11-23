@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
             {
                 response = detypeForComparison(await exchange.WatchLiquidationsForSymbols(new List<object>() {symbol}));
                 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-                bool isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+                bool isArray = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
                 assert(isArray, "response must be an array");
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);

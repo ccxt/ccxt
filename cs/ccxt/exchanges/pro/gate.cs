@@ -850,7 +850,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
             object bidAsk = (bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null);
-            if (((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((bidAsk is IList<object>) || (bidAsk is not null && bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
             } else

@@ -3167,7 +3167,7 @@ public partial class derive : Exchange
         Int64? timestamp = this.safeInteger(rawOrder, "creation_timestamp"); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         string? orderId = this.safeString(order, "order_id");
         string? marketId = this.safeString(order, "instrument_name");
-        IDictionary<string, object> marketResolved = ((marketId != null)) ? this.safeMarket(marketId,((IDictionary<string, object>)market)) : market;
+        IDictionary<string, object> marketResolved = ((marketId != null)) ? this.safeMarket(marketId, market) : market;
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "limit_price");
         string? average = this.safeString(order, "average_price");

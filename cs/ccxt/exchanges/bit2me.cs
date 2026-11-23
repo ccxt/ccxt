@@ -883,13 +883,13 @@ public partial class bit2me : Exchange
         //         "symbol": "BTC/EUR"
         //     }
         //
-        if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((trade is IList<object>) || (trade is not null && trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             string? publicSide = this.safeStringLower(trade, 0);
             string? publicPrice = this.safeString(trade, 1);
             string? publicAmount = this.safeString(trade, 2);
             Int64? publicTimestamp = this.safeInteger(trade, 3);
-            Dictionary<string, object> resolvedMarket = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+            Dictionary<string, object> resolvedMarket = this.safeMarket(((string)null), market);
             return this.safeTrade(new Dictionary<string, object>() {
                 { "info", trade },
                 { "id", null },
@@ -907,7 +907,7 @@ public partial class bit2me : Exchange
             }, resolvedMarket);
         }
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> privateMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> privateMarket = this.safeMarket(marketId, market);
         Int64? timestamp = this.parse8601(this.safeString(trade, "createdAt"));
         bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
@@ -1112,7 +1112,7 @@ public partial class bit2me : Exchange
         //         { "id": "514bf92e-...", "orderType": "stop-limit", "status": "inactive", "price": 50892.91, "stopPrice": 51630.49, "orderGroupId": "9a28690c-...", ... }
         //     ]
         //
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             IDictionary<string, object> takeProfitLeg = this.safeDict(response, 0, new Dictionary<string, object>() {});
             Dictionary<string, object> ocoOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(takeProfitLeg, market));
@@ -1159,7 +1159,7 @@ public partial class bit2me : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request body
      */
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, double amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, double amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -1634,7 +1634,7 @@ public partial class bit2me : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId, market);
         Int64? timestamp = this.parse8601(this.safeString(order, "createdAt"));
         string? rawType = this.safeString(order, "orderType");
         Dictionary<string, object> fee = null;

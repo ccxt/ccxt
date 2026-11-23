@@ -861,7 +861,7 @@ public partial class btcmarkets : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "marketId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "volume24h");
@@ -976,7 +976,7 @@ public partial class btcmarkets : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? marketId = this.safeString(trade, "marketId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         object feeCurrencyCode = null;
         if ((((marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) as string) == "AUD"))
         {
@@ -1328,7 +1328,7 @@ public partial class btcmarkets : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(order, "creationTime"));
         string? marketId = this.safeString(order, "marketId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? side = this.safeString(order, "side");
         if (side == "Bid")
         {

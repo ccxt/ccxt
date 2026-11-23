@@ -368,7 +368,7 @@ public partial class paymium : Exchange
     {
         Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
         string? id = this.safeString(trade, "uuid");
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? side = this.safeString(trade, "side");
         string? price = this.safeString(trade, "price");
         string? baseId = this.safeString(marketResolved, "base", "");

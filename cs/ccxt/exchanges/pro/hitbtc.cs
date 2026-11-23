@@ -483,7 +483,7 @@ public partial class hitbtc : ccxt.hitbtc
         object newTickers = await this.subscribePublic<object>(name, "tickers", symbolsNormalized, this.deepExtend(request, paramsOmitted));
         if (this.newUpdates)
         {
-            if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((newTickers is IList<object>) || (newTickers is not null && newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 Dictionary<string, object> tickers = new Dictionary<string, object>() {};
                 string? newTickersSymbol = this.safeString(newTickers, "symbol");
@@ -648,7 +648,7 @@ public partial class hitbtc : ccxt.hitbtc
         object newTickers = await this.subscribePublic<object>(name, "bidask", symbolsNormalized, this.deepExtend(request, paramsOmitted));
         if (this.newUpdates)
         {
-            if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((newTickers is IList<object>) || (newTickers is not null && newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 Dictionary<string, object> tickers = new Dictionary<string, object>() {};
                 string? newTickersSymbol = this.safeString(newTickers, "symbol");
@@ -1266,7 +1266,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? timestamp = this.safeString(order, "created_at");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? tradeId = this.safeString(order, "trade_id");
         List<object> trades = null;
         if ((tradeId != null))

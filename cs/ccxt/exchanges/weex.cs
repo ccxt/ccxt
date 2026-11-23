@@ -1363,7 +1363,7 @@ public partial class weex : Exchange
             //
             response = await this.contractGetCapiV3MarketTicker24hr(this.extend(request, paramsMarketType));
         }
-        if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             response = new List<object>() {response};
         }
@@ -1401,7 +1401,7 @@ public partial class weex : Exchange
         {
             response = await this.contractGetCapiV3MarketTickerBookTicker(paramsMarketType);
         }
-        if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             response = new List<object>() {response};
         }
@@ -1486,7 +1486,7 @@ public partial class weex : Exchange
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         Int64? timestamp = this.safeInteger2(ticker, "closeTime", "time");
         string? percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -2038,7 +2038,7 @@ public partial class weex : Exchange
         {
             tradeMarketIdArg = null;
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(tradeMarketIdArg,((IDictionary<string, object>)market), null,tradeMarketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(tradeMarketIdArg, market, null,tradeMarketType);
         bool? isSpot = false;
         if ((market == null))
         {
@@ -3690,7 +3690,7 @@ public partial class weex : Exchange
         {
             orderMarketIdArg = null;
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(orderMarketIdArg,((IDictionary<string, object>)market), null,orderMarketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(orderMarketIdArg, market, null,orderMarketType);
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         string? triggerPrice = ((string)this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice")));

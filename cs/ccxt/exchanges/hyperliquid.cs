@@ -1577,7 +1577,7 @@ public partial class hyperliquid : Exchange
         //
         string? name = this.safeString(ticker, "name");
         string? marketId = this.coinToMarketId(name);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         List<object> bidAsk = this.safeList(ticker, "impactPxs");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -2547,7 +2547,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrders(ordersToBeParsed);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, string amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, string? amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3958,7 +3958,7 @@ public partial class hyperliquid : Exchange
             marketResolved = this.safeMarket(marketId);
         } else
         {
-            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            marketResolved = this.safeMarket(marketId, market);
         }
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(entry, "timestamp");
@@ -5983,7 +5983,7 @@ public partial class hyperliquid : Exchange
     public virtual List<object> infoList(object response)
     {
         object result = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             result = response;
         }

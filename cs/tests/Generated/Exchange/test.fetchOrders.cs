@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "fetchOrders";
         object orders = await invokeExchangeDynamically(exchange, "fetchOrders", symbol);
-        assert(((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
+        assert(((orders is IList<object>) || (orders is not null && orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         Int64 now = exchange.milliseconds();
         for (int i = 0; i < getArrayLength(orders); i++)

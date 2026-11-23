@@ -2393,7 +2393,7 @@ public partial class backpack : Exchange
         //
         string? id = this.safeString2(trade, "id", "tradeId");
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? price = this.safeString2(trade, "fillPrice", "price");
         string? amount = this.safeString2(trade, "fillQuantity", "quantity");
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
@@ -3719,7 +3719,7 @@ public partial class backpack : Exchange
         string? id = this.safeString2(order, "id", "rfqId");
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? type = this.safeStringLower(order, "orderType");
         if (((type == null)) && ((this.safeString(order, "rfqId") != null)) && ((this.safeString(order, "price") != null)))
@@ -3988,8 +3988,8 @@ public partial class backpack : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object requestParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.omit(parameters, new List<object>() {"stock", "defaultStock", "rfq", "callerMethodName"});
-        object sortedParams = ((requestParams is IList<object>) || (requestParams.GetType().IsGenericType && requestParams.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? requestParams : this.keysort(requestParams);
+        object requestParams = ((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.omit(parameters, new List<object>() {"stock", "defaultStock", "rfq", "callerMethodName"});
+        object sortedParams = ((requestParams is IList<object>) || (requestParams is not null && requestParams.GetType().IsGenericType && requestParams.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? requestParams : this.keysort(requestParams);
         Dictionary<string, object> headersSigned = new Dictionary<string, object>() {};
         string? bodySigned = null;
         if (apiName == "private")

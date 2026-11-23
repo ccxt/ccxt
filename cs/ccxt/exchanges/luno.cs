@@ -869,7 +869,7 @@ public partial class luno : Exchange
             side = "buy";
         }
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? price = this.safeString(order, "limit_price");
         string? amount = this.safeString(order, "limit_volume");
         double? quoteFee = this.safeNumber(order, "fee_counter");

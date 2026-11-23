@@ -1029,7 +1029,7 @@ public partial class coinbase : ccxt.coinbase
         string? clientOrderId = this.safeString(order, "client_order_id");
         string? marketId = this.safeString(order, "product_id");
         string? datetime = this.safeString2(order, "time", "creation_time");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },

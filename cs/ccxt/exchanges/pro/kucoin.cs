@@ -2382,7 +2382,7 @@ public partial class kucoin : ccxt.kucoin
         string? status = this.parseWsOrderStatus(rawType);
         Int64? timestamp = this.safeInteger2(order, "orderTime", "createdAt");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         if ((this.safeBool(marketResolved, "contract", false) == true))
         {
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
@@ -2883,7 +2883,7 @@ public partial class kucoin : ccxt.kucoin
         //    }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? type = this.safeString(trade, "orderType");
         string? side = this.safeString(trade, "side");

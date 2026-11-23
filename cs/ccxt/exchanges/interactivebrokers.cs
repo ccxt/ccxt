@@ -3015,7 +3015,7 @@ public partial class interactivebrokers : Exchange
     public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "_updated");
         string? last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
         if ((last == null))
@@ -3192,7 +3192,7 @@ public partial class interactivebrokers : Exchange
         List<object> accounts = new List<object>() {};
         for (int i = 0; i < (portfolioAccounts?.Count ?? 0); i++)
         {
-            accounts.Add(this.parseAccount(((IDictionary<string, object>)portfolioAccounts[i])));
+            accounts.Add(this.parseAccount(this.extend(new Dictionary<string, object>() {}, portfolioAccounts[i])));
         }
         return ccxt.BaseExchange.ToAccountList(accounts);
     }
@@ -3578,7 +3578,7 @@ public partial class interactivebrokers : Exchange
         object current = response;
         for (int i = 0; i <= maxReplies.GetValueOrDefault(); i++)
         {
-            if (!((current is IList<object>) || (current.GetType().IsGenericType && current.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((current is IList<object>) || (current is not null && current.GetType().IsGenericType && current.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 //
                 // advanced order reject
@@ -4080,7 +4080,7 @@ public partial class interactivebrokers : Exchange
         {
             marketId = null;
         }
-        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
         string? orderTime = this.safeString(order, "order_time");
         Int64? timestamp = this.safeInteger(order, "lastExecutionTime_r");
         if (((timestamp == null)) && ((orderTime != null)))
@@ -4346,7 +4346,7 @@ public partial class interactivebrokers : Exchange
             //    }
             //
             string? transactionMarketId = this.safeString(trade, "conid");
-            Dictionary<string, object> transactionMarket = this.safeMarket(transactionMarketId,((IDictionary<string, object>)market));
+            Dictionary<string, object> transactionMarket = this.safeMarket(transactionMarketId, market);
             Int64? transactionTimestamp = this.parseTransactionDate(this.safeString(trade, "date"));
             string? qty = this.safeString(trade, "qty");
             string? typeId = this.safeStringLower(trade, "type");
@@ -4378,7 +4378,7 @@ public partial class interactivebrokers : Exchange
             }, transactionMarket);
         }
         string? marketId = this.safeString(trade, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "trade_time_r");
         string? sideId = this.safeString(trade, "side");
         string? side = null;
@@ -4512,7 +4512,7 @@ public partial class interactivebrokers : Exchange
         //         }
         //     ]
         //
-        List<object> positions = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : new List<object>() {};
+        List<object> positions = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : new List<object>() {};
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {

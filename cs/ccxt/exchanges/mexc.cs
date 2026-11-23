@@ -2038,7 +2038,7 @@ public partial class mexc : Exchange
             //     }
             //
             timestamp = this.safeInteger(trade, "t");
-            marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
+            marketResolved = this.safeMarket(((string)null), market);
             symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
             priceString = this.safeString(trade, "p");
             amountString = this.safeString(trade, "v");
@@ -2097,7 +2097,7 @@ public partial class mexc : Exchange
             //         }
             //
             string? marketId = this.safeString(trade, "symbol");
-            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            marketResolved = this.safeMarket(marketId, market);
             symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
             id = this.safeString2(trade, "id", "a");
             priceString = this.safeString2(trade, "price", "p");
@@ -2478,7 +2478,7 @@ public partial class mexc : Exchange
     public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = null;
         string? bid = null;
         string? ask = null;
@@ -4180,7 +4180,7 @@ public partial class mexc : Exchange
             timeInForce = this.getTifFromRawOrderType(typeRaw);
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         bool? isContract = ((bool?)(marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null));
         string? sideRaw = this.safeString(order, "side");
         string? side = ((isContract == true)) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);

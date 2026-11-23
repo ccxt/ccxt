@@ -576,7 +576,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             marketId = this.safeString(trade, 1);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)marketId),((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)marketId), market);
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
         int amountKey = isPublic ? 2 : 4;

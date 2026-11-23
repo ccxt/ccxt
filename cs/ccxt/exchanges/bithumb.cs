@@ -692,7 +692,7 @@ public partial class bithumb : Exchange
                         continue;
                     }
                     bool active = true;
-                    if (((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                    if (((market is IList<object>) || (market is not null && market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
                         int numElements = getArrayLength(market);
                         if ((numElements == 0))
@@ -1201,7 +1201,7 @@ public partial class bithumb : Exchange
                     expectedMarketId = firstMarketId;
                 }
                 List<object> tickers = new List<object>() {};
-                if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     tickers = ((List<object>)response);
                 } else if (this.isDictionary(response))
@@ -1422,7 +1422,7 @@ public partial class bithumb : Exchange
         //     }
         //
         Int64? timestamp = null;
-        if (((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((ohlcv is IList<object>) || (ohlcv is not null && ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
         } else
@@ -1699,7 +1699,7 @@ public partial class bithumb : Exchange
         }
         string? id = this.safeString2(trade, "cont_no", "sequential_id");
         string? marketId = this.safeString(trade, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? priceString = this.safeString2(trade, "price", "trade_price");
         string? tradeVolume = this.safeString(trade, "trade_volume");
         string? amountString = ((tradeVolume == null)) ? this.fixCommaNumber(this.safeString2(trade, "units_traded", "units")) : tradeVolume;
@@ -2511,7 +2511,7 @@ public partial class bithumb : Exchange
             symbol = ((bs + "/") + quote);
         }
         string? marketId = this.safeString(order, "market");
-        IDictionary<string, object> marketResolved = ((symbol == null)) ? this.safeMarket(marketId,((IDictionary<string, object>)market)) : market;
+        IDictionary<string, object> marketResolved = ((symbol == null)) ? this.safeMarket(marketId, market) : market;
         if ((symbol == null))
         {
             symbol = this.safeString(marketResolved, "symbol");
@@ -3662,7 +3662,7 @@ public partial class bithumb : Exchange
         {
             string? key = ((string)keys[i]);
             object value = this.safeValue(query, key);
-            if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string encodedKey = (this.encodeURIComponent(key) + "[]");
                 for (int j = 0; j < getArrayLength(value); j++)

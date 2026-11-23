@@ -1045,7 +1045,7 @@ public partial class ndax : Exchange
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? last = this.safeString2(ticker, "LastTradedPx", "last_price");
         string? percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
@@ -1367,7 +1367,7 @@ public partial class ndax : Exchange
         string? takerOrMaker = null;
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         string? type = null;
-        if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((trade is IList<object>) || (trade is not null && trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             priceString = this.safeString(trade, 3);
             amountString = this.safeString(trade, 2);

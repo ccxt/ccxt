@@ -1809,7 +1809,7 @@ public partial class bingx : Exchange
         //        17221.07
         //    ]
         //
-        if (((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((ohlcv is IList<object>) || (ohlcv is not null && ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
         }
@@ -3059,7 +3059,7 @@ public partial class bingx : Exchange
         {
             type = this.safeString(market, "type", type);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,type);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,type);
         string? symbol = this.safeString(marketResolved, "symbol");
         string? open = this.safeString(ticker, "openPrice");
         string? high = this.safeString(ticker, "highPrice");
@@ -4628,7 +4628,7 @@ public partial class bingx : Exchange
         {
             marketIdOrUndefined = marketId;
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketIdOrUndefined,((IDictionary<string, object>)market), null,marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketIdOrUndefined, market, null,marketType);
         string? side = this.safeStringLower2(orderData, "side", "S");
         Int64? timestamp = this.safeIntegerN(orderData, new List<object>() {"time", "transactTime", "E", "createdTime"});
         string transactTime = this.safeString(orderData, "transactTime", "");
@@ -6776,7 +6776,7 @@ public partial class bingx : Exchange
         {
             string? key = ((string)(rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null));
             object value = (sortedParams != null && key != null && sortedParams.ContainsKey(key) ? sortedParams[key] : null);
-            if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string arrStr = "[";
                 for (int j = 0; j < getArrayLength(value); j++)
@@ -7350,7 +7350,7 @@ public partial class bingx : Exchange
             {
                 pair = flag == true ? "true" : "false";
             }
-            if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string? arrStr = null;
                 for (int j = 0; j < getArrayLength(value); j++)

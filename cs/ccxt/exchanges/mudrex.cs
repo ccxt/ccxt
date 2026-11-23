@@ -515,7 +515,7 @@ public partial class mudrex : Exchange
     public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? ms = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(ms,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         double? pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -978,7 +978,7 @@ public partial class mudrex : Exchange
     public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? oms = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(oms,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(oms, market);
         string? oid = this.safeString2(order, "order_id", "id");
         string? rawSide = this.safeStringUpper(order, "order_type");
         string? side = null;
@@ -1618,7 +1618,7 @@ public partial class mudrex : Exchange
         //     }
         //
         string? ms = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(ms,((IDictionary<string, object>)market));
+        Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined

@@ -1041,7 +1041,7 @@ public partial class mexc : ccxt.mexc
         for (int i = 0; i < (bidasks?.Count ?? 0); i++)
         {
             object bidask = (bidasks != null && i < bidasks.Count ? bidasks[i] : null);
-            if (((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((bidask is IList<object>) || (bidask is not null && bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 (bookside as IOrderBookSide).storeArray(this.toArray(bidask));
             } else

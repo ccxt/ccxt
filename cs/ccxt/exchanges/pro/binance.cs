@@ -3228,7 +3228,7 @@ public partial class binance : ccxt.binance
         List<object> resolvedMessageHashes = new List<object>() {};
         List<object> rawTickers = new List<object>() {};
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
-        if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((message is IList<object>) || (message is not null && message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             rawTickers = ((List<object>)message);
         } else
@@ -3961,7 +3961,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190593 && ((hxArr190593 is IList<object>) || (hxArr190593.GetType().IsGenericType && hxArr190593.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190593 && ((hxArr190593 is IList<object>) || (hxArr190593 is not null && hxArr190593.GetType().IsGenericType && hxArr190593.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -6856,7 +6856,7 @@ public partial class binance : ccxt.binance
             { "externalLockUpdate", this.handleBalance },
         };
         string? eventVar = this.safeString(messageValue, "e");
-        if (((messageValue is IList<object>) || (messageValue.GetType().IsGenericType && messageValue.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((messageValue is IList<object>) || (messageValue is not null && messageValue.GetType().IsGenericType && messageValue.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             IDictionary<string, object> arrayMessage = this.safeDict(messageValue, 0);
             string arrayEvent = this.safeString(arrayMessage, "e", "");

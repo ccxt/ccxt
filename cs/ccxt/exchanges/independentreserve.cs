@@ -592,7 +592,7 @@ public partial class independentreserve : Exchange
         {
             defaultMarketId = ((baseId + "/") + quoteId);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(defaultMarketId,((IDictionary<string, object>)market), "/");
+        Dictionary<string, object> marketResolved = this.safeMarket(defaultMarketId, market, "/");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new Dictionary<string, object>() {
