@@ -2552,7 +2552,7 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols []any) <-chan AsyncResult[map[string]PredictionOutcome] {
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols []string) <-chan AsyncResult[map[string]PredictionOutcome] {
 	ch := make(chan AsyncResult[map[string]PredictionOutcome])
 	go func() any {
 		defer close(ch)

@@ -717,28 +717,28 @@ export default class PredictionExchange extends BaseExchange {
         // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if (outcomes !== undefined) {
-            let missing: string[] = [];
+            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
+            const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
+            if (loadAll && !wasWarm && !reload) {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                let coldMiss = false;
+                for (let i = 0; i < outcomes.length; i++) {
+                    if (!this.hasOutcome (outcomes[i])) {
+                        coldMiss = true;
+                    }
+                }
+                if (coldMiss) {
+                    await this.loadOutcomes ();
+                }
+            }
+            const missing: string[] = [];
             for (let i = 0; i < outcomes.length; i++) {
                 if (reload || !this.hasOutcome (outcomes[i])) {
                     missing.push (outcomes[i]);
                 }
             }
-            let missingLength = missing.length;
-            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
-            const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && (loadAll) && !wasWarm && !reload) {
-                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                await this.loadOutcomes ();
-                const stillMissing: string[] = [];
-                for (let i = 0; i < missingLength; i++) {
-                    if (!this.hasOutcome (missing[i])) {
-                        stillMissing.push (missing[i]);
-                    }
-                }
-                missing = stillMissing;
-                missingLength = missing.length;
-            }
+            const missingLength = missing.length;
             if (missingLength > 0) {
                 await this.fetchOutcomes (missing);
             }
