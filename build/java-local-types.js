@@ -27320,6 +27320,8 @@ const JAVA_LIST_PARAM_SLOTS = {
     'handleBookDeltas': [ 1 ],
     'handleDeltas': [ 1 ],
     'parseBorrowRateHistory': [ 0 ],
+    'filterByKey': [ 0 ],
+    'filterBySymbol': [ 0 ],
 };
 // unified list parameters: the typed surface hands List<Map<String, Object>> rows (OrderRequest[]) and
 // venues hand ArrayList<Object> literals, so the core takes List<?> (string[][] rows likewise)
@@ -27489,7 +27491,10 @@ export function installJavaListParamSlots (transpiler) {
                 : slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
                 // an object literal prints a HashMap<String, Object> instance
                 : ts.isObjectLiteralExpression (arg) || isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
-            if (!ok) {
+            // a parameter forwarded from the same slot type (filterBySymbol -> filterByKey)
+            const forwarded = ts.isIdentifier (arg) && printer.javaDeclarationOfIdentifier (arg)?.kind === ts.SyntaxKind.Parameter
+                && printer.javaNativeParameterType (printer.javaDeclarationOfIdentifier (arg)) === slot;
+            if (!ok && !forwarded) {
                 throw new Error (`java param slot: argument ${arg.getText ()} is not a proven ${slot}`);
             }
         }
