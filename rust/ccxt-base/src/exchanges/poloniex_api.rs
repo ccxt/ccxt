@@ -403,8 +403,8 @@ impl Poloniex {
     }
 
     /// Auto-generated wrapper for the `swapPublicGetV3MarketFundingRate` implicit endpoint.
-    pub async fn swap_public_get_v3_market_funding_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("swap_public_get_v3_market_funding_rate".into()), optional_args).await
+    pub async fn swap_public_get_v3_market_funding_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("swap_public_get_v3_market_funding_rate", optional_args).await
     }
 
     /// Auto-generated wrapper for the `swapPublicGetV3MarketFundingRateHistory` implicit endpoint.
