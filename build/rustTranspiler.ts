@@ -14864,9 +14864,11 @@ ${arms.join('\n')}
                         break;
                     }
                 }
-                out.push(`    fn ${name}(&mut self, ${traitParams}) -> crate::Value {`);
+                // a nullable-bool slot (`handle_errors`) keeps the inherent's `Option<bool>`
+                const optBool = (inh as any).isTyped === 'keptobool';
+                out.push(`    fn ${name}(&mut self, ${traitParams}) -> ${optBool ? 'Option<bool>' : 'crate::Value'} {`);
                 out.push(`        // Forward to the inherent method on ${coreName}.`);
-                out.push(`        ${rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
+                out.push(`        ${optBool ? `${coreName}::${name}(self, ${callArgs.join(', ')})` : rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
                 out.push(`    }`);
                 continue;
             }
@@ -15573,7 +15575,7 @@ impl std::ops::DerefMut for ${coreName} {
                         if (hasSlice && !slots.some(rustDispatch.isSlotSlice)) return 'arity';
                         // a typed return lifts only when the trait slot carries the same typed signature
                         const typedSlot = this.typedVirtualSlots().get(sig.name);
-                        if (sig.ret !== 'value') return typedSlot !== undefined && sig.returns === typedSlot.ret && sig.params.map((p: any) => `${p.name}: ${p.type}`).join(', ') === typedSlot.params ? 'typed-return' : 'typed-differs';
+                        if (sig.ret !== 'value' && sig.ret !== 'keptobool') return typedSlot !== undefined && sig.returns === typedSlot.ret && sig.params.map((p: any) => `${p.name}: ${p.type}`).join(', ') === typedSlot.params ? 'typed-return' : 'typed-differs';
                         const types = (text: string) => text.split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
                         const slotTypes = types(rustDispatch.slotParams(slots));
                         if (slotTypes.length !== sig.params.length) return 'arity';
