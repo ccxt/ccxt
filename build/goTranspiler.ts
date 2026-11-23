@@ -13287,22 +13287,20 @@ class NewTranspiler {
             // asserting the wrong one panics (e.g. handlePositions during ws static tests)
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription(ccxt.AsClient($1),'],
-            [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
-            [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
-            [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
-            [/client\.LastPong\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
-            [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
-            [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
-            [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
-            [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
+            // `client` prints as ClientInterface in every pro / prediction frame: plain method calls, no assertion
+            [/client\.Subscriptions\b/g, 'client.GetSubscriptions()'],
+            [/client\.Rejections\b/g, 'client.GetRejections()'],
+            [/client\.(Url)/g, 'client.Get$1()'],
+            [/client\.LastPong\s*=(?!=)\s*(.*)/g, 'client.SetLastPong($1)'],
+            [/client\.LastPong/g, 'client.GetLastPong()'],
+            [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.SetKeepAlive($1)'],
+            [/client\.KeepAlive/g, 'client.GetKeepAlive()'],
             [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <-future.(*ccxt.Future).Await()'],
             // a discarded `await future` is received straight inside PanicOnError. The optional
             // parens around the receive must pair up: an unpaired `\)?` swallowed the closing
             // paren of an enclosing call, e.g. AsArrayCache(PanicOnError(<-future...)) lost its `)`
             [/PanicOnError\((?:\(<-future\.\(<-chan any\)\)|<-future\.\(<-chan any\))\)/g, 'PanicOnError(<-future.(*ccxt.Future).Await())'],
-            [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
-            [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
-            [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
+            [/client\.Futures\b/g, 'client.GetFutures()'],
             // Error constructors
             [/NewInvalidNonce/g, 'InvalidNonce'],
             [/NewOrderBook/g, 'NewWsOrderBook'],
@@ -19061,7 +19059,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
     if (/^this\.(?:Incrementing)?Nonce\(\)$/.test (arg)) {
         return { kind: 'int64', text: arg };
     }
-    if (/^client\.\((?:ccxt\.)?ClientInterface\)\.GetUrl\(\)$/.test (arg)) {
+    if (/^client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetUrl\(\)$/.test (arg)) {
         return { kind: 'string', text: arg };
     }
     const elem = /^([A-Za-z_]\w*)\[([A-Za-z_]\w*|\d{1,9})\]$/.exec (arg);
@@ -19569,7 +19567,7 @@ function goTypedLenFunc (fn: string): string {
         }) as any);
     }
     // ClientInterface.GetUrl() is declared `string`; the assertion panics the same either way
-    const out = lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
+    const out = lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((client\.GetUrl\(\)|\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
     // credential fields are declared `string` and GetLength(string) is len() of its bytes
     const cred = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetLength\\((this\\.(?:' + gb09CredentialFields ().join ('|') + '))\\)', 'g');
     // an index read of a once-declared `[]string` is a Go string; the index panics the same before either call
@@ -19607,10 +19605,10 @@ function goTypedLenSelfTest (ok: SelfTestOk): void {
 // GetValue/SafeValue on a client's futures read the typed client method FutureGet: it answers the *Future
 // or an untyped nil (never a typed-nil box), exactly what the helper answered, for any key kind.
 function w8ClientFuturesReads (content: string): string {
-    const applies = /(?:GetValue|SafeValue)\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), /.test (content);
+    const applies = /(?:GetValue|SafeValue)\(client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetFutures\(\), /.test (content);
     return goRewriteEachFunc (content, applies, (lines, masked, start, end) => {
         for (let k = start + 1; k < end; k++) {
-            const re = /(?<![\w.])((?:ccxt\.GetValue)|(?:this\.SafeValue))\((client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\)), (\w+|"[^"\\\n]*")\)/g;
+            const re = /(?<![\w.])((?:ccxt\.GetValue)|(?:this\.SafeValue))\((client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetFutures\(\)), (\w+|"[^"\\\n]*")\)/g;
             let out = '';
             let last = 0;
             let m: RegExpExecArray | null;
@@ -19632,12 +19630,12 @@ function w8ClientFuturesReads (content: string): string {
 
 // InOp / ObjectKeys on the client's futures and SafeValue on its subscriptions become typed client methods.
 function w8ClientTableCalls (content: string): string {
-    if (!/(?:(?:InOp|ObjectKeys|SafeValue)\(|= )client\.\((?:ccxt\.)?ClientInterface\)\.(?:GetFutures|SubscriptionsSnapshot)\(\)/.test (content)) {
+    if (!/(?:(?:InOp|ObjectKeys|SafeValue)\(|= )client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?(?:GetFutures|SubscriptionsSnapshot)\(\)/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    const recv = 'client\\.\\((?:ccxt\\.)?ClientInterface\\)\\.';
+    const recv = 'client\\.(?:\\((?:ccxt\\.)?ClientInterface\\)\\.)?';
     const rules: [ RegExp, string ][] = [
         [ new RegExp ('(?<![\\w.])(?:ccxt\\.)?InOp\\((' + recv + ')GetFutures\\(\\), (\\w+)\\)', 'g'), '$1FutureHas($2)' ],
         [ new RegExp ('(var \\w+ any = )(' + recv + ')GetFutures\\(\\)\\[(\\w+|"[^"\\\\\\n]*")\\]$', 'g'), '$1$2FutureGet($3)' ],
@@ -19687,9 +19685,9 @@ function goFuncMaskedOffsets (lines: string[], masked: string[], k: number): { m
 // GetFutures() is a map[string]any (nil reads ok=false like the helper); both keys must be string locals
 // declared once before the line. Reads go ahead of the if, they have no side effects.
 function w8FuturesPairInOp (content: string): string {
-    const recvRe = 'client\\.\\((?:ccxt\\.)?ClientInterface\\)\\.GetFutures\\(\\)';
+    const recvRe = 'client\\.(?:\\((?:ccxt\\.)?ClientInterface\\)\\.)?GetFutures\\(\\)';
     const pairRe = new RegExp ('^(\\s*)if \\(?(?:ccxt\\.)?InOp\\((' + recvRe + '), (\\w+)\\)\\)? \\|\\| \\(?(?:ccxt\\.)?InOp\\(\\2, (\\w+)\\)\\)? \\{$');
-    const applies = /\bInOp\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), \w+\)\)? \|\| /.test (content);
+    const applies = /\bInOp\(client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetFutures\(\), \w+\)\)? \|\| /.test (content);
     return goRewriteEachFunc (content, applies, (lines, masked, start, end) => {
         const scope = goFuncMaskedOffsets (lines, masked, start);
         for (let k = start + 1; k < end; k++) {
@@ -19720,7 +19718,7 @@ function w8FuturesPairSelfTest (ok: SelfTestOk): void {
 // GetFutures()/GetRejections() are statically map[string]any: a nil map reads ok=false like the helper.
 // Only a lone InOp in an if condition with a string key; any other shape keeps the helper.
 function goTypedInopClientMaps (content: string): string {
-    const applies = /InOp\(client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)/.test (content);
+    const applies = /InOp\(client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?Get(?:Futures|Rejections)\(\)/.test (content);
     return goRewriteEachFunc (content, applies, (lines, masked, start, end) => {
         const scope = goFuncMaskedOffsets (lines, masked, start);
         for (let k = start + 1; (k < end) && !/\bok\b/.test (scope.maskedFunc); k++) {
@@ -19730,7 +19728,7 @@ function goTypedInopClientMaps (content: string): string {
                 continue;
             }
             const at = calls[0].index;
-            const call = /^(?:ccxt\.)?InOp\((client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+            const call = /^(?:ccxt\.)?InOp\((client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?Get(?:Futures|Rejections)\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
             if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
                 continue;
             }
@@ -19934,7 +19932,7 @@ function goTypedMiscFunc (fn: string): string {
     fn = fn.replace (/(?<![\w.])(?:ccxt\.)?ParseInt\("(\d{1,18})"\)/g, (_m: string, d: string) => 'int64(' + BigInt (d).toString () + ')');
     fn = fn.replace (/(?<![\w.])(?:ccxt\.)?StringArg\((\w+)\)/g, (m: string, x: string) => ((goFuncDeclaredType (fn, x) === 'string') ? x : m));
     // ClientInterface.GetUrl() is declared `string` (go/v4/exchange_client.go), so StringArg of it is the value itself
-    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?StringArg\((client\.\((?:ccxt\.)?ClientInterface\)\.GetUrl\(\))\)/g, '$1');
+    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?StringArg\((client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetUrl\(\))\)/g, '$1');
     fn = fn.replace (/(?<![\w.])(?:ccxt\.)?EvalTruthy\(this\.SafeBool\(((?:[^()"]|"(?:[^"\\]|\\.)*"|\((?:[^()"]|"(?:[^"\\]|\\.)*")*\))*), (true|false)\)\)/g,
         (_m: string, args: string, def: string) => '*this.SafeBool(' + args + ', ' + def + ')');
     return fn;
