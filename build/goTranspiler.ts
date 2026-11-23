@@ -1364,8 +1364,8 @@ function goChan3Table (): Map<string, string> {
 function goChan3DeclaredVenueTypes (): Map<string, string> {
     const out = new Map<string, string> ();
     const src = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
-    const kinds: Record<string, [ string, RegExp ]> = { 'Dict': [ 'map[string]any', /^\{/ ], 'List': [ '[]any', /^\[/ ], 'string': [ 'string', /^'[^']*'$/ ] };
-    const decl = /^ {4}async (\w+) \([^\n]*\): Promise<(Dict|List|string)> \{\n([\s\S]*?)^ {4}\}\n/gm;
+    const kinds: Record<string, [ string, RegExp ]> = { 'Dict': [ 'map[string]any', /^\{/ ], 'List': [ '[]any', /^\[/ ], 'string': [ 'string', /^'[^']*'$/ ], 'Dict[]': [ '[]map[string]any', /^this\.safeList \([^;\n]*, \[\]\)(?: as Dict\[\])?$/ ] };
+    const decl = /^ {4}async (\w+) \([^\n]*\): Promise<(Dict|List|string|Dict\[\])> \{\n([\s\S]*?)^ {4}\}\n/gm;
     const read = (p: string) => (fs.existsSync (p) ? fs.readFileSync (p, 'utf8') : '');
     const base = read (path.join (src, 'base', 'Exchange.ts')) + read (path.join (src, 'base', 'PredictionExchange.ts'));
     for (const dir of [ '', 'pro', 'prediction', path.join ('prediction', 'pro') ]) {
@@ -1376,7 +1376,7 @@ function goChan3DeclaredVenueTypes (): Map<string, string> {
                 const [ , name, kind, body ] = m;
                 const rets = [ ...body.matchAll (/\breturn\b\s*([^;]*);/g) ].map ((r) => r[1].trim ());
                 // or a returned local declared once and never reassigned, typed with the declared kind or bound to a defaulted safeDict
-                const local = (r: string) => /^\w+$/.test (r) && ((body.match (new RegExp ('\\b(?:const|let) ' + r + '\\b', 'g')) || []).length === 1)
+                const local = (r: string) => (kind !== 'Dict[]') && /^\w+$/.test (r) && ((body.match (new RegExp ('\\b(?:const|let) ' + r + '\\b', 'g')) || []).length === 1)
                     && !new RegExp ('(?<![\\w.]|(?:const|let) )' + r + ' =(?!=)').test (body)
                     && new RegExp ('\\b(?:const|let) ' + r + '(?:: ' + kind + ' = |' + ((kind === 'Dict') ? ' = this\\.safeDict \\([^;\\n]*, \\{\\}\\);' : '(?!)') + ')').test (body);
                 if (!rets.length || !rets.every ((r) => kinds[kind][1].test (r) || local (r)) || new RegExp ('\\n {4}(?:async )?' + name + ' \\(').test (base)) {
@@ -1976,6 +1976,10 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     if ((proof.reason !== undefined) && (want === 'map[string]any') && (safeDict !== null) && (goChanClose (expr, safeDict[0].length - 1) === expr.length)) {
                         const nameAt = open + 1 + 'Value: this.'.length;
                         edits.push ({ 'start': bodyStart + nameAt, 'end': bodyStart + nameAt + safeDict[0].length - 'this.('.length, 'text': 'SafeDict' + (safeDict[1] || '') + 'Map' });
+                        proof = { 'type': want };
+                    }
+                    // a defaulted `this.SafeList(.., []any{})` under a map-row list carrier: the list pass converts it with MapSliceFromList
+                    if ((proof.reason !== undefined) && (want === '[]any') && (realType === '[]map[string]any') && /^this\.SafeList\(/.test (expr) && (goChanClose (expr, 'this.SafeList'.length) === expr.length) && expr.endsWith (', []any{})')) {
                         proof = { 'type': want };
                     }
                     // `this.Events` / `this.Outcomes` (prediction cache fields, declared map[string]any in the PredictionExchange struct
