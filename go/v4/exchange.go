@@ -2012,11 +2012,11 @@ func (this *BaseExchange) GetHttpAgentIfNeeded(url string) (any, error) {
 	return nil, nil // no agent needed
 }
 
-func (this *BaseExchange) Ping(client any) any {
+func (this *BaseExchange) Ping(client ClientInterface) any {
 	return nil
 }
 
-func (this *BaseExchange) HandleMessage(client any, message any) {
+func (this *BaseExchange) HandleMessage(client ClientInterface, message any) {
 	// stub to override
 }
 

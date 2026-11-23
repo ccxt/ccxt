@@ -11,25 +11,27 @@ package ccxt
 // handler the venue does not declare is dropped, as the base stubs would.
 func (this *BaseExchange) wsFrameHandler() func(client any, message any) {
 	text, _ := this.DerivedExchange.(interface {
-		HandleTextMessage(client any, message string)
+		HandleTextMessage(client ClientInterface, message string)
 	})
 	list, _ := this.DerivedExchange.(interface {
-		HandleListMessage(client any, message []any)
+		HandleListMessage(client ClientInterface, message []any)
 	})
 	binary, _ := this.DerivedExchange.(interface {
-		HandleBinaryMessage(client any, message any)
+		HandleBinaryMessage(client ClientInterface, message any)
 	})
-	object := func(client any, message map[string]any) {}
+	object := func(client ClientInterface, message map[string]any) {}
 	if venue, ok := this.DerivedExchange.(interface {
-		HandleMessage(client any, message map[string]any)
+		HandleMessage(client ClientInterface, message map[string]any)
 	}); ok {
 		object = venue.HandleMessage
 	} else if venue, ok := this.DerivedExchange.(interface {
-		HandleMessage(client any, message any)
+		HandleMessage(client ClientInterface, message any)
 	}); ok {
-		object = func(client any, message map[string]any) { venue.HandleMessage(client, message) }
+		object = func(client ClientInterface, message map[string]any) { venue.HandleMessage(client, message) }
 	}
-	return func(client any, message any) {
+	return func(transport any, message any) {
+		// the transport hands *Client (offline mocks) or *WSClient (live): both are the ClientInterface
+		client, _ := transport.(ClientInterface)
 		switch frame := message.(type) {
 		case string:
 			if text != nil {

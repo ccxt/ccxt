@@ -284,6 +284,9 @@ func (this *WSClient) OnPingInterval() {
 					if pingFunc, ok := this.Ping.(func(any) any); ok { // todo: type Ping() function properly inside derived files
 						message = pingFunc(this)
 					}
+					if pingFunc, ok := this.Ping.(func(ClientInterface) any); ok {
+						message = pingFunc(this)
+					}
 				}
 				if message != nil {
 					go func() {

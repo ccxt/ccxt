@@ -441,7 +441,7 @@ type IDerivedExchange interface {
 	SignInAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas []any) any
-	Ping(client any) any
+	Ping(client ClientInterface) any
 	HandleDeltas(bookside any, deltas []any)
 	HandleBookDelta(orderbook OrderBookInterface, delta any)
 	HandleBookDeltas(orderbook OrderBookInterface, deltas []any)
