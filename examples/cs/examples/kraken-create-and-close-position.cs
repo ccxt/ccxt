@@ -47,7 +47,7 @@ partial class Examples
             // - use 'fetchClosedOrders' or 'fetchOrders' and filter with 'closed' status
             var closedOrders = await exchange.FetchClosedOrders(symbol);
             Console.WriteLine("Fetched all your closed orders for this symbol", closedOrders);
-            var allOpenPositions = await exchange.FetchPositions(new List<string>() { symbol });
+            var allOpenPositions = await exchange.FetchPositions(new List<object>() { symbol });
             Console.WriteLine("Fetched all your positions for this symbol", allOpenPositions);
         }
         catch (Exception e)

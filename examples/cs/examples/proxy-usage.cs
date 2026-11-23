@@ -37,7 +37,7 @@ partial class Examples
         await myEx.loadMarkets();
         while (true)
         {
-            var ticker = await myEx.watchTicker("BTC/USDT");
+            var ticker = await myEx.WatchTicker("BTC/USDT");
             Console.WriteLine(ticker);
         }
     }

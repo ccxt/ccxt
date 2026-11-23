@@ -39,10 +39,10 @@ async public Task phemexCreateOrderPositionWithTakeprofitStoploss()
     Console.WriteLine("-----------------------------------------------------------------------");
     try
     {
-        var created_order = await exchange.createOrder(symbol, order_type, side, amount, price, parameters);
+        var created_order = await exchange.CreateOrder(symbol, order_type, side, amount, price, parameters);
         Console.WriteLine("Created an order", created_order);
         // Fetch all your open orders for this symbol
-        var all_open_orders = await exchange.fetchOpenOrders(symbol);
+        var all_open_orders = await exchange.FetchOpenOrders(symbol);
         Console.WriteLine("Fetched all your orders for this symbol", all_open_orders);
     } catch(Exception e)
     {

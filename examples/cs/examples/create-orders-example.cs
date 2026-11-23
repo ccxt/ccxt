@@ -16,7 +16,7 @@ partial class Examples
         exchange.setSandboxMode(true);
         await exchange.LoadMarkets();
         exchange.verbose = true; // uncomment for debugging purposes if necessary
-        var orders = await exchange.createOrders(new List<Dictionary<string, object>>()
+        var orders = await exchange.CreateOrders(new List<object>()
         {
             new Dictionary<string, object>()
             {

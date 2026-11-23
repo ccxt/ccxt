@@ -11,7 +11,7 @@ partial class Examples
         exchange.apiKey = "";
         exchange.secret = "";
         exchange.setSandboxMode(true);
-        var symbols = new List<string>() { "LTC/USDT:USDT" };
+        var symbols = new List<object>() { "LTC/USDT:USDT" };
         var positions = await exchange.FetchPositions(symbols);
         var first = positions[0];
         Console.WriteLine(JsonConvert.SerializeObject(positions, Formatting.Indented));
