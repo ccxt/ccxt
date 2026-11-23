@@ -17627,6 +17627,9 @@ function csharpArgumentType (csharp, argument, expected) {
                 if ((expected === 'IList<object>') && coreListParameterIsUnwritten (csharp, declaration)) {
                     return 'IList<object>'; // a CORE_LIST_ARGS position: its signature already prints the list
                 }
+                if ((expected === 'string?') && coreStringParameterIsUnwritten (csharp, declaration)) {
+                    return 'string?'; // a CORE_STRING_ARGS position: typeCoreArgs prints it a string
+                }
                 const own = csharpParameterDecision (csharp, declaration, expected);
                 return own ?? printedSignatureParameterType (csharp, declaration) ?? 'object';
             }
@@ -17986,6 +17989,14 @@ function coreListParameterIsUnwritten (csharp, parameter) {
     const position = owner?.parameters?.indexOf (parameter) ?? -1;
     return (owner?.kind === ts.SyntaxKind.MethodDeclaration) && (owner.name !== undefined) && (position >= 0)
         && (CORE_LIST_ARGS[owner.name.text]?.[position] === 'IList<object>') && !csharpParameterIsWritten (csharp, owner, parameter);
+}
+
+// a CORE_STRING_ARGS parameter the body never writes (a write would print the object shadow)
+function coreStringParameterIsUnwritten (csharp, parameter) {
+    const owner = parameter.parent;
+    const position = owner?.parameters?.indexOf (parameter) ?? -1;
+    return (owner?.kind === ts.SyntaxKind.MethodDeclaration) && (owner.name !== undefined) && (position >= 0)
+        && ((CORE_STRING_ARGS[owner.name.text] ?? []).indexOf (position) >= 0) && !csharpParameterIsWritten (csharp, owner, parameter);
 }
 
 // every `.name (` call in another corpus file is `this.name (x)` with x declared in that file
