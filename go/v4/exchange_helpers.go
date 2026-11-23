@@ -3128,6 +3128,9 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 					arg = args[k]
 				}
 				in = append(in, reflect.ValueOf(Float64Arg(arg)).Convert(paramType))
+			} else if paramType.Kind() == reflect.Float64 && k < len(args) && args[k] != nil {
+				// a required float parameter: an int literal or a numeric string arrives boxed
+				in = append(in, reflect.ValueOf(ToFloat64(args[k])).Convert(paramType))
 			} else if k < len(args) && args[k] != nil {
 				argValue := reflect.ValueOf(args[k])
 				if paramType.Kind() == reflect.Slice && argValue.Kind() == reflect.Slice && argValue.Type() != paramType && argValue.Type().Elem().Kind() == reflect.Interface {

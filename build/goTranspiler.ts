@@ -7369,6 +7369,23 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
     'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
 };
 
+// required `amount: number` / `cost: number` of the unified order family: body and Async print `float64`
+// like the public typed wrapper (base and every override); createOrder / createOrderWs stay boxed:
+// editOrder hands them a `Num` and bybit a `-1` literal printed int64
+const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
+    'createTrailingAmountOrder': [ 3 ], 'createTrailingAmountOrderWs': [ 3 ],
+    'createTrailingPercentOrder': [ 3 ], 'createTrailingPercentOrderWs': [ 3 ], 'createTriggerOrder': [ 3 ], 'createTriggerOrderWs': [ 3 ],
+    'createStopLossOrder': [ 3 ], 'createStopLossOrderWs': [ 3 ], 'createTakeProfitOrder': [ 3 ], 'createTakeProfitOrderWs': [ 3 ],
+    'createOrderWithTakeProfitAndStopLoss': [ 3 ], 'createOrderWithTakeProfitAndStopLossWs': [ 3 ], 'createPostOnlyOrder': [ 3 ],
+    'createPostOnlyOrderWs': [ 3 ], 'createReduceOnlyOrder': [ 3 ], 'createReduceOnlyOrderWs': [ 3 ], 'createStopOrder': [ 3 ],
+    'createStopOrderWs': [ 3 ], 'createLimitOrder': [ 2 ], 'createLimitOrderWs': [ 2 ], 'createMarketOrder': [ 2 ],
+    'createMarketOrderWs': [ 2 ], 'createStopLimitOrder': [ 2 ], 'createStopLimitOrderWs': [ 2 ], 'createStopMarketOrder': [ 2 ],
+    'createStopMarketOrderWs': [ 2 ], 'createLimitBuyOrder': [ 1 ], 'createLimitBuyOrderWs': [ 1 ], 'createLimitSellOrder': [ 1 ],
+    'createLimitSellOrderWs': [ 1 ], 'createMarketBuyOrder': [ 1 ], 'createMarketBuyOrderWs': [ 1 ], 'createMarketSellOrder': [ 1 ],
+    'createMarketSellOrderWs': [ 1 ], 'createMarketOrderWithCost': [ 2 ], 'createMarketOrderWithCostWs': [ 2 ],
+    'createMarketBuyOrderWithCost': [ 1 ], 'createMarketSellOrderWithCost': [ 1 ], 'createTwapOrder': [ 2 ],
+};
+
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
     GO_UNIFIED_STRING_PARAMS[method] = [ ...new Set ([ ...(GO_UNIFIED_STRING_PARAMS[method] ?? []), ...indexes ]) ].sort ((x, y) => x - y);
 }
@@ -13406,7 +13423,7 @@ class NewTranspiler {
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
         // build/go-worker.ts installs the same hooks for the Piscina path
-        installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
+        installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS, GO_UNIFIED_FLOAT64_PARAMS);
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
         installCcxtGoParamTypes (this.transpiler.goTranspiler);
         installCcxtGoDictParams (this.transpiler.goTranspiler);

@@ -99,7 +99,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode (false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
-        installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);
+        installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params, transpilerConfig?.go?.unifiedFloat64Params);
         installCcxtGoIndexableTypes(cachedTranspiler.goTranspiler);
         installCcxtGoParamTypes(cachedTranspiler.goTranspiler);
         installCcxtGoDictParams(cachedTranspiler.goTranspiler);
