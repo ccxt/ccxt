@@ -896,7 +896,7 @@ public class Nado extends NadoApi
     private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+        List<Order> orders = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
         Map<String, Object> canceled = this.safeDict(orders, 0, null);
         return canceled;
 
@@ -1028,12 +1028,12 @@ public class Nado extends NadoApi
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -1909,7 +1909,7 @@ public class Nado extends NadoApi
             }
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("product", product);
-            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (this.extend(mapLiteral1, position)), (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parsePosition(this.extend(mapLiteral1, position), (Map<String, Object>) null));
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -3270,7 +3270,7 @@ public class Nado extends NadoApi
         return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // create order
@@ -3387,7 +3387,7 @@ public class Nado extends NadoApi
             status = this.safeString(order, "status");
             if (java.util.Objects.equals(status, null))
             {
-                if (this.isArchiveOrderClosed((Map<String, Object>) (order)))
+                if (this.isArchiveOrderClosed(order))
                 {
                     status = "closed";
                 }
@@ -3826,7 +3826,7 @@ public class Nado extends NadoApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String requestBody = null;
         String endpoint = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -3869,7 +3869,7 @@ public class Nado extends NadoApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

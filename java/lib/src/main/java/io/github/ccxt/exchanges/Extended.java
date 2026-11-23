@@ -574,10 +574,10 @@ public class Extended extends ExtendedApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v1PublicGetInfoMarkets(parameters)).join();
@@ -850,10 +850,10 @@ public class Extended extends ExtendedApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v1PublicGetInfoAssets(parameters)).join();
@@ -1448,7 +1448,7 @@ public class Extended extends ExtendedApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)histories).size(); i++)
         {
-            ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) (this.safeDict(histories, i, new HashMap<String, Object>() {{}})), market));
+            ((List<Object>)result).add(this.parseFundingHistory(this.safeDict(histories, i, new HashMap<String, Object>() {{}}), market));
         }
         String symbol = (((java.util.Objects.equals(market, null)))) ? null : this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
@@ -1706,7 +1706,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
     {
         //
         //     {
@@ -1969,7 +1969,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         Long accountIndex = this.safeInteger(account, "accountIndex");
         String type = null;
@@ -2393,12 +2393,12 @@ public class Extended extends ExtendedApi
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -2460,7 +2460,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         Long timestamp = this.safeInteger(transfer, "time");
         String assetId = this.safeString(transfer, "asset");
@@ -2754,7 +2754,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseLeverage((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), market);
+        return this.parseLeverage(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -2768,12 +2768,12 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -2798,7 +2798,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         //
         //     {
@@ -3682,12 +3682,12 @@ public class Extended extends ExtendedApi
      * @param {string} [params.clientOrderId] single client order id
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3698,7 +3698,7 @@ public class Extended extends ExtendedApi
         Boolean hasOrderIds = !java.util.Objects.equals(ids, null);
         if (Boolean.TRUE.equals(hasOrderIds))
         {
-            Integer idsLength = ((List<?>)ids).size();
+            Integer idsLength = ids.size();
             if ((idsLength != null && idsLength > 0))
             {
                 request.put("orderIds", ids);
@@ -3779,17 +3779,17 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "countdownTime", ((((timeout != null && ((Number) timeout).doubleValue() > 0)))) ? ((Object) Extended.this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000))) : 0 );
+            put( "countdownTime", ((((timeout != null && timeout > 0)))) ? ((Object) Extended.this.parseToInt(((Object) (timeout == null ? null : ((double) timeout) / ((double) 1000))))) : 0 );
         }};
         String response = (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
         //
@@ -4071,7 +4071,7 @@ public class Extended extends ExtendedApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -4256,7 +4256,7 @@ public class Extended extends ExtendedApi
         return this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash)));
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4278,7 +4278,7 @@ public class Extended extends ExtendedApi
         return null;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;

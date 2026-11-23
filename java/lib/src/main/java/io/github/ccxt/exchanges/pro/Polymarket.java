@@ -1103,7 +1103,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash)
     {
 
         List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
@@ -1183,7 +1183,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash)
     {
 
         Balances balance = (this.fetchBalance(new HashMap<String, Object>() {{}})).join();

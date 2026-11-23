@@ -398,10 +398,10 @@ public class Cex extends CexApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
@@ -532,10 +532,10 @@ public class Cex extends CexApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicPostGetPairsInfo(parameters)).join();
@@ -1135,7 +1135,7 @@ public class Cex extends CexApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         return new HashMap<String, Object>() {{
             put( "id", null );
@@ -1391,12 +1391,12 @@ public class Cex extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1422,12 +1422,12 @@ public class Cex extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchClosedOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchClosedOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchClosedOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchClosedOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchClosedOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1458,7 +1458,7 @@ public class Cex extends CexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //                "orderId": "1313003",
@@ -1984,12 +1984,12 @@ public class Cex extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         Object transfer = null;
@@ -2092,7 +2092,7 @@ public class Cex extends CexApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transferBetweenSubAccounts
@@ -2200,7 +2200,7 @@ public class Cex extends CexApi
         }};
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2265,7 +2265,7 @@ public class Cex extends CexApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }

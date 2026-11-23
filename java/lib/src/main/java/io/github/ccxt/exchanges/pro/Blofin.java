@@ -120,7 +120,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
 
         parameters.put("callerMethodName", "watchTrades");
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -135,12 +135,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -178,7 +178,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
 
         parameters.put("callerMethodName", "unWatchTrades");
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -191,12 +191,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         return (this.unsubscribeMultipleWrapper("trades", "unWatchTradesForSymbols", symbols, parameters)).join();
@@ -269,7 +269,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
 
         parameters.put("callerMethodName", "watchOrderBook");
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -284,12 +284,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -447,7 +447,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = this.safeList(message, "data", null);
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol", "");
             this.tickers.put(symbol, ticker);
             if (!java.util.Objects.equals(channelName, null))
@@ -519,7 +519,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = this.safeList(message, "data", null);
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Ticker ticker = this.parseWsBidAsk(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol", "");
             String messageHash = ("bidask:" + symbol);
             this.bidsasks.put(symbol, ticker);
@@ -527,7 +527,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
@@ -582,15 +582,15 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || java.util.Objects.equals(this.safeList(symbolsAndTimeframes, 0, null), null))
         {
             throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -645,15 +645,15 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -808,12 +808,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
 
         parameters.put("callerMethodName", "watchOrders");
-        Object symbolsArray = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(symbol, null))
         {
-            ((List<Object>)symbolsArray).add(symbol);
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            return (this.watchOrdersForSymbols(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(this.symbol(symbol))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), since, limit, parameters)).join();
         }
-        return (this.watchOrdersForSymbols(symbolsArray, since, limit, parameters)).join();
+        return (this.watchOrdersForSymbols(new ArrayList<String>(Arrays.asList()), since, limit, parameters)).join();
 
     }
 
@@ -830,12 +830,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */
-    public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> watchOrdersForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrdersForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object watchOrdersForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOrdersForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -918,7 +918,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<String> symbols = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             orders.append(order);
             symbols.add(this.safeString(order, "symbol", ""));
         }
@@ -935,7 +935,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
     }
 
     /**
@@ -992,7 +992,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             if (!java.util.Objects.equals(channelName, null))

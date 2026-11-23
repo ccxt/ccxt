@@ -61,12 +61,12 @@ public class Binanceusdm extends BinanceusdmApi
         }});
     }
 
-    public CompletableFuture<Object> transferIn(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferIn(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferInCore(code, amount, parameters));
     }
 
-    private Object transferInCore(String code, Object amount, Map<String, Object> parameters)
+    private Object transferInCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         // transfer from spot wallet to usdm futures wallet
@@ -74,12 +74,12 @@ public class Binanceusdm extends BinanceusdmApi
 
     }
 
-    public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferOut(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters));
     }
 
-    private Object transferOutCore(String code, Object amount, Map<String, Object> parameters)
+    private Object transferOutCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         // transfer from usdm futures wallet to spot wallet

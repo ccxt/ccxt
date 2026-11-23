@@ -782,7 +782,7 @@ public class Btcbox extends BtcboxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -983,7 +983,7 @@ public class Btcbox extends BtcboxApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1035,14 +1035,14 @@ public class Btcbox extends BtcboxApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((code != null && ((Number) code).doubleValue() >= 400))
+        if (((code != null && code >= 400)))
         {
             return null;  // resort to defaultErrorHandler
         }
@@ -1057,12 +1057,12 @@ public class Btcbox extends BtcboxApi
         throw new ExchangeError(feedback) ;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
     }
 
-    private Object requestCore(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object requestCore(String path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();

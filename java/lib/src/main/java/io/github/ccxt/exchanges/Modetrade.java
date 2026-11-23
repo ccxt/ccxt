@@ -970,10 +970,10 @@ public class Modetrade extends ModetradeApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v1PublicGetPublicInfo(parameters)).join();
@@ -1029,10 +1029,10 @@ public class Modetrade extends ModetradeApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v1PublicGetPublicToken(parameters)).join();
@@ -1781,7 +1781,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -2090,7 +2090,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // Possible input functions:
@@ -2473,12 +2473,12 @@ public class Modetrade extends ModetradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2486,7 +2486,7 @@ public class Modetrade extends ModetradeApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -2745,7 +2745,7 @@ public class Modetrade extends ModetradeApi
         }
         if (Boolean.TRUE.equals(trigger))
         {
-            return this.extend(this.parseOrder(response, (Map<String, Object>) null), extendParams);
+            return this.extend(this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null), extendParams);
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         return this.extend(this.parseOrder(data, (Map<String, Object>) null), extendParams);
@@ -2764,12 +2764,12 @@ public class Modetrade extends ModetradeApi
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2952,7 +2952,7 @@ public class Modetrade extends ModetradeApi
         // }
         //
         Object orders = this.safeDict(response, "data", response);
-        return this.parseOrder(orders, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, orders), market);
 
     }
 
@@ -3828,7 +3828,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         Long leverageValue = this.safeInteger(leverage, "max_leverage");
         return new HashMap<String, Object>() {{
@@ -3905,12 +3905,12 @@ public class Modetrade extends ModetradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4134,7 +4134,7 @@ public class Modetrade extends ModetradeApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object section, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object section, String method, Object parameters)
     {
         String version = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         String access = (String) (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
@@ -4241,7 +4241,7 @@ public class Modetrade extends ModetradeApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

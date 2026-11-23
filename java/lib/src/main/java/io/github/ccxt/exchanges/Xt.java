@@ -1624,7 +1624,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseMarkets(List<Object> markets)
+    public List<Object> parseMarkets(List<Object> markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < markets.size(); i++)
@@ -2268,7 +2268,7 @@ public class Xt extends XtApi
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             List<Object> tickers = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTicker((Map<String, Object>) (this.safeDict(tickers, 0, new HashMap<String, Object>() {{}})), market);
+            return this.parseTicker(this.safeDict(tickers, 0, new HashMap<String, Object>() {{}}), market);
         }
         Map<String, Object> ticker = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         return this.parseTicker(ticker, market);
@@ -2377,7 +2377,7 @@ public class Xt extends XtApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < tickers.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(tickers, i, new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), market);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3266,12 +3266,12 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSpotOrderCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Object createSpotOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createSpotOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(side, null))
@@ -3369,12 +3369,12 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createContractOrderCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Object createContractOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createContractOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3529,7 +3529,7 @@ public class Xt extends XtApi
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -4706,12 +4706,12 @@ public class Xt extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4748,7 +4748,7 @@ public class Xt extends XtApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot: createOrder
@@ -5511,12 +5511,12 @@ public class Xt extends XtApi
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -5659,7 +5659,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         return new HashMap<String, Object>() {{
             put( "info", data );
@@ -5840,7 +5840,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //     {
@@ -6444,14 +6444,13 @@ public class Xt extends XtApi
     public Object mergePositionBreakInfo(Map<String, Object> entry, Map<String, Object> breakBySymbolSide)
     {
         Map<String, Object> breakEntry = this.safeDict(breakBySymbolSide, ((this.safeString(entry, "symbol", "") + "_") + this.safeString(entry, "positionSide", "")), null);
-        if (java.util.Objects.equals(breakEntry, null))
+        Map<String, Object> extra = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(breakEntry, null))
         {
-            return entry;
+            extra.put("breakPrice", this.safeString(breakEntry, "breakPrice"));
+            extra.put("calMarkPrice", this.safeString(breakEntry, "calMarkPrice"));
         }
-        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-        mapLiteral14.put("breakPrice", this.safeString(breakEntry, "breakPrice"));
-        mapLiteral14.put("calMarkPrice", this.safeString(breakEntry, "calMarkPrice"));
-        return this.extend(entry, mapLiteral14);
+        return this.extend(entry, extra);
     }
 
     /**
@@ -6548,8 +6547,8 @@ public class Xt extends XtApi
             String positionSize = this.safeString(entry, "positionSize");
             if (!java.util.Objects.equals(positionSize, "0"))
             {
-                Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
-                return this.parsePosition((Map<String, Object>) (merged), marketInner);
+                Map<String, Object> merged = (Map<String, Object>) this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return this.parsePosition(merged, marketInner);
             }
         }
         throw new NullResponse(((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
@@ -6644,8 +6643,8 @@ public class Xt extends XtApi
             Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(entry, "symbol");
             Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-            Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
-            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), marketInner));
+            Map<String, Object> merged = (Map<String, Object>) this.mergePositionBreakInfo(entry, breakBySymbolSide);
+            ((List<Object>)result).add(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, "symbol", symbols);
 
@@ -6818,33 +6817,33 @@ public class Xt extends XtApi
         // history entries carry the liquidation price in forceMarkPrice when force is true
         String liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
         Long timestamp = this.safeInteger(position, "closeTime");
-        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
-        mapLiteral15.put("info", position);
-        mapLiteral15.put("id", this.safeString(position, "id"));
-        mapLiteral15.put("symbol", symbol);
-        mapLiteral15.put("timestamp", timestamp);
-        mapLiteral15.put("datetime", this.iso8601(timestamp));
-        mapLiteral15.put("hedged", null);
-        mapLiteral15.put("side", this.safeStringLower(position, "positionSide"));
-        mapLiteral15.put("contracts", this.safeNumber2(position, "positionSize", "closePositionSize", (Object) null));
-        mapLiteral15.put("contractSize", marketResolved.get("contractSize"));
-        mapLiteral15.put("entryPrice", this.safeNumber2(position, "entryPrice", "closeOpenPrice", (Object) null));
-        mapLiteral15.put("markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice", (Object) null));
-        mapLiteral15.put("lastPrice", this.safeNumber(position, "closePrice", (Object) null));
-        mapLiteral15.put("notional", null);
-        mapLiteral15.put("leverage", this.safeInteger2(position, "leverage", "endLeverage"));
-        mapLiteral15.put("collateral", collateral);
-        mapLiteral15.put("initialMargin", collateral);
-        mapLiteral15.put("maintenanceMargin", null);
-        mapLiteral15.put("initialMarginPercentage", null);
-        mapLiteral15.put("maintenanceMarginPercentage", null);
-        mapLiteral15.put("unrealizedPnl", null);
-        mapLiteral15.put("realizedPnl", this.safeNumber2(position, "realizedProfit", "closeProfit", (Object) null));
-        mapLiteral15.put("liquidationPrice", this.parseNumber(liquidationPriceString));
-        mapLiteral15.put("marginMode", marginMode);
-        mapLiteral15.put("percentage", null);
-        mapLiteral15.put("marginRatio", null);
-        return this.safePosition(mapLiteral15);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("info", position);
+        mapLiteral14.put("id", this.safeString(position, "id"));
+        mapLiteral14.put("symbol", symbol);
+        mapLiteral14.put("timestamp", timestamp);
+        mapLiteral14.put("datetime", this.iso8601(timestamp));
+        mapLiteral14.put("hedged", null);
+        mapLiteral14.put("side", this.safeStringLower(position, "positionSide"));
+        mapLiteral14.put("contracts", this.safeNumber2(position, "positionSize", "closePositionSize", (Object) null));
+        mapLiteral14.put("contractSize", marketResolved.get("contractSize"));
+        mapLiteral14.put("entryPrice", this.safeNumber2(position, "entryPrice", "closeOpenPrice", (Object) null));
+        mapLiteral14.put("markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice", (Object) null));
+        mapLiteral14.put("lastPrice", this.safeNumber(position, "closePrice", (Object) null));
+        mapLiteral14.put("notional", null);
+        mapLiteral14.put("leverage", this.safeInteger2(position, "leverage", "endLeverage"));
+        mapLiteral14.put("collateral", collateral);
+        mapLiteral14.put("initialMargin", collateral);
+        mapLiteral14.put("maintenanceMargin", null);
+        mapLiteral14.put("initialMarginPercentage", null);
+        mapLiteral14.put("maintenanceMarginPercentage", null);
+        mapLiteral14.put("unrealizedPnl", null);
+        mapLiteral14.put("realizedPnl", this.safeNumber2(position, "realizedProfit", "closeProfit", (Object) null));
+        mapLiteral14.put("liquidationPrice", this.parseNumber(liquidationPriceString));
+        mapLiteral14.put("marginMode", marginMode);
+        mapLiteral14.put("percentage", null);
+        mapLiteral14.put("marginRatio", null);
+        return this.safePosition(mapLiteral14);
     }
 
     /**
@@ -6859,12 +6858,12 @@ public class Xt extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6901,7 +6900,7 @@ public class Xt extends XtApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         return new HashMap<String, Object>() {{
             put( "info", transfer );
@@ -6927,12 +6926,12 @@ public class Xt extends XtApi
      * @param {string} [params.positionSide] *required* "long" or "short"
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -7085,7 +7084,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         //
         // spot: error
@@ -7155,7 +7154,7 @@ public class Xt extends XtApi
         return null;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
         String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

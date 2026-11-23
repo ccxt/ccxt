@@ -1538,10 +1538,10 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.publicGetV2Currencies(parameters)).join();
@@ -2035,7 +2035,7 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOpenOrder
@@ -2541,12 +2541,12 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2554,9 +2554,9 @@ public class Poloniex extends PoloniexApi
         List<Object> ordersMarkets = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> market = null;
         Boolean isContract = false;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
-            Map<String, Object> rawOrder = (Map<String, Object>) (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
             String symbol = this.safeString(rawOrder, "symbol", "");
             Map<String, Object> marketInner = this.market(symbol);
             String marketInnerType = this.safeString(marketInner, "type");
@@ -2911,12 +2911,12 @@ public class Poloniex extends PoloniexApi
      * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2931,7 +2931,7 @@ public class Poloniex extends PoloniexApi
         List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsMarketType, "clientOrderIds", "clOrdIds", (Object) null);
         Map<String, Object> query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clOrdIds")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Integer idsLength = ((List<?>)ids).size();
+        Integer idsLength = ids.size();
         if (!java.util.Objects.equals(marketType, "spot"))
         {
             if (java.util.Objects.equals(market, null))
@@ -3133,7 +3133,7 @@ public class Poloniex extends PoloniexApi
         //         "updateTime": 1646196019020
         //     }
         //
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
         order.put("id", idValue);
         return order;
 
@@ -3635,12 +3635,12 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3775,7 +3775,7 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -4167,7 +4167,7 @@ public class Poloniex extends PoloniexApi
         return depositWithdrawFees;
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         String currencyCode = this.safeString(currency, "code");
         Map<String, Object> info = new HashMap<String, Object>() {{}};
@@ -4284,7 +4284,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> transactionValue = transaction;
         if (transaction.containsKey("withdrawNetworkEntry"))
         {
-            transactionValue = (Map<String, Object>) this.safeDict(transaction, "response", new HashMap<String, Object>() {{}});
+            transactionValue = this.safeDict(transaction, "response", new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeTimestamp(transactionValue, "timestamp");
         String currencyId = this.safeString(transactionValue, "currency");
@@ -4347,12 +4347,12 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4459,7 +4459,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         Long shortLeverage = null;
         Long longLeverage = null;
@@ -4545,12 +4545,12 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         String mode = "ONE_WAY";
@@ -4755,7 +4755,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -4823,7 +4823,7 @@ public class Poloniex extends PoloniexApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
@@ -4897,7 +4897,7 @@ public class Poloniex extends PoloniexApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -224,7 +224,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Map<String, Object> request = this.createOrderRequest((String) (symbolValue), (String) (type), (String) (side), amount, price, parameters);
         (this.authenticate(url, (String) (messageType))).join();
         Object rawOrder = (this.requestPrivate(url, request, channel, (String) null)).join();
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, rawOrder), market);
         return order;
 
     }
@@ -238,12 +238,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrdersWs(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrdersWs(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersWsCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersWsCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersWsCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -252,11 +252,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
         List<Object> request = this.createOrdersRequest(orders, parameters);
         String symbol = null;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             if ((i == 0))
             {
-                symbol = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "symbol");
+                symbol = this.safeString((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "symbol");
             }
         }
         Map<String, Object> market = this.market(symbol);
@@ -317,7 +317,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         var request = ((List<Object>) requestrequestParamsVariable).get(0);
         var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
         (this.authenticate(url, (String) (messageType))).join();
-        Object rawOrders = (this.requestPrivate(url, (Map<String, Object>) (this.extend(request, requestParams)), (String) (channelOption), (String) null)).join();
+        Object rawOrders = (this.requestPrivate(url, this.extend(request, requestParams), (String) (channelOption), (String) null)).join();
         return this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
@@ -369,8 +369,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Map<String, Object> orderRequest = this.extend(request, new HashMap<String, Object>() {{
             put( "order_id", String.valueOf(id) );
         }});
-        Object res = (this.requestPrivate(url, (Map<String, Object>) (this.extend(orderRequest, requestParams)), channel, (String) null)).join();
-        return this.parseOrder(res, market);
+        Object res = (this.requestPrivate(url, this.extend(orderRequest, requestParams), channel, (String) null)).join();
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, res), market);
 
     }
 
@@ -408,7 +408,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String url = this.getUrlByMarket(market);
         (this.authenticate(url, (String) (messageType))).join();
         Object rawOrder = (this.requestPrivate(url, extendedRequest, channel, (String) null)).join();
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, rawOrder), market);
 
     }
 
@@ -454,8 +454,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String channel = (messageType + ".order_status");
         String url = this.getUrlByMarket(market);
         (this.authenticate(url, (String) (messageType))).join();
-        Object rawOrder = (this.requestPrivate(url, (Map<String, Object>) (this.extend(request, requestParams)), channel, (String) null)).join();
-        return this.parseOrder(rawOrder, market);
+        Object rawOrder = (this.requestPrivate(url, this.extend(request, requestParams), channel, (String) null)).join();
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, rawOrder), market);
 
     }
 
@@ -550,7 +550,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String channel = (messageType + ".order_list");
         String url = this.getUrlByMarket(market);
         (this.authenticate(url, (String) (messageType))).join();
-        Object rawOrders = (this.requestPrivate(url, (Map<String, Object>) (this.extend(newRequest, requestParams)), channel, (String) null)).join();
+        Object rawOrders = (this.requestPrivate(url, this.extend(newRequest, requestParams), channel, (String) null)).join();
         List<Object> orders = this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, false);
 
@@ -1223,7 +1223,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -1241,12 +1241,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1285,12 +1285,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1331,7 +1331,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -1948,7 +1948,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash, String type)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash, String type)
     {
 
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -2286,7 +2286,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     private Object watchMyLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchMyLiquidationsForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -2303,12 +2303,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchMyLiquidationsForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
     }
 
-    private Object watchMyLiquidationsForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchMyLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))

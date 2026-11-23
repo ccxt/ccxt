@@ -561,10 +561,10 @@ public class Lbank extends LbankApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(parameters)).join();
@@ -2094,7 +2094,7 @@ public class Lbank extends LbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrderSupplement (private)
@@ -2283,12 +2283,12 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchOrderSupplement(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOrderSupplement(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderSupplementCore(id, symbol, parameters));
     }
 
-    private Object fetchOrderSupplementCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOrderSupplementCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -2331,12 +2331,12 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchOrderDefault(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOrderDefault(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderDefaultCore(id, symbol, parameters));
     }
 
-    private Object fetchOrderDefaultCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOrderDefaultCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         // Id can be a list of ids delimited by a comma
@@ -3576,7 +3576,7 @@ public class Lbank extends LbankApi
         return result;
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         // * only used for fetchPrivateDepositWithdrawFees
@@ -3642,7 +3642,7 @@ public class Lbank extends LbankApi
         return result;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -3759,7 +3759,7 @@ public class Lbank extends LbankApi
         return (pem + "-----END PRIVATE KEY-----");
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

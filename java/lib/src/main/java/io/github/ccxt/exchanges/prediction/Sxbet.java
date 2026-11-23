@@ -1404,16 +1404,16 @@ public class Sxbet extends SxbetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(List<String> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String outcome, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
-        Integer idsLength = ((List<?>)ids).size();
+        Integer idsLength = ids.size();
         if (java.util.Objects.equals(idsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " cancelOrders() requires a non-empty ids argument")) ;
@@ -2739,7 +2739,7 @@ public class Sxbet extends SxbetApi
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Object message)
+    private Void pongCore(Client client, Object message)
     {
 
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
@@ -3381,7 +3381,7 @@ public class Sxbet extends SxbetApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
@@ -3410,7 +3410,7 @@ public class Sxbet extends SxbetApi
         this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if ((code != null && ((Number) code).doubleValue() == 400))
+        if ((code != null && code == 400))
         {
             throw new BadRequest(feedback) ;
         }
@@ -3428,7 +3428,7 @@ public class Sxbet extends SxbetApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String accessLevel = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

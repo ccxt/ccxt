@@ -1035,10 +1035,10 @@ public class Hitbtc extends HitbtcApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetPublicCurrency(parameters)).join();
@@ -2166,7 +2166,7 @@ public class Hitbtc extends HitbtcApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> fee = this.parseTradingFee(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2675,12 +2675,12 @@ public class Hitbtc extends HitbtcApi
      * @param {bool} [params.margin] true for fetching an open margin order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2722,7 +2722,7 @@ public class Hitbtc extends HitbtcApi
                 throw new NotSupported((this.id + " fetchOpenOrder() not support this market type")) ;
             }
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -2850,7 +2850,7 @@ public class Hitbtc extends HitbtcApi
                 throw new NotSupported((this.id + " cancelOrder() not support this market type")) ;
             }
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -2909,7 +2909,7 @@ public class Hitbtc extends HitbtcApi
                 throw new NotSupported((this.id + " editOrder() not support this market type")) ;
             }
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -2966,7 +2966,7 @@ public class Hitbtc extends HitbtcApi
         {
             response = (this.privatePostSpotOrder(this.extend(request, paramsValue))).join();
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -3059,7 +3059,7 @@ public class Hitbtc extends HitbtcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // limit
@@ -3231,7 +3231,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         String marketId = this.safeString(marginMode, "symbol");
         return new HashMap<String, Object>() {{
@@ -3253,12 +3253,12 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         // account can be "spot", "wallet", or "derivatives"
@@ -3288,11 +3288,14 @@ public class Hitbtc extends HitbtcApi
         //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer(new HashMap<String, Object>() {{}}, currency), new HashMap<String, Object>() {{
+            put( "id", Hitbtc.this.safeString(response, 0) );
+            put( "info", response );
+        }});
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -3689,7 +3692,7 @@ public class Hitbtc extends HitbtcApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parsePosition(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
         }
         return result;
 
@@ -4174,7 +4177,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         // addMargin/reduceMargin
@@ -4353,7 +4356,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -4376,12 +4379,12 @@ public class Hitbtc extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4468,7 +4471,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    {
@@ -4605,7 +4608,7 @@ public class Hitbtc extends HitbtcApi
         return new Pair<>(marginMode, paramsMarginMode);
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         //
         //     {
@@ -4636,7 +4639,7 @@ public class Hitbtc extends HitbtcApi
         return null;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));

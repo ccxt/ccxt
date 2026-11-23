@@ -881,7 +881,7 @@ public class Myriad extends MyriadApi
         //
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("action", sideStr);
-        return this.parseTradeQuote((Map<String, Object>) (this.extend(response, mapLiteral4)), outcomeObj);
+        return this.parseTradeQuote(this.extend(response, mapLiteral4), outcomeObj);
 
     }
 
@@ -1239,19 +1239,19 @@ public class Myriad extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
-        Integer ordersLength = ((List<?>)orders).size();
+        Integer ordersLength = orders.size();
         List<String> orderOutcomes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; (ordersLength != null && i < ordersLength); i++)
         {
-            String __oc = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "outcome");
+            String __oc = this.safeString((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "outcome");
             if (!java.util.Objects.equals(__oc, null))
             {
                 orderOutcomes.add(__oc);
@@ -2057,12 +2057,12 @@ public class Myriad extends MyriadApi
      * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(List<String> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String outcome, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.privateKey, null))
@@ -2072,13 +2072,13 @@ public class Myriad extends MyriadApi
         Map<String, Object> paramsForLookup = parameters;
         String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
-        Integer idsLength = ((List<?>)ids).size();
+        Integer idsLength = ids.size();
         List<Object> signedOrders = new ArrayList<Object>(Arrays.asList());
         List<Object> wrappers = new ArrayList<Object>(Arrays.asList());
         String networkId = this.safeString(this.options, "defaultNetworkId", "56");
         for (var i = 0; (idsLength != null && i < idsLength); i++)
         {
-            String id = (String) (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+            String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> fetched = this.getOrderResponseFromParams(id, paramsForLookup);
             if (java.util.Objects.equals(fetched, null))
             {
@@ -3892,7 +3892,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Object message)
+    private Void pongCore(Client client, Object message)
     {
 
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
@@ -4052,7 +4052,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> this.seedOrderBookCore(outcome, sym, limit));
     }
 
-    private Object seedOrderBookCore(String outcome, String sym, Long limit)
+    private Void seedOrderBookCore(String outcome, String sym, Long limit)
     {
 
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
@@ -4611,7 +4611,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> this.seedPositionBalancesCore(trader));
     }
 
-    private Object seedPositionBalancesCore(String trader)
+    private Void seedPositionBalancesCore(String trader)
     {
 
         List<PredictionPosition> positions = (this.fetchPositions((Object) null, new HashMap<String, Object>() {{
@@ -4708,7 +4708,7 @@ public class Myriad extends MyriadApi
         return ((String)this.ethGetAddressFromPrivateKey(this.privateKey)).toLowerCase();
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if (java.util.Objects.equals(response, null))
@@ -4737,7 +4737,7 @@ public class Myriad extends MyriadApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");

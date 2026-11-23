@@ -443,10 +443,10 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetMarketExchangeInfo(parameters)).join();
@@ -827,7 +827,7 @@ public class Hibachi extends HibachiApi
         return this.safeString(statuses, uppercaseStatus, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -1153,12 +1153,12 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1168,7 +1168,7 @@ public class Hibachi extends HibachiApi
         Long nonceValue = this.incrementingNonce();
         Long nonce = this.parseToInt(nonceValue);
         List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String symbol = this.safeString(rawOrder, "symbol");
@@ -1389,16 +1389,16 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             Map<String, Object> orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ""));
             orderRequest.put("action", "cancel");
@@ -2141,7 +2141,7 @@ public class Hibachi extends HibachiApi
         }});
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + this.implodeParams(path, parameters));
@@ -2188,7 +2188,7 @@ public class Hibachi extends HibachiApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

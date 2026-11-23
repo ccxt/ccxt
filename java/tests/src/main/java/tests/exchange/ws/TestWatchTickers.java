@@ -49,7 +49,7 @@ public class TestWatchTickers extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{Helpers.toStringListArg(argSymbols), new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 // for some exchanges, specifically watchTickers method not subscribe

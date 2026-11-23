@@ -1625,7 +1625,7 @@ public class Hyperliquid extends HyperliquidApi
     private Object cancelOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
-        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
+        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), outcome, parameters)).join();
         Map<String, Object> first = this.safeDict(orders, 0, null);
         return first;
 
@@ -1641,12 +1641,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(List<String> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String outcome, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -1680,11 +1680,11 @@ public class Hyperliquid extends HyperliquidApi
         } else
         {
             cancelAction.put("type", "cancel");
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 HashMap<String, Object> j39v3 = new HashMap<String, Object>();
                 j39v3.put("a", assetId);
-                j39v3.put("o", this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
+                j39v3.put("o", this.parseToNumeric((ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))));
                 ((List<Object>)cancelReq).add(j39v3);
             }
         }
@@ -2705,7 +2705,7 @@ public class Hyperliquid extends HyperliquidApi
         return normalized.toLowerCase();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2739,7 +2739,7 @@ public class Hyperliquid extends HyperliquidApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

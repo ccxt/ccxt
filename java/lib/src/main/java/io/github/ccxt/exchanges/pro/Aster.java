@@ -740,7 +740,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl((String) (client.url));
         String marketId = this.safeString(message, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, market);
+        Ticker ticker = this.parseWsBidAsk(message, market);
         String symbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -750,7 +750,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(message, "T");
         String bidAskSymbol = null;
@@ -792,7 +792,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
 
         parameters.put("callerMethodName", "watchTrades");
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -816,7 +816,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
 
         parameters.put("callerMethodName", "unWatchTrades");
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -833,12 +833,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -901,12 +901,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1169,7 +1169,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
 
         parameters.put("callerMethodName", "watchOrderBook");
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -1195,7 +1195,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
 
         parameters.put("callerMethodName", "unWatchOrderBook");
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -1212,12 +1212,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1278,12 +1278,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1443,19 +1443,19 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
         String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
         Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
@@ -1517,19 +1517,19 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
         String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
         Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
@@ -1715,7 +1715,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
 
-    private Object keepAliveListenKeyCore(Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(Map<String, Object> parameters)
     {
 
         String type = this.safeString(parameters, "type", "spot");
@@ -1839,7 +1839,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type)
     {
 
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -2029,7 +2029,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash)
     {
 
         List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();

@@ -738,7 +738,7 @@ public class Bittrade extends BittradeApi
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
+        return this.parseTradingLimits(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), (String) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1164,7 +1164,7 @@ public class Bittrade extends BittradeApi
             String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(tickers, i, new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), market);
             ticker.put("timestamp", timestamp);
             ticker.put("datetime", this.iso8601(timestamp));
             result.put(symbol, ticker);
@@ -1510,10 +1510,10 @@ public class Bittrade extends BittradeApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1922,7 +1922,7 @@ public class Bittrade extends BittradeApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {                  id:  13997833014,
@@ -2208,12 +2208,12 @@ public class Bittrade extends BittradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2668,7 +2668,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
@@ -2748,7 +2748,7 @@ public class Bittrade extends BittradeApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

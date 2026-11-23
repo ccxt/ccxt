@@ -161,22 +161,22 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.reject(error, messageHash);
             return;
         }
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "b", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "a", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(data, "b", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(data, "a", new ArrayList<Object>(Arrays.asList())));
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         orderbook.put("nonce", nonce);
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, "p");
         Double amount = this.safeFloat2(delta, "c", "q");
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {

@@ -1011,10 +1011,10 @@ public class Woofipro extends WoofiproApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v1PublicGetPublicInfo(parameters)).join();
@@ -1889,7 +1889,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -2195,7 +2195,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // Possible input functions:
@@ -2547,12 +2547,12 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2560,7 +2560,7 @@ public class Woofipro extends WoofiproApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -2806,7 +2806,7 @@ public class Woofipro extends WoofiproApi
         }
         if (Boolean.TRUE.equals(trigger))
         {
-            Object parsedResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
+            Map<String, Object> parsedResponse = (Map<String, Object>) ((((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response);
             return this.extend(this.parseOrder(parsedResponse, (Map<String, Object>) null), extendParams);
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -2826,12 +2826,12 @@ public class Woofipro extends WoofiproApi
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3837,7 +3837,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         //
         //     {
@@ -3937,12 +3937,12 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3972,7 +3972,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         //     {
@@ -4032,7 +4032,7 @@ public class Woofipro extends WoofiproApi
         //     "timestamp": 1702989203989
         // }
         //
-        Map<String, Object> modification = (Map<String, Object>) this.parseMarginModification(response, market);
+        Map<String, Object> modification = this.parseMarginModification(response, market);
         modification.put("type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
         modification.put("amount", this.parseNumber(this.numberToString(amount)));
         return modification;
@@ -4083,7 +4083,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         Long leverageValue = this.safeInteger(leverage, "max_leverage");
         return new HashMap<String, Object>() {{
@@ -4160,12 +4160,12 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4383,7 +4383,7 @@ public class Woofipro extends WoofiproApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object section, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object section, String method, Object parameters)
     {
         String version = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         String access = (String) (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
@@ -4485,7 +4485,7 @@ public class Woofipro extends WoofiproApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

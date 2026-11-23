@@ -617,10 +617,10 @@ public class Polymarket extends PolymarketApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.publicGetInfoInstruments(parameters)).join();
@@ -1664,12 +1664,12 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1677,9 +1677,9 @@ public class Polymarket extends PolymarketApi
         List<Object> entries = new ArrayList<Object>(Arrays.asList());
         List<Object> ordersMarkets = new ArrayList<Object>(Arrays.asList());
         List<Object> ordersEntries = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
-            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
             String symbol = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = this.market(symbol);
             String type = this.safeStringLower(rawOrder, "type");
@@ -1750,7 +1750,7 @@ public class Polymarket extends PolymarketApi
     private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+        List<Order> orders = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
         Map<String, Object> canceled = this.safeDict(orders, 0, null);
         return canceled;
 
@@ -1767,12 +1767,12 @@ public class Polymarket extends PolymarketApi
      * @param {string[]} [params.clientOrderIds] cancel by client order ids instead of the exchange order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1803,7 +1803,7 @@ public class Polymarket extends PolymarketApi
         } else
         {
             List<Object> numericIds = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 ((List<Object>)numericIds).add(this.parseToInt(this.safeString(ids, i)));
             }
@@ -1892,17 +1892,17 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw acknowledgement of the venue
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Object deadline = 0;
-        if ((!java.util.Objects.equals(timeout, null)) && ((timeout != null && ((Number) timeout).doubleValue() > 0)))
+        if ((!java.util.Objects.equals(timeout, null)) && ((timeout != null && timeout > 0)))
         {
             deadline = this.sum(this.milliseconds(), timeout);
         }
@@ -2022,7 +2022,7 @@ public class Polymarket extends PolymarketApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // GET /v1/account/orders and /v1/account/open-orders use long names
@@ -2910,7 +2910,7 @@ public class Polymarket extends PolymarketApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "instrument_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -2969,12 +2969,12 @@ public class Polymarket extends PolymarketApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', the venue keeps the current mode when omitted is not supported - the default is cross
      * @returns {object} the raw acknowledgement of the venue
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3020,12 +3020,12 @@ public class Polymarket extends PolymarketApi
      * @param {float} params.leverage the rate of leverage to set together with the mode
      * @returns {object} the raw acknowledgement of the venue
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3455,7 +3455,7 @@ public class Polymarket extends PolymarketApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiType = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseUrl = this.safeString(this.urls.get("api"), apiType, "");
@@ -3501,7 +3501,7 @@ public class Polymarket extends PolymarketApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3517,7 +3517,7 @@ public class Polymarket extends PolymarketApi
         //     }
         //
         Object source = response;
-        if ((response instanceof List) && ((code != null && ((Number) code).doubleValue() >= 400)))
+        if ((response instanceof List) && (((code != null && code >= 400))))
         {
             // request-level failures of the batch trade endpoints arrive
             // wrapped into a single-element array of the same error shape
@@ -3530,7 +3530,7 @@ public class Polymarket extends PolymarketApi
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
-            if ((code != null && ((Number) code).doubleValue() == 400))
+            if ((code != null && code == 400))
             {
                 throw new BadRequest(feedback) ;
             }
@@ -3538,7 +3538,7 @@ public class Polymarket extends PolymarketApi
             // http status fallback can apply a retryable classification, while
             // covering statuses the base table does not know
             String codeAsString = String.valueOf(code);
-            if (((code == null || !(((Number) code).doubleValue() >= 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
+            if ((((code == null || code < 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
                 throw new ExchangeError(feedback) ;
             }

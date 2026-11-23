@@ -514,10 +514,10 @@ public class Zebpay extends ZebpayApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicSpotGetV2ExCurrencies(parameters)).join();
@@ -1704,7 +1704,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //      {
@@ -1882,12 +1882,12 @@ public class Zebpay extends ZebpayApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -2312,7 +2312,7 @@ public class Zebpay extends ZebpayApi
         return this.safePosition(mapLiteral9);
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
         Map<String, Object> info = this.safeDict(leverage, "info", null);
@@ -2395,7 +2395,7 @@ public class Zebpay extends ZebpayApi
         }}, marketResolved);
     }
 
-    public Object parseMarginModification(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //    {
@@ -2420,7 +2420,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
@@ -2507,7 +2507,7 @@ public class Zebpay extends ZebpayApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

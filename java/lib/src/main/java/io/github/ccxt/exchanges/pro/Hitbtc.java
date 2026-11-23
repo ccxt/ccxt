@@ -416,7 +416,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Map<String, Object> snapshot = (Map<String, Object>) this.safeDict2(message, "snapshot", "data", (Object) null);
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "update", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(snapshot, null))
         {
             data = snapshot;
@@ -451,8 +451,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 List<Object> asks = this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = this.safeList(item, "b", new ArrayList<Object>(Arrays.asList()));
-                this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-                this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+                this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+                this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             }
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
@@ -463,7 +463,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeNumber(delta, 0, (Object) null);
         Double amount = this.safeNumber(delta, 1, (Object) null);
@@ -771,7 +771,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
+            Ticker ticker = this.parseWsBidAsk((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
             this.bidsasks.put(symbol, ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((topic + "::") + symbol);
@@ -780,7 +780,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         client.resolve(result, topic);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(ticker, "t");
         String bidAskSymbol = null;
@@ -1285,7 +1285,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("_order"))));
         String messageHash = this.safeString(splitMethod, 0);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), (Map<String, Object>) null);
         orders.append(parsed);
         client.resolve(orders, messageHash);
         if (!java.util.Objects.equals(messageHash, null))
@@ -1757,7 +1757,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> rows = this.safeList(message, "result", null);
         if (java.util.Objects.equals(rows, null))
         {
-            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeDict(message, "result", new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(this.safeDict(message, "result", new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             client.resolve(parsedOrder, messageHash);
         } else
         {

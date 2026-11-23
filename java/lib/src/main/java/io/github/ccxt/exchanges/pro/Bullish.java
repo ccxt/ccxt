@@ -346,7 +346,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(updateType, "update"))
         {
             Map<String, Object> ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
-            parsed = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.extend(this.safeDict(ticker, "info", new HashMap<String, Object>() {{}}), data)), market);
+            parsed = (Map<String, Object>) this.parseTicker(this.extend(this.safeDict(ticker, "info", new HashMap<String, Object>() {{}}), data), market);
         }
         this.tickers.put(symbol, parsed);
         String messageHash = ("ticker::" + symbol);
@@ -920,7 +920,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             positions.append(position);
             ((List<Object>)newPositions).add(position);
         }

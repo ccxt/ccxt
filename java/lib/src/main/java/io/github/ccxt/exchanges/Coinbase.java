@@ -933,7 +933,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         //
         // fetchAccountsV2
@@ -2579,7 +2579,7 @@ public class Coinbase extends CoinbaseApi
             String marketId = ((baseId + delimiter) + quoteId);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            result.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(rates, baseId, new HashMap<String, Object>() {{}})), market));
+            result.put(symbol, this.parseTicker(this.safeDict(rates, baseId, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -3984,7 +3984,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -4050,7 +4050,7 @@ public class Coinbase extends CoinbaseApi
         //
         String marketId = this.safeString(order, "product_id");
         String symbol = this.safeSymbol(marketId, market, "-", (String) null);
-        Map<String, Object> marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, (String) null, (String) null) : market;
+        Object marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, (String) null, (String) null) : market;
         Map<String, Object> orderConfiguration = this.safeDict(order, "order_configuration", new HashMap<String, Object>() {{}});
         Map<String, Object> limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc", null);
         Map<String, Object> limitGTD = this.safeDict(orderConfiguration, "limit_limit_gtd", null);
@@ -4130,7 +4130,7 @@ public class Coinbase extends CoinbaseApi
         mapLiteral33.put("currency", currencyFee);
         mapLiteral32.put("fee", mapLiteral33);
         mapLiteral32.put("trades", null);
-        return this.safeOrder(mapLiteral32, marketResolved);
+        return this.safeOrder(mapLiteral32, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     public String parseOrderStatus(String status)
@@ -4195,7 +4195,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+        List<Order> orders = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
         Map<String, Object> order = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
         return order;
 
@@ -4211,12 +4211,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4313,7 +4313,7 @@ public class Coinbase extends CoinbaseApi
         //         }
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -5238,12 +5238,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesByNetworkCore(code, parameters));
     }
 
-    private Map<String, Object> fetchDepositAddressesByNetworkCore(Object code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositAddressesByNetworkCore(String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5412,12 +5412,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.accountId] the id of the account to deposit into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> deposit(String code, Object amount, String id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> deposit(String code, Object amount, String id, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.depositCore(code, amount, id, parameters));
     }
 
-    private Object depositCore(String code, Object amount, String id, Map<String, Object> parameters)
+    private Map<String, Object> depositCore(String code, Object amount, String id, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5499,12 +5499,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.accountId] the id of the account that the funds were deposited into
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
     }
 
-    private Object fetchDepositCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5700,12 +5700,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5801,7 +5801,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Map<String, Object> parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         String fromCoin = this.safeString(conversion, "source_currency");
         String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
@@ -5836,12 +5836,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -5868,7 +5868,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //     {
@@ -6291,7 +6291,7 @@ public class Coinbase extends CoinbaseApi
         request.put("aud", new ArrayList<Object>(Arrays.asList(aud)));
         request.put("iss", iss);
         request.put("nbf", seconds);
-        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 120L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 120L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 120L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "120"); default -> (Object) null; })));
+        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 120L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 120L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 120L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "120"); default -> (Object) null; })));
         request.put("sub", this.apiKey);
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
@@ -6334,7 +6334,7 @@ public class Coinbase extends CoinbaseApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
@@ -6425,7 +6425,7 @@ public class Coinbase extends CoinbaseApi
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    String token = this.createAuthToken(seconds, url, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), isV2CloudAPiKey);
+                    String token = this.createAuthToken(seconds, url, java.util.Objects.requireNonNullElse(method, "GET"), isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256(), false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = ("Bearer " + token);
                 } else
@@ -6474,7 +6474,7 @@ public class Coinbase extends CoinbaseApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

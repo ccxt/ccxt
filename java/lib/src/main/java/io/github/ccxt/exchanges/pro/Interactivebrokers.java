@@ -488,7 +488,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < marketSymbols.size(); i++)
         {
             Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
-            var requestqueryVariable = this.ibkrMarketDataRequest((String) (market.get("id")), parameters);
+            var requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
             var query = ((List<Object>) requestqueryVariable).get(1);
             Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
@@ -675,7 +675,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
         // the last price stream, it builds the current candles
-        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest((String) (market.get("id")), parameters);
+        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
         var marketDataRequest = ((List<Object>) marketDataRequestqueryVariable).get(0);
         var query = ((List<Object>) marketDataRequestqueryVariable).get(1);
         (this.ibkrSubscribe(client, messageHash, (String) (marketDataRequest), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
@@ -1373,7 +1373,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 merged = this.extend(previous, rawOrder);
                 rawOrders.put(orderId, merged);
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, merged), (Map<String, Object>) null);
             orders.append(parsed);
             String orderSymbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(orderSymbol, null))

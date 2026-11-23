@@ -227,7 +227,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             ticker.put("datetime", this.iso8601(timestamp));
         } else if (!java.util.Objects.equals(rawTicker, null))
         {
-            ticker = this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, rawTicker)), market);
+            ticker = this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, rawTicker), market);
         } else
         {
             return;
@@ -382,7 +382,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 ticker = this.parseWsTicker(entry, market);
             } else
             {
-                ticker = this.parseTicker((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+                ticker = this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             }
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -559,7 +559,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "t": 1678643605721
         //    }
         //
-        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk(message, (Map<String, Object>) null);
+        Ticker parsedTicker = this.parseWsBidAsk(message, (Map<String, Object>) null);
         String symbol = this.safeString(parsedTicker, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -570,7 +570,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDictN(ticker, new ArrayList<Object>(Arrays.asList("d", "data", "publicAggreBookTicker")), (Object) null);
         String marketId = this.safeString2(ticker, "s", "symbol");
@@ -1646,7 +1646,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
         } else if (!java.util.Objects.equals(data, null))
         {
-            parsed = this.parseOrder(data, market);
+            parsed = this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
         } else
         {
             return;
@@ -2440,7 +2440,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(listenKey, parameters));
     }
 
-    private Object keepAliveListenKeyCore(String listenKey, Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(String listenKey, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(listenKey, null))

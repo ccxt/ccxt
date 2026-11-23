@@ -458,10 +458,10 @@ public class Coinone extends CoinoneApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v2PublicGetCurrencies(parameters)).join();
@@ -1222,7 +1222,7 @@ public class Coinone extends CoinoneApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -1277,7 +1277,7 @@ public class Coinone extends CoinoneApi
         {
             symbol = ((base + "/") + quote);
         }
-        Map<String, Object> marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, "/", (String) null) : market;
+        Object marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, "/", (String) null) : market;
         Long timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1350,7 +1350,7 @@ public class Coinone extends CoinoneApi
         mapLiteral4.put("status", status);
         mapLiteral4.put("fee", fee);
         mapLiteral4.put("trades", null);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     /**
@@ -1586,7 +1586,7 @@ public class Coinone extends CoinoneApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (String) this.implodeParams(path, parameters);
@@ -1670,7 +1670,7 @@ public class Coinone extends CoinoneApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

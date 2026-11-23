@@ -424,14 +424,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
+        Ticker ticker = this.parseWsBidAsk(data, (Map<String, Object>) null);
         String symbol = this.safeString(ticker, "symbol");
         this.bidsasks.put(symbol, ticker);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "instrument_name");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -470,7 +470,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     {
 
         parameters.put("callerMethodName", "watchTrades");
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -485,12 +485,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
@@ -678,7 +678,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     {
 
         parameters.put("callerMethodName", "watchOrderBook");
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -692,12 +692,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
@@ -804,8 +804,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
-        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.asks), asks);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.bids), bids);
         storedOrderBook.put("nonce", timestamp);
         storedOrderBook.put("timestamp", timestamp);
         storedOrderBook.put("datetime", this.iso8601(timestamp));
@@ -836,7 +836,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         return data;
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeNumber(delta, 1, (Object) null);
         Double amount = this.safeNumber(delta, 2, (Object) null);
@@ -850,7 +850,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -1012,15 +1012,15 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;

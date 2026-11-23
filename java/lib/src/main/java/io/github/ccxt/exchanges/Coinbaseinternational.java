@@ -740,10 +740,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
@@ -974,10 +974,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
@@ -1317,7 +1317,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
     {
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(info, market);
         return new HashMap<String, Object>() {{
@@ -1664,7 +1664,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }
         (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
         String code = this.safeString(paramsResolved, "code");
-        Map<String, Object> paramsOmitted = paramsResolved;
+        Map<String, Object> paramsOmitted = this.extend(new HashMap<String, Object>() {{}}, paramsResolved);
         if (this.isNativeDeribitCredentials())
         {
             paramsOmitted = this.omit(paramsResolved, "code");
@@ -2058,7 +2058,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //     {
@@ -2815,7 +2815,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder, editOrder
@@ -3333,16 +3333,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
-        Map<String, Object> paramsPaginate = paramsResolved;
-        if (this.isNativeDeribitCredentials())
+        Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
+        Boolean paginate = paginateparamsFinalVariable.first();
+        Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
+        Boolean nativeDeribit = this.isNativeDeribitCredentials();
+        if (Boolean.TRUE.equals(nativeDeribit) && Boolean.TRUE.equals(paginate))
         {
-            Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
-            Boolean paginate = paginateparamsFinalVariable.first();
-            Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                throw new NotSupported((this.id + " fetchOpenOrders() does not support pagination")) ;
-            }
+            throw new NotSupported((this.id + " fetchOpenOrders() does not support pagination")) ;
+        }
+        Map<String, Object> paramsPaginate = paramsResolved;
+        if (Boolean.TRUE.equals(nativeDeribit))
+        {
             paramsPaginate = paramsFinal;
         }
         if (java.util.Objects.equals(this.markets, null))
@@ -3423,16 +3424,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
-        Map<String, Object> paramsPaginate = paramsResolved;
-        if (this.isNativeDeribitCredentials())
+        Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
+        Boolean paginate = paginateparamsFinalVariable.first();
+        Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
+        Boolean nativeDeribit = this.isNativeDeribitCredentials();
+        if (Boolean.TRUE.equals(nativeDeribit) && Boolean.TRUE.equals(paginate))
         {
-            Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
-            Boolean paginate = paginateparamsFinalVariable.first();
-            Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                throw new NotSupported((this.id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")) ;
-            }
+            throw new NotSupported((this.id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")) ;
+        }
+        Map<String, Object> paramsPaginate = paramsResolved;
+        if (Boolean.TRUE.equals(nativeDeribit))
+        {
             paramsPaginate = paramsFinal;
         }
         if (java.util.Objects.equals(this.markets, null))
@@ -3687,7 +3689,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "instrument_name");
         Object bothLeverage = this.safeInteger(leverage, "leverage");
@@ -3719,12 +3721,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("setLeverage", parameters);
@@ -3915,11 +3917,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return this.safeString(this.options, "v2AccessToken", this.token);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String rpcMethod = ((access + "/") + path);
-        Map<String, Object> requestParams = this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        Map<String, Object> requestParams = this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         Boolean isNativeDeribit = this.isNativeDeribitCredentials();
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest", "");
         if (Boolean.TRUE.equals(isNativeDeribit))
@@ -3946,7 +3948,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
                 mapLiteral8.put("grant_type", "coinbase_cdp");
-                mapLiteral8.put("token", this.createAuthToken(this.seconds(), java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), url, this.isEddsaSecret()));
+                mapLiteral8.put("token", this.createAuthToken(this.seconds(), java.util.Objects.requireNonNullElse(method, "GET"), url, this.isEddsaSecret()));
                 requestParams = this.extend(mapLiteral8, requestParams);
             }
         } else if ((java.util.Objects.equals(access, "private")) && Boolean.TRUE.equals(isNativeDeribit))
@@ -4122,7 +4124,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return ((this.apiKey.length() == 8)) && ((this.secret.length() == 43));
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }

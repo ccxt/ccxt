@@ -847,10 +847,10 @@ public class Bitrue extends BitrueApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
@@ -971,10 +971,10 @@ public class Bitrue extends BitrueApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> promisesRaw = new ArrayList<CompletableFuture<?>>();
@@ -2090,7 +2090,7 @@ public class Bitrue extends BitrueApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder - spot
@@ -2413,7 +2413,7 @@ public class Bitrue extends BitrueApi
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder((Map<String, Object>) (data), market);
 
     }
 
@@ -2527,7 +2527,7 @@ public class Bitrue extends BitrueApi
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder((Map<String, Object>) (data), market);
 
     }
 
@@ -2790,7 +2790,7 @@ public class Bitrue extends BitrueApi
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder((Map<String, Object>) (data), market);
 
     }
 
@@ -3340,7 +3340,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //   {
@@ -3425,7 +3425,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //     fetchTransfers
@@ -3551,12 +3551,12 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3595,12 +3595,12 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3635,7 +3635,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         // setMargin
@@ -3711,7 +3711,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
@@ -3820,9 +3820,9 @@ public class Bitrue extends BitrueApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
+        if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
             throw new DDoSProtection((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + ((" " + body)))) ;
         }

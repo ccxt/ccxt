@@ -737,10 +737,10 @@ public class Bitso extends BitsoApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> catalogues = (this.publicGetCatalogues(parameters)).join();
@@ -1484,12 +1484,12 @@ public class Bitso extends BitsoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (!(ids instanceof List))
@@ -1581,7 +1581,7 @@ public class Bitso extends BitsoApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String id = this.safeString(order, "oid");
         String side = this.safeString(order, "side");
@@ -1750,12 +1750,12 @@ public class Bitso extends BitsoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
     }
 
-    private Object fetchDepositCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2371,7 +2371,7 @@ public class Bitso extends BitsoApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -2422,7 +2422,7 @@ public class Bitso extends BitsoApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

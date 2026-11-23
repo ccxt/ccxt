@@ -488,7 +488,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -504,12 +504,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -562,7 +562,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -576,12 +576,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -753,12 +753,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -781,7 +781,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             priceType = priceTypeparamsPriceTypeVariable.first();
             paramsPriceType = priceTypeparamsPriceTypeVariable.second();
         }
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolString = this.safeString(data, 0, "");
@@ -847,12 +847,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -876,7 +876,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             priceType = priceTypeparamsPriceTypeVariable.first();
             paramsPriceType = priceTypeparamsPriceTypeVariable.second();
         }
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolString = this.safeString(data, 0, "");
@@ -1013,7 +1013,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
             put( "callerMethodName", "watchOrderBook" );
         }});
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, paramsExtended)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, paramsExtended)).join();
 
     }
 
@@ -1028,12 +1028,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1090,7 +1090,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
             put( "callerMethodName", "unWatchOrderBook" );
         }});
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), paramsExtended)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), paramsExtended)).join();
 
     }
 
@@ -1104,12 +1104,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1198,8 +1198,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             List<Object> asks = this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
             orderbook.put("nonce", nonce);
@@ -1207,7 +1207,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
@@ -1339,7 +1339,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             return;
         }
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, market);
+        Ticker ticker = this.parseWsBidAsk(message, market);
         String symbol = this.safeString(market, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1349,7 +1349,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
     }
 
-    public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(message, "E");
         String symbol = null;
@@ -2043,7 +2043,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type)
     {
 
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -2225,7 +2225,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, parameters));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash, Map<String, Object> parameters)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash, Map<String, Object> parameters)
     {
 
         List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
@@ -2373,7 +2373,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         //

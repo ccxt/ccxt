@@ -454,10 +454,10 @@ public class Bit2me extends Bit2meApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.publicGetV2TradingMarketConfig(parameters)).join();
@@ -1225,7 +1225,7 @@ public class Bit2me extends Bit2meApi
         //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -1383,12 +1383,12 @@ public class Bit2me extends Bit2meApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
@@ -1739,7 +1739,7 @@ public class Bit2me extends Bit2meApi
         return this.safeString(types, type, type);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder, cancelOrder, fetchOrder, fetchOrders
@@ -1962,12 +1962,12 @@ public class Bit2me extends Bit2meApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2073,7 +2073,7 @@ public class Bit2me extends Bit2meApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -2157,7 +2157,7 @@ public class Bit2me extends Bit2meApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
@@ -2222,7 +2222,7 @@ public class Bit2me extends Bit2meApi
         }
     }
 
-    public Object handleErrors(Object httpCode, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long httpCode, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -358,10 +358,10 @@ public class Bitbank extends BitbankApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.marketsGetSpotPairs(parameters)).join();
@@ -888,7 +888,7 @@ public class Bitbank extends BitbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String id = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "pair");
@@ -964,7 +964,7 @@ public class Bitbank extends BitbankApi
         }
         Map<String, Object> response = (this.privatePostUserSpotOrder(this.extend(request, parameters))).join();
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder(data, market);
+        return this.parseOrder((Map<String, Object>) (data), market);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Bitbank extends BitbankApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder(data, market);
+        return this.parseOrder((Map<String, Object>) (data), market);
 
     }
 
@@ -1316,7 +1316,7 @@ public class Bitbank extends BitbankApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, this.extractParams(path)));
@@ -1400,7 +1400,7 @@ public class Bitbank extends BitbankApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

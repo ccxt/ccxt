@@ -806,14 +806,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -922,8 +922,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             List<Object> asks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             String nonceKey = "version";
             if (Boolean.TRUE.equals(spotConditon))
             {
@@ -1951,7 +1951,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);
-            paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+            paramsRequest = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
         }
         Map<String, Object> subscriptionParams = new HashMap<String, Object>();
         subscriptionParams.put("isV5", isV5Linear);
@@ -2071,7 +2071,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             String marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
@@ -2777,7 +2777,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         try
@@ -2901,7 +2901,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String errorCode = this.safeString(message, "err-code");
                 try
                 {
-                    this.throwExactlyMatchedException((Map<String, Object>) (this.safeDict(wsExceptions, "exact", new HashMap<String, Object>() {{}})), (String) (errorCode), (String) (this.json(message)));
+                    this.throwExactlyMatchedException(this.safeDict(wsExceptions, "exact", new HashMap<String, Object>() {{}}), (String) (errorCode), (String) (this.json(message)));
                     throw new ExchangeError((String)this.json(message)) ;
                 } catch(Exception e)
                 {

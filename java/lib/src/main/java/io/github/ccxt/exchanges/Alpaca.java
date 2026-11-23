@@ -693,10 +693,10 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1359,12 +1359,12 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1417,12 +1417,12 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1862,7 +1862,7 @@ public class Alpaca extends AlpacaApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {
@@ -2734,7 +2734,7 @@ public class Alpaca extends AlpacaApi
         return this.safeBalance(result);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String baseApiUrl = this.safeString(this.urls.get("api"), (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)));
@@ -2774,7 +2774,7 @@ public class Alpaca extends AlpacaApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

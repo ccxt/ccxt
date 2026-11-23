@@ -1042,10 +1042,10 @@ public class Woo extends WooApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -1700,12 +1700,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2000,7 +2000,7 @@ public class Woo extends WooApi
         {
             response = (this.v3PrivatePostTradeOrder(this.extend(request, paramsRequest))).join();
         }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         data = (Map<String, Object>) this.safeDict(this.safeList(data, "rows", null), 0, data);
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("timestamp", this.safeString(response, "timestamp"));
@@ -2288,12 +2288,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2301,9 +2301,9 @@ public class Woo extends WooApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Object triggerAfter = 0;
-        if ((!java.util.Objects.equals(timeout, null)) && ((timeout != null && ((Number) timeout).doubleValue() > 0)))
+        if ((!java.util.Objects.equals(timeout, null)) && ((timeout != null && timeout > 0)))
         {
-            triggerAfter = ((((timeout != null && ((Number) timeout).doubleValue() > 900000)))) ? 900000 : timeout;
+            triggerAfter = ((((timeout != null && timeout > 900000)))) ? 900000 : timeout;
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("triggerAfter", triggerAfter);
@@ -2535,7 +2535,7 @@ public class Woo extends WooApi
         return this.safeString(timeInForces, ((String)timeInForce));
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -3272,7 +3272,7 @@ public class Woo extends WooApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         //
         //     {
@@ -3426,9 +3426,9 @@ public class Woo extends WooApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseDepositAddress((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
+        return this.parseDepositAddress(this.extend(data, new HashMap<String, Object>() {{
             put( "network", Woo.this.safeString(request, "network") );
-        }})), currency);
+        }}), currency);
 
     }
 
@@ -3828,12 +3828,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3953,7 +3953,7 @@ public class Woo extends WooApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //    fetchTransfers
@@ -4151,7 +4151,7 @@ public class Woo extends WooApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(Object path, Object section, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object section, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -4257,7 +4257,7 @@ public class Woo extends WooApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4278,7 +4278,7 @@ public class Woo extends WooApi
         return null;
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -4685,12 +4685,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         String hedgeMode = null;
@@ -4763,7 +4763,7 @@ public class Woo extends WooApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -4817,12 +4817,12 @@ public class Woo extends WooApi
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5189,12 +5189,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5395,7 +5395,7 @@ public class Woo extends WooApi
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Map<String, Object> parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         //
         // fetchConvertQuote

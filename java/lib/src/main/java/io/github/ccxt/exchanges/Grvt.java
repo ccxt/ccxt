@@ -789,8 +789,8 @@ public class Grvt extends GrvtApi
         {
             throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
-        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
-        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
         (this.loadAccountInfos()).join();
         return true;
 
@@ -956,10 +956,10 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         CompletableFuture<?> marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
@@ -1112,10 +1112,10 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1691,7 +1691,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object parseFundingRateHistory(Object rawItem, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object rawItem, Map<String, Object> market)
     {
         //
         //            {
@@ -1875,7 +1875,7 @@ public class Grvt extends GrvtApi
         Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (Boolean.TRUE.equals(useTransfersEndpoint))
         {
-            Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
+            Object transfers = (this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)).join();
             List<Object> transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, "deposit", true), 0, new ArrayList<Object>(Arrays.asList())), "info");
             return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
         } else
@@ -1947,7 +1947,7 @@ public class Grvt extends GrvtApi
         Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (Boolean.TRUE.equals(useTransfersEndpoint))
         {
-            Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
+            Object transfers = (this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)).join();
             List<Object> transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, "withdrawal", true), 0, new ArrayList<Object>(Arrays.asList())), "info");
             return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
         } else
@@ -2265,12 +2265,12 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         (this.loadMarketsAndSignIn()).join();
@@ -2345,7 +2345,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -3112,12 +3112,12 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3141,7 +3141,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         //
         // setLeverage
@@ -3210,7 +3210,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         //
         // fetchMarginModes
@@ -3303,7 +3303,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //            {
@@ -3626,7 +3626,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3724,7 +3724,7 @@ public class Grvt extends GrvtApi
         Integer primaryOrderIndex = 0;
         Map<String, Object> firstLeg = this.safeDict(legs, primaryOrderIndex, null);
         String legMarketId = this.safeString(firstLeg, "instrument");
-        Map<String, Object> marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, (String) null, (String) null) : market;
+        Object marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, (String) null, (String) null) : market;
         if (!java.util.Objects.equals(firstLeg, null))
         {
             size = this.safeString(firstLeg, "size");
@@ -3760,7 +3760,7 @@ public class Grvt extends GrvtApi
         mapLiteral6.put("fees", null);
         mapLiteral6.put("reduceOnly", isReduceOnly);
         mapLiteral6.put("info", order);
-        return this.safeOrder(mapLiteral6, marketResolved);
+        return this.safeOrder(mapLiteral6, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     public String parseTimeInForce(String type)
@@ -4038,7 +4038,7 @@ public class Grvt extends GrvtApi
         return requestId;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -4117,7 +4117,7 @@ public class Grvt extends GrvtApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((String)url).endsWith("auth/api_key/login") || ((String)url).endsWith("auth/wallet/login"))
         {

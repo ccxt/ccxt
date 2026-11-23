@@ -571,7 +571,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     public void handleBidAsk(Client client, Map<String, Object> message)
     {
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, (Map<String, Object>) null);
+        Ticker ticker = this.parseWsBidAsk(message, (Map<String, Object>) null);
         String symbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -581,7 +581,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
     {
         Map<String, Object> arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -674,7 +674,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             args.put("instId", market.get("id"));
             messageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
         }
-        List<Object> ohlcv = (List<Object>) (this.watchPublic(isStockOrUta, messageHash, args, paramsRequest)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.watchPublic(isStockOrUta, messageHash, args, paramsRequest)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -925,7 +925,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -1053,12 +1053,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1222,8 +1222,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             List<Object> asks = (List<Object>) this.safeList2(rawOrderBook, "asks", "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList2(rawOrderBook, "bids", "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
-            this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
+            this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.asks), asks);
+            this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.bids), bids);
             storedOrderBook.put("timestamp", timestamp);
             storedOrderBook.put("datetime", this.iso8601(timestamp));
             boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
@@ -1301,7 +1301,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         return BaseExchange.supplyAsync(() -> this.handleCheckSumErrorCore(client, symbol, messageHash, checksumMessage));
     }
 
-    private Object handleCheckSumErrorCore(Client client, String symbol, String messageHash, String checksumMessage)
+    private Void handleCheckSumErrorCore(Client client, String symbol, String messageHash, String checksumMessage)
     {
 
         (this.unWatchOrderBook(symbol, new HashMap<String, Object>() {{}})).join();
@@ -1311,7 +1311,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
         // we store the string representations in the orderbook for checksum calculation
@@ -1320,7 +1320,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -1350,7 +1350,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -1368,15 +1368,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = symbols.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -2150,7 +2150,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             args.put("instId", instId);
         }
-        List<Object> orders = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHashInst, args, paramsRequest)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(uta, messageHash, subscriptionHashInst, args, paramsRequest)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2701,7 +2701,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             args.put("instId", "default");
         }
-        List<Object> trades = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, args, paramsRequest)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(uta, messageHash, subscriptionHash, args, paramsRequest)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

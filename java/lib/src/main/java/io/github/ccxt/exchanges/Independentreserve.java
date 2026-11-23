@@ -708,7 +708,7 @@ public class Independentreserve extends IndependentreserveApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrder
@@ -1440,7 +1440,7 @@ public class Independentreserve extends IndependentreserveApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

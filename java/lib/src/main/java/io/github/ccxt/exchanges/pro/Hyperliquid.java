@@ -105,12 +105,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrdersWs(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrdersWs(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersWsCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersWsCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersWsCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -241,12 +241,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersWsCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -296,7 +296,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     private Object cancelOrderWsCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+        List<Order> orders = (this.cancelOrdersWs(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
         return this.safeDict(orders, 0, null);
 
     }
@@ -700,7 +700,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     private Object watchMyLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchMyLiquidationsForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -716,12 +716,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchMyLiquidationsForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
     }
 
-    private Object watchMyLiquidationsForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchMyLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchMyLiquidationsForSymbols", (Map<String, Object>) (parameters));
@@ -1966,7 +1966,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
             stored.append(order);
             String symbol = this.safeString(order, "symbol");
@@ -2064,7 +2064,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         try
         {
-            this.handleErrors(0, "", "", "", new HashMap<String, Object>() {{}}, this.json(payload), payload, new HashMap<String, Object>() {{}}, "");
+            this.handleErrors(0L, "", "", "", new HashMap<String, Object>() {{}}, this.json(payload), payload, new HashMap<String, Object>() {{}}, (String) (null));
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -2120,7 +2120,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         return BaseExchange.supplyAsync(() -> this.expirePendingUnsubscribeCore(client, subHash, unsubHash));
     }
 
-    private Object expirePendingUnsubscribeCore(Client client, String subHash, String unsubHash)
+    private Void expirePendingUnsubscribeCore(Client client, String subHash, String unsubHash)
     {
 
         if (client.subscriptions.containsKey(unsubHash))

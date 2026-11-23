@@ -274,21 +274,21 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
         }
         String messageHash = (("orderbook" + ":") + symbol);
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -742,9 +742,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Long status = this.safeInteger(parameters, 0);
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(this.extend(data, new HashMap<String, Object>() {{
             put( "status", status );
-        }})), (Map<String, Object>) null);
+        }}), (Map<String, Object>) null);
         stored.append(parsed);
         String symbol = this.safeString(parsed, "symbol", "");
         String messageHash = ("orders:" + symbol);
@@ -953,7 +953,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type, subscriptionHash));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type, String subscriptionHash)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type, String subscriptionHash)
     {
 
         Balances response = (this.fetchBalance(new HashMap<String, Object>() {{

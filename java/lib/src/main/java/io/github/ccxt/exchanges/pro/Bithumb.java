@@ -70,7 +70,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Object message)
+    private Void pongCore(Client client, Object message)
     {
 
         Long ping = this.safeInteger(message, "ping");
@@ -401,7 +401,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("market", this.safeString(ticker, "market", code));
-            return this.parseTicker((Map<String, Object>) (this.extend(ticker, mapLiteral2)), market);
+            return this.parseTicker(this.extend(ticker, mapLiteral2), market);
         }
         String date = this.safeString(ticker, "date", "");
         String time = this.safeString(ticker, "time", "");

@@ -944,7 +944,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = this.safeInteger(data, "time");
         orderUpdate.put("timestamp", timestamp);
         orderUpdate.put("datetime", this.iso8601(timestamp));
-        Order parsedOrder = this.safeOrder((Map<String, Object>) (this.extend(order, orderUpdate)), (Map<String, Object>) null);
+        Order parsedOrder = this.safeOrder(this.extend(order, orderUpdate), (Map<String, Object>) null);
         storedOrders.append(parsedOrder);
         String messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
@@ -1277,21 +1277,21 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = this.safeInteger(data, "time");
         List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
-        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.asks), asks);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.bids), bids);
         storedOrderBook.put("timestamp", timestamp);
         storedOrderBook.put("datetime", this.iso8601(timestamp));
         ((Map<String, Object>)storedOrderBook).put("nonce", incrementalId);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -1519,7 +1519,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             put( "data", data );
         }};
         Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -1613,7 +1613,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             put( "data", data );
         }};
         Object rawOrder = (this.watch(url, messageHash, request, messageHash, null)).join();
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, rawOrder), market);
 
     }
 
@@ -1668,7 +1668,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             put( "data", data );
         }};
         Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -1711,7 +1711,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             put( "data", data );
         }};
         Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -1725,12 +1725,12 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersWsCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (!java.util.Objects.equals(symbol, null))

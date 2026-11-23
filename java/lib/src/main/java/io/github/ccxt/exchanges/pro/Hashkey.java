@@ -296,7 +296,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
         String symbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
@@ -933,7 +933,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type)
     {
 
         Balances response = (this.fetchBalance(new HashMap<String, Object>() {{
@@ -1067,7 +1067,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(listenKey, parameters));
     }
 
-    private Object keepAliveListenKeyCore(String listenKey, Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(String listenKey, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(listenKey, null))
@@ -1095,7 +1095,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public void handleListMessage(Client client, Object message)
     {
-        this.handleStreamMessage(client, (Map<String, Object>) (this.safeDict(message, 0, new HashMap<String, Object>() {{}})));
+        this.handleStreamMessage(client, this.safeDict(message, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleMessage(Client client, Map<String, Object> message)

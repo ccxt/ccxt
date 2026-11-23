@@ -762,7 +762,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat2(delta, 0, "p");
         Double amount = this.safeFloat2(delta, 1, "a");
@@ -1473,7 +1473,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type, subType));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type, String subType)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type, String subType)
     {
 
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -1599,7 +1599,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash, String type)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash, String type)
     {
 
         List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
@@ -1786,7 +1786,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
 
-    private Object keepAliveListenKeyCore(Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(Map<String, Object> parameters)
     {
 
         String listenKey = this.safeString(this.options, "listenKey");
@@ -1896,7 +1896,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Object message)
+    private Void pongCore(Client client, Object message)
     {
 
         try

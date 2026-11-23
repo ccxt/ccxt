@@ -1312,10 +1312,10 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         if (!this.checkRequiredCredentials(false))
@@ -2548,7 +2548,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -2655,7 +2655,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         // {
         //     "symbol": "LDO-USDT",
@@ -2930,7 +2930,7 @@ public class Bingx extends BingxApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            ((List<Object>)results).add(this.parseTicker((Map<String, Object>) (this.safeDict(rows, i, new HashMap<String, Object>() {{}})), rowMarket));
+            ((List<Object>)results).add(this.parseTicker(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), rowMarket));
         }
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
 
@@ -3072,12 +3072,12 @@ public class Bingx extends BingxApi
             //     ]
             // }
             //
-            return this.parseTicker((Map<String, Object>) (this.safeDict(((Map<String, Object>)response).get("data"), 0, new HashMap<String, Object>() {{}})), market);
+            return this.parseTicker(this.safeDict(((Map<String, Object>)response).get("data"), 0, new HashMap<String, Object>() {{}}), market);
         } else
         {
             response = (this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType))).join();
         }
-        return this.parseTicker((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), market);
+        return this.parseTicker(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -3803,12 +3803,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         parameters.put("quoteOrderQty", cost);
@@ -3847,12 +3847,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         parameters.put("quoteOrderQty", cost);
@@ -4399,12 +4399,12 @@ public class Bingx extends BingxApi
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4413,7 +4413,7 @@ public class Bingx extends BingxApi
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> marketIds = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol", "");
@@ -4544,7 +4544,7 @@ public class Bingx extends BingxApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -4829,7 +4829,7 @@ public class Bingx extends BingxApi
         //     }
         //
         Map<String, Object> newOrder = (Map<String, Object>) this.safeDict2(order, "newOrderResponse", "orderOpenResponse", (Object) null);
-        Object orderData = (((!java.util.Objects.equals(newOrder, null)))) ? newOrder : order;
+        Map<String, Object> orderData = (((!java.util.Objects.equals(newOrder, null)))) ? newOrder : order;
         String positionSide = this.safeString2(orderData, "positionSide", "ps");
         String marketType = "swap";
         if (java.util.Objects.equals(positionSide, null))
@@ -5209,12 +5209,12 @@ public class Bingx extends BingxApi
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -5235,7 +5235,7 @@ public class Bingx extends BingxApi
         }};
         List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
-        Integer idsCount = ((List<?>)ids).size();
+        Integer idsCount = ids.size();
         Object idsToParse = ids;
         Boolean areClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null));
         if (Boolean.TRUE.equals(areClientOrderIds))
@@ -5289,22 +5289,22 @@ public class Bingx extends BingxApi
      * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean isActive = ((timeout != null && ((Number) timeout).doubleValue() > 0));
+        Boolean isActive = ((timeout != null && timeout > 0));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "type", ((Boolean.TRUE.equals(isActive))) ? "ACTIVATE" : "CLOSE" );
-            put( "timeOut", ((Boolean.TRUE.equals(isActive))) ? ((Object) (Bingx.this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)))) : 0 );
+            put( "timeOut", ((Boolean.TRUE.equals(isActive))) ? ((Object) (Bingx.this.parseToInt(((Object) (timeout == null ? null : ((double) timeout) / ((double) 1000)))))) : 0 );
         }};
         Map<String, Object> response = null;
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, (String) null);
@@ -5937,12 +5937,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6085,7 +6085,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         String tranId = this.safeString(transfer, "transferId");
         Long timestamp = this.safeInteger(transfer, "timestamp");
@@ -6127,12 +6127,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
-    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesByNetworkCore(code, parameters));
     }
 
-    private Map<String, Object> fetchDepositAddressesByNetworkCore(Object code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositAddressesByNetworkCore(String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6545,12 +6545,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -6718,13 +6718,13 @@ public class Bingx extends BingxApi
             mapLiteral12.put("type", type);
             responseData = this.extend(mapLiteral12, this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
         }
-        Map<String, Object> result = (Map<String, Object>) this.parseMarginModification((Map<String, Object>) (responseData), market);
+        Map<String, Object> result = this.parseMarginModification((Map<String, Object>) (responseData), market);
         result.put("info", response);
         return result;
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         //    {
@@ -6790,7 +6790,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         //
         // linear swap
@@ -6842,12 +6842,12 @@ public class Bingx extends BingxApi
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -6985,7 +6985,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         // currencie structure
@@ -7265,7 +7265,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         //     {
@@ -7295,7 +7295,7 @@ public class Bingx extends BingxApi
         String priceString = this.safeString(liquidation, "avgPrice");
         String baseValueString = Precise.stringMul(contractsString, contractSizeString);
         String quoteValueString = Precise.stringMul(baseValueString, priceString);
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Bingx.this.safeSymbol(marketId, market, (String) null, (String) null) );
             put( "contracts", Bingx.this.parseNumber(contractsString) );
@@ -7305,7 +7305,7 @@ public class Bingx extends BingxApi
             put( "quoteValue", Bingx.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
             put( "datetime", Bingx.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        }}, (Map<String, Object>) null));
     }
 
     /**
@@ -7481,12 +7481,12 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> market = null;
@@ -7644,7 +7644,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         String marketId = this.safeString(marginMode, "symbol");
         String marginType = this.safeStringLower(marginMode, "marginType");
@@ -7880,7 +7880,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //     [
@@ -7916,7 +7916,7 @@ public class Bingx extends BingxApi
         return tiers;
     }
 
-    public Map<String, Object> sign(Object path, Object section, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object section, String method, Object parameters)
     {
         String type = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         Object version = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
@@ -8019,7 +8019,7 @@ public class Bingx extends BingxApi
         this.options.put("sandboxMode", enable);
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -831,7 +831,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         List<Object> rawOrders = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Object data = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
+            Map<String, Object> data = (Map<String, Object>) (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             String orderId = this.safeString(parsed, "id");

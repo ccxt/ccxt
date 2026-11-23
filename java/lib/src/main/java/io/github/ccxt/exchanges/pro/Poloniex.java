@@ -408,7 +408,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             List<Object> clientOrderIds = this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
             parameters.put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
         }
-        List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+        List<Order> orders = (this.cancelOrdersWs(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
         Map<String, Object> order = this.safeDict(orders, 0, null);
         return order;
 
@@ -425,12 +425,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersWsCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -648,7 +648,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -663,12 +663,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -721,7 +721,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -734,12 +734,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -928,7 +928,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type)
     {
 
         Balances response = (this.fetchBalance(new HashMap<String, Object>() {{}})).join();

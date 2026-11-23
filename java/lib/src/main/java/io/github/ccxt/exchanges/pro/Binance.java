@@ -445,7 +445,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     private Object watchLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchLiquidationsForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -461,12 +461,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchLiquidationsForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
     }
 
-    private Object watchLiquidationsForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -703,7 +703,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     private Object watchMyLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchMyLiquidationsForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -721,12 +721,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchMyLiquidationsForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
     }
 
-    private Object watchMyLiquidationsForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchMyLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -868,7 +868,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
         // sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
         // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -894,12 +894,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -995,12 +995,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1082,7 +1082,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -1192,7 +1192,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookSnapshotCore(client, message, subscription));
     }
 
-    private Object fetchOrderBookSnapshotCore(Client client, Object message, Object subscription)
+    private Void fetchOrderBookSnapshotCore(Client client, Object message, Object subscription)
     {
 
         String symbol = this.safeString(subscription, "symbol", "");
@@ -1277,14 +1277,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -1295,8 +1295,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Long u = this.safeInteger(message, "u");
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(message, "a", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(message, "b", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(message, "a", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(message, "b", new ArrayList<Object>(Arrays.asList())));
         orderbook.put("nonce", u);
         Long timestamp = this.safeInteger(message, "E");
         orderbook.put("timestamp", timestamp);
@@ -1530,12 +1530,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1641,12 +1641,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1756,7 +1756,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -1786,7 +1786,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
 
         parameters.put("callerMethodName", "watchTrades");
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -2070,12 +2070,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2089,9 +2089,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             List<String> stockStreams = new ArrayList<String>(Arrays.asList());
             List<String> stockMessageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+            for (var i = 0; i < symbolsAndTimeframes.size(); i++)
             {
-                Object stockSymAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                Object stockSymAndTf = (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
                 String stockSymbolString = this.symbol(this.safeString(stockSymAndTf, 0, ""));
                 Map<String, Object> stockMarket = this.market(stockSymbolString);
                 String stockTicker = this.safeString2(stockMarket, "base", "id");
@@ -2143,9 +2143,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
-            Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+            Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
             String symbolString = this.safeString(symAndTf, 0, "");
             String timeframeString = this.safeString(symAndTf, 1, "");
             String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -2211,12 +2211,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2248,9 +2248,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
         List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
-            Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+            Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
             String symbolString = this.safeString(symAndTf, 0, "");
             String timeframeString = this.safeString(symAndTf, 1, "");
             String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -3568,7 +3568,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.ensureUserDataStreamWsSubscribeSignatureCore(marketType));
     }
 
-    private Object ensureUserDataStreamWsSubscribeSignatureCore(Object marketType)
+    private Void ensureUserDataStreamWsSubscribeSignatureCore(Object marketType)
     {
 
         Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -3671,7 +3671,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.ensureUserDataStreamWsSubscribeListenTokenCore(marketType, parameters));
     }
 
-    private Object ensureUserDataStreamWsSubscribeListenTokenCore(String marketType, Map<String, Object> parameters)
+    private Void ensureUserDataStreamWsSubscribeListenTokenCore(String marketType, Map<String, Object> parameters)
     {
 
         Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -3783,7 +3783,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.renewListenTokenCore(parameters));
     }
 
-    private Object renewListenTokenCore(Map<String, Object> parameters)
+    private Void renewListenTokenCore(Map<String, Object> parameters)
     {
 
         String type = this.safeString(parameters, "type", "margin");
@@ -3952,7 +3952,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
 
-    private Object keepAliveListenKeyCore(Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(Map<String, Object> parameters)
     {
 
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
@@ -4130,7 +4130,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type, isPortfolioMargin));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String type, Object isPortfolioMargin)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String type, Object isPortfolioMargin)
     {
 
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -6333,7 +6333,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type, isPortfolioMargin));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash, String type, Object isPortfolioMargin)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash, String type, Object isPortfolioMargin)
     {
 
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -7090,7 +7090,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Long codeValue = (((java.util.Objects.equals(code, null)))) ? 0 : code;
         try
         {
-            this.handleErrors(codeValue, ((String)msg), client.url, "", new HashMap<String, Object>() {{}}, this.json(error), error, new HashMap<String, Object>() {{}}, "");
+            this.handleErrors(codeValue, ((String)msg), client.url, "", new HashMap<String, Object>() {{}}, this.json(error), error, new HashMap<String, Object>() {{}}, (String) (null));
         } catch(Exception e)
         {
             rejected = true;

@@ -842,10 +842,10 @@ public class Tokocrypto extends TokocryptoApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetOpenV1CommonSymbols(parameters)).join();
@@ -1563,7 +1563,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(firstTicker, market);
         }
-        return this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, response)), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -1849,7 +1849,7 @@ public class Tokocrypto extends TokocryptoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -3060,7 +3060,7 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> restUrls = this.extend(new HashMap<String, Object>() {{}}, ((Map<String, Object>)this.urls.get("api")).get("rest"));
@@ -3168,16 +3168,16 @@ public class Tokocrypto extends TokocryptoApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
+        if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
             throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if ((code != null && ((Number) code).doubleValue() >= 400))
+        if (((code != null && code >= 400)))
         {
             if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {

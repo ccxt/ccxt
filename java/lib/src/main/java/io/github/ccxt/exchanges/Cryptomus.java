@@ -365,10 +365,10 @@ public class Cryptomus extends CryptomusApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetV2UserApiExchangeMarkets(parameters)).join();
@@ -494,10 +494,10 @@ public class Cryptomus extends CryptomusApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetV1ExchangeMarketAssets(parameters)).join();
@@ -946,7 +946,7 @@ public class Cryptomus extends CryptomusApi
         //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -1138,7 +1138,7 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -1383,7 +1383,7 @@ public class Cryptomus extends CryptomusApi
         }};
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String endpoint = (String) this.implodeParams(path, parameters);
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
@@ -1444,7 +1444,7 @@ public class Cryptomus extends CryptomusApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

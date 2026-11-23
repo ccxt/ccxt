@@ -482,7 +482,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return BaseExchange.supplyAsync(() -> this.expirePendingUnsubscribeCore(client, unsubHash, requestId));
     }
 
-    private Object expirePendingUnsubscribeCore(Client client, String unsubHash, String requestId)
+    private Void expirePendingUnsubscribeCore(Client client, String unsubHash, String requestId)
     {
 
         Map<String, Object> unsubscription = this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}});
@@ -707,12 +707,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -765,7 +765,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
         if (!java.util.Objects.equals(symbol, null))
         {
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+            return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         }
         String channel = "trades.ALL";
         return (this.unsubscribeChannels((String) (this.getWsUrl()), "trades", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList()), parameters)).join();
@@ -781,12 +781,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -957,7 +957,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -972,12 +972,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1000,8 +1000,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> feedMarket = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            ((List<Object>)feeds).add(this.getOrderBookChannel((String) (feedMarket.get("id")), true));
-            ((List<Object>)feeds).add(this.getOrderBookChannel((String) (feedMarket.get("id")), false));
+            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id"), true));
+            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id"), false));
         }
         (this.waitForPendingUnsubscribe(url, feeds)).join();
         Client client = this.client(url);
@@ -1010,8 +1010,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            String deltasChannel = this.getOrderBookChannel((String) (market.get("id")), true);
-            String snapshotChannel = this.getOrderBookChannel((String) (market.get("id")), false);
+            String deltasChannel = this.getOrderBookChannel(this.safeString(market, "id"), true);
+            String snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id"), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -1057,7 +1057,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -1071,12 +1071,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {boolean} [params.deltas] the feed to unsubscribe from when a market is not watched on this connection, true for the full-depth deltas, default false
      * @returns {boolean} true once unsubscribed
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1095,8 +1095,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             // the feed the market is on, a market is on one of them at a time
-            String deltasChannel = this.getOrderBookChannel((String) (market.get("id")), true);
-            String snapshotChannel = this.getOrderBookChannel((String) (market.get("id")), false);
+            String deltasChannel = this.getOrderBookChannel(this.safeString(market, "id"), true);
+            String snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id"), false);
             String channel = (((java.util.Objects.equals(deltasOption, true)))) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             String requestedHash = (deltasChannel + ":requested");
@@ -1781,7 +1781,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> bidAsk = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
+        Ticker bidAsk = this.parseWsBidAsk(data, (Map<String, Object>) null);
         String symbol = this.safeString(bidAsk, "symbol");
         this.bidsasks.put(symbol, bidAsk);
         if (!java.util.Objects.equals(symbol, null))
@@ -1792,7 +1792,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         client.resolve(bidAsk, "bidask");
     }
 
-    public Object parseWsBidAsk(Map<String, Object> data, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> data, Map<String, Object> market)
     {
         String marketId = this.safeString(data, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);

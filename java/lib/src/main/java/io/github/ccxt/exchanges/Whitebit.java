@@ -788,10 +788,10 @@ public class Whitebit extends WhitebitApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -943,10 +943,10 @@ public class Whitebit extends WhitebitApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.v4PublicGetAssets(parameters)).join();
@@ -2103,7 +2103,7 @@ public class Whitebit extends WhitebitApi
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(response, marketId, new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(response, marketId, new HashMap<String, Object>() {{}}), market);
             String symbol = this.safeString(ticker, "symbol");
             result.put((String)symbol, ticker);
         }
@@ -2564,12 +2564,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         Map<String, Object> req = new HashMap<String, Object>() {{
@@ -2755,7 +2755,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
         }
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
 
     }
 
@@ -3016,12 +3016,12 @@ public class Whitebit extends WhitebitApi
      * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3039,13 +3039,13 @@ public class Whitebit extends WhitebitApi
         {
             throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
-        Boolean isBiggerThanZero = ((timeout != null && ((Number) timeout).doubleValue() > 0));
+        Boolean isBiggerThanZero = ((timeout != null && timeout > 0));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", market.get("id") );
         }};
         if (Boolean.TRUE.equals(isBiggerThanZero))
         {
-            request.put("timeout", this.numberToString((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)));
+            request.put("timeout", this.numberToString((((double) timeout) / ((double) 1000))));
         } else
         {
             request.put("timeout", "null");
@@ -3310,7 +3310,7 @@ public class Whitebit extends WhitebitApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder
@@ -3869,12 +3869,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3907,12 +3907,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3933,11 +3933,13 @@ public class Whitebit extends WhitebitApi
         //
         //    []
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer(new HashMap<String, Object>() {{}}, currency), new HashMap<String, Object>() {{
+            put( "info", response );
+        }});
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //    []
@@ -4127,12 +4129,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
     }
 
-    private Object fetchDepositCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4339,7 +4341,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {
@@ -4744,12 +4746,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4893,7 +4895,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Map<String, Object> parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         //
         // fetchConvertQuote
@@ -5277,7 +5279,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
     {
         String marketId = this.safeString(info, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -5296,7 +5298,7 @@ public class Whitebit extends WhitebitApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String version = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -5359,13 +5361,13 @@ public class Whitebit extends WhitebitApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
+        if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
             throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
-        if ((code != null && ((Number) code).doubleValue() == 404))
+        if ((code != null && code == 404))
         {
             throw new ExchangeError((((this.id + " ") + String.valueOf(code)) + " endpoint not found")) ;
         }

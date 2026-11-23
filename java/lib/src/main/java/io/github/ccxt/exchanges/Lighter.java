@@ -1403,7 +1403,7 @@ public class Lighter extends LighterApi
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return this.parseOrder(this.deepExtend(response, order), market);
+        return this.parseOrder((Map<String, Object>) (this.deepExtend(response, order)), market);
 
     }
 
@@ -1755,10 +1755,10 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetAssetDetails(parameters)).join();
@@ -2071,7 +2071,7 @@ public class Lighter extends LighterApi
         List<Object> spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
-        return this.parseTicker((Map<String, Object>) (this.safeDict(tickers, 0, new HashMap<String, Object>() {{}})), market);
+        return this.parseTicker(this.safeDict(tickers, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -2691,7 +2691,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         //
         //     {
@@ -2914,7 +2914,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -3121,12 +3121,12 @@ public class Lighter extends LighterApi
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3266,7 +3266,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //     {
@@ -3863,12 +3863,12 @@ public class Lighter extends LighterApi
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3898,12 +3898,12 @@ public class Lighter extends LighterApi
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(marginMode, null))
@@ -4134,12 +4134,12 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4150,8 +4150,8 @@ public class Lighter extends LighterApi
         {
             throw new ArgumentsRequired((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
         }
-        Boolean isScheduled = (!(timeout != null && ((Number) timeout).doubleValue() == 0));
-        if (Boolean.TRUE.equals(isScheduled) && (((timeout == null || !(((Number) timeout).doubleValue() >= 300000))) || ((timeout != null && ((Number) timeout).doubleValue() > 1296000000))))
+        Boolean isScheduled = ((timeout == null || timeout != 0));
+        if (Boolean.TRUE.equals(isScheduled) && ((((timeout == null || timeout < 300000))) || ((timeout != null && timeout > 1296000000))))
         {
             throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
         }
@@ -4304,7 +4304,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(data, "predicted_execution_time_ms");
         return new HashMap<String, Object>() {{
@@ -4321,7 +4321,7 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = null;
@@ -4389,7 +4389,7 @@ public class Lighter extends LighterApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

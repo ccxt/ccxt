@@ -660,10 +660,10 @@ public class Bullish extends BullishApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.publicGetV1Assets(parameters)).join();
@@ -756,10 +756,10 @@ public class Bullish extends BullishApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -2408,7 +2408,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrders, fetchOrder
@@ -2910,7 +2910,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         return new HashMap<String, Object>() {{
             put( "id", Bullish.this.safeString(account, "tradingAccountId") );
@@ -2956,7 +2956,7 @@ public class Bullish extends BullishApi
         //
         List<Object> safeResponse = this.toArray(response);
         Integer length = safeResponse.size();
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
         List<Object> networkAndParams = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkParam = (String) ((List<Object>)networkAndParams).get(0);
         Boolean networkDefinedByUser = !java.util.Objects.equals(networkParam, null);
@@ -2989,7 +2989,7 @@ public class Bullish extends BullishApi
                 }
             }
         }
-        return this.parseDepositAddress(data, currency);
+        return this.parseDepositAddress(this.extend(new HashMap<String, Object>() {{}}, data), currency);
 
     }
 
@@ -3304,12 +3304,12 @@ public class Bullish extends BullishApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3344,7 +3344,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // fetchTransfers
@@ -3613,7 +3613,7 @@ public class Bullish extends BullishApi
         }}, market);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
@@ -3747,7 +3747,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -310,15 +310,15 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         orderbook.put("symbol", symbol);
         List<Object> asks = this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
         orderbook.put("nonce", this.safeInteger(message, "message_id"));
         String messageHash = ("orderbook:" + symbol);
         this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         if ((delta instanceof List))
         {

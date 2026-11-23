@@ -862,7 +862,7 @@ public class Coinspot extends CoinspotApi
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String symbol = this.safeString(market, "symbol", "");
-                result.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(prices, id, new HashMap<String, Object>() {{}})), market));
+                result.put(symbol, this.parseTicker(this.safeDict(prices, id, new HashMap<String, Object>() {{}}), market));
             }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1160,7 +1160,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1181,7 +1181,7 @@ public class Coinspot extends CoinspotApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;

@@ -668,7 +668,7 @@ public class Blockchaincom extends BlockchaincomApi
         return this.safeString(states, state, state);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1351,12 +1351,12 @@ public class Blockchaincom extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchWithdrawalCore(id, code, parameters));
     }
 
-    private Object fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1419,12 +1419,12 @@ public class Blockchaincom extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
     }
 
-    private Object fetchDepositCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1553,7 +1553,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -1609,7 +1609,7 @@ public class Blockchaincom extends BlockchaincomApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (java.util.Objects.equals(response, null))

@@ -156,7 +156,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -171,16 +171,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Integer symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = symbols.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -215,16 +215,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Integer symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = symbols.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -291,7 +291,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -305,16 +305,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Integer symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = symbols.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -349,16 +349,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Integer symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = symbols.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -424,15 +424,15 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
@@ -499,15 +499,15 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
@@ -1223,7 +1223,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     private Object cancelOrderWsCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+        List<Order> orders = (this.cancelOrdersWs(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
         return this.safeDict(orders, 0, null);
 
     }
@@ -1242,12 +1242,12 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersWsCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -2028,7 +2028,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(positions, ("positions:" + this.safeString(position, "symbol", "")));
     }
 
-    public Object parseWsBidAsk(Map<String, Object> bidask, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> bidask, Map<String, Object> market)
     {
         //
         //     {
@@ -2058,7 +2058,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     public void handleBidAsk(Client client, Map<String, Object> message)
     {
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, (Map<String, Object>) null);
+        Ticker ticker = this.parseWsBidAsk(message, (Map<String, Object>) null);
         String symbol = this.safeString(ticker, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -2131,7 +2131,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(tickers, "ticker");
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.parseX18(this.safeString(delta, 0)), this.parseX18(this.safeString(delta, 1))));
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
@@ -2187,8 +2187,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         List<Object> asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
         Long timestamp = this.parseWsTimestamp(message, "max_timestamp");
         ((Map<String, Object>)orderbook).put("symbol", symbol);
         orderbook.put("timestamp", timestamp);

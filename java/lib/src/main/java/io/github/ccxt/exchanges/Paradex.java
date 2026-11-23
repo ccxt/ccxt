@@ -859,10 +859,10 @@ public class Paradex extends ParadexApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
@@ -2389,7 +2389,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // {
@@ -2921,12 +2921,12 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
@@ -2935,7 +2935,7 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String symbol = this.safeString(rawOrder, "symbol");
@@ -2978,7 +2978,7 @@ public class Paradex extends ParadexApi
         List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
         List<Object> errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> responseOrder = this.safeDict(responseOrders, i, null);
             if (!java.util.Objects.equals(responseOrder, null))
@@ -3037,7 +3037,7 @@ public class Paradex extends ParadexApi
         //
         // if success, no response...
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
 
     }
 
@@ -3052,12 +3052,12 @@ public class Paradex extends ParadexApi
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
@@ -3242,7 +3242,7 @@ public class Paradex extends ParadexApi
         //         "trigger_price": "0"
         //     }
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
 
     }
 
@@ -3791,7 +3791,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         //     {
@@ -3800,7 +3800,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         Long timestamp = this.safeInteger(liquidation, "created_at");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Paradex.this.safeString(market, "symbol") );
             put( "contracts", null );
@@ -3811,7 +3811,7 @@ public class Paradex extends ParadexApi
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        }}, (Map<String, Object>) null));
     }
 
     /**
@@ -4084,7 +4084,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //     {
@@ -4256,7 +4256,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> rawMarginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> rawMarginMode, Map<String, Object> market)
     {
         String marketId = this.safeString(rawMarginMode, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -4279,12 +4279,12 @@ public class Paradex extends ParadexApi
      * @param {float} [params.leverage] the rate of leverage, the current leverage of the market is kept when omitted
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         this.checkRequiredArgument("setMarginMode", symbol, "symbol", new ArrayList<Object>(Arrays.asList()));
@@ -4360,7 +4360,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -4394,12 +4394,12 @@ public class Paradex extends ParadexApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         this.checkRequiredArgument("setLeverage", symbol, "symbol", new ArrayList<Object>(Arrays.asList()));
@@ -4881,7 +4881,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -5043,11 +5043,11 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
-        Object pathValue = path;
+        String pathValue = path;
         if ((((String)path).indexOf("v2/") == 0))
         {
             pathValue = (path == null ? null : ((String)path).replaceFirst("v2/", ""));
@@ -5142,7 +5142,7 @@ public class Paradex extends ParadexApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -5167,7 +5167,7 @@ public class Paradex extends ParadexApi
         //
         String errorCode = this.safeString(response, "error");
         String message = this.safeString(response, "message");
-        if ((java.util.Objects.equals(errorCode, null)) && ((code != null && ((Number) code).doubleValue() == 400)))
+        if ((java.util.Objects.equals(errorCode, null)) && ((code != null && code == 400)))
         {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
@@ -5192,7 +5192,7 @@ public class Paradex extends ParadexApi
         String feedback = ((this.id + " ") + body);
         if (java.util.Objects.equals(errorCode, null))
         {
-            if (((code != null && ((Number) code).doubleValue() >= 400)) && (!java.util.Objects.equals(message, null)))
+            if ((((code != null && code >= 400))) && (!java.util.Objects.equals(message, null)))
             {
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             }

@@ -637,10 +637,10 @@ public class Btcmarkets extends BtcmarketsApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.publicGetMarkets(parameters)).join();
@@ -1191,7 +1191,7 @@ public class Btcmarkets extends BtcmarketsApi
         request.put("amount", this.amountToPrecision(symbol, amount));
         request.put("side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask");
         String lowercaseType = ((String)type).toLowerCase();
-        Map<String, Object> orderTypes = (Map<String, Object>) this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
+        Map<String, Object> orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
             put( "limit", "Limit" );
             put( "market", "Market" );
             put( "stop", "Stop" );
@@ -1281,12 +1281,12 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1294,7 +1294,7 @@ public class Btcmarkets extends BtcmarketsApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> numericIds = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             // numericIds[i] = parseInt (ids[i]);
             ((List<Object>)numericIds).add(this.parseToInt(this.safeString(ids, i)));
@@ -1422,7 +1422,7 @@ public class Btcmarkets extends BtcmarketsApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -1750,7 +1750,7 @@ public class Btcmarkets extends BtcmarketsApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
@@ -1809,7 +1809,7 @@ public class Btcmarkets extends BtcmarketsApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

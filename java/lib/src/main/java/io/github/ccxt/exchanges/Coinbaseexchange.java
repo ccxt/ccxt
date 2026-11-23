@@ -690,10 +690,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.publicGetCurrencies(parameters)).join();
@@ -986,7 +986,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         //
         //     {
@@ -1715,7 +1715,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -2741,7 +2741,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
@@ -2804,9 +2804,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((code != null && ((Number) code).doubleValue() == 400)) || ((code != null && ((Number) code).doubleValue() == 404)))
+        if (((code != null && code == 400)) || ((code != null && code == 404)))
         {
             if (((String)body).startsWith("{"))
             {
@@ -2821,12 +2821,12 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return null;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
     }
 
-    private Object requestCore(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object requestCore(String path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();

@@ -97,7 +97,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -112,12 +112,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -193,7 +193,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var j = 0; (length != null && j < length); j++)
         {
             Long index = ((((long) length) - ((long) j)) - 1L);
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (this.safeDict(trades, index, new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> parsed = this.parseWsTrade(this.safeDict(trades, index, new HashMap<String, Object>() {{}}), market);
             stored.append(parsed);
         }
         String messageHash = (("trade" + ":") + symbol);
@@ -258,7 +258,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -272,12 +272,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -430,8 +430,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             List<Object> asks = this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
@@ -440,13 +440,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -627,12 +627,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -642,7 +642,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String url = this.getWsPublicUrl();
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolString = this.safeString(data, 0);
@@ -915,7 +915,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (this.safeDict(lists, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parseWsTrade(this.safeDict(lists, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             symbols.put((String)symbol, true);
             trades.append(parsed);
@@ -1007,7 +1007,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash)
     {
 
         // as only one ws channel gives positions for all types, for snapshot must load all positions
@@ -1066,7 +1066,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(lists, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(lists, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -1363,7 +1363,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         //

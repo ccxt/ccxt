@@ -764,7 +764,7 @@ public class Indodax extends IndodaxApi
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String marketId = (key == null ? null : ((String)key).replaceFirst("_", ""));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(tickers, key, new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, key, new HashMap<String, Object>() {{}}), market);
             parsedTickers.put(marketId, parsed);
         }
         return this.filterByArrayTickers(parsedTickers, "symbol", symbols);
@@ -914,7 +914,7 @@ public class Indodax extends IndodaxApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1303,7 +1303,7 @@ public class Indodax extends IndodaxApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "return", null);
-        return this.parseOrder(data, (Map<String, Object>) null);
+        return this.parseOrder((Map<String, Object>) (data), (Map<String, Object>) null);
 
     }
 
@@ -1796,7 +1796,7 @@ public class Indodax extends IndodaxApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -1853,7 +1853,7 @@ public class Indodax extends IndodaxApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

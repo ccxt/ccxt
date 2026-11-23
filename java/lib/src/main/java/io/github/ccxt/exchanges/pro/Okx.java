@@ -249,7 +249,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -266,15 +266,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = symbols.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -331,12 +331,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -390,7 +390,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -889,7 +889,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             this.tickers.put(symbol, ticker);
             newTickers.put(symbol, ticker);
         }
@@ -1006,7 +1006,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk(ticker, market);
+        Ticker parsedTicker = this.parseWsBidAsk(ticker, market);
         String symbol = this.safeString(parsedTicker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1016,7 +1016,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -1063,12 +1063,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchLiquidationsForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
     }
 
-    private Object watchLiquidationsForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1180,12 +1180,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchMyLiquidationsForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
     }
 
-    private Object watchMyLiquidationsForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchMyLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1451,15 +1451,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -1470,10 +1470,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         List<Object> topics = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
-            String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 0, "");
-            String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 1, "");
+            String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 0, "");
+            String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 1, "");
             String marketId = this.marketId((String) (sym));
             String interval = this.safeString(this.timeframes, tf, tf);
             String channel = ("candle" + interval);
@@ -1512,15 +1512,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -1531,10 +1531,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         List<Object> topics = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
-            String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 0, "");
-            String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i)), 1, "");
+            String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 0, "");
+            String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 1, "");
             String marketId = this.marketId((String) (sym));
             String interval = this.safeString(this.timeframes, tf, tf);
             String channel = ("candle" + interval);
@@ -1632,7 +1632,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
         // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         //
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -1647,12 +1647,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1742,12 +1742,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1816,11 +1816,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         //
         //     [
@@ -1835,7 +1835,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -1866,8 +1866,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         List<Object> asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
         String marketId = this.safeString(message, "instId");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long seqId = this.safeInteger(message, "seqId");
@@ -2779,7 +2779,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // filter orders with no last trade id
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             String tradeId = this.safeString(rawOrder, "tradeId", "");
             if (tradeId.length() > 0)
             {
@@ -2917,7 +2917,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             String method = this.safeString(message, "op");
             String stringMsg = this.json(message);
-            this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, "");
+            this.handleErrors(1L, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, (String) (null));
         }
         List<Object> orders = this.parseOrders(args, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         Map<String, Object> first = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
@@ -3037,15 +3037,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersWsCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
-        Integer idsLength = ((List<?>)ids).size();
+        Integer idsLength = ids.size();
         if ((idsLength != null && idsLength > 20))
         {
             throw new BadRequest((this.id + " cancelOrdersWs() accepts up to 20 ids at a time")) ;
@@ -3153,7 +3153,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             String method = this.safeString(message, "op");
             String stringMsg = this.json(message);
-            this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, "");
+            this.handleErrors(1L, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, (String) (null));
         }
         List<Object> orders = this.parseOrders(args, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         client.resolve(orders, messageHash);

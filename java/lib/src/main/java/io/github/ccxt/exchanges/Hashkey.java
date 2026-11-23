@@ -846,10 +846,10 @@ public class Hashkey extends HashkeyApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1339,10 +1339,10 @@ public class Hashkey extends HashkeyApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
@@ -2591,12 +2591,12 @@ public class Hashkey extends HashkeyApi
      * @param {string} [params.remark] a note for the transfer
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2623,7 +2623,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(currency, "id");
@@ -2684,7 +2684,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         String accountLabel = this.safeString(account, "accountLabel");
         String label = "";
@@ -2987,12 +2987,12 @@ public class Hashkey extends HashkeyApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSpotOrderCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Object createSpotOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createSpotOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
@@ -3213,12 +3213,12 @@ public class Hashkey extends HashkeyApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSwapOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSwapOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSwapOrderCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Object createSwapOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createSwapOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3263,12 +3263,12 @@ public class Hashkey extends HashkeyApi
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3276,7 +3276,7 @@ public class Hashkey extends HashkeyApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String symbol = this.safeString(rawOrder, "symbol");
@@ -3391,7 +3391,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
 
     }
 
@@ -3463,12 +3463,12 @@ public class Hashkey extends HashkeyApi
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         String methodName = "cancelOrders";
@@ -3572,7 +3572,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
 
     }
 
@@ -3888,7 +3888,7 @@ public class Hashkey extends HashkeyApi
         return new Pair<>(isTriggerStop, paramsStop);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder spot
@@ -4496,7 +4496,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marginMode = this.safeStringLower(leverage, "marginType");
         Double leverageValue = this.safeNumber(leverage, "leverage", (Object) null);
@@ -4519,12 +4519,12 @@ public class Hashkey extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4562,12 +4562,12 @@ public class Hashkey extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4695,7 +4695,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
@@ -4745,7 +4745,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //     {
@@ -4981,7 +4981,7 @@ public class Hashkey extends HashkeyApi
         }};
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -5068,7 +5068,7 @@ public class Hashkey extends HashkeyApi
         return result;
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -5091,7 +5091,7 @@ public class Hashkey extends HashkeyApi
                 }
             }
         }
-        if ((!(code != null && ((Number) code).doubleValue() == 200)) || Boolean.TRUE.equals(errorInArray))
+        if (((code == null || code != 200)) || Boolean.TRUE.equals(errorInArray))
         {
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), responseCodeString, feedback);

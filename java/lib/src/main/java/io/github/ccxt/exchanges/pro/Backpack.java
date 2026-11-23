@@ -795,7 +795,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 continue;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> parsedBidAsk = (Map<String, Object>) this.parseWsBidAsk(data, market);
+            Ticker parsedBidAsk = this.parseWsBidAsk(data, market);
             this.bidsasks.put(symbol, parsedBidAsk);
             client.resolve(parsedBidAsk, messageHash);
         }
@@ -806,13 +806,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String marketId = this.safeString(data, "s");
         Map<String, Object> fallbackMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String fallbackSymbol = this.safeSymbol(marketId, fallbackMarket, (String) null, (String) null);
-        Map<String, Object> fallbackBidAsk = (Map<String, Object>) this.parseWsBidAsk(data, fallbackMarket);
+        Ticker fallbackBidAsk = this.parseWsBidAsk(data, fallbackMarket);
         String fallbackHash = (("bidask" + ":") + fallbackSymbol);
         this.bidsasks.put(fallbackSymbol, fallbackBidAsk);
         client.resolve(fallbackBidAsk, fallbackHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -915,16 +915,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", (Map<String, Object>) (parameters))).join();
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -970,16 +970,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
     }
 
-    private Object unWatchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", (Map<String, Object>) (parameters))).join();
-        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
             throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -1092,7 +1092,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, query)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, query)).join();
 
     }
 
@@ -1116,7 +1116,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), query)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), query)).join();
 
     }
 
@@ -1133,12 +1133,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", (Map<String, Object>) (parameters))).join();
@@ -1186,12 +1186,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", (Map<String, Object>) (parameters))).join();
@@ -1342,7 +1342,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, query)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, query)).join();
 
     }
 
@@ -1359,12 +1359,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", (Map<String, Object>) (parameters))).join();
@@ -1411,7 +1411,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), query)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), query)).join();
 
     }
 
@@ -1426,12 +1426,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", (Map<String, Object>) (parameters))).join();

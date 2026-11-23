@@ -2605,7 +2605,7 @@ public class Predictfun extends PredictfunApi
     private Object cancelOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
-        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
+        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), outcome, parameters)).join();
         Map<String, Object> order = this.safeDict(orders, 0, null);
         if (java.util.Objects.equals(order, null))
         {
@@ -2625,12 +2625,12 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(List<String> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String outcome, Map<String, Object> parameters)
     {
 
         Map<String, Object> outcomeObj = null;
@@ -2639,7 +2639,7 @@ public class Predictfun extends PredictfunApi
             (this.loadOutcome((String) (outcome), false)).join();
             outcomeObj = this.outcome((String) (outcome));
         }
-        Integer idsLength = ((List<?>)ids).size();
+        Integer idsLength = ids.size();
         if (java.util.Objects.equals(idsLength, 0))
         {
             throw new ArgumentsRequired((this.id + " cancelOrders() requires at least one order hash")) ;
@@ -3043,7 +3043,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3064,7 +3064,7 @@ public class Predictfun extends PredictfunApi
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if ((code != null && ((Number) code).doubleValue() == 401))
+        if ((code != null && code == 401))
         {
             this.options.remove("jwtToken");
             this.options.put("jwtTokenExpiresAt", 0);
@@ -3073,7 +3073,7 @@ public class Predictfun extends PredictfunApi
         this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if ((code != null && ((Number) code).doubleValue() == 400))
+        if ((code != null && code == 400))
         {
             throw new BadRequest(feedback) ;
         }
@@ -4392,7 +4392,7 @@ public class Predictfun extends PredictfunApi
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         // the server probes every fifteen seconds and drops the connection on the next probe unless
@@ -4483,7 +4483,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.

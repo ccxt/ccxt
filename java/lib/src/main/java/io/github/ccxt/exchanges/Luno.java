@@ -520,10 +520,10 @@ public class Luno extends LunoApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         if (!this.checkRequiredCredentials(false))
@@ -900,7 +900,7 @@ public class Luno extends LunoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1181,7 +1181,7 @@ public class Luno extends LunoApi
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            result.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(tickers, id, new HashMap<String, Object>() {{}})), market));
+            result.put(symbol, this.parseTicker(this.safeDict(tickers, id, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -2030,7 +2030,7 @@ public class Luno extends LunoApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2064,7 +2064,7 @@ public class Luno extends LunoApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

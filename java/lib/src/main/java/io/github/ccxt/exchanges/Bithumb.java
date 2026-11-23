@@ -1292,7 +1292,7 @@ public class Bithumb extends BithumbApi
                     {
                         continue;
                     }
-                    result.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(tickers, j, new HashMap<String, Object>() {{}})), market));
+                    result.put(symbol, this.parseTicker(this.safeDict(tickers, j, new HashMap<String, Object>() {{}}), market));
                 }
             }
         } else
@@ -1345,9 +1345,9 @@ public class Bithumb extends BithumbApi
                     }
                     String symbol = ((base + "/") + quote);
                     Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-                    result.put(symbol, this.parseTicker((Map<String, Object>) (this.extend(ticker, new HashMap<String, Object>() {{
+                    result.put(symbol, this.parseTicker(this.extend(ticker, new HashMap<String, Object>() {{
     put( "date", timestamp );
-}})), market));
+}}), market));
                 }
             }
         }
@@ -1447,7 +1447,7 @@ public class Bithumb extends BithumbApi
             //
             data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
-        return this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, data)), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -1892,12 +1892,12 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1911,14 +1911,14 @@ public class Bithumb extends BithumbApi
         {
             throw new BadRequest((this.id + " createOrders is only supported for the generation 2 API")) ;
         }
-        Integer ordersCount = ((List<?>)orders).size();
+        Integer ordersCount = orders.size();
         if (java.util.Objects.equals(ordersCount, 0))
         {
             throw new ArgumentsRequired((this.id + " createOrders() requires a non-empty orders array")) ;
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String symbol = this.safeString(rawOrder, "symbol");
@@ -2431,7 +2431,7 @@ public class Bithumb extends BithumbApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //
@@ -2618,7 +2618,7 @@ public class Bithumb extends BithumbApi
             symbol = ((base + "/") + quote);
         }
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        Object marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
         if (java.util.Objects.equals(symbol, null))
         {
             symbol = this.safeString(marketResolved, "symbol");
@@ -2671,7 +2671,7 @@ public class Bithumb extends BithumbApi
         mapLiteral4.put("status", status);
         mapLiteral4.put("fee", fee);
         mapLiteral4.put("trades", rawTrades);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     /**
@@ -3035,12 +3035,12 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3393,12 +3393,12 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchWithdrawalCore(id, code, parameters));
     }
 
-    private Object fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3534,12 +3534,12 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
     }
 
-    private Object fetchDepositCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3907,7 +3907,7 @@ public class Bithumb extends BithumbApi
         return result;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
@@ -4000,7 +4000,7 @@ public class Bithumb extends BithumbApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

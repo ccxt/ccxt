@@ -822,7 +822,7 @@ public class Mercado extends MercadoApi
         //
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
-        return this.parseOrder(order, market);
+        return this.parseOrder((Map<String, Object>) (order), market);
 
     }
 
@@ -836,7 +836,7 @@ public class Mercado extends MercadoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -944,7 +944,7 @@ public class Mercado extends MercadoApi
         Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(responseData, "order", null);
-        return this.parseOrder(order, market);
+        return this.parseOrder((Map<String, Object>) (order), market);
 
     }
 
@@ -1262,7 +1262,7 @@ public class Mercado extends MercadoApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -1319,7 +1319,7 @@ public class Mercado extends MercadoApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -775,7 +775,7 @@ public class Coinmate extends CoinmateApi
         for (var i = 0; i < keys.size(); i++)
         {
             Map<String, Object> market = this.market((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), new HashMap<String, Object>() {{}}), market);
             String symbol = this.safeString(market, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1366,7 +1366,7 @@ public class Coinmate extends CoinmateApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // limit sell
@@ -1609,7 +1609,7 @@ public class Coinmate extends CoinmateApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
@@ -1656,7 +1656,7 @@ public class Coinmate extends CoinmateApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

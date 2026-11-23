@@ -1418,10 +1418,10 @@ public class Bitstamp extends BitstampApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.fetchMarketsFromCache(parameters)).join();
@@ -1443,7 +1443,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseCurrencies(Object rawCurrencies)
+    public Map<String, Object> parseCurrencies(Object rawCurrencies)
     {
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
@@ -2370,7 +2370,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
@@ -2475,7 +2475,7 @@ public class Bitstamp extends BitstampApi
                 response = (this.privatePostSellPair(this.extend(request, paramsOmitted))).join();
             }
         }
-        Object orderResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
+        Map<String, Object> orderResponse = (Map<String, Object>) ((((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response);
         Map<String, Object> order = (Map<String, Object>) this.parseOrder(orderResponse, market);
         order.put("type", type);
         return order;
@@ -2840,7 +2840,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -3142,7 +3142,7 @@ public class Bitstamp extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //   from fetch order:
@@ -3644,7 +3644,7 @@ public class Bitstamp extends BitstampApi
             request.put("account_currency", currency.get("id"));
             response = (this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag))).join();
         }
-        return this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, response)), currency);
+        return this.parseTransaction(this.extend(new HashMap<String, Object>() {{}}, response), currency);
 
     }
 
@@ -3661,12 +3661,12 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3702,7 +3702,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //    { status: 'ok' }
@@ -3739,7 +3739,7 @@ public class Bitstamp extends BitstampApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3815,7 +3815,7 @@ public class Bitstamp extends BitstampApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

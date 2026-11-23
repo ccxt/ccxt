@@ -198,14 +198,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<List<Trade>> watchMyTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchMyTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMyTradesForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTradesForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -283,14 +283,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrderBookForSymbols() is not supported yet"))).thenApply(OrderBook::new);
 
     }
 
-    public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> watchOrdersForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrdersForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -311,7 +311,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrdersWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -462,7 +462,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<List<Order>> createOrdersWs(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrdersWs(List<?> orders, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrdersWs () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1271,12 +1271,12 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         /**
@@ -1322,12 +1322,12 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         /**
@@ -1494,7 +1494,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1532,7 +1532,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1548,18 +1548,18 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIds(Object clientOrderIds, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIds(List<String> clientOrderIds, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersWithClientOrderIdsCore(clientOrderIds, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersWithClientOrderIdsCore(Object clientOrderIds, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersWithClientOrderIdsCore(List<String> clientOrderIds, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
             put( "clientOrderIds", clientOrderIds );
         }});
-        return (this.cancelOrders(new ArrayList<Object>(Arrays.asList()), symbol, extendedParams)).join();
+        return (this.cancelOrders(new ArrayList<String>(Arrays.asList()), symbol, extendedParams)).join();
 
     }
 

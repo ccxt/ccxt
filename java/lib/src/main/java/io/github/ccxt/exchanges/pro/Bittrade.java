@@ -514,7 +514,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
@@ -555,8 +555,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             List<Object> asks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             orderbook.put("nonce", seqNum);
             Long timestamp = this.safeInteger(message, "ts");
             orderbook.put("timestamp", timestamp);
@@ -752,7 +752,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         //

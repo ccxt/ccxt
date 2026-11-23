@@ -6543,7 +6543,7 @@ public class Binance extends BinanceApi
         {
             throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
         }
-        return this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, response)), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -6821,7 +6821,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(this.safeDict(response, i, null), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             parsedTicker.put("symbol", tickerMarket.get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
@@ -6866,7 +6866,7 @@ public class Binance extends BinanceApi
         if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
             List<Object> optionResponse = (this.eapiPublicGetMark(this.extend(request, paramsSubType))).join();
-            return this.parseTicker((Map<String, Object>) (this.safeDict(optionResponse, 0, new HashMap<String, Object>() {{}})), market);
+            return this.parseTicker(this.safeDict(optionResponse, 0, new HashMap<String, Object>() {{}}), market);
         } else if (this.isLinear(type, subType))
         {
             response = (this.fapiPublicGetPremiumIndex(this.extend(request, paramsSubType))).join();
@@ -6881,7 +6881,7 @@ public class Binance extends BinanceApi
         {
             throw new NullResponse((this.id + " fetchMarkPrice() returned empty response")) ;
         }
-        return this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, response)), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -7696,12 +7696,12 @@ public class Binance extends BinanceApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> editSpotOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> editSpotOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editSpotOrderCore(id, symbol, type, side, amount, price, parameters));
     }
 
-    private Object editSpotOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> editSpotOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7979,12 +7979,12 @@ public class Binance extends BinanceApi
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> editContractOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> editContractOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editContractOrderCore(id, symbol, type, side, amount, price, parameters));
     }
 
-    private Object editContractOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> editContractOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8128,7 +8128,7 @@ public class Binance extends BinanceApi
             String side = this.safeString(rawOrder, "side");
             Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
             Double price = this.safeNumber(rawOrder, "price", (Object) null);
-            Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Boolean isPortfolioMargin = null;
             Pair<Boolean, Map<String, Object>> isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginorderParamsVariable.first();
@@ -8244,7 +8244,7 @@ public class Binance extends BinanceApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -8971,12 +8971,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8985,7 +8985,7 @@ public class Binance extends BinanceApi
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -9937,12 +9937,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10005,12 +10005,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10781,12 +10781,12 @@ public class Binance extends BinanceApi
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -11567,12 +11567,12 @@ public class Binance extends BinanceApi
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -12604,7 +12604,7 @@ public class Binance extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -12713,7 +12713,7 @@ public class Binance extends BinanceApi
         }
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -12755,12 +12755,12 @@ public class Binance extends BinanceApi
      * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13268,7 +13268,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    {
@@ -13513,7 +13513,7 @@ public class Binance extends BinanceApi
         Map<String, Object> data = response;
         if ((data instanceof List))
         {
-            data = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            data = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         }
         if (java.util.Objects.equals(data, null))
         {
@@ -13929,7 +13929,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -14097,7 +14097,7 @@ public class Binance extends BinanceApi
                     HashMap<String, Object> j39v4 = new HashMap<String, Object>();
                     j39v4.put("crossMargin", this.safeString((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
                     j39v4.put("crossWalletBalance", this.safeString((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v4)), market);
+                    Map<String, Object> parsed = this.parseAccountPosition(this.extend(position, j39v4), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -14831,7 +14831,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         /**
          * @ignore
@@ -14929,7 +14929,7 @@ public class Binance extends BinanceApi
         //         }
         //     ]
         //
-        return this.parseOptionPosition((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
+        return this.parseOptionPosition(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -15506,12 +15506,12 @@ public class Binance extends BinanceApi
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -15577,12 +15577,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -15674,12 +15674,12 @@ public class Binance extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> market = null;
@@ -15808,7 +15808,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
         Boolean marginModeRaw = (Boolean) this.safeBool(leverage, "isolated", (Object) null);
@@ -16117,7 +16117,7 @@ public class Binance extends BinanceApi
         //         }
         //     ]
         //
-        return this.parseLedgerEntry((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), currency);
+        return this.parseLedgerEntry(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), currency);
 
     }
 
@@ -16395,7 +16395,7 @@ public class Binance extends BinanceApi
         return (((scheme + "//") + domain) + "/");
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -16594,9 +16594,9 @@ public class Binance extends BinanceApi
         return new HashMap<String, Object>() {{}};
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
+        if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
             throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
@@ -16632,7 +16632,7 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
-        if (((code != null && ((Number) code).doubleValue() >= 400)) && (!java.util.Objects.equals(body, null)))
+        if ((((code != null && code >= 400))) && (!java.util.Objects.equals(body, null)))
         {
             if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {
@@ -16754,12 +16754,12 @@ public class Binance extends BinanceApi
         return this.safeNumber(config, "cost", 1);
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
     }
 
-    private Object requestCore(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object requestCore(String path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         // generate the client order ids once, so a retry inside fetch2 signs the same ids
@@ -16838,7 +16838,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         // add/reduce margin
@@ -17396,7 +17396,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         String symbol = this.safeString(info, "isolatedSymbol");
         Long timestamp = this.safeInteger(info, "interestAccuredTime");
@@ -18087,7 +18087,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         // margin
@@ -18159,7 +18159,7 @@ public class Binance extends BinanceApi
         //
         String marketId = this.safeString(liquidation, "symbol");
         Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "updateTime");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Binance.this.safeSymbol(marketId, market, (String) null, (String) null) );
             put( "contracts", Binance.this.safeNumber(liquidation, "executedQty", (Object) null) );
@@ -18170,7 +18170,7 @@ public class Binance extends BinanceApi
             put( "quoteValue", Binance.this.safeNumber(liquidation, "cumQuote", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Binance.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        }}, (Map<String, Object>) null));
     }
 
     /**
@@ -18216,7 +18216,7 @@ public class Binance extends BinanceApi
         //         }
         //     ]
         //
-        return this.parseGreeks((Map<String, Object>) (this.safeDict(response, 0, new HashMap<String, Object>() {{}})), market);
+        return this.parseGreeks(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -18503,7 +18503,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         String marketId = this.safeString(marginMode, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -18800,12 +18800,12 @@ public class Binance extends BinanceApi
      * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(amount, null))
@@ -18939,7 +18939,7 @@ public class Binance extends BinanceApi
         if (java.util.Objects.equals(code, "BUSD"))
         {
             List<Object> rows = this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-            data = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+            data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
         }
         String fromCurrencyId = this.safeString2(data, "deductedAsset", "fromAsset");
         String toCurrencyId = this.safeString2(data, "targetAsset", "toAsset");
@@ -19030,7 +19030,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Map<String, Object> parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         //
         // fetchConvertQuote

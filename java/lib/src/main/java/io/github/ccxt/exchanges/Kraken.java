@@ -946,10 +946,10 @@ public class Kraken extends KrakenApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetAssets(parameters)).join();
@@ -1386,7 +1386,7 @@ public class Kraken extends KrakenApi
         }};
         Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
         Map<String, Object> tickerResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseTicker((Map<String, Object>) (this.safeDict(tickerResult, market.get("id"), new HashMap<String, Object>() {{}})), market);
+        return this.parseTicker(this.safeDict(tickerResult, market.get("id"), new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -1978,12 +1978,12 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2097,12 +2097,12 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2113,7 +2113,7 @@ public class Kraken extends KrakenApi
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
         String symbol = null;
         Map<String, Object> market = null;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -2282,7 +2282,7 @@ public class Kraken extends KrakenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -2383,7 +2383,7 @@ public class Kraken extends KrakenApi
         //     }
         //
         Boolean isUsingCost = (Boolean) this.safeBool(order, "usingCost", false);
-        Object orderOmitted = this.omit(order, "usingCost");
+        Map<String, Object> orderOmitted = this.omit(order, "usingCost");
         Map<String, Object> description = this.safeDict(orderOmitted, "descr", new HashMap<String, Object>() {{}});
         Map<String, Object> orderDescriptionObj = this.safeDict(orderOmitted, "descr", null); // can be null
         String orderDescription = (((!java.util.Objects.equals(orderDescriptionObj, null)))) ? this.safeString(orderDescriptionObj, "order") : this.safeString(orderOmitted, "descr");
@@ -3233,12 +3233,12 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3304,19 +3304,19 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(timeout, null))
         {
             throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
-        if ((timeout != null && ((Number) timeout).doubleValue() > 86400000))
+        if ((timeout != null && timeout > 86400000))
         {
             throw new BadRequest((this.id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
@@ -3329,7 +3329,7 @@ public class Kraken extends KrakenApi
             throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("timeout", ((((timeout != null && ((Number) timeout).doubleValue() > 0)))) ? ((Object) (this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)))) : 0);
+        request.put("timeout", ((((timeout != null && timeout > 0)))) ? ((Object) (this.parseToInt((((double) timeout) / ((double) 1000))))) : 0);
         Map<String, Object> response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
         //
         //     {
@@ -3693,9 +3693,9 @@ public class Kraken extends KrakenApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < transactions.size(); i++)
         {
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}, (transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)))), (Map<String, Object>) null);
+            }}, (transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i))), (Map<String, Object>) null);
             ((List<Object>)result).add(transaction);
         }
         return this.filterByCurrencySinceLimit(result, code, since, limit, false);
@@ -3894,7 +3894,7 @@ public class Kraken extends KrakenApi
             rawWithdrawals = resultList;
         } else
         {
-            rawWithdrawals = this.addPaginationCursorToResult((Map<String, Object>) (this.safeDict(response, "result", new HashMap<String, Object>() {{}})));
+            rawWithdrawals = this.addPaginationCursorToResult(this.safeDict(response, "result", new HashMap<String, Object>() {{}}));
         }
         return this.parseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit);
 
@@ -4305,12 +4305,12 @@ public class Kraken extends KrakenApi
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferOut(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters));
     }
 
-    private Object transferOutCore(String code, Object amount, Map<String, Object> parameters)
+    private Object transferOutCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         return (this.transfer(code, amount, "spot", "swap", parameters)).join();
@@ -4329,12 +4329,12 @@ public class Kraken extends KrakenApi
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4372,7 +4372,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -4400,7 +4400,7 @@ public class Kraken extends KrakenApi
         }};
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ((((("/" + this.version) + "/") + apiName) + "/") + path);
@@ -4493,9 +4493,9 @@ public class Kraken extends KrakenApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if ((code != null && ((Number) code).doubleValue() == 520))
+        if ((code != null && code == 520))
         {
             throw new ExchangeNotAvailable(((((this.id + " ") + String.valueOf(code)) + " ") + reason)) ;
         }

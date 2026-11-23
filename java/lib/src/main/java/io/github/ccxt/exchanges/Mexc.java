@@ -1493,10 +1493,10 @@ public class Mexc extends MexcApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         // this endpoint requires authentication
@@ -2585,7 +2585,7 @@ public class Mexc extends MexcApi
             ticker = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, ticker)), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, ticker), market);
 
     }
 
@@ -2818,12 +2818,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2987,12 +2987,12 @@ public class Mexc extends MexcApi
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSpotOrder(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSpotOrderCore(market, type, side, amount, price, marginMode, parameters));
     }
 
-    private Object createSpotOrderCore(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    private Map<String, Object> createSpotOrderCore(Object market, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3029,7 +3029,7 @@ public class Mexc extends MexcApi
         //         "transactTime": 1661992652132
         //     }
         //
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
         order.put("side", side);
         order.put("type", type);
         if (java.util.Objects.equals(this.safeString(order, "price"), null))
@@ -3070,9 +3070,9 @@ public class Mexc extends MexcApi
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSwapOrder(Object market, Object type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSwapOrder(Object market, Object type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.createSwapOrderCore(market, type, side, amount, price, marginMode, parameters));
+        return BaseExchange.supplyAsync(() -> this.createSwapOrderCore(market, type, side, amount, price, marginMode, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object createSwapOrderCore(Object market, Object type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
@@ -3230,7 +3230,7 @@ public class Mexc extends MexcApi
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", id);
         mapLiteral4.put("timestamp", this.safeInteger(data, "ts"));
-        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
 
     }
 
@@ -3243,12 +3243,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3258,7 +3258,7 @@ public class Mexc extends MexcApi
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         String symbol = null;
         Map<String, Object> paramsLoop = parameters;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -3349,7 +3349,7 @@ public class Mexc extends MexcApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Object data = new HashMap<String, Object>() {{}};
+        Map<String, Object> data = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -3411,7 +3411,7 @@ public class Mexc extends MexcApi
             //         }
             //     }
             //
-            data = this.safeValue(response, "data");
+            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         return this.parseOrder(data, market);
 
@@ -3998,7 +3998,8 @@ public class Mexc extends MexcApi
                 {
                     throw new BadRequest((((this.id + " cancelOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                 }
-                data = (this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query))).join();
+                List<Object> marginRows = (this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query))).join();
+                return this.parseOrder(this.safeDict(marginRows, 0, new HashMap<String, Object>() {{}}), market);
             } else
             {
                 data = (this.spotPrivateDeleteOrder(this.extend(requestInner, query))).join();
@@ -4051,15 +4052,16 @@ public class Mexc extends MexcApi
                 mapLiteral5.put("info", response);
                 return this.safeOrder(mapLiteral5, market);  // planorder/cancel answers without data, failures are raised by handleErrors
             }
-            data = this.safeValue(response, "data");
-            Map<String, Object> order = this.safeDict(data, 0, null);
-            String errorMsg = this.safeString(order, "errorMsg", "");
+            List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+            String errorMsg = this.safeString(data, "errorMsg", "");
             if (!java.util.Objects.equals(errorMsg, "success"))
             {
                 throw new InvalidOrder(((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
+            return this.parseOrder(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder((Map<String, Object>) (data), market);
 
     }
 
@@ -4073,12 +4075,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4207,7 +4209,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -5210,12 +5212,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5618,7 +5620,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //    {
@@ -5735,12 +5737,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesByNetworkCore(code, parameters));
     }
 
-    private Map<String, Object> fetchDepositAddressesByNetworkCore(Object code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositAddressesByNetworkCore(String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5756,7 +5758,7 @@ public class Mexc extends MexcApi
         if (!java.util.Objects.equals(networkCode, null))
         {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-            String networkUnified = this.networkIdToCode(networkCode, java.util.Objects.toString(code, null));
+            String networkUnified = this.networkIdToCode(networkCode, code);
             Map<String, Object> networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
             {
@@ -5765,7 +5767,7 @@ public class Mexc extends MexcApi
                 networkId = this.safeString(networkInfo, "network");
             } else
             {
-                networkId = this.networkCodeToId(networkCode, java.util.Objects.toString(code, null));
+                networkId = this.networkCodeToId(networkCode, code);
             }
         }
         if (!java.util.Objects.equals(networkId, null))
@@ -6607,12 +6609,12 @@ public class Mexc extends MexcApi
      * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6673,7 +6675,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // spot: fetchTransfer
@@ -6866,12 +6868,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -7095,7 +7097,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    {
@@ -7146,7 +7148,7 @@ public class Mexc extends MexcApi
             }
         }
         result.put("networks", networks);
-        return this.assignDefaultDepositWithdrawFees(result, (Map<String, Object>) null);
+        return (Map<String, Object>) (this.assignDefaultDepositWithdrawFees(result, (Map<String, Object>) null));
     }
 
     /**
@@ -7241,7 +7243,7 @@ public class Mexc extends MexcApi
         }
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         // setMarginMode answers { success, code }: no per-side leverage rows to read
         return new HashMap<String, Object>() {{
@@ -7375,12 +7377,12 @@ public class Mexc extends MexcApi
      * @param {string} [params.direction] "long" or "short" required when there is no position
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7428,7 +7430,7 @@ public class Mexc extends MexcApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -7550,7 +7552,7 @@ public class Mexc extends MexcApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

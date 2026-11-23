@@ -521,10 +521,10 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetConstants(parameters)).join();
@@ -1255,12 +1255,12 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1403,7 +1403,7 @@ public class Hollaex extends HollaexApi
         {
             throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), (Map<String, Object>) null);
 
     }
 
@@ -1491,7 +1491,7 @@ public class Hollaex extends HollaexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -1981,12 +1981,12 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchWithdrawalCore(id, code, parameters));
     }
 
-    private Object fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2269,7 +2269,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    "bch":{
@@ -2407,7 +2407,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -2462,7 +2462,7 @@ public class Hollaex extends HollaexApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // { "message": "Invalid token" }
         if (java.util.Objects.equals(response, null))

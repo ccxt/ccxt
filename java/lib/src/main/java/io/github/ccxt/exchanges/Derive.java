@@ -877,10 +877,10 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> tokenResponse = (this.publicGetGetAllCurrencies(parameters)).join();
@@ -3319,7 +3319,7 @@ public class Derive extends DeriveApi
         return null;
     }
 
-    public Order parseOrder(Object rawOrder, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> rawOrder, Map<String, Object> market)
     {
         //
         //     {
@@ -3364,7 +3364,7 @@ public class Derive extends DeriveApi
         Long timestamp = this.safeInteger(rawOrder, "creation_timestamp"); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         String orderId = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "instrument_name");
-        Map<String, Object> marketResolved = (((!java.util.Objects.equals(marketId, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        Object marketResolved = (((!java.util.Objects.equals(marketId, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "limit_price");
         String average = this.safeString(order, "average_price");
@@ -3431,7 +3431,7 @@ public class Derive extends DeriveApi
                 put( "currency", "USDC" );
             }});
         mapLiteral5.put("info", order);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        return this.safeOrder(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     /**
@@ -3927,7 +3927,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -4308,12 +4308,12 @@ public class Derive extends DeriveApi
      * @param {int} [params.new_subaccount_manager] a manager id creates a fresh subaccount under the sender wallet as the destination instead of toAccount, the creation charges a fee so max_fee_usd must cover it
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4390,7 +4390,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "asset");
@@ -4478,7 +4478,8 @@ public class Derive extends DeriveApi
         List<Object> parsed = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < transfers.size(); i++)
         {
-            ((List<Object>)parsed).add(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+            Map<String, Object> transfer = this.extend(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null), new HashMap<String, Object>() {{}});
+            ((List<Object>)parsed).add(transfer);
         }
         List<Object> sorted = this.sortBy(parsed, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
@@ -4649,7 +4650,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(info, "timestamp");
         return new HashMap<String, Object>() {{
@@ -5035,7 +5036,7 @@ public class Derive extends DeriveApi
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -5059,7 +5060,7 @@ public class Derive extends DeriveApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

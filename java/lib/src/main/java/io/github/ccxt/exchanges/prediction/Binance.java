@@ -2139,12 +2139,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
         Map<String, Object> req = new HashMap<String, Object>() {{
@@ -2172,7 +2172,7 @@ public class Binance extends BinanceApi
     private Object cancelOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
-        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
+        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), outcome, parameters)).join();
         Map<String, Object> first = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
         return first;
 
@@ -2188,12 +2188,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(List<String> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String outcome, Map<String, Object> parameters)
     {
 
         Map<String, Object> outcomeObj = null;
@@ -2208,10 +2208,10 @@ public class Binance extends BinanceApi
             put( "walletId", Binance.this.safeString(wallet, "walletId") );
         }};
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             String key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
-            request.put(key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
+            request.put(key, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
         }
         Map<String, Object> response = (this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters))).join();
         //
@@ -2265,7 +2265,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2294,7 +2294,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> baseUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});

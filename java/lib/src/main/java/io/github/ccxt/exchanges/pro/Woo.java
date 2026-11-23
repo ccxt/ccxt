@@ -380,7 +380,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookSnapshotCore(client, message, subscription));
     }
 
-    private Object fetchOrderBookSnapshotCore(Client client, Map<String, Object> message, Map<String, Object> subscription)
+    private Void fetchOrderBookSnapshotCore(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         String symbol = this.safeString(subscription, "symbol");
@@ -436,22 +436,22 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Map<String, Object> data = this.safeDict(message, "data", null);
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         Long timestamp = this.safeInteger(message, "ts");
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat2(delta, "price", 0);
         Double amount = this.safeFloat2(delta, "quantity", 1);
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -803,7 +803,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 continue;
             }
             ticker.put("ts", timestamp);
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk(ticker, (Map<String, Object>) null);
+            Ticker parsedTicker = this.parseWsBidAsk(ticker, (Map<String, Object>) null);
             String symbol = this.safeString(parsedTicker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -817,7 +817,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         client.resolve(result, topic);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -873,7 +873,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             put( "topic", topic );
         }};
         Map<String, Object> message = this.extend(request, parameters);
-        List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, message)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.watchPublic(topic, message)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -992,7 +992,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             put( "topic", topic );
         }};
         Map<String, Object> message = this.extend(request, parameters);
-        List<Object> trades = (List<Object>) (this.watchPublic(topic, message)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublic(topic, message)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1052,9 +1052,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
+        Map<String, Object> trade = this.parseWsTrade(this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
-        }})), market);
+        }}), market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -1284,7 +1284,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         request.put("event", "subscribe");
         request.put("topic", topic);
         Map<String, Object> message = this.extend(request, paramsOmitted);
-        List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1337,7 +1337,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         request.put("event", "subscribe");
         request.put("topic", topic);
         Map<String, Object> message = this.extend(request, paramsOmitted);
-        List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1701,7 +1701,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash)
     {
 
         List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
@@ -1767,7 +1767,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}})), market);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}}), market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             String marketSymbol = this.safeString(market, "symbol", "");
@@ -2262,7 +2262,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         (client.send(new HashMap<String, Object>() {{

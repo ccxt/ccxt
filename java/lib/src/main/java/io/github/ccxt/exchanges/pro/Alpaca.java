@@ -334,8 +334,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             List<Object> asks = this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", datetime);
         }
@@ -344,7 +344,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "p", "s", 2);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);

@@ -2968,10 +2968,10 @@ public class Gate extends GateApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         // sandbox/testnet only supports future markets
@@ -3386,12 +3386,12 @@ public class Gate extends GateApi
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesByNetworkCore(code, parameters));
     }
 
-    private Map<String, Object> fetchDepositAddressesByNetworkCore(Object code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositAddressesByNetworkCore(String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3738,7 +3738,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    {
@@ -4126,7 +4126,7 @@ public class Gate extends GateApi
         {
             throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
         }
-        return this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, ticker)), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, ticker), market);
 
     }
 
@@ -5929,7 +5929,7 @@ public class Gate extends GateApi
         //
         //     {"id": 7615567}
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -5985,12 +5985,12 @@ public class Gate extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6000,11 +6000,11 @@ public class Gate extends GateApi
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
         List<Object> ordersRequests = this.createOrdersRequest(orders, parameters);
         String symbol = null;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             if ((i == 0))
             {
-                symbol = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "symbol");
+                symbol = this.safeString((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "symbol");
             }
         }
         Map<String, Object> market = this.market(symbol);
@@ -6526,7 +6526,7 @@ public class Gate extends GateApi
         //         "rebated_fee_currency": "ADA"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -6548,7 +6548,7 @@ public class Gate extends GateApi
         return this.safeString(statuses, status, ((String)status));
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // SPOT
@@ -6893,10 +6893,10 @@ public class Gate extends GateApi
         String clientOrderId = this.safeString(order, "text");
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            if (((Map<?, ?>)order).containsKey("initial"))
+            if (order.containsKey("initial"))
             {
                 clientOrderId = this.safeString(initial, "text");
-            } else if (((Map<?, ?>)order).containsKey("trigger"))
+            } else if (order.containsKey("trigger"))
             {
                 Map<String, Object> triggerOrder = this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
                 clientOrderId = this.safeString(triggerOrder, "text");
@@ -7053,7 +7053,7 @@ public class Gate extends GateApi
         {
             throw new NotSupported((this.id + " fetchOrder() not support this market type")) ;
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -7613,7 +7613,7 @@ public class Gate extends GateApi
         //         "iceberg": "0",
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder((Map<String, Object>) (response), market);
 
     }
 
@@ -7629,12 +7629,12 @@ public class Gate extends GateApi
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7667,7 +7667,7 @@ public class Gate extends GateApi
         if (Boolean.TRUE.equals(isSpot))
         {
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = this.safeString(ids, i, "");
                 Map<String, Object> orderItem = new HashMap<String, Object>();
@@ -7681,7 +7681,7 @@ public class Gate extends GateApi
             put( "settle", settle );
         }};
         List<Object> finalList = new ArrayList<Object>(Arrays.asList(request)); // hacky but needs to be done here
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             ((List<Object>)finalList).add(this.safeString(ids, i, ""));
         }
@@ -7866,12 +7866,12 @@ public class Gate extends GateApi
      * @param {string} [params.symbol] Unified market symbol *required for type == margin*
      * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7939,7 +7939,7 @@ public class Gate extends GateApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //    {
@@ -7974,12 +7974,12 @@ public class Gate extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -8640,7 +8640,7 @@ public class Gate extends GateApi
         return tiers;
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //     [
@@ -9012,7 +9012,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         String marketId = this.safeString(info, "currency_pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -9047,7 +9047,7 @@ public class Gate extends GateApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String authentication = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)); // public, private
         String type = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)); // spot, margin, future, delivery
@@ -9215,7 +9215,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         //     {
@@ -9978,12 +9978,12 @@ public class Gate extends GateApi
      * @param {string} params.settle settle currency
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> market = null;
@@ -10214,7 +10214,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         // fetchLiquidations
@@ -10294,18 +10294,18 @@ public class Gate extends GateApi
                 }
             }
         }
-        HashMap<String, Object> mapLiteral24 = new HashMap<String, Object>();
-        mapLiteral24.put("info", liquidation);
-        mapLiteral24.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-        mapLiteral24.put("contracts", this.parseNumber(contractsString));
-        mapLiteral24.put("contractSize", this.parseNumber(contractSizeString));
-        mapLiteral24.put("price", this.parseNumber(priceString));
-        mapLiteral24.put("side", side);
-        mapLiteral24.put("baseValue", this.parseNumber(baseValueString));
-        mapLiteral24.put("quoteValue", this.parseNumber(Precise.stringAbs(quoteValueString)));
-        mapLiteral24.put("timestamp", timestamp);
-        mapLiteral24.put("datetime", this.iso8601(timestamp));
-        return this.safeLiquidation(mapLiteral24, (Map<String, Object>) null);
+        HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+        j39v7.put("info", liquidation);
+        j39v7.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        j39v7.put("contracts", this.parseNumber(contractsString));
+        j39v7.put("contractSize", this.parseNumber(contractSizeString));
+        j39v7.put("price", this.parseNumber(priceString));
+        j39v7.put("side", side);
+        j39v7.put("baseValue", this.parseNumber(baseValueString));
+        j39v7.put("quoteValue", this.parseNumber(Precise.stringAbs(quoteValueString)));
+        j39v7.put("timestamp", timestamp);
+        j39v7.put("datetime", this.iso8601(timestamp));
+        return (Map<String, Object>) (this.safeLiquidation(j39v7, (Map<String, Object>) null));
     }
 
     /**
@@ -10546,7 +10546,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString2(leverage, "currency_pair", "id");
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -10868,7 +10868,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

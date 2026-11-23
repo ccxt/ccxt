@@ -1125,7 +1125,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         //
@@ -1274,7 +1274,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
 
-    private Object keepAliveListenKeyCore(Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(Map<String, Object> parameters)
     {
 
         String listenKey = this.safeString(this.options, "listenKey");

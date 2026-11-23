@@ -2260,7 +2260,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> this.seedOrderBookCore(outcome, sym, limit));
     }
 
-    private Object seedOrderBookCore(String outcome, String sym, Long limit)
+    private Void seedOrderBookCore(String outcome, String sym, Long limit)
     {
 
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
@@ -2684,7 +2684,7 @@ public class Opinion extends OpinionApi
         client.resolve(stored, "myTrades");
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2713,7 +2713,7 @@ public class Opinion extends OpinionApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

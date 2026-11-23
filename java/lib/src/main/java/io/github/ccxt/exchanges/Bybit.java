@@ -2805,10 +2805,10 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         if (!this.checkRequiredCredentials(false))
@@ -3891,7 +3891,7 @@ public class Bybit extends BybitApi
             }
             tickerList = spotTickers;
         }
-        return this.parseTickers(tickerList, ((List<String>) (switch ((Object) (parsedSymbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), new HashMap<String, Object>() {{}});
+        return this.parseTickers(tickerList, ((List<String>) (switch ((Object) (parsedSymbols)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
 
     }
 
@@ -5215,7 +5215,7 @@ public class Bybit extends BybitApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // v1 for usdc normal account
@@ -5339,7 +5339,7 @@ public class Bybit extends BybitApi
             }
         }
         String marketId = this.safeString(order, "symbol");
-        Boolean isContract = (((Map<?, ?>)order).containsKey("tpslMode"));
+        Boolean isContract = (order.containsKey("tpslMode"));
         String marketType = null;
         if (!java.util.Objects.equals(market, null))
         {
@@ -5504,12 +5504,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6002,12 +6002,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6018,7 +6018,7 @@ public class Bybit extends BybitApi
         Boolean isUta = (Boolean) this.safeBool(accounts, 1, false);
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -6436,12 +6436,12 @@ public class Bybit extends BybitApi
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -6476,7 +6476,7 @@ public class Bybit extends BybitApi
             j39v4.put("orderLinkId", this.safeString(clientOrderIds, i));
             ((List<Object>)ordersRequests).add(j39v4);
         }
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             HashMap<String, Object> j39v5 = new HashMap<String, Object>();
             j39v5.put("symbol", market.get("id"));
@@ -6538,12 +6538,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
     }
 
-    private Object cancelAllOrdersAfterCore(Object timeout, Map<String, Object> parameters)
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6555,7 +6555,7 @@ public class Bybit extends BybitApi
             throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("timeWindow", this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)));
+        request.put("timeWindow", this.parseToInt((((double) timeout) / ((double) 1000))));
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, "swap");
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -6797,9 +6797,9 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrderClassic(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOrderClassic(String id, String symbol, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrderClassicCore(id, symbol, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrderClassicCore(id, symbol, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object fetchOrderClassicCore(String id, String symbol, Map<String, Object> parameters)
@@ -7105,12 +7105,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchClosedOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchClosedOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchClosedOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchClosedOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchClosedOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7154,12 +7154,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7710,12 +7710,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesByNetworkCore(code, parameters));
     }
 
-    private Map<String, Object> fetchDepositAddressesByNetworkCore(Object code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositAddressesByNetworkCore(String code, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7731,7 +7731,7 @@ public class Bybit extends BybitApi
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
         {
-            request.put("chainType", this.networkCodeToId(networkCode, java.util.Objects.toString(code, null)));
+            request.put("chainType", this.networkCodeToId(networkCode, code));
         }
         Map<String, Object> response = (this.privateGetV5AssetDepositQueryAddress(this.extend(request, paramsNetworkCode))).join();
         //
@@ -8542,7 +8542,7 @@ public class Bybit extends BybitApi
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> positions = (List<Object>) this.safeList2(result, "list", "dataList", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(response, "time");
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(positions, 0, new HashMap<String, Object>() {{}})), market);
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(positions, 0, new HashMap<String, Object>() {{}}), market);
         position.put("timestamp", timestamp);
         position.put("datetime", this.iso8601(timestamp));
         return position;
@@ -8682,10 +8682,10 @@ public class Bybit extends BybitApi
             if (((switch ((Object)(rawPosition)) { case List<?> j39v9 -> j39v9.contains("data"); case Map<?, ?> j39v8 -> j39v8.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v7 -> j39v7.contains("is_valid"); case Map<?, ?> j39v6 -> j39v6.containsKey("is_valid"); case null, default -> false; })))
             {
                 // futures only
-                ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (this.safeDict(rawPosition, "data", new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
+                ((List<Object>)results).add(this.parsePosition(this.safeDict(rawPosition, "data", new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
             } else
             {
-                ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (this.safeDict(positions, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null));
+                ((List<Object>)results).add(this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
             }
         }
         return this.filterByArrayPositions(results, "symbol", symbolsNormalized);
@@ -9015,7 +9015,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -9040,12 +9040,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -9161,12 +9161,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.sellLeverage] leverage for sell side
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -9215,12 +9215,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -9744,7 +9744,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {
@@ -9782,12 +9782,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10042,7 +10042,7 @@ public class Bybit extends BybitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -10310,7 +10310,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    {
@@ -10803,7 +10803,7 @@ public class Bybit extends BybitApi
         Long timestamp = this.safeInteger(response, "time");
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> greeks = (Map<String, Object>) this.parseGreeks((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
+        Map<String, Object> greeks = (Map<String, Object>) this.parseGreeks(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
         return this.extend(greeks, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
@@ -11055,7 +11055,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         //     {
@@ -11092,7 +11092,7 @@ public class Bybit extends BybitApi
         String priceString = this.safeString(liquidation, "execPrice");
         String baseValueString = Precise.stringMul(contractsString, contractSizeString);
         String quoteValueString = Precise.stringMul(baseValueString, priceString);
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Bybit.this.safeSymbol(marketId, market, (String) null, "contract") );
             put( "contracts", Bybit.this.parseNumber(contractsString) );
@@ -11102,7 +11102,7 @@ public class Bybit extends BybitApi
             put( "quoteValue", Bybit.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        }}, (Map<String, Object>) null));
     }
 
     public CompletableFuture<Object> getLeverageTiersPaginated(String symbol, Map<String, Object> parameters)
@@ -11239,7 +11239,7 @@ public class Bybit extends BybitApi
         return tiers;
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //  [
@@ -11346,7 +11346,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -11839,12 +11839,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -12091,7 +12091,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Map<String, Object> parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         //
         // fetchConvertQuote
@@ -12436,7 +12436,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         String marginType = this.safeString(marginMode, "marginMode");
         return new HashMap<String, Object>() {{
@@ -12456,7 +12456,7 @@ public class Bybit extends BybitApi
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;
@@ -12599,7 +12599,7 @@ public class Bybit extends BybitApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

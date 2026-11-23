@@ -437,10 +437,10 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
@@ -622,10 +622,10 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
-    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
+    private Object fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetTradeApiCurrencies(parameters)).join();
@@ -745,9 +745,9 @@ public class Bitteam extends BitteamApi
         //
         statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
         this.options.put("_temp_currencies_statuses", statusesResponse);
-        Object result = this.parseCurrencies(currencies);
+        Map<String,Object> result = this.parseCurrencies(currencies);
         ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
-        return (Map<String, Object>) result;
+        return result;
 
     }
 
@@ -1429,7 +1429,7 @@ public class Bitteam extends BitteamApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrders
@@ -1672,7 +1672,7 @@ public class Bitteam extends BitteamApi
         }
         for (var i = 0; i < rawTickers.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(rawTickers, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(rawTickers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             ((List<Object>)tickers).add(ticker);
         }
         return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -2703,7 +2703,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object request = this.omit(parameters, this.extractParams(path));
@@ -2750,15 +2750,15 @@ public class Bitteam extends BitteamApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;
         }
-        if (!(code != null && ((Number) code).doubleValue() == 200))
+        if ((code == null || code != 200))
         {
-            if ((code != null && ((Number) code).doubleValue() == 404))
+            if ((code != null && code == 404))
             {
                 if ((((String)url).indexOf("/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {

@@ -178,14 +178,14 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, "price");
         Double amount = this.safeFloat(delta, "size");
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -196,8 +196,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Map<String, Object> data = this.safeDict(message, "order_book", new HashMap<String, Object>() {{}});
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         orderbook.put("nonce", this.safeInteger(data, "offset"));
         Long timestamp = this.safeInteger(message, "timestamp");
         orderbook.put("timestamp", timestamp);
@@ -386,7 +386,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, marketId, new HashMap<String, Object>() {{}})), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, marketId, new HashMap<String, Object>() {{}}), market);
                 this.tickers.put(symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol, (String) null));
                 client.resolve(ticker, this.getMessageHash("ticker", (String) null, (String) null));
@@ -1546,7 +1546,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "id", requestId );
         }};
         Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+        return this.parseOrder((Map<String, Object>) (this.deepExtend(rawMessage, order)), market);
 
     }
 
@@ -1592,7 +1592,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "id", requestId );
         }};
         Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        return this.parseOrder(rawMessage, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, rawMessage), market);
 
     }
 
@@ -2036,7 +2036,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Object message)
+    private Void pongCore(Client client, Object message)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{

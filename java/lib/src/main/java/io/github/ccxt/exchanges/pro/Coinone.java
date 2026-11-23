@@ -157,8 +157,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         orderbook.put("symbol", symbol);
         List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         String messageHash = ("orderbook:" + symbol);
@@ -166,7 +166,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "qty", 2);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);

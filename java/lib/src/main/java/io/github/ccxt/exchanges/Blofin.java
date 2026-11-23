@@ -840,10 +840,10 @@ public class Blofin extends BlofinApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetMarketInstruments(parameters)).join();
@@ -1841,7 +1841,7 @@ public class Blofin extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // response similar for REST & WS
@@ -2052,11 +2052,11 @@ public class Blofin extends BlofinApi
         if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
         {
             Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(dataDict, market);
+            return this.parseOrder((Map<String, Object>) (dataDict), market);
         }
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(data, 0, null);
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (first), market);
         order.put("type", type);
         order.put("side", side);
         return order;
@@ -2190,19 +2190,19 @@ public class Blofin extends BlofinApi
         Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
         if (Boolean.TRUE.equals(isTpsl))
         {
-            List<Order> tpslResponse = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+            List<Order> tpslResponse = (this.cancelOrders(new ArrayList<String>(Arrays.asList(id)), symbol, parameters)).join();
             Map<String, Object> first = this.safeDict(tpslResponse, 0, null);
             return first;
         } else if (Boolean.TRUE.equals(isTrigger))
         {
             Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
             Map<String, Object> triggerData = this.safeDict(triggerResponse, "data", null);
-            return this.parseOrder(triggerData, market);
+            return this.parseOrder((Map<String, Object>) (triggerData), market);
         }
         Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> order = this.safeDict(data, 0, null);
-        return this.parseOrder(order, market);
+        return this.parseOrder((Map<String, Object>) (order), market);
 
     }
 
@@ -2215,12 +2215,12 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2228,7 +2228,7 @@ public class Blofin extends BlofinApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -2664,10 +2664,10 @@ public class Blofin extends BlofinApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         // GET /asset/currencies is a private endpoint, while fetchCurrencies
@@ -2890,7 +2890,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
@@ -2943,12 +2943,12 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
     }
 
-    private Object fetchDepositCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2986,25 +2986,27 @@ public class Blofin extends BlofinApi
      * @param {string} id withdrawal id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchWithdrawalCore(id, code, parameters));
     }
 
-    private Object fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
+    private Map<String, Object> fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
     {
 
         String clientId = this.safeString(parameters, "clientId");
-        if ((java.util.Objects.equals(id, null)) && (java.util.Objects.equals(clientId, null)))
+        // an undefined or empty id looks the withdrawal up by params['clientId']
+        Boolean hasId = (!java.util.Objects.equals(id, null)) && (!java.util.Objects.equals(id, ""));
+        if (!Boolean.TRUE.equals(hasId) && (java.util.Objects.equals(clientId, null)))
         {
             throw new ArgumentsRequired((this.id + " fetchWithdrawal() requires an id argument or a params[\"clientId\"]")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(id, null))
+        if (Boolean.TRUE.equals(hasId))
         {
             request.put("withdrawId", id);
         }
@@ -3023,7 +3025,7 @@ public class Blofin extends BlofinApi
         {
             Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Boolean matches = false;
-            if (!java.util.Objects.equals(id, null))
+            if (Boolean.TRUE.equals(hasId))
             {
                 matches = (java.util.Objects.equals(this.safeString(entry, "withdrawId"), id));
             } else
@@ -3035,7 +3037,7 @@ public class Blofin extends BlofinApi
                 return this.parseTransaction(entry, currency);
             }
         }
-        String reference = (((!java.util.Objects.equals(id, null)))) ? id : clientId;
+        String reference = ((Boolean.TRUE.equals(hasId))) ? id : clientId;
         throw new ExchangeError(((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
 
     }
@@ -3137,7 +3139,7 @@ public class Blofin extends BlofinApi
         // parseTransaction reads every field from the payload - seed the
         // parsed structure from the request so the unified transaction
         // reflects what was actually submitted
-        return this.parseTransaction((Map<String, Object>) (this.extend(request, data)), currency);
+        return this.parseTransaction(this.extend(request, data), currency);
 
     }
 
@@ -3393,12 +3395,12 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3432,7 +3434,7 @@ public class Blofin extends BlofinApi
                     ((List<Object>)request).add(j39v1);
                 }
             }
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 if (java.util.Objects.equals(trigger, true))
                 {
@@ -3483,12 +3485,12 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3506,11 +3508,11 @@ public class Blofin extends BlofinApi
         }};
         Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseTransfer(data, currency);
+        return this.parseTransfer((Map<String, Object>) (data), currency);
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         String id = this.safeString(transfer, "transferId");
         return new HashMap<String, Object>() {{
@@ -3969,7 +3971,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "instId");
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -3994,12 +3996,12 @@ public class Blofin extends BlofinApi
      * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4184,7 +4186,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
@@ -4203,12 +4205,12 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new ArrayList<Object>(Arrays.asList("cross", "isolated")));
@@ -4287,12 +4289,12 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
     }
 
-    private Object setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4408,7 +4410,7 @@ public class Blofin extends BlofinApi
         }};
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4448,7 +4450,7 @@ public class Blofin extends BlofinApi
         return null;
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));

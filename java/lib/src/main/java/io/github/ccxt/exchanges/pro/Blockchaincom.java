@@ -843,8 +843,8 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             List<Object> asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", datetime);
         } else
@@ -854,13 +854,13 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bookArray = (List<Object>) this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bookArray);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {

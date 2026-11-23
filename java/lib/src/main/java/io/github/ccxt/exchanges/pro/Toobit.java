@@ -259,7 +259,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -275,12 +275,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -401,12 +401,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -418,7 +418,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Map<String, Object> timeframes = this.safeDict(this.options.get("ws"), "timeframes", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(Arrays.asList());
         String selectedTimeframe = "";
-        for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+        for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolStr = this.safeString(data, 0, "");
@@ -696,7 +696,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -713,12 +713,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -793,15 +793,15 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long timestamp = this.safeInteger(entry, "t");
             List<Object> bids = this.safeList(entry, "b", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = this.safeList(entry, "a", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderBook == null ? null : orderBook.get("asks")), asks);
-            this.handleDeltas((orderBook == null ? null : orderBook.get("bids")), bids);
+            this.handleDeltas((orderBook == null ? null : orderBook.asks), asks);
+            this.handleDeltas((orderBook == null ? null : orderBook.bids), bids);
             orderBook.put("timestamp", timestamp);
             this.orderbooks.put(symbol, orderBook);
             client.resolve(orderBook, messageHash);
         }
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
@@ -1007,7 +1007,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, marketType));
     }
 
-    private Object loadBalanceSnapshotCore(Client client, String messageHash, String marketType)
+    private Void loadBalanceSnapshotCore(Client client, String messageHash, String marketType)
     {
 
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -1358,7 +1358,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash, String type)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash, String type)
     {
 
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -1543,7 +1543,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
 
-    private Object keepAliveListenKeyCore(Map<String, Object> parameters)
+    private Void keepAliveListenKeyCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> options = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});

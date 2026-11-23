@@ -2003,7 +2003,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Object parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(contract, "settleTime");
         String marketId = this.safeString(contract, "symbol");
@@ -2290,7 +2290,7 @@ public class Toobit extends ToobitApi
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder, cancelOrder
@@ -2553,12 +2553,12 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2901,12 +2901,12 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2934,7 +2934,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         //    {
@@ -3234,7 +3234,7 @@ public class Toobit extends ToobitApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < response.size(); i++)
         {
-            ((List<Object>)results).add(this.extend(this.parseTransactionWithType((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), currency, transactType), paramsUntil));
+            ((List<Object>)results).add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new HashMap<String, Object>() {{}}), currency, transactType), paramsUntil));
         }
         List<Object> sorted = this.sortBy(results, "timestamp");
         String currencyCode = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
@@ -3397,7 +3397,7 @@ public class Toobit extends ToobitApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "coin", currency.get("id") );
         }};
-        List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (this.extend(request, parameters)));
+        List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams(this.extend(request, parameters));
         String networkCode = (String) ((List<Object>) networkCodeparamsOmittedVariable).get(0);
         var paramsOmitted = ((List<Object>) networkCodeparamsOmittedVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
@@ -3505,12 +3505,12 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginModeCore(marginMode, symbol, parameters));
     }
 
-    private Object setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setMarginModeCore(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3549,12 +3549,12 @@ public class Toobit extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -3618,7 +3618,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString2(leverage, "symbolId", "symbol");
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -3733,7 +3733,7 @@ public class Toobit extends ToobitApi
         }});
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3826,7 +3826,7 @@ public class Toobit extends ToobitApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -1298,16 +1298,16 @@ public class Polymarket extends PolymarketApi
      * @param {string[]} outcomeSymbols outcome token ids or handles
      * @returns {object} the outcome cache
      */
-    public CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
+    public CompletableFuture<Object> fetchOutcomes(List<String> outcomeSymbols)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOutcomesCore(outcomeSymbols));
     }
 
-    private Object fetchOutcomesCore(Object outcomeSymbols)
+    private Object fetchOutcomesCore(List<String> outcomeSymbols)
     {
 
         List<String> tokenIds = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+        for (var i = 0; i < outcomeSymbols.size(); i++)
         {
             String outcomeSymbol = this.safeString(outcomeSymbols, i, "");
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
@@ -1365,7 +1365,7 @@ public class Polymarket extends PolymarketApi
             }
             this.populateOutcomes();
         }
-        for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+        for (var i = 0; i < outcomeSymbols.size(); i++)
         {
             String pendingSymbol = this.safeString(outcomeSymbols, i, "");
             if (!this.hasOutcome((String) (pendingSymbol)))
@@ -2637,19 +2637,19 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         (this.loadApiCredentials()).join();
         // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
         // requested outcomes first (one gamma request for all uncached token ids)
         List<String> orderOutcomes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> o = this.safeDict(orders, i, null);
             String __oc = this.safeString(o, "outcome");
@@ -2662,7 +2662,7 @@ public class Polymarket extends PolymarketApi
         List<Object> bodies = new ArrayList<Object>(Arrays.asList());
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         List<Object> requests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> o = this.safeDict(orders, i, null);
             Map<String, Object> orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
@@ -3143,12 +3143,12 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(List<String> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object cancelOrdersCore(List<String> ids, String outcome, Map<String, Object> parameters)
     {
 
         (this.loadApiCredentials()).join();
@@ -3519,7 +3519,7 @@ public class Polymarket extends PolymarketApi
         return result;
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
@@ -3556,7 +3556,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
@@ -3891,7 +3891,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> this.loadApiCredentialsCore());
     }
 
-    private Object loadApiCredentialsCore()
+    private Void loadApiCredentialsCore()
     {
 
         // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST

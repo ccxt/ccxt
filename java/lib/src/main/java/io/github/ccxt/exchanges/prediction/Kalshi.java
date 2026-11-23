@@ -622,20 +622,20 @@ public class Kalshi extends KalshiApi
      * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
      * @returns {object} the outcome cache
      */
-    public CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
+    public CompletableFuture<Object> fetchOutcomes(List<String> outcomeSymbols)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOutcomesCore(outcomeSymbols));
     }
 
-    private Object fetchOutcomesCore(Object outcomeSymbols)
+    private Object fetchOutcomesCore(List<String> outcomeSymbols)
     {
 
         List<String> tickers = new ArrayList<String>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
-        Integer outcomeSymbolsLength = ((List<?>)outcomeSymbols).size();
+        Integer outcomeSymbolsLength = outcomeSymbols.size();
         for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
         {
-            String outcomeSymbol = (String) (outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i));
+            String outcomeSymbol = (outcomeSymbols == null || i < 0 || i >= outcomeSymbols.size() ? null : outcomeSymbols.get(i));
             if (outcomeSymbol.indexOf(":") >= 0)
             {
                 continue;
@@ -698,7 +698,7 @@ public class Kalshi extends KalshiApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
@@ -718,7 +718,7 @@ public class Kalshi extends KalshiApi
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if ((code != null && ((Number) code).doubleValue() == 400))
+        if ((code != null && code == 400))
         {
             String feedback = ((this.id + " ") + body);
             throw new BadRequest(feedback) ;
@@ -1502,8 +1502,8 @@ public class Kalshi extends KalshiApi
 
         (this.loadOutcome((String) (outcome), false)).join();
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
-        String seriesTicker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "seriesTicker", ticker);
+        String ticker = this.safeString(outcomeObj.get("info"), "ticker");
+        String seriesTicker = this.safeString(outcomeObj.get("info"), "seriesTicker", ticker);
         Long periodMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
         if (java.util.Objects.equals(periodMin, null))
         {
@@ -3324,7 +3324,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

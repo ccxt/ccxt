@@ -87,7 +87,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
 
-    private Object pongCore(Client client, Map<String, Object> message)
+    private Void pongCore(Client client, Map<String, Object> message)
     {
 
         try
@@ -125,7 +125,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -148,7 +148,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -164,12 +164,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -239,12 +239,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchOrderBookForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -298,7 +298,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
@@ -306,7 +306,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, count)));
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -394,7 +394,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             orderbook.put("nonce", nonce);
         } else
         {
-            books = (Map<String, Object>) this.safeDict(data, "update", new HashMap<String, Object>() {{}});
+            books = this.safeDict(data, "update", new HashMap<String, Object>() {{}});
             Long previousNonce = this.safeInteger(data, "pu");
             Long currentNonce = this.safeInteger(orderbook, "nonce");
             if (!java.util.Objects.equals(currentNonce, previousNonce))
@@ -406,8 +406,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }
             }
         }
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
         orderbook.put("nonce", nonce);
         this.orderbooks.put(symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
@@ -433,7 +433,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -454,7 +454,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
 
     }
 
@@ -469,12 +469,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
     }
 
-    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -510,12 +510,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
     }
 
-    private Object unWatchTradesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -930,7 +930,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk(ticker, (Map<String, Object>) null);
+        Ticker parsedTicker = this.parseWsBidAsk(ticker, (Map<String, Object>) null);
         String symbol = this.safeString(parsedTicker, "symbol", "");
         if (!java.util.Objects.equals(symbol, ""))
         {
@@ -940,7 +940,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "i");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -1250,7 +1250,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }
 
-    private Object loadPositionsSnapshotCore(Client client, String messageHash)
+    private Void loadPositionsSnapshotCore(Client client, String messageHash)
     {
 
         List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();

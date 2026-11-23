@@ -257,7 +257,7 @@ public class Revolutx extends RevolutxApi
         }});
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String implodedPath = (String) this.implodeParams(path, parameters);
@@ -1104,7 +1104,7 @@ public class Revolutx extends RevolutxApi
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String orderId = this.safeString2(order, "id", "venue_order_id");
         String clientOrderId = this.safeString(order, "client_order_id");
@@ -1947,7 +1947,7 @@ public class Revolutx extends RevolutxApi
 
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         Long statusCode = this.parseToInt(code);
         if (((statusCode != null && statusCode >= 400)))

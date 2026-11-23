@@ -257,7 +257,7 @@ public class Mudrex extends MudrexApi
         }});
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -327,7 +327,7 @@ public class Mudrex extends MudrexApi
         }
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null) || !(response instanceof Map))
         {
@@ -345,11 +345,11 @@ public class Mudrex extends MudrexApi
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), text, ((this.id + " ") + text));
             String msg = ((this.id + " ") + text);
             String low = text.toLowerCase();
-            if ((code != null && ((Number) code).doubleValue() == 401) || ((String)low).indexOf("auth") >= 0)
+            if ((code != null && code == 401) || ((String)low).indexOf("auth") >= 0)
             {
                 throw new AuthenticationError(msg) ;
             }
-            if ((code != null && ((Number) code).doubleValue() == 429) || ((String)low).indexOf("rate") >= 0)
+            if ((code != null && code == 429) || ((String)low).indexOf("rate") >= 0)
             {
                 throw new RateLimitExceeded(msg) ;
             }
@@ -357,7 +357,7 @@ public class Mudrex extends MudrexApi
             {
                 throw new InsufficientFunds(msg) ;
             }
-            if ((code != null && ((Number) code).doubleValue() == 400))
+            if ((code != null && code == 400))
             {
                 throw new BadRequest(msg) ;
             }
@@ -561,7 +561,7 @@ public class Mudrex extends MudrexApi
             {
                 continue;
             }
-            resultTickers.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(rows, i, new HashMap<String, Object>() {{}})), m));
+            resultTickers.put(symbol, this.parseTicker(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), m));
         }
         return this.filterByArrayTickers(resultTickers, "symbol", symbols);
 
@@ -794,7 +794,7 @@ public class Mudrex extends MudrexApi
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("currency", currency);
-        return this.parseBalance((Map<String, Object>) (this.extend(response, mapLiteral4)));
+        return this.parseBalance(this.extend(response, mapLiteral4));
 
     }
 
@@ -871,12 +871,12 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -1072,7 +1072,7 @@ public class Mudrex extends MudrexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String oms = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(oms, market, (String) null, (String) null);
@@ -1377,7 +1377,7 @@ public class Mudrex extends MudrexApi
         {
             String symRaw = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
             Map<String, Object> m = this.safeMarket(symRaw, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> pos = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.safeDict(rows, i, new HashMap<String, Object>() {{}})), m);
+            Map<String, Object> pos = (Map<String, Object>) this.parsePosition(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), m);
             ((List<Object>)outPos).add(pos);
         }
         return this.filterByArrayPositions(outPos, "symbol", symbols);
@@ -1639,7 +1639,7 @@ public class Mudrex extends MudrexApi
     private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.addMargin(symbol, (Double) (this.parseNumber(Precise.stringNeg(this.numberToString(amount)))), parameters)).join();
+        return (this.addMargin(symbol, (Double) ((amount == null ? null : -amount)), parameters)).join();
 
     }
 
@@ -1852,12 +1852,12 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
-    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         Map<String, Object> mp = new HashMap<String, Object>() {{

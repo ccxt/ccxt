@@ -1309,10 +1309,10 @@ public class Backpack extends BackpackApi
      */
     public CompletableFuture<Map<String, Object>> fetchStockIndicativeQuote(String symbol, String side, Object amount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchStockIndicativeQuoteCore(symbol, side, amount, parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchStockIndicativeQuoteCore(symbol, side, amount, parameters));
     }
 
-    private Object fetchStockIndicativeQuoteCore(String symbol, String side, Object amount, Map<String, Object> parameters)
+    private Map<String, Object> fetchStockIndicativeQuoteCore(String symbol, String side, Object amount, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1336,7 +1336,6 @@ public class Backpack extends BackpackApi
         request.put("symbol", market.get("baseId"));
         request.put("side", this.encodeOrderSide((String) (side)));
         request.put("quantity", this.numberToString(amount));
-        String requestMethod = "publicGetApiV1StockIndicativeQuote";
         return (this.publicGetApiV1StockIndicativeQuote(this.extend(query, request))).join();
 
     }
@@ -1384,7 +1383,7 @@ public class Backpack extends BackpackApi
      * @param {object} [toCurrency] destination currency
      * @returns {object} unified conversion structure
      */
-    public Object parseConversion(Map<String, Object> order, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    public Map<String, Object> parseConversion(Map<String, Object> order, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         String fromCode = this.safeString(fromCurrency, "code");
         String toCode = this.safeString(toCurrency, "code");
@@ -1426,12 +1425,12 @@ public class Backpack extends BackpackApi
      * @param {float} [params.price] optional limit price when converting quote currency to stock
      * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
         String amountString = this.numberToString(amount);
@@ -1562,8 +1561,8 @@ public class Backpack extends BackpackApi
         if (!java.util.Objects.equals(quoteId, null))
         {
             Map<String, Object> acceptParams = this.omit(query, new ArrayList<Object>(Arrays.asList("quoteId", "price", "baseAmount", "clientOrderId")));
-            Object accepted = (this.acceptRfqQuote((String) (id), quoteId, (String) (this.safeSymbol(null, market, (String) null, (String) null)), acceptParams)).join();
-            return this.parseConversion((Map<String, Object>) (accepted), this.currency((String) (fromCode)), this.currency((String) (toCode)));
+            Map<String, Object> accepted = (this.acceptRfqQuote((String) (id), quoteId, (String) (this.safeSymbol(null, market, (String) null, (String) null)), acceptParams)).join();
+            return this.parseConversion(accepted, this.currency((String) (fromCode)), this.currency((String) (toCode)));
         }
         String amountString = this.numberToString(amount);
         if ((java.util.Objects.equals(amountString, null)) || !Precise.stringGt(amountString, "0"))
@@ -1654,10 +1653,10 @@ public class Backpack extends BackpackApi
         {
             orderParams.put("clientOrderId", clientOrderId);
         }
-        Object order = (this.createRfqOrder((String) (this.safeSymbol(null, market, (String) null, (String) null)), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new HashMap<String, Object>() {{
+        Map<String, Object> order = (this.createRfqOrder((String) (this.safeSymbol(null, market, (String) null, (String) null)), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new HashMap<String, Object>() {{
             put( "stock", true );
         }}))).join();
-        return this.parseConversion((Map<String, Object>) (order), this.currency((String) (fromCode)), this.currency((String) (toCode)));
+        return this.parseConversion(order, this.currency((String) (fromCode)), this.currency((String) (toCode)));
 
     }
 
@@ -3139,7 +3138,7 @@ public class Backpack extends BackpackApi
         }});
         if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
-            Object rfqResponse = (this.createRfqOrder((String) (symbol), (String) (type), (String) (side), amount, price, orderParams)).join();
+            Map<String, Object> rfqResponse = (this.createRfqOrder((String) (symbol), (String) (type), (String) (side), amount, price, orderParams)).join();
             Map<String, Object> rfqOrder = this.safeDict(new HashMap<String, Object>() {{
                 put( "order", rfqResponse );
             }}, "order", null);
@@ -3168,12 +3167,12 @@ public class Backpack extends BackpackApi
      * @param {int} [params.clientOrderId] requester client identifier
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Object> createRfqOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createRfqOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createRfqOrderCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Object createRfqOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createRfqOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3299,12 +3298,12 @@ public class Backpack extends BackpackApi
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Object> acceptRfqQuote(String id, String quoteId, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> acceptRfqQuote(String id, String quoteId, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.acceptRfqQuoteCore(id, quoteId, symbol, parameters));
     }
 
-    private Object acceptRfqQuoteCore(String id, String quoteId, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> acceptRfqQuoteCore(String id, String quoteId, String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3334,12 +3333,12 @@ public class Backpack extends BackpackApi
      * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrders", "stock", false);
@@ -3350,7 +3349,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -3586,12 +3585,12 @@ public class Backpack extends BackpackApi
      * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
     }
 
-    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3861,7 +3860,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         Map<String, Object> rfq = this.safeDict(order, "rfq", null);
         if (!java.util.Objects.equals(rfq, null))
@@ -4201,7 +4200,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -4241,7 +4240,7 @@ public class Backpack extends BackpackApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + path);
@@ -4334,7 +4333,7 @@ public class Backpack extends BackpackApi
         return payload;
     }
 
-    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
