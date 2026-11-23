@@ -5120,17 +5120,19 @@ function rustTypedParsePositionFamilies (content: string): string {
     return content.split (Q).join ('');
 }
 
-// The `parseIncome` / `parseAccount` / `parseMarginMode` slots borrow their `Dict` row (the TypeScript
-// declaration; every caller passes a dict). A boxed argument hands the map it holds, an empty one for a non-map value.
+// The `parseTransaction` / `parseIncome` / `parseAccount` / `parseMarginMode` slots borrow their `Dict` row as
+// `Option<&Dict>` (the TypeScript declaration): a missing or non-map row stays `Value::Null` in the body.
 function rustBorrowedParseRows (content: string): string {
-    const fns = 'parse_income|parse_account|parse_margin_mode';
-    content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), '\n    fn $1(&self, $2: &crate::value::Dict$3');
-    content = content.replace (new RegExp ('(\\n    fn (?:' + fns + ')\\(&self, (\\w+): &crate::value::Dict[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Value::from($2);');
-    const fromBody = (v: string) => '&<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').unwrap_or_default()';
-    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(?:' + fns + ')\\(self, ', 'g');
+    const optFns = [ 'parse_transaction', 'parse_income', 'parse_account', 'parse_margin_mode' ];
+    const fns = optFns.join ('|');
+    const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
+    content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
+    content = content.replace (new RegExp ('(\\n    fn (?:' + fns + ')\\(&self, (\\w+): (?:Option<)?&crate::value::Dict>?[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Value::from($2);');
+    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(' + fns + ')\\(self, ', 'g');
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
-        const open = m.index + m[0].length;
+        const open = m.index + m[0].length, opt = optFns.includes (m[1]);
+        const fromBody = (v: string) => opt ? '<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').as_ref()' : '&<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').unwrap_or_default()';
         let close = open, depth = 0;
         for (; close < content.length; close++) {
             const c = content[close];
@@ -5145,10 +5147,12 @@ function rustBorrowedParseRows (content: string): string {
             const fnAt = content.lastIndexOf ('\n    fn ', m.index), pubAt = content.lastIndexOf ('\n    pub ', m.index);
             const decl = content.slice (Math.max (fnAt, pubAt), m.index).match (new RegExp ('\\blet (?:mut )?' + ref[1] + ': ([^=\\n]+?) =', 'g'));
             const ty = decl === null ? '' : decl[decl.length - 1];
-            if (ty.includes ('Option<crate::value::Dict>')) lent = ref[1] + '.as_ref().unwrap_or(&Default::default())';
+            if (ty.includes ('Option<crate::value::Dict>')) lent = ref[1] + (opt ? '.as_ref()' : '.as_ref().unwrap_or(&Default::default())');
             else if (!ty.includes ('crate::value::Dict')) lent = fromBody (ref[1] + '.clone()');
-        } else if (/^Value::Dict\(\w+\)$/.test (arg)) lent = '&' + arg.slice ('Value::Dict('.length, -1);
+            else if (opt) lent = 'Some(' + arg + ')';
+        } else if (/^Value::Dict\(\w+\)$/.test (arg)) lent = (opt ? 'Some(&' : '&') + arg.slice ('Value::Dict('.length, -1) + (opt ? ')' : '');
         else if (!/^\w+$/.test (arg) || !content.slice (Math.max (content.lastIndexOf ('\n    fn ', m.index), 0), m.index).includes (arg + ': &crate::value::Dict')) lent = fromBody (arg);
+        else if (opt) lent = 'Some(' + arg + ')';
         out += content.slice (last, open) + lent;
         last = close;
         head.lastIndex = close;
@@ -14180,7 +14184,7 @@ export class RustTranspilerBuilder {
             const src = fs.existsSync(`${RUST_CORE}/exchange.rs`) ? fs.readFileSync(`${RUST_CORE}/exchange.rs`, 'utf8') : '';
             const at = src.indexOf('pub trait DerivedExchange {');
             const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}\n', at));
-            this._lentTraitSlots = new Set([...body.matchAll(/^\s*fn (\w+)\(&(?:mut )?self, \w+: (?:impl Into<Value>|&crate::value::Dict)/gm)].map(m => m[1]));
+            this._lentTraitSlots = new Set([...body.matchAll(/^\s*fn (\w+)\(&(?:mut )?self, \w+: (?:impl Into<Value>|&crate::value::Dict|Option<&crate::value::Dict>)/gm)].map(m => m[1]));
         }
         return this._lentTraitSlots;
     }

@@ -973,6 +973,8 @@ impl From<(Dict, Dict)> for Value { fn from(p: (Dict, Dict)) -> Self { Value::Ar
 impl From<&Option<List>> for Value { fn from(a: &Option<List>) -> Self { match a { Some(l) => Value::Arr(Arc::clone(l)), None => Value::Null } } }
 /// An optional dict local lent to an `impl Into<Value>` parameter: the shared map for `Some`, `Value::Null` for `None`.
 impl From<&Option<Dict>> for Value { fn from(m: &Option<Dict>) -> Self { match m { Some(d) => Value::Dict(Arc::clone(d)), None => Value::Null } } }
+/// An optional borrowed row slot: the shared map for `Some`, `Value::Null` for a missing row.
+impl From<Option<&Dict>> for Value { fn from(m: Option<&Dict>) -> Self { m.map_or(Value::Null, |d| Value::Dict(Arc::clone(d))) } }
 /// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
 impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
 
