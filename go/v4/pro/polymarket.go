@@ -691,7 +691,7 @@ func (this *Polymarket) HandleTrades(client ccxt.ClientInterface, message map[st
 	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
 	if dataList != nil {
-		rows = ccxt.ArrayTyped(dataList)
+		rows = dataList
 	} else {
 		rows = append(rows, this.SafeValue(message, "data"))
 	}
@@ -1217,7 +1217,7 @@ func (this *Polymarket) HandleMyTrades(client ccxt.ClientInterface, message map[
 	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
 	if dataList != nil {
-		rows = ccxt.ArrayTyped(dataList)
+		rows = dataList
 	} else {
 		rows = append(rows, this.SafeValue(message, "data"))
 	}

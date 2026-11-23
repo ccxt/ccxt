@@ -4106,7 +4106,7 @@ func (this *Bullish) ParseBorrowRate(info any, optionalArgs ...any) map[string]a
 		"info":      info,
 	}
 }
-func (this *Bullish) GetTimestamp() any {
+func (this *Bullish) GetTimestamp() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
@@ -4261,7 +4261,7 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Microseconds(), 10)
-		var timestamp string = ToString(this.GetTimestamp())
+		var timestamp string = strconv.FormatInt(this.GetTimestamp(), 10)
 		var headers map[string]any = map[string]any{}
 		if method == "GET" {
 			var payload string = timestamp + nonce + method + "/trading-api/" + path

@@ -3503,7 +3503,7 @@ func (this *Grvt) setLeverageBody(ch chan AsyncResult[Leverage], leverage int64,
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Grvt) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Grvt) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	//
 	// setLeverage
 	//
@@ -3708,7 +3708,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(result, market, since, limit))}
 	return nil
 }
-func (this *Grvt) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Grvt) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//            {
 	//                "event_time": "1765267200004987902",

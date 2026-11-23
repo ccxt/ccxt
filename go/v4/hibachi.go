@@ -330,7 +330,7 @@ func (this *Hibachi) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *Hibachi) GetAccountId() any {
+func (this *Hibachi) GetAccountId() int64 {
 	this.CheckRequiredCredentials()
 	var id int64 = this.ParseToInt(this.AccountId)
 	return id

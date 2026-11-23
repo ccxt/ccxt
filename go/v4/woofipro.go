@@ -1330,7 +1330,7 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
 }
-func (this *Woofipro) ParseFundingRate(fundingRate any, optionalArgs ...any) FundingRate {
+func (this *Woofipro) ParseFundingRate(fundingRate map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//         {
 	//             "symbol":"PERP_AAVE_USDT",
@@ -2004,7 +2004,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Woofipro) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//         "symbol": "PERP_ETH_USDC",
@@ -4520,16 +4520,13 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var marginModes any = nil
-	if !StructAbsent(r1.Value) {
-		marginModes = StructBox(r1.Value, MarginModeMapToMap)
-	}
-	var marginMode map[string]any = SafeMapTyped(marginModes, market.Symbol)
-	if marginMode == nil {
+	var marginModes map[string]MarginMode = r1.Value
+	marginMode, marginModeOk := marginModes[market.Symbol]
+	if !marginModeOk {
 		panic(BadSymbol(this.Id + " fetchMarginMode() did not return a margin mode for " + market.Symbol))
 	}
 
-	ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(marginMode)}
+	ch <- AsyncResult[MarginMode]{Value: marginMode}
 	return nil
 }
 
@@ -4736,7 +4733,7 @@ func (this *Woofipro) reduceMarginBody(ch chan AsyncResult[MarginModification], 
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Woofipro) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var leverageValue *int64 = this.SafeInteger(leverage, "max_leverage")

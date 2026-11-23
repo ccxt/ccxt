@@ -4554,12 +4554,12 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Woo) RepayMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Woo) RepayMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Woo) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Woo) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4738,7 +4738,7 @@ func (this *Woo) HandleErrors(code int64, reason string, url string, method stri
 	}
 	return nil
 }
-func (this *Woo) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Woo) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 1286360,
@@ -4888,7 +4888,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(rows, market, since, limit))}
 	return nil
 }
-func (this *Woo) ParseFundingRate(fundingRate any, optionalArgs ...any) FundingRate {
+func (this *Woo) ParseFundingRate(fundingRate map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",
@@ -5332,7 +5332,7 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Woo) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")

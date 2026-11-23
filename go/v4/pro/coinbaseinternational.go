@@ -838,7 +838,7 @@ func (this *Coinbaseinternational) watchFundingRateBody(ch chan ccxt.AsyncResult
 	}
 	var ticker map[string]any = ccxt.StructResultMap(r.Value, ccxt.TickerToMap)
 
-	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: this.ParseFundingRate(ticker["info"], this.Market(symbol))}
+	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: this.ParseFundingRate(this.Extend(map[string]any{}, ticker["info"]), this.Market(symbol))}
 	return nil
 }
 
@@ -894,7 +894,7 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 	for i := 0; i < tickerSymbolsLength; i++ {
 		var symbol string = tickerSymbols[i]
 		var ticker map[string]any = ccxt.MapTyped(tickers[symbol])
-		result[symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(ticker["info"], this.Market(symbol)))
+		result[symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(this.Extend(map[string]any{}, ticker["info"]), this.Market(symbol)))
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}

@@ -9922,7 +9922,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Htx) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Htx) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	// inverse swap
 	//
@@ -10243,7 +10243,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Htx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Htx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	// isolated
 	//    {
 	//        "interest-rate":"0.000040830000000000",
@@ -10298,7 +10298,7 @@ func (this *Htx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) a
 		symbol = &marketResolved.Symbol
 	}
 	var timestamp *int64 = this.SafeInteger(info, "accrued-at")
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         symbol,
 		"currency":       this.SafeCurrencyCode(this.SafeString(info, "currency")),
@@ -10308,7 +10308,7 @@ func (this *Htx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) a
 		"marginMode":     marginMode,
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
-	}
+	})
 }
 func (this *Htx) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
@@ -10735,7 +10735,7 @@ func (this *Htx) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Htx) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Htx) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "id": "1667161118",

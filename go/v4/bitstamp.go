@@ -3773,7 +3773,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Bitstamp) ParseFundingRate(fundingRate any, optionalArgs ...any) FundingRate {
+func (this *Bitstamp) ParseFundingRate(fundingRate map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "funding_rate": "0.0024",

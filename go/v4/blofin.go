@@ -1616,7 +1616,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Blofin) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//    {
 	//        "fundingRate": "0.00027815",
@@ -4515,7 +4515,7 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Blofin) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instId")

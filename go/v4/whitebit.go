@@ -4920,7 +4920,7 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowIntere
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Whitebit) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Whitebit) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	//
 	//     {
 	//         "positionId": 191823,
@@ -4945,7 +4945,7 @@ func (this *Whitebit) ParseBorrowInterest(info map[string]any, optionalArgs ...a
 	var marketId *string = this.SafeString(info, "market")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var timestamp *int64 = this.SafeTimestamp(info, "modifyDate")
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         symbol,
 		"currency":       "USDT",
@@ -4955,7 +4955,7 @@ func (this *Whitebit) ParseBorrowInterest(info map[string]any, optionalArgs ...a
 		"marginMode":     "cross",
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -5085,7 +5085,7 @@ func (this *Whitebit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
 }
-func (this *Whitebit) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Whitebit) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	// {
 	//     "ticker_id":"ADA_PERP",
@@ -5229,7 +5229,7 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseFundingHistories(data, market, since, limit))}
 	return nil
 }
-func (this *Whitebit) ParseFundingHistory(contract map[string]any, optionalArgs ...any) any {
+func (this *Whitebit) ParseFundingHistory(contract map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "market": "BTC_PERP",

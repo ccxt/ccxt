@@ -4968,7 +4968,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Poloniex) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var shortLeverage *int64 = nil

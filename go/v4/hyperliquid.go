@@ -1646,13 +1646,13 @@ func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[FundingRate], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var rates map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var rate map[string]any = SafeMapTyped(rates, market.Symbol)
-	if rate == nil {
+	var rates map[string]FundingRate = r1.Value
+	rate, rateOk := rates[market.Symbol]
+	if !rateOk {
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
 
-	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(rate)}
+	ch <- AsyncResult[FundingRate]{Value: rate}
 	return nil
 }
 
@@ -1742,7 +1742,7 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fu
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(result, symbolsNormalized))}
 	return nil
 }
-func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) FundingRate {
+func (this *Hyperliquid) ParseFundingRate(info map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "maxLeverage": "50",
@@ -6670,13 +6670,10 @@ func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var ois any = nil
-	if !StructAbsent(r1.Value) {
-		ois = StructBox(r1.Value, OpenInterestMapToMap)
-	}
-	var openInterest map[string]any = SafeMapTyped(ois, symbolValue)
+	var ois map[string]OpenInterest = r1.Value
+	var openInterest OpenInterest = ois[symbolValue]
 
-	ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(openInterest)}
+	ch <- AsyncResult[OpenInterest]{Value: openInterest}
 	return nil
 }
 func (this *Hyperliquid) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
@@ -6794,7 +6791,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHi
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil
 }
-func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "time": 1734026400057,
@@ -6813,7 +6810,7 @@ func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) map[string
 	_ = market
 	var id *string = this.SafeString(income, "hash")
 	var timestamp *int64 = this.SafeInteger(income, "time")
-	var delta map[string]any = SafeMapTyped(income, "delta")
+	var delta, _ = income["delta"].(map[string]any)
 	var coin *string = this.SafeString(delta, "coin")
 	var marketId *string = nil
 	if coin != nil {

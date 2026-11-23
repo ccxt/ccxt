@@ -924,12 +924,12 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool], acc
 	ch <- AsyncResult[bool]{Value: true}
 	return nil
 }
-func (this *Lighter) CheckIfStandardTierAsync(accountIndex any) <-chan AsyncResult[bool] {
+func (this *Lighter) CheckIfStandardTierAsync(accountIndex int64) <-chan AsyncResult[bool] {
 	ch := make(chan AsyncResult[bool], 1)
 	go this.checkIfStandardTierBody(ch, accountIndex)
 	return ch
 }
-func (this *Lighter) checkIfStandardTierBody(ch chan AsyncResult[bool], accountIndex any) any {
+func (this *Lighter) checkIfStandardTierBody(ch chan AsyncResult[bool], accountIndex int64) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tiersForAccountIndexes map[string]any
@@ -2501,7 +2501,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
 }
-func (this *Lighter) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Lighter) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "market_id": 0,

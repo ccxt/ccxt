@@ -2517,7 +2517,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
 	return nil
 }
-func (this *Weex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Weex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
@@ -3227,7 +3227,6 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			panic(BadRequest(this.Id + " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time"))
 		}
 		request["clientAlgoId"] = clientOrderId
-		var orderType *string = nil
 		if isStopLoss {
 			var stopLossPriceType *string = this.SafeString2(params, "stopLossPriceType", "triggerPriceType")
 			if stopLossPriceType != nil {
@@ -3235,11 +3234,9 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			}
 			params["triggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 			if isMarketOrder {
-				orderTypeStr := "STOP_MARKET"
-				orderType = &orderTypeStr
+				params["type"] = "STOP_MARKET"
 			} else {
-				orderTypeStr2 := "STOP"
-				orderType = &orderTypeStr2
+				params["type"] = "STOP"
 			}
 		} else if isTakeProfit {
 			var takeProfitPriceType *string = this.SafeString2(params, "takeProfitPriceType", "triggerPriceType")
@@ -3248,14 +3245,11 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			}
 			params["triggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 			if isMarketOrder {
-				orderTypeStr3 := "TAKE_PROFIT_MARKET"
-				orderType = &orderTypeStr3
+				params["type"] = "TAKE_PROFIT_MARKET"
 			} else {
-				orderTypeStr4 := "TAKE_PROFIT"
-				orderType = &orderTypeStr4
+				params["type"] = "TAKE_PROFIT"
 			}
 		}
-		params["type"] = orderType
 	} else {
 		if !isMarketOrder && (timeInForce == nil) {
 			request["timeInForce"] = "GTC"
@@ -3694,11 +3688,11 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes277819 []any = r1.Value
-		if retRes277819 == nil {
+		var retRes277619 []any = r1.Value
+		if retRes277619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes277819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes277619)}
 		}
 		return nil
 	}
@@ -4024,11 +4018,11 @@ func (this *Weex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes298319 []any = r1.Value
-		if retRes298319 == nil {
+		var retRes298119 []any = r1.Value
+		if retRes298119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes298319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes298119)}
 		}
 		return nil
 	}
@@ -4127,11 +4121,11 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes304919 []any = r1.Value
-		if retRes304919 == nil {
+		var retRes304719 []any = r1.Value
+		if retRes304719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes304919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes304719)}
 		}
 		return nil
 	}
@@ -4333,7 +4327,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	if stopLossPrice == nil {
 		stopLossPrice = this.OmitZero(this.SafeString(order, "slTriggerPrice")) // attached stop loss of a regular or conditional order
 	}
-	var literal323631 map[string]any = map[string]any{
+	var literal323431 map[string]any = map[string]any{
 		"id":                  this.SafeStringN(order, []any{"orderId", "algoId", "successOrderId"}),
 		"clientOrderId":       this.SafeStringN(order, []any{"clientOrderId", "origClientOrderId", "clientAlgoId"}),
 		"symbol":              this.SafeString(marketResolved, "symbol"),
@@ -4361,12 +4355,12 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":                order,
 	}
 	if stopLossPrice != nil {
-		literal323631["stopLossPrice"] = *stopLossPrice
+		literal323431["stopLossPrice"] = *stopLossPrice
 	}
 	if takeProfitPrice != nil {
-		literal323631["takeProfitPrice"] = *takeProfitPrice
+		literal323431["takeProfitPrice"] = *takeProfitPrice
 	}
-	return this.SafeOrder(literal323631, marketResolved)
+	return this.SafeOrder(literal323431, marketResolved)
 }
 func (this *Weex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4462,11 +4456,11 @@ func (this *Weex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes332715 []any = TradesToList(r1.Value)
-	if retRes332715 == nil {
+	var retRes332515 []any = TradesToList(r1.Value)
+	if retRes332515 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes332715)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes332515)}
 	}
 	return nil
 }
@@ -4525,11 +4519,11 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes336019 []any = r1.Value
-		if retRes336019 == nil {
+		var retRes335819 []any = r1.Value
+		if retRes335819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes336019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes335819)}
 		}
 		return nil
 	}
@@ -4651,11 +4645,11 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344419 []any = r1.Value
-		if retRes344419 == nil {
+		var retRes344219 []any = r1.Value
+		if retRes344219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes344419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes344219)}
 		}
 		return nil
 	}
@@ -4883,11 +4877,11 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes361619 []any = r1.Value
-		if retRes361619 == nil {
+		var retRes361419 []any = r1.Value
+		if retRes361419 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes361619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes361419)}
 		}
 		return nil
 	}
@@ -4952,7 +4946,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(items, market, since, limit))}
 	return nil
 }
-func (this *Weex) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Weex) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "billId": "793622764958253481",
@@ -5103,12 +5097,12 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375419 []any = PositionsToList(r1.Value)
+		var retRes375219 []any = PositionsToList(r1.Value)
 		// the demo trading API does not provide a single-position endpoint
-		if retRes375419 == nil {
+		if retRes375219 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes375419)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes375219)}
 		}
 		return nil
 	}
@@ -5699,7 +5693,7 @@ func (this *Weex) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], o
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(this.ToArray(response), symbolsNormalized, "symbol", "swap"))}
 	return nil
 }
-func (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Weex) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -5902,12 +5896,12 @@ func (this *Weex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Weex) ModifyMarginHelperAsync(symbol string, amount float64, typeVar any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Weex) ModifyMarginHelperAsync(symbol string, amount float64, typeVar int64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar any, optionalArgs ...any) any {
+func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5931,7 +5925,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification]
 		"type":               typeVar,
 	}
 	var parsedType string = "reduce"
-	if IsEqual(typeVar, 1) {
+	if typeVar == 1 {
 		parsedType = "add"
 	}
 
@@ -6138,16 +6132,16 @@ func (this *Weex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + endpoint
-	var literal445015 map[string]any = map[string]any{
+	var literal444815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal445015["body"] = *requestBody
+		literal444815["body"] = *requestBody
 	}
-	return literal445015
+	return literal444815
 }
 func (this *Weex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	//

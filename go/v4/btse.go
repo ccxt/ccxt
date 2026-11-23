@@ -1949,7 +1949,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rows, symbolsNormalized))}
 	return nil
 }
-func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Btse) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	// ticker/24hr contract rows
 	//     {

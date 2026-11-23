@@ -2233,9 +2233,9 @@ func (this *Interactivebrokers) fetchCryptoMarketsBody(ch chan AsyncResult[any],
 	var results []any = r.Value
 	var neededSecTypes []string = []string{"CRYPTO"} // CFD, OPT - they should already be fetched in other calls
 	for i := 0; i < len(results); i++ {
-		var result any = results[i]
-		for j := 0; j < GetArrayLength(result); j++ {
-			var entry any = GetValue(result, j)
+		var result, _ = results[i].([]any)
+		for j := 0; j < len(result); j++ {
+			var entry any = result[j]
 			var sections []any = SafeListTyped(entry, "sections")
 			for k := 0; k < len(sections); k++ {
 				var secType *string = this.SafeString(sections[k], "secType")
@@ -2483,9 +2483,9 @@ func (this *Interactivebrokers) fetchCfdMarketsBody(ch chan AsyncResult[any], op
 	}
 	var responses []any = r.Value
 	for i := 0; i < len(responses); i++ {
-		var cfds any = responses[i]
-		for j := 0; j < GetArrayLength(cfds); j++ {
-			var cfd any = GetValue(cfds, j)
+		var cfds, _ = responses[i].([]any)
+		for j := 0; j < len(cfds); j++ {
+			var cfd any = cfds[j]
 			var conid *string = this.SafeString(cfd, "conid")
 			if conid != nil {
 				entries[*conid] = cfd
@@ -2572,9 +2572,9 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	var filterPartsLength int = len(filterParts)
 	var contractPromises []any = []any{}
 	for i := 0; i < len(searchResults); i++ {
-		var searchResult any = searchResults[i]
-		for j := 0; j < GetArrayLength(searchResult); j++ {
-			var issuers []any = SafeListTyped(GetValue(searchResult, j), "issuers")
+		var searchResult, _ = searchResults[i].([]any)
+		for j := 0; j < len(searchResult); j++ {
+			var issuers []any = SafeListTyped(searchResult[j], "issuers")
 			for k := 0; k < len(issuers); k++ {
 				var contractsRequest map[string]any = map[string]any{
 					"sectype":  "BOND",
@@ -2616,9 +2616,9 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	//     ]
 	//
 	for i := 0; i < len(contractResults); i++ {
-		var contracts any = contractResults[i]
-		for j := 0; j < GetArrayLength(contracts); j++ {
-			var contract any = GetValue(contracts, j)
+		var contracts, _ = contractResults[i].([]any)
+		for j := 0; j < len(contracts); j++ {
+			var contract any = contracts[j]
 			var conid *string = this.SafeString(contract, "conid")
 			if conid != nil {
 				entries[*conid] = contract
@@ -4614,7 +4614,10 @@ func (this *Interactivebrokers) fetchOrdersBody(ch chan AsyncResult[[]Order], op
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	orders := r2.Value
+	var orders any = nil
+	if r2.Value != nil {
+		orders = MapSliceToList(r2.Value)
+	}
 	var parsed []any = this.ParseOrders(orders, market, nil, nil)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsed, symbol, since, limit))}
@@ -4785,7 +4788,10 @@ func (this *Interactivebrokers) fetchCanceledAndClosedOrdersBody(ch chan AsyncRe
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	orders := r2.Value
+	var orders any = nil
+	if r2.Value != nil {
+		orders = MapSliceToList(r2.Value)
+	}
 	var parsed []any = ArrayTyped(this.ParseOrders(orders, market, nil, nil))
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
@@ -4848,7 +4854,10 @@ func (this *Interactivebrokers) fetchOrdersByStatusFilterBody(ch chan AsyncResul
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	orders := r2.Value
+	var orders any = nil
+	if r2.Value != nil {
+		orders = MapSliceToList(r2.Value)
+	}
 	var parsed []any = this.ParseOrders(orders, market, nil, nil)
 	var filtered []any = this.FilterBy(parsed, "status", status)
 
@@ -4865,12 +4874,12 @@ func (this *Interactivebrokers) fetchOrdersByStatusFilterBody(ch chan AsyncResul
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} the raw orders
  */
-func (this *Interactivebrokers) FetchLiveOrdersRawAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Interactivebrokers) FetchLiveOrdersRawAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.fetchLiveOrdersRawBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) fetchLiveOrdersRawBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Interactivebrokers) fetchLiveOrdersRawBody(ch chan AsyncResult[[]map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4962,7 +4971,7 @@ func (this *Interactivebrokers) fetchLiveOrdersRawBody(ch chan AsyncResult[any],
 	//        "snapshot": true
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.SafeList(response, "orders", []any{})}
+	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.SafeList(response, "orders", []any{}))}
 	return nil
 }
 func (this *Interactivebrokers) ParseOrderStatus(status *string) *string {
@@ -5603,7 +5612,7 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	//
 	var positions []any
 	if response != nil {
-		positions = ArrayTyped(response)
+		positions = response
 	} else {
 		positions = []any{}
 	}
@@ -6735,7 +6744,7 @@ func (this *Interactivebrokers) FetchLiveOrdersRaw(params ...any) ([]map[string]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []map[string]any = NewMapArray(r.Value)
+	var res []map[string]any = r.Value
 	return res, nil
 }
 

@@ -66,30 +66,6 @@ func (this *Phemex) FromEn(en any, scale any) any {
 	precise.Reduce()
 	return precise.String()
 }
-func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	if (ccxt.IsEqual(ep, nil)) || (market == nil) {
-		return ep
-	}
-	return this.FromEn(ep, this.SafeInteger(market, "priceScale"))
-}
-func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	if (ccxt.IsEqual(ev, nil)) || (market == nil) {
-		return ev
-	}
-	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
-}
-func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	if (ccxt.IsEqual(er, nil)) || (market == nil) {
-		return er
-	}
-	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
-}
 func (this *Phemex) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
 	return requestId

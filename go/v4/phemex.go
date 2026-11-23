@@ -1645,7 +1645,7 @@ func (this *Phemex) ToEv(amount any, optionalArgs ...any) any {
 	if (IsEqual(amount, nil)) || (market == nil) {
 		return amount
 	}
-	return this.ToEn(amount, this.SafeInteger(market, "valueScale"))
+	return this.ToEn(amount, this.SafeInteger(this.SafeDict(market, "info"), "valueScale"))
 }
 func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -1653,7 +1653,7 @@ func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	if (IsEqual(price, nil)) || (market == nil) {
 		return price
 	}
-	return this.ToEn(price, this.SafeInteger(market, "priceScale"))
+	return this.ToEn(price, this.SafeInteger(this.SafeDict(market, "info"), "priceScale"))
 }
 func (this *Phemex) FromEn(en any, scale *int64) any {
 	if (IsEqual(en, nil)) || (scale == nil) {
@@ -1670,7 +1670,7 @@ func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 	if (IsEqual(ep, nil)) || (market == nil) {
 		return ep
 	}
-	return this.FromEn(ep, this.SafeInteger(market, "priceScale"))
+	return this.FromEn(ep, this.SafeInteger(this.SafeDict(market, "info"), "priceScale"))
 }
 func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -1678,7 +1678,7 @@ func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	if (IsEqual(ev, nil)) || (market == nil) {
 		return ev
 	}
-	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
+	return this.FromEn(ev, this.SafeInteger(this.SafeDict(market, "info"), "valueScale"))
 }
 func (this *Phemex) FromEr(er *string, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -1686,7 +1686,7 @@ func (this *Phemex) FromEr(er *string, optionalArgs ...any) any {
 	if (er == nil) || (market == nil) {
 		return er
 	}
-	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
+	return this.FromEn(er, this.SafeInteger(this.SafeDict(market, "info"), "ratioScale"))
 }
 func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
@@ -3322,7 +3322,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			request["stopPxEp"] = this.ToEp(triggerPrice, market)
 		}
 	}
-	var orderParams any = this.Omit(paramsOmitted, []any{"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"})
+	var orderParams map[string]any = this.OmitDict(paramsOmitted, []any{"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"})
 	if *this.SafeBool(market, "spot", false) {
 		var qtyType *string = this.SafeString(orderParams, "qtyType", "ByBase")
 		if (typeValue == "Market") || (typeValue == "Stop") || (typeValue == "MarketIfTouched") {
@@ -3350,7 +3350,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					cost = nil
 				}
 			}
-			orderParams = this.Omit(orderParams, "cost")
+			orderParams = this.OmitDict(orderParams, "cost")
 			if *this.SafeBool(this.Options, "createOrderByQuoteRequiresPrice", false) {
 				if price != nil {
 					var amountString *string = this.NumberToString(amount)
@@ -3369,7 +3369,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 	} else if *this.SafeBool(market, "swap", false) {
 		var hedged *bool = this.SafeBool(orderParams, "hedged", false)
-		orderParams = this.Omit(orderParams, "hedged")
+		orderParams = this.OmitDict(orderParams, "hedged")
 		var posSide *string = this.SafeStringLower(orderParams, "posSide")
 		// a hedged reduceOnly order without posSide closes the opposite side
 		var flipSide bool = (posSide == nil) && (hedged != nil && *hedged) && (*this.SafeBool(orderParams, "reduceOnly", false))
@@ -3386,7 +3386,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		if posSide == nil {
 			if hedged != nil && *hedged {
 				if flipSide {
-					orderParams = this.Omit(orderParams, "reduceOnly")
+					orderParams = this.OmitDict(orderParams, "reduceOnly")
 				}
 				var posSideStr string
 				if sideResolved == "buy" {
@@ -3503,7 +3503,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		} else {
 			request["takeProfitEp"] = this.ToEp(takeProfitPrice, market)
 		}
-		orderParams = this.Omit(orderParams, "takeProfitPrice")
+		orderParams = this.OmitDict(orderParams, "takeProfitPrice")
 	}
 	var stopLossPrice *string = this.SafeString(orderParams, "stopLossPrice")
 	if stopLossPrice != nil {
@@ -3512,7 +3512,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		} else {
 			request["stopLossEp"] = this.ToEp(stopLossPrice, market)
 		}
-		orderParams = this.Omit(orderParams, "stopLossPrice")
+		orderParams = this.OmitDict(orderParams, "stopLossPrice")
 	}
 	var response map[string]any = nil
 	if isStableSettled {
@@ -5554,7 +5554,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
-func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Phemex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "askEp": 2332500,

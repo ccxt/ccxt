@@ -3599,7 +3599,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rates, symbolsNormalized))}
 	return nil
 }
-func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Delta) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "close": 30600.5,
@@ -4051,7 +4051,7 @@ func (this *Delta) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol strin
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(result, market)}
 	return nil
 }
-func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Delta) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "index_symbol")

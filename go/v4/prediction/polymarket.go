@@ -1314,16 +1314,16 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
  * @param {string[]} outcomeSymbols outcome token ids or handles
  * @returns {object} the outcome cache
  */
-func (this *Polymarket) FetchOutcomesAsync(outcomeSymbols any) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
+func (this *Polymarket) FetchOutcomesAsync(outcomeSymbols []any) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
 	ch := make(chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols any) any {
+func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols []any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var tokenIds []string = []string{}
-	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
+	for i := 0; i < len(outcomeSymbols); i++ {
 		var outcomeSymbol string = *this.SafeString(outcomeSymbols, i, "")
 		// only id-like symbols (no ':', no searchable words) belong in the by-id batch —
 		// see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
@@ -1382,7 +1382,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 		}
 		this.PopulateOutcomes()
 	}
-	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
+	for i := 0; i < len(outcomeSymbols); i++ {
 		var pendingSymbol string = *this.SafeString(outcomeSymbols, i, "")
 		if !this.HasOutcome(pendingSymbol) {
 
@@ -2246,7 +2246,7 @@ func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var response []any = responseRecv.Value
 	var rawTrades []any
 	if response != nil {
-		rawTrades = ccxt.ArrayTyped(response)
+		rawTrades = response
 	} else {
 		rawTrades = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
@@ -5098,7 +5098,7 @@ func (this *Polymarket) FetchOutcome(outcomeSymbol string) (map[string]any, erro
  * @returns {object} the outcome cache
  */
 func (this *Polymarket) FetchOutcomes(outcomeSymbols []string) (map[string]any, error) {
-	r := <-this.FetchOutcomesAsync(outcomeSymbols)
+	r := <-this.FetchOutcomesAsync(ccxt.StringSliceToList(outcomeSymbols))
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}

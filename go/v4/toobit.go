@@ -2018,7 +2018,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
 	return nil
 }
-func (this *Toobit) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Toobit) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
@@ -3980,7 +3980,7 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Toobit) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")

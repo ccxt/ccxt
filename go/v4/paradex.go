@@ -1977,7 +1977,7 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(rate)}
 	return nil
 }
-func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Paradex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -5023,10 +5023,17 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol str
 	var configs []any
 	configs, _ = response["configs"].([]any)
 
-	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(this.SafeDict(configs, 0), market)}
+	var configsDict348635 map[string]any
+	if len(configs) > 0 {
+		configsDict348635, _ = configs[0].(map[string]any)
+	}
+	if configsDict348635 == nil {
+		configsDict348635 = map[string]any{}
+	}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(configsDict348635, market)}
 	return nil
 }
-func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Paradex) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "market")
@@ -5648,7 +5655,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(tagged, market, since, limit))}
 	return nil
 }
-func (this *Paradex) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "account": "string",

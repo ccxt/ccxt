@@ -1249,13 +1249,10 @@ func (this *BaseExchange) fetchMarginModeBody(ch chan AsyncResult[MarginMode], s
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var marginModes any = nil
-		if !StructAbsent(r.Value) {
-			marginModes = StructBox(r.Value, MarginModeMapToMap)
-		}
-		var marginMode map[string]any = SafeMapTyped(marginModes, symbol)
+		var marginModes map[string]MarginMode = r.Value
+		var marginMode MarginMode = marginModes[symbol]
 
-		ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(marginMode)}
+		ch <- AsyncResult[MarginMode]{Value: marginMode}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchMarginMode() is not supported yet"))
@@ -1438,7 +1435,7 @@ func (this *BaseExchange) ParseFundingRateHistory(info any, optionalArgs ...any)
 	_ = market
 	panic(NotSupported(this.Id + " parseFundingRateHistory() is not supported yet"))
 }
-func (this *BaseExchange) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseBorrowInterest() is not supported yet"))
@@ -1620,13 +1617,10 @@ func (this *BaseExchange) fetchLeverageBody(ch chan AsyncResult[Leverage], symbo
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var leverages any = nil
-		if !StructAbsent(r.Value) {
-			leverages = StructBox(r.Value, LeverageMapToMap)
-		}
-		var leverage map[string]any = SafeMapTyped(leverages, symbol)
+		var leverages map[string]Leverage = r.Value
+		var leverage Leverage = leverages[symbol]
 
-		ch <- AsyncResult[Leverage]{Value: LeverageFromMap(leverage)}
+		ch <- AsyncResult[Leverage]{Value: leverage}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchLeverage() is not supported yet"))
@@ -3541,12 +3535,12 @@ func (this *BaseExchange) borrowMarginBody(ch chan AsyncResult[MarginLoan], code
 	_ = params
 	panic(NotSupported(this.Id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead"))
 }
-func (this *BaseExchange) RepayMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *BaseExchange) RepayMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *BaseExchange) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4642,7 +4636,7 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) []any {
 	var ranksArray []any = this.ToArray(ranks)
 	var result []any = []any{}
 	for i := 0; i < len(ranksArray); i++ {
-		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(ranksArray[i]), params)
+		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(this.Extend(map[string]any{}, ranksArray[i])), params)
 		result = append(result, rank)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbolsNormalized)
@@ -4653,7 +4647,7 @@ func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) []any
 	var accountsArray []any = this.ToArray(accounts)
 	var result []any = []any{}
 	for i := 0; i < len(accountsArray); i++ {
-		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(accountsArray[i]), params)
+		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(this.Extend(map[string]any{}, accountsArray[i])), params)
 		result = append(result, account)
 	}
 	return result
@@ -5830,16 +5824,13 @@ func (this *BaseExchange) fetchIsolatedBorrowRateBody(ch chan AsyncResult[Isolat
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var borrowRates any = nil
-	if !StructAbsent(r1.Value) {
-		borrowRates = StructBox(r1.Value, IsolatedBorrowRateMapToMap)
-	}
-	var rate map[string]any = SafeMapTyped(borrowRates, symbol)
-	if rate == nil {
+	var borrowRates map[string]IsolatedBorrowRate = r1.Value
+	rate, rateOk := borrowRates[symbol]
+	if !rateOk {
 		panic(ExchangeError(this.Id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol " + symbol))
 	}
 
-	ch <- AsyncResult[IsolatedBorrowRate]{Value: IsolatedBorrowRateFromMap(rate)}
+	ch <- AsyncResult[IsolatedBorrowRate]{Value: rate}
 	return nil
 }
 
@@ -7006,7 +6997,7 @@ func (this *BaseExchange) ParseLastPricesList(pricesData any, optionalArgs ...an
 	_ = params
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(pricesData); i++ {
-		results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params))
+		results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(this.Extend(map[string]any{}, GetValue(pricesData, i))), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -7131,7 +7122,7 @@ func (this *BaseExchange) ParseBorrowInterests(response []any, optionalArgs ...a
 		if row == nil {
 			row = map[string]any{}
 		}
-		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
+		interests = append(interests, BorrowInterestToMap(this.DerivedExchange.ParseBorrowInterest(row, market)))
 	}
 	return interests
 }
@@ -7194,7 +7185,7 @@ func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) *string 
 	var marketResolved map[string]any = this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType)
 	return SafeStringPtr(marketResolved["symbol"])
 }
-func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *BaseExchange) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseFundingRate() is not supported yet"))
@@ -7205,7 +7196,11 @@ func (this *BaseExchange) ParseFundingRates(response []any, optionalArgs ...any)
 	var fundingRates map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
 
-		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(response[i]))
+		responseDict819650, _ := response[i].(map[string]any)
+		if responseDict819650 == nil {
+			responseDict819650 = map[string]any{}
+		}
+		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(responseDict819650))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			fundingRates[*symbol] = parsed
@@ -7213,7 +7208,7 @@ func (this *BaseExchange) ParseFundingRates(response []any, optionalArgs ...any)
 	}
 	return this.IndexBy(this.FilterByArray(fundingRates, "symbol", symbols, false), "symbol")
 }
-func (this *BaseExchange) ParseLongShortRatio(info any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseLongShortRatio() is not supported yet"))
@@ -7227,7 +7222,7 @@ func (this *BaseExchange) ParseLongShortRatioHistory(response []any, optionalArg
 	_ = limit
 	var rates []any = []any{}
 	for i := 0; i < len(response); i++ {
-		rates = append(rates, this.ParseLongShortRatio(response[i], market))
+		rates = append(rates, LongShortRatioToMap(this.ParseLongShortRatio(this.Extend(map[string]any{}, response[i]), market)))
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any
@@ -7829,7 +7824,7 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	}
 	return MapTyped(fee)
 }
-func (this *BaseExchange) ParseIncome(info any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseIncome(info map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseIncome () is not supported yet"))
@@ -7853,7 +7848,7 @@ func (this *BaseExchange) ParseIncomes(incomes []any, optionalArgs ...any) []any
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < len(incomes); i++ {
-		result = append(result, this.DerivedExchange.ParseIncome(incomes[i], market))
+		result = append(result, this.DerivedExchange.ParseIncome(this.Extend(map[string]any{}, incomes[i]), market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -8844,12 +8839,12 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) map[
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketTypeResolved)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
-			AddElementToObject(leverageStructures, market["symbol"], LeverageToMap(this.DerivedExchange.ParseLeverage(info, market)))
+			AddElementToObject(leverageStructures, market["symbol"], LeverageToMap(this.DerivedExchange.ParseLeverage(this.Extend(map[string]any{}, info), market)))
 		}
 	}
 	return leverageStructures
 }
-func (this *BaseExchange) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *BaseExchange) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseLeverage () is not supported yet"))
@@ -10696,13 +10691,10 @@ func (this *Exchange) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var openInterests any = nil
-		if !StructAbsent(r.Value) {
-			openInterests = StructBox(r.Value, OpenInterestMapToMap)
-		}
-		var openInterest map[string]any = SafeMapTyped(openInterests, symbol)
+		var openInterests map[string]OpenInterest = r.Value
+		var openInterest OpenInterest = openInterests[symbol]
 
-		ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(openInterest)}
+		ch <- AsyncResult[OpenInterest]{Value: openInterest}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchOpenInterest() is not supported yet"))
@@ -12049,12 +12041,9 @@ func (this *Exchange) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var fees any = nil
-	if !StructAbsent(r.Value) {
-		fees = StructBox(r.Value, TradingFeeInterfaceMapToMap)
-	}
-	var fee map[string]any = SafeMapTyped(fees, symbol)
+	var fees map[string]TradingFeeInterface = r.Value
+	var fee TradingFeeInterface = fees[symbol]
 
-	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(fee)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: fee}
 	return nil
 }

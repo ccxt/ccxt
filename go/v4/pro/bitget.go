@@ -3245,20 +3245,20 @@ func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, mess
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any
+	var url *string
 	if uta == true {
-		url = this.UrlsApiSections["ws"]["utaPublic"]
+		url = this.UrlsApiSectionStrings["ws"]["utaPublic"]
 	} else {
-		url = this.UrlsApiSections["ws"]["public"]
+		url = this.UrlsApiSectionStrings["ws"]["public"]
 	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = this.UrlsApiSections["demo"]["utaPublic"]
+				url = this.UrlsApiSectionStrings["demo"]["utaPublic"]
 			} else {
-				url = this.UrlsApiSections["demo"]["public"]
+				url = this.UrlsApiSectionStrings["demo"]["public"]
 			}
 		}
 	}
@@ -3285,20 +3285,20 @@ func (this *Bitget) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], uta any, m
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any
+	var url *string
 	if uta == true {
-		url = this.UrlsApiSections["ws"]["utaPublic"]
+		url = this.UrlsApiSectionStrings["ws"]["utaPublic"]
 	} else {
-		url = this.UrlsApiSections["ws"]["public"]
+		url = this.UrlsApiSectionStrings["ws"]["public"]
 	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = this.UrlsApiSections["demo"]["utaPublic"]
+				url = this.UrlsApiSectionStrings["demo"]["utaPublic"]
 			} else {
-				url = this.UrlsApiSections["demo"]["public"]
+				url = this.UrlsApiSectionStrings["demo"]["public"]
 			}
 		}
 	}
@@ -3338,20 +3338,20 @@ func (this *Bitget) unWatchPrivateBody(ch chan ccxt.AsyncResult[bool], uta any, 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var isUta bool = (uta == true)
-	var url any
+	var url *string
 	if isUta {
-		url = this.UrlsApiSections["ws"]["utaPrivate"]
+		url = this.UrlsApiSectionStrings["ws"]["utaPrivate"]
 	} else {
-		url = this.UrlsApiSections["ws"]["private"]
+		url = this.UrlsApiSectionStrings["ws"]["private"]
 	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if isUta {
-				url = this.UrlsApiSections["demo"]["utaPrivate"]
+				url = this.UrlsApiSectionStrings["demo"]["utaPrivate"]
 			} else {
-				url = this.UrlsApiSections["demo"]["private"]
+				url = this.UrlsApiSectionStrings["demo"]["private"]
 			}
 		}
 	}
@@ -3397,11 +3397,11 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any
+	var url *string
 	if uta == true {
-		url = this.UrlsApiSections["ws"]["utaPublic"]
+		url = this.UrlsApiSectionStrings["ws"]["utaPublic"]
 	} else {
-		url = this.UrlsApiSections["ws"]["public"]
+		url = this.UrlsApiSectionStrings["ws"]["public"]
 	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
@@ -3412,9 +3412,9 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 		var instType *string = this.SafeString(argsArrayFirst, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = this.UrlsApiSections["demo"]["utaPublic"]
+				url = this.UrlsApiSectionStrings["demo"]["utaPublic"]
 			} else {
-				url = this.UrlsApiSections["demo"]["public"]
+				url = this.UrlsApiSectionStrings["demo"]["public"]
 			}
 		}
 	}
@@ -3491,20 +3491,20 @@ func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, mes
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any
+	var url *string
 	if uta == true {
-		url = this.UrlsApiSections["ws"]["utaPrivate"]
+		url = this.UrlsApiSectionStrings["ws"]["utaPrivate"]
 	} else {
-		url = this.UrlsApiSections["ws"]["private"]
+		url = this.UrlsApiSectionStrings["ws"]["private"]
 	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = this.UrlsApiSections["demo"]["utaPrivate"]
+				url = this.UrlsApiSectionStrings["demo"]["utaPrivate"]
 			} else {
-				url = this.UrlsApiSections["demo"]["private"]
+				url = this.UrlsApiSectionStrings["demo"]["private"]
 			}
 		}
 	}

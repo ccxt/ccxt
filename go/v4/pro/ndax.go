@@ -209,7 +209,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	return nil
 }
 func (this *Ndax) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
-	var payload []any = ccxt.SafeListTyped(message, "o")
+	var payload, _ = message["o"].([]any)
 	//
 	// initial snapshot
 	//
@@ -351,7 +351,7 @@ func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 	//         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
 	//     }
 	//
-	var payload []any = ccxt.SafeListTyped(message, "o")
+	var payload, _ = message["o"].([]any)
 	//
 	//     [
 	//         [
@@ -370,7 +370,7 @@ func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 	//
 	var updates map[string]any = map[string]any{}
 	for i := 0; i < len(payload); i++ {
-		var ohlcv []any = ccxt.SafeListTyped(payload, i)
+		var ohlcv, _ = payload[i].([]any)
 		var marketId *string = this.SafeString(ohlcv, 8)
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -552,7 +552,7 @@ func (this *Ndax) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	//         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
 	//     }
 	//
-	var payload []any = ccxt.SafeListTyped(message, "o")
+	var payload, _ = message["o"].([]any)
 	//
 	//     [
 	//         0,   // 0 MDUpdateId
@@ -567,7 +567,10 @@ func (this *Ndax) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	//         0,   // 9 Side
 	//     ],
 	//
-	var firstBidAsk []any = ccxt.SafeListTyped(payload, 0)
+	var firstBidAsk []any
+	if 0 < len(payload) {
+		firstBidAsk, _ = payload[0].([]any)
+	}
 	var marketId *string = this.SafeString(firstBidAsk, 7)
 	if marketId == nil {
 		return
@@ -582,7 +585,7 @@ func (this *Ndax) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	var timestamp *int64 = this.SafeInteger(firstBidAsk, 2)
 	var nonce *int64 = this.SafeInteger(firstBidAsk, 0)
 	for i := 0; i < len(payload); i++ {
-		var bidask []any = ccxt.SafeListTyped(payload, i)
+		var bidask, _ = payload[i].([]any)
 		if timestamp == nil {
 			timestamp = this.SafeInteger(bidask, 2)
 		} else {

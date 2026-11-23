@@ -3225,7 +3225,14 @@ func (this *Extended) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict225635 map[string]any
+	if len(data) > 0 {
+		dataDict225635, _ = data[0].(map[string]any)
+	}
+	if dataDict225635 == nil {
+		dataDict225635 = map[string]any{}
+	}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(dataDict225635, market)}
 	return nil
 }
 
@@ -3285,7 +3292,7 @@ func (this *Extended) setLeverageBody(ch chan AsyncResult[Leverage], leverage in
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Extended) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Extended) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	//
 	//     {
 	//         "market": "BTC-USD",

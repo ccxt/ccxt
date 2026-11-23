@@ -268,10 +268,10 @@ func (this *Extended) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		}
 	}
 	var messageHash string = "orders"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = (*this.SafeString(market, "symbol", ""))
+		symbolResolved = this.SafeString(market, "symbol", "")
 		messageHash = "orders:" + *this.SafeString(market, "symbol", "")
 	}
 
@@ -438,10 +438,10 @@ func (this *Extended) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 		}
 	}
 	var messageHash string = "myTrades"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = (*this.SafeString(market, "symbol", ""))
+		symbolResolved = this.SafeString(market, "symbol", "")
 		messageHash = "myTrades:" + *this.SafeString(market, "symbol", "")
 	}
 

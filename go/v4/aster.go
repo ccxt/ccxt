@@ -2449,7 +2449,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbolsNormalized))}
 	return nil
 }
-func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Aster) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	// fundingRate
 	//
@@ -2560,7 +2560,7 @@ func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	//         "time": 1750146970000
 	//     }
 	//
-	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -4229,7 +4229,7 @@ func (this *Aster) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(this.ToArray(response), symbols, "symbol"))}
 	return nil
 }
-func (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Aster) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	//
 	//     {
 	//         "symbol": "INJUSDT",
@@ -4499,12 +4499,12 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) map[st
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Aster) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Aster) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce int64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, addOrReduce any, optionalArgs ...any) any {
+func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, addOrReduce int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4600,7 +4600,7 @@ func (this *Aster) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Aster) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Aster) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "symbol": "ETHUSDT",

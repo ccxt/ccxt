@@ -2411,7 +2411,7 @@ func (this *Okx) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) 
 	}
 	return this.Exchange.HandleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue)
 }
-func (this *Okx) ConvertToInstrumentType(typeVar any) *string {
+func (this *Okx) ConvertToInstrumentType(typeVar *string) *string {
 	var exchangeTypes, _ = this.Options["exchangeType"].(map[string]any)
 	return this.SafeString(exchangeTypes, typeVar, typeVar)
 }
@@ -2998,7 +2998,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan AsyncResult[[]MarketInterface], 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
-		"instType": this.ConvertToInstrumentType(typeVar),
+		"instType": this.ConvertToInstrumentType(&typeVar),
 	}
 	if typeVar == "option" {
 		var optionsUnderlying []any = this.SafeListSlice(this.Options, "defaultUnderlying", []any{"BTC-USD", "ETH-USD"})
@@ -4424,7 +4424,7 @@ func (this *Okx) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], s
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"instType": this.ConvertToInstrumentType(market["type"]),
+		"instType": this.ConvertToInstrumentType(this.SafeString(market, "type")),
 	}
 	if *this.SafeBool(market, "spot", false) {
 		request["instId"] = market["id"]
@@ -8559,7 +8559,7 @@ func (this *Okx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 	})}
 	return nil
 }
-func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Okx) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instId")
@@ -9492,7 +9492,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Okx) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Okx) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//    {
 	//        "fundingRate": "0.00027815",
@@ -10725,7 +10725,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier
 	var typeVar any
 	if *this.SafeBool(market, "spot", false) {
 		typeVar = "MARGIN"
-	} else if derefPtr := this.ConvertToInstrumentType(market["type"]); derefPtr != nil {
+	} else if derefPtr := this.ConvertToInstrumentType(this.SafeString(market, "type")); derefPtr != nil {
 		typeVar = *derefPtr
 	}
 	var instFamily *string = this.SafeString(market["info"], "instFamily")
@@ -10924,7 +10924,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Okx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Okx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var instId *string = this.SafeString(info, "instId")
@@ -10935,7 +10935,7 @@ func (this *Okx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) a
 		marketResolved = market
 	}
 	var timestamp *int64 = this.SafeInteger(info, "ts")
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeString(marketResolved, "symbol"),
 		"currency":       this.SafeCurrencyCode(this.SafeString(info, "ccy")),
@@ -10945,7 +10945,7 @@ func (this *Okx) ParseBorrowInterest(info map[string]any, optionalArgs ...any) a
 		"marginMode":     this.SafeString(info, "mgnMode"),
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -11146,7 +11146,7 @@ func (this *Okx) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
-	var typeVar *string = this.ConvertToInstrumentType(market["type"])
+	var typeVar *string = this.ConvertToInstrumentType(this.SafeString(market, "type"))
 	var uly *string = this.SafeString(market["info"], "uly")
 	var request map[string]any = map[string]any{
 		"instType": typeVar,
@@ -11893,7 +11893,7 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 		var symbolMarket map[string]any = this.Market(symbol)
 		market = symbolMarket
 		request["instId"] = symbolMarket["id"]
-		request["instType"] = this.ConvertToInstrumentType(symbolMarket["type"])
+		request["instType"] = this.ConvertToInstrumentType(this.SafeString(symbolMarket, "type"))
 	}
 	if since != nil {
 		request["begin"] = *since
@@ -13470,7 +13470,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShortR
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(result, market, since, limit))}
 	return nil
 }
-func (this *Okx) ParseLongShortRatio(info any, optionalArgs ...any) any {
+func (this *Okx) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
@@ -13478,14 +13478,14 @@ func (this *Okx) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	if market != nil {
 		symbol = market["symbol"]
 	}
-	return map[string]any{
+	return LongShortRatioFromMap(map[string]any{
 		"info":           info,
 		"symbol":         symbol,
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
 		"timeframe":      nil,
 		"longShortRatio": this.SafeNumber(info, "longShortRatio"),
-	}
+	})
 }
 
 func NewOkx(userConfig map[string]any) *Okx {

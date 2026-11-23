@@ -1780,7 +1780,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Bitflyer) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//    {
 	//        "current_funding_rate": -0.003750000000

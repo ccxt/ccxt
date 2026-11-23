@@ -6717,7 +6717,7 @@ func (this *Xt) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol st
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(result, market)}
 	return nil
 }
-func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Xt) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "btc_usdt",
@@ -7112,7 +7112,7 @@ func (this *Xt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], o
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.FilterBySinceLimit(sorted, since, limit))}
 	return nil
 }
-func (this *Xt) ParseFundingHistory(contract map[string]any, optionalArgs ...any) any {
+func (this *Xt) ParseFundingHistory(contract map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "210804044057280512",

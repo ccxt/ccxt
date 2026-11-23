@@ -4544,7 +4544,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInter
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Digifinex) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Digifinex) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	//
 	//     {
 	//         "amount": 0.0006103,
@@ -4572,7 +4572,7 @@ func (this *Digifinex) ParseBorrowInterest(info map[string]any, optionalArgs ...
 		currency = market["base"]
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         symbol,
 		"currency":       currency,
@@ -4582,7 +4582,7 @@ func (this *Digifinex) ParseBorrowInterest(info map[string]any, optionalArgs ...
 		"marginMode":     nil,
 		"timestamp":      nil,
 		"datetime":       nil,
-	}
+	})
 }
 
 /**
@@ -4835,7 +4835,7 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate]
 	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
-func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Digifinex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",
@@ -6064,12 +6064,12 @@ func (this *Digifinex) reduceMarginBody(ch chan AsyncResult[MarginModification],
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount float64, typeVar any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount float64, typeVar int64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar any, optionalArgs ...any) any {
+func (this *Digifinex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6229,7 +6229,7 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHist
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
 }
-func (this *Digifinex) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Digifinex) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",

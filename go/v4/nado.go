@@ -3351,7 +3351,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Nado) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Nado) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "product_id": 1,
@@ -3399,7 +3399,7 @@ func (this *Nado) ParseFundingRate(contract any, optionalArgs ...any) FundingRat
 		"interval":                 "24h",
 	})
 }
-func (this *Nado) ParseFundingHistory(funding any, optionalArgs ...any) any {
+func (this *Nado) ParseFundingHistory(funding any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "product_id": 2,

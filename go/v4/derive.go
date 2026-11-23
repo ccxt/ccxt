@@ -2579,7 +2579,7 @@ func (this *Derive) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data)}
 	return nil
 }
-func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Derive) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(contract, "symbol")
@@ -4378,7 +4378,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(events, market, since, limit))}
 	return nil
 }
-func (this *Derive) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Derive) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "instrument_name": "BTC-PERP",
@@ -5194,11 +5194,11 @@ func (this *Derive) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(sorted, code, since, limit))}
 	return nil
 }
-func (this *Derive) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Derive) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         nil,
 		"currency":       "USDC",
@@ -5208,7 +5208,7 @@ func (this *Derive) ParseBorrowInterest(info map[string]any, optionalArgs ...any
 		"marginMode":     "cross",
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**

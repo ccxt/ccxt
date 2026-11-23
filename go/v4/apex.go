@@ -2636,7 +2636,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundingValues, market, since, limit))}
 	return nil
 }
-func (this *Apex) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Apex) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "1234",

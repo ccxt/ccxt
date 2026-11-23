@@ -13313,11 +13313,14 @@ func (this *Bitget) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	var data []any
 	data, _ = response["data"].([]any)
 
+	var dataDict967138 map[string]any
 	if len(data) > 0 {
-		ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data[0], market)}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(nil, market)}
+		dataDict967138, _ = data[0].(map[string]any)
 	}
+	if dataDict967138 == nil {
+		dataDict967138 = map[string]any{}
+	}
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(dataDict967138, market)}
 	return nil
 }
 
@@ -13507,7 +13510,7 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]Fun
 	ch <- AsyncResult[map[string]FundingRate]{Value: r1.Value}
 	return nil
 }
-func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Bitget) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	// fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
 	//
@@ -14020,7 +14023,7 @@ func (this *Bitget) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Bitget) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginMode *string = this.SafeString(leverage, "marginMode")
@@ -15766,7 +15769,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Bitget) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Bitget) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	//
 	// isolated
 	//
@@ -15805,7 +15808,7 @@ func (this *Bitget) ParseBorrowInterest(info map[string]any, optionalArgs ...any
 	}
 	var timestamp *int64 = this.SafeInteger(info, "cTime")
 	var interestCoin *string = this.SafeString(info, "interestCoin")
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeString(marketResolved, "symbol"),
 		"currency":       this.SafeCurrencyCode(interestCoin),
@@ -15815,7 +15818,7 @@ func (this *Bitget) ParseBorrowInterest(info map[string]any, optionalArgs ...any
 		"marginMode":     marginMode,
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -16670,19 +16673,19 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSho
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(data, market))}
 	return nil
 }
-func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) any {
+func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var timestamp any = this.SafeIntegerOmitZero(info, "ts")
-	return map[string]any{
+	return LongShortRatioFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeSymbol(marketId, market, nil, "contract"),
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
 		"timeframe":      nil,
 		"longShortRatio": this.SafeNumber2(info, "longShortRatio", "longShortAccountRatio"),
-	}
+	})
 }
 func (this *Bitget) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {

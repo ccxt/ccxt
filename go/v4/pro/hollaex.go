@@ -861,11 +861,11 @@ func (this *Hollaex) HandlePong(client ccxt.ClientInterface, message map[string]
 	client.SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Hollaex) OnError(client any, error any) {
+func (this *Hollaex) OnError(client ccxt.ClientInterface, error any) {
 	this.Options["ws-expires"] = nil
 	this.base.OnError(client, error)
 }
-func (this *Hollaex) OnClose(client any, error any) {
+func (this *Hollaex) OnClose(client ccxt.ClientInterface, error any) {
 	this.Options["ws-expires"] = nil
 	this.base.OnClose(client, error)
 }

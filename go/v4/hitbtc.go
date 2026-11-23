@@ -3988,6 +3988,9 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 		if marketId != nil {
 			rawFundingRate, _ = response[*marketId].(map[string]any)
 		}
+		if rawFundingRate == nil {
+			rawFundingRate = map[string]any{}
+		}
 		var marketInner map[string]any = this.Market(marketId)
 		var symbol *string = this.SafeSymbol(marketId, marketInner)
 		var fundingRate map[string]any = FundingRateToMap(this.ParseFundingRate(rawFundingRate, marketInner))
@@ -4645,7 +4648,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Hitbtc) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "contract_type": "perpetual",
@@ -4984,7 +4987,7 @@ func (this *Hitbtc) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Hitbtc) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")

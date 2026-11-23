@@ -1746,7 +1746,7 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) FundingRate {
+func (this *Lbank) ParseFundingRate(ticker map[string]any, optionalArgs ...any) FundingRate {
 	// {
 	//     "symbol": "BTCUSDT",
 	//     "highestPrice": "69495.5",
@@ -1829,10 +1829,10 @@ func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responseForSwap map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var fundingRate map[string]any = SafeMapTyped(responseForSwap, market.Symbol)
+	var responseForSwap map[string]FundingRate = r1.Value
+	var fundingRate FundingRate = responseForSwap[market.Symbol]
 
-	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(fundingRate)}
+	ch <- AsyncResult[FundingRate]{Value: fundingRate}
 	return nil
 }
 

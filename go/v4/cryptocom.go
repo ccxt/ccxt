@@ -4276,7 +4276,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sy
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(entry, market)}
 	return nil
 }
-func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Cryptocom) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//                 {
 	//                     "v": "-0.000001884",
@@ -4902,7 +4902,7 @@ func (this *Cryptocom) ParseTradingFees(response map[string]any) map[string]any 
 	}
 	return result
 }
-func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Cryptocom) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	// {
 	//      "instrument_name": "BTC_USD",

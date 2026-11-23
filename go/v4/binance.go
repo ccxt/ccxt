@@ -13374,7 +13374,7 @@ func (this *Binance) ParseTransfer(transfer map[string]any, optionalArgs ...any)
 	}
 	return TransferEntryFromMap(literal1015715)
 }
-func (this *Binance) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "symbol": "ETHUSDT",
@@ -14620,7 +14620,7 @@ func (this *Binance) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	//         "time": "1621252344001"
 	//     }
 	//
-	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(response, market)}
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -14805,7 +14805,7 @@ func (this *Binance) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
 	return nil
 }
-func (this *Binance) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Binance) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	// ensure it matches with https://www.binance.com/en/futures/funding-history/0
 	//
 	// fetchFundingRate, fetchFundingRates
@@ -16806,7 +16806,7 @@ func (this *Binance) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage]
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leverages, symbols, "symbol"))}
 	return nil
 }
-func (this *Binance) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Binance) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -17821,12 +17821,12 @@ func (this *Binance) requestBody(ch chan AsyncResult[any], path any, optionalArg
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
-func (this *Binance) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Binance) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce int64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Binance) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, addOrReduce any, optionalArgs ...any) any {
+func (this *Binance) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, addOrReduce int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// used to modify isolated positions
@@ -18094,13 +18094,10 @@ func (this *Binance) fetchIsolatedBorrowRateBody(ch chan AsyncResult[IsolatedBor
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var borrowRates any = nil
-	if !StructAbsent(r.Value) {
-		borrowRates = StructBox(r.Value, IsolatedBorrowRateMapToMap)
-	}
-	var rate map[string]any = SafeMapTyped(borrowRates, symbol)
+	var borrowRates map[string]IsolatedBorrowRate = r.Value
+	var rate IsolatedBorrowRate = borrowRates[symbol]
 
-	ch <- AsyncResult[IsolatedBorrowRate]{Value: IsolatedBorrowRateFromMap(rate)}
+	ch <- AsyncResult[IsolatedBorrowRate]{Value: rate}
 	return nil
 }
 
@@ -18589,7 +18586,7 @@ func (this *Binance) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInteres
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Binance) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Binance) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(info, "isolatedSymbol")
@@ -18598,7 +18595,7 @@ func (this *Binance) ParseBorrowInterest(info map[string]any, optionalArgs ...an
 	if symbol == nil {
 		marginMode = "cross"
 	}
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         symbol,
 		"currency":       this.SafeCurrencyCode(this.SafeString(info, "asset")),
@@ -18608,7 +18605,7 @@ func (this *Binance) ParseBorrowInterest(info map[string]any, optionalArgs ...an
 		"marginMode":     marginMode,
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -19864,13 +19861,10 @@ func (this *Binance) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var fetchMarginModesResponse any = nil
-		if !StructAbsent(r1.Value) {
-			fetchMarginModesResponse = StructBox(r1.Value, MarginModeMapToMap)
-		}
-		var marginMode map[string]any = SafeMapTyped(fetchMarginModesResponse, symbol)
+		var fetchMarginModesResponse map[string]MarginMode = r1.Value
+		var marginMode MarginMode = fetchMarginModesResponse[symbol]
 
-		ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(marginMode)}
+		ch <- AsyncResult[MarginMode]{Value: marginMode}
 		return nil
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginMode () supports linear and inverse subTypes only"))
@@ -20787,7 +20781,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSh
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(response, market))}
 	return nil
 }
-func (this *Binance) ParseLongShortRatio(info any, optionalArgs ...any) any {
+func (this *Binance) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
 	//
 	// linear
 	//
@@ -20813,14 +20807,14 @@ func (this *Binance) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var timestamp any = this.SafeIntegerOmitZero(info, "timestamp")
-	return map[string]any{
+	return LongShortRatioFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeSymbol(marketId, market, nil, "contract"),
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
 		"timeframe":      nil,
 		"longShortRatio": this.SafeNumber(info, "longShortRatio"),
-	}
+	})
 }
 
 /**

@@ -1382,7 +1382,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan AsyncResu
 func (this *Coinbaseinternational) ParseFundingRateHistory(info any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var fundingRate map[string]any = FundingRateToMap(this.ParseFundingRate(info, market))
+	var fundingRate map[string]any = FundingRateToMap(this.ParseFundingRate(this.Extend(map[string]any{}, info), market))
 	return map[string]any{
 		"info":        info,
 		"symbol":      fundingRate["symbol"],
@@ -1391,7 +1391,7 @@ func (this *Coinbaseinternational) ParseFundingRateHistory(info any, optionalArg
 		"datetime":    fundingRate["datetime"],
 	}
 }
-func (this *Coinbaseinternational) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Coinbaseinternational) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	// fetchFundingRateHistory
 	//
@@ -4072,7 +4072,7 @@ func (this *Coinbaseinternational) fetchLeverageBody(ch chan AsyncResult[Leverag
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(result, market)}
 	return nil
 }
-func (this *Coinbaseinternational) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Coinbaseinternational) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instrument_name")

@@ -637,19 +637,19 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
  * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
  * @returns {object} the outcome cache
  */
-func (this *Kalshi) FetchOutcomesAsync(outcomeSymbols any) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
+func (this *Kalshi) FetchOutcomesAsync(outcomeSymbols []any) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
 	ch := make(chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols any) any {
+func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols []any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var tickers []string = []string{}
 	var seen map[string]any = map[string]any{}
-	var outcomeSymbolsLength int = ccxt.GetArrayLength(outcomeSymbols)
+	var outcomeSymbolsLength int = len(outcomeSymbols)
 	for i := 0; i < outcomeSymbolsLength; i++ {
-		var outcomeSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeSymbols, i))
+		var outcomeSymbol *string = ccxt.SafeStringPtr(outcomeSymbols[i])
 		if strings.Index(*outcomeSymbol, ":") >= 0 {
 			continue
 		}
@@ -3837,7 +3837,7 @@ func (this *Kalshi) FetchOutcome(outcomeSymbol string) (map[string]any, error) {
  * @returns {object} the outcome cache
  */
 func (this *Kalshi) FetchOutcomes(outcomeSymbols []string) (map[string]any, error) {
-	r := <-this.FetchOutcomesAsync(outcomeSymbols)
+	r := <-this.FetchOutcomesAsync(ccxt.StringSliceToList(outcomeSymbols))
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}

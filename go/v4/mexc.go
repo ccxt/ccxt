@@ -4277,12 +4277,12 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	return nil
 }
-func (this *Mexc) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Mexc) FetchOrdersByStateAsync(state int64, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any, optionalArgs ...any) any {
+func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4462,9 +4462,6 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		if errorMsg != "success" {
 			panic(InvalidOrder(this.Id + " cancelOrder() the order with id " + id + " cannot be cancelled: " + errorMsg))
 		}
-
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
-		return nil
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
@@ -5693,11 +5690,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445915 map[string]any = r.Value
-	if retRes445915 == nil {
+	var retRes445815 map[string]any = r.Value
+	if retRes445815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445915}
+		ch <- AsyncResult[map[string]any]{Value: retRes445815}
 	}
 	return nil
 }
@@ -5727,11 +5724,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes447315 map[string]any = r.Value
-	if retRes447315 == nil {
+	var retRes447215 map[string]any = r.Value
+	if retRes447215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes447315}
+		ch <- AsyncResult[map[string]any]{Value: retRes447215}
 	}
 	return nil
 }
@@ -5896,7 +5893,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(result)}
 	return nil
 }
-func (this *Mexc) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Mexc) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "BTC_USDT",
@@ -8105,7 +8102,7 @@ func (this *Mexc) ParseLeverageList(leverages []any, optionalArgs ...any) map[st
 		"shortLeverage": shortLeverage,
 	}
 }
-func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Mexc) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	// setMarginMode answers { success, code }: no per-side leverage rows to read
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -8428,16 +8425,16 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal649915 map[string]any = map[string]any{
+	var literal649815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal649915["body"] = *requestBody
+		literal649815["body"] = *requestBody
 	}
-	return literal649915
+	return literal649815
 }
 func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
@@ -9005,7 +9002,7 @@ func (this *Mexc) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 	var res []Order = r.Value
 	return res, nil
 }
-func (this *Mexc) FetchOrdersByState(state float64, options ...FetchOrdersByStateOptions) ([]Order, error) {
+func (this *Mexc) FetchOrdersByState(state int64, options ...FetchOrdersByStateOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStateOptionsStruct{}
 

@@ -1981,12 +1981,12 @@ func (this *Cryptocom) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool],
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Cryptocom) WatchPrivateRequestAsync(nonce any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Cryptocom) WatchPrivateRequestAsync(nonce int64, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateRequestBody(ch, nonce, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) watchPrivateRequestBody(ch chan ccxt.AsyncResult[any], nonce any, optionalArgs ...any) any {
+func (this *Cryptocom) watchPrivateRequestBody(ch chan ccxt.AsyncResult[any], nonce int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

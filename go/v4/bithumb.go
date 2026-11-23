@@ -1426,7 +1426,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTicker", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var data any = map[string]any{}
+	var data map[string]any = map[string]any{}
 	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
 
@@ -1467,7 +1467,13 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		//         },
 		//     ]
 		//
-		data = this.SafeDict(response, 0, map[string]any{})
+		data = nil
+		if len(response) > 0 {
+			data, _ = response[0].(map[string]any)
+		}
+		if data == nil {
+			data = map[string]any{}
+		}
 	} else {
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
@@ -1496,7 +1502,10 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		//         }
 		//     }
 		//
-		data = this.SafeDict(response, "data", map[string]any{})
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, data), market)}

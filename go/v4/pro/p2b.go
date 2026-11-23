@@ -712,11 +712,11 @@ func (this *P2b) HandlePong(client ccxt.ClientInterface, message map[string]any)
 	client.SetLastPong(this.SafeInteger(message, "id", this.Milliseconds()))
 	return message
 }
-func (this *P2b) OnError(client any, error any) {
+func (this *P2b) OnError(client ccxt.ClientInterface, error any) {
 	this.Options["tickerSubs"] = this.CreateSafeDictionary()
 	this.base.OnError(client, error)
 }
-func (this *P2b) OnClose(client any, error any) {
+func (this *P2b) OnClose(client ccxt.ClientInterface, error any) {
 	this.Options["tickerSubs"] = this.CreateSafeDictionary()
 	this.base.OnClose(client, error)
 }

@@ -1053,7 +1053,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[map[string]T
 	//        ]
 	//    }
 	//
-	var volumes any = map[string]any{}
+	var volumes map[string]any = map[string]any{}
 	if this.CheckRequiredCredentials(false) {
 
 		r2 := <-this.PrivateGetFeeschedulesVolumes()
@@ -1070,7 +1070,10 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[map[string]T
 		//        }
 		//    }
 		//
-		volumes = this.SafeDict(volumesResponse, "volumesByFeeSchedule", map[string]any{})
+		volumes, _ = volumesResponse["volumesByFeeSchedule"].(map[string]any)
+		if volumes == nil {
+			volumes = map[string]any{}
+		}
 	}
 	var feeSchedules []any
 	feeSchedules, _ = response["feeSchedules"].([]any)
@@ -3492,7 +3495,7 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[[]Funding
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(logs, market, since, limit))}
 	return nil
 }
-func (this *Krakenfutures) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "asset": "usd",
@@ -3952,7 +3955,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[map[string]
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.IndexBy(fundingRates, "symbol"))}
 	return nil
 }
-func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) FundingRate {
+func (this *Krakenfutures) ParseFundingRate(ticker map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "PF_ENJUSD",
@@ -4899,7 +4902,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[Leverage], symb
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Krakenfutures) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")

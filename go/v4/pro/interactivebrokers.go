@@ -1558,8 +1558,8 @@ func (this *Interactivebrokers) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			snapshot := r2.Value
-			for i := 0; i < ccxt.GetArrayLength(snapshot); i++ {
+			var snapshot []any = ccxt.MapSliceToList(r2.Value)
+			for i := 0; i < len(snapshot); i++ {
 				var rawOrder any = ccxt.GetValue(snapshot, i)
 				var orderId *string = this.SafeString(rawOrder, "orderId")
 				if orderId != nil {

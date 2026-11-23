@@ -2641,17 +2641,7 @@ func (this *Sxbet) fetchSxbetBestOddsBody(ch chan ccxt.AsyncResult[[]map[string]
 	var response map[string]any = r.Value
 	var data, _ = response["data"].(map[string]any)
 
-	var resolved []any
-	switch resolvedBox := this.SafeList(data, "bestOdds", []any{}).(type) {
-	case []any:
-		resolved = resolvedBox
-	case ccxt.IArrayCache:
-		resolved = resolvedBox.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(resolved)}
+	ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(this.SafeList(data, "bestOdds", []any{}))}
 	return nil
 }
 

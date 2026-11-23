@@ -1396,7 +1396,7 @@ func (this *Polymarket) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fun
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil
 }
-func (this *Polymarket) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Polymarket) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "instrument_id": 1,
@@ -3528,7 +3528,7 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 	}
 	panic(BadSymbol(this.Id + " fetchLeverage() could not find the configuration for " + symbol))
 }
-func (this *Polymarket) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Polymarket) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instrument_id")

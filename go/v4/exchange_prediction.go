@@ -874,15 +874,15 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
  * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
  * @returns {object} the outcome cache
  */
-func (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]PredictionOutcome] {
+func (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols []any) <-chan AsyncResult[map[string]PredictionOutcome] {
 	ch := make(chan AsyncResult[map[string]PredictionOutcome], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[map[string]PredictionOutcome], outcomeSymbols any) any {
+func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[map[string]PredictionOutcome], outcomeSymbols []any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	for i := 0; i < GetArrayLength(outcomeSymbols); i++ {
+	for i := 0; i < len(outcomeSymbols); i++ {
 
 		r := <-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i))
 		if r.Err != nil {

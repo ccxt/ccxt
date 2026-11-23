@@ -1281,7 +1281,7 @@ func (this *Modetrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
 }
-func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) FundingRate {
+func (this *Modetrade) ParseFundingRate(fundingRate map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//         {
 	//             "symbol":"PERP_AAVE_USDT",
@@ -1917,7 +1917,7 @@ func (this *Modetrade) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Ope
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil
 }
-func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Modetrade) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//         "symbol": "PERP_ETH_USDC",
@@ -4387,7 +4387,7 @@ func (this *Modetrade) withdrawBody(ch chan AsyncResult[Transaction], code strin
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
 }
-func (this *Modetrade) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Modetrade) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var leverageValue *int64 = this.SafeInteger(leverage, "max_leverage")

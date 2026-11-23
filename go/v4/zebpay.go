@@ -2672,11 +2672,11 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) Position {
 		"percentage":                  nil,
 	})
 }
-func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Zebpay) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
-	var info map[string]any = SafeMapTyped(leverage, "info")
+	var info, _ = leverage["info"].(map[string]any)
 	var leverageValue *int64 = this.SafeInteger(leverage, "longLeverage")
 	var leverageValueShort *int64 = this.SafeInteger(leverage, "shortLeverage")
 	var marginMode *string = this.SafeString(leverage, "marginMode")

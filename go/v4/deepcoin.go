@@ -533,7 +533,7 @@ func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...
 	}
 	return this.Exchange.HandleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue)
 }
-func (this *Deepcoin) ConvertToInstrumentType(typeVar any) *string {
+func (this *Deepcoin) ConvertToInstrumentType(typeVar *string) *string {
 	var exchangeTypes, _ = this.Options["exchangeType"].(map[string]any)
 	return this.SafeString(exchangeTypes, typeVar, typeVar)
 }
@@ -2986,7 +2986,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	var paramsOmitted map[string]any = this.OmitDict(params, "trigger")
 	var response map[string]any = nil
 	if trigger != nil && *trigger {
-		request["instType"] = this.ConvertToInstrumentType(market["type"])
+		request["instType"] = this.ConvertToInstrumentType(this.SafeString(market, "type"))
 		//
 		//     {
 		//         "code": "0",
@@ -3582,7 +3582,7 @@ func (this *Deepcoin) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var instrumentType *string = this.ConvertToInstrumentType(market["type"])
+	var instrumentType *string = this.ConvertToInstrumentType(this.SafeString(market, "type"))
 	var request map[string]any = map[string]any{
 		"instType": instrumentType,
 		"instId":   market["id"],
@@ -3979,7 +3979,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(entry, market)}
 	return nil
 }
-func (this *Deepcoin) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Deepcoin) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "instrumentId": "ETHUSDT",

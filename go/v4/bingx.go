@@ -2580,7 +2580,7 @@ func (this *Bingx) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
 }
-func (this *Bingx) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Bingx) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "BTC-USDT",
@@ -2860,7 +2860,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
 }
-func (this *Bingx) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Bingx) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	// {
 	//     "symbol": "LDO-USDT",
 	//     "incomeType": "FUNDING_FEE",
@@ -7516,7 +7516,7 @@ func (this *Bingx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol strin
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Bingx) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Bingx) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	//
 	// linear swap
 	//

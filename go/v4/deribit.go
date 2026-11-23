@@ -4671,6 +4671,9 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	result, _ = response["result"].([]any)
 	for i := 0; i < len(result); i++ {
 		var fr, _ = result[i].(map[string]any)
+		if fr == nil {
+			fr = map[string]any{}
+		}
 		var rate map[string]any = FundingRateToMap(this.ParseFundingRate(fr, market))
 		rates = append(rates, rate)
 	}
@@ -4678,7 +4681,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(rates, symbol, sinceResolved, limit))}
 	return nil
 }
-func (this *Deribit) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Deribit) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//   {
 	//       "jsonrpc":"2.0",

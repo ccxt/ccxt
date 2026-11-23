@@ -1595,7 +1595,7 @@ func (this *Pacifica) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(result, symbols))}
 	return nil
 }
-func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) FundingRate {
+func (this *Pacifica) ParseFundingRate(info map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//      {
 	//         "funding": "0.00010529",
@@ -4272,16 +4272,13 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var ois any = nil
-	if !StructAbsent(r1.Value) {
-		ois = StructBox(r1.Value, OpenInterestMapToMap)
-	}
-	var oi map[string]any = SafeMapTyped(ois, symbolValue)
-	if oi == nil {
+	var ois map[string]OpenInterest = r1.Value
+	oi, oiOk := ois[symbolValue]
+	if !oiOk {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() could not find open interest for " + symbolValue))
 	}
 
-	ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(oi)}
+	ch <- AsyncResult[OpenInterest]{Value: oi}
 	return nil
 }
 func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
@@ -4727,7 +4724,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
 }
-func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Pacifica) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "history_id": 2287920,

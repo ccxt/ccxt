@@ -4184,7 +4184,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Bybit) ParseFundingRate(ticker any, optionalArgs ...any) FundingRate {
+func (this *Bybit) ParseFundingRate(ticker map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
@@ -4213,7 +4213,7 @@ func (this *Bybit) ParseFundingRate(ticker any, optionalArgs ...any) FundingRate
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp") // added artificially to avoid changing the signature
-	var tickerOmitted any = this.Omit(ticker, "timestamp")
+	var tickerOmitted map[string]any = this.OmitDict(ticker, "timestamp")
 	var marketId *string = this.SafeString(tickerOmitted, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "swap")
 	var fundingRate *float64 = this.SafeNumber(tickerOmitted, "fundingRate")
@@ -9630,10 +9630,10 @@ func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol strin
 		position = StructBox(r1.Value, PositionToMap)
 	}
 
-	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(position, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(this.Extend(map[string]any{}, position), market)}
 	return nil
 }
-func (this *Bybit) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Bybit) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -10533,7 +10533,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]a
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.ParseBorrowRateHistory(rows, code, sinceResolved, limit))}
 	return nil
 }
-func (this *Bybit) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Bybit) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	//
 	//     {
 	//         "tokenId": "BTC",
@@ -10546,7 +10546,7 @@ func (this *Bybit) ParseBorrowInterest(info map[string]any, optionalArgs ...any)
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         nil,
 		"currency":       this.SafeCurrencyCode(this.SafeString(info, "tokenId")),
@@ -10556,7 +10556,7 @@ func (this *Bybit) ParseBorrowInterest(info map[string]any, optionalArgs ...any)
 		"marginMode":     "cross",
 		"timestamp":      nil,
 		"datetime":       nil,
-	}
+	})
 }
 
 /**
@@ -12412,7 +12412,7 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundings, market, since, limit))}
 	return nil
 }
-func (this *Bybit) ParseIncome(income any, optionalArgs ...any) map[string]any {
+func (this *Bybit) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "symbol": "XMRUSDT",
@@ -13441,7 +13441,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShor
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(data, market))}
 	return nil
 }
-func (this *Bybit) ParseLongShortRatio(info any, optionalArgs ...any) any {
+func (this *Bybit) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
@@ -13456,14 +13456,14 @@ func (this *Bybit) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	var timestamp any = this.SafeIntegerOmitZero(info, "timestamp")
 	var longString *string = this.SafeString(info, "buyRatio")
 	var shortString *string = this.SafeString(info, "sellRatio")
-	return map[string]any{
+	return LongShortRatioFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeSymbol(marketId, market, nil, "contract"),
 		"timestamp":      timestamp,
 		"datetime":       this.Iso8601(timestamp),
 		"timeframe":      nil,
 		"longShortRatio": this.ParseToNumeric(Precise.StringDiv(longString, shortString)),
-	}
+	})
 }
 
 /**

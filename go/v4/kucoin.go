@@ -12702,7 +12702,7 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit))}
 	return nil
 }
-func (this *Kucoin) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
+func (this *Kucoin) ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest {
 	//
 	// Cross
 	//
@@ -12776,7 +12776,7 @@ func (this *Kucoin) ParseBorrowInterest(info map[string]any, optionalArgs ...any
 		interest = this.SafeNumber(info, "liabilityInterest")
 		currencyId = this.SafeString(info, "currency")
 	}
-	return map[string]any{
+	return BorrowInterestFromMap(map[string]any{
 		"info":           info,
 		"symbol":         symbol,
 		"currency":       this.SafeCurrencyCode(currencyId),
@@ -12786,7 +12786,7 @@ func (this *Kucoin) ParseBorrowInterest(info map[string]any, optionalArgs ...any
 		"marginMode":     marginMode,
 		"timestamp":      nil,
 		"datetime":       nil,
-	}
+	})
 }
 
 /**
@@ -13501,7 +13501,7 @@ func (this *Kucoin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	}))}
 	return nil
 }
-func (this *Kucoin) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Kucoin) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -13643,12 +13643,12 @@ func (this *Kucoin) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
  * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} response from the exchange
  */
-func (this *Kucoin) SetContractLeverageAsync(leverage any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Kucoin) SetContractLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.setContractLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) setContractLeverageBody(ch chan AsyncResult[Leverage], leverage any, optionalArgs ...any) any {
+func (this *Kucoin) setContractLeverageBody(ch chan AsyncResult[Leverage], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -13908,7 +13908,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rates, symbolsNormalized))}
 	return nil
 }
-func (this *Kucoin) ParseFundingRate(data any, optionalArgs ...any) FundingRate {
+func (this *Kucoin) ParseFundingRate(data map[string]any, optionalArgs ...any) FundingRate {
 	// uta
 	//     {
 	//         "symbol": ".ETHUSDTMFPI8H",
