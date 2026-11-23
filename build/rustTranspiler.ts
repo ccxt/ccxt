@@ -275,8 +275,9 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
             let off = h.index! + h[0].length - h[5].length - 1;
             h[5].split(', ').slice(1).forEach((p, i) => {
                 off += 2;
-                const pm = /^mut (client|message): Value$/.exec(p) ?? /^(client|message): &Value$/.exec(p);
-                if (pm) params.push({ name: pm[1], idx: i, at: off, len: p.length, isRef: p.endsWith('&Value') });
+                const pm = /^mut (client|message): Value$/.exec(p) ?? /^(client|message): &Value$/.exec(p) ?? /^(client): &crate::pro::ws_client::ClientHandle$/.exec(p);
+                // a typed client handle slot is already lent
+                if (pm) params.push({ name: pm[1], idx: i, at: off, len: p.length, isRef: !p.endsWith(': Value') });
                 off += p.length;
             });
             (defs.get(name) ?? defs.set(name, []).get(name)!).push({ file, start: h.index!, bodyOpen, end, params });
@@ -601,7 +602,7 @@ class Proof {
         if (read === null) return false;
         const root = read[1];
         const header = body.slice(0, body.indexOf('{'));
-        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, (?:mut client: Value|client: &Value), mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
+        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, (?:mut client: Value|client: &Value|client: &crate::pro::ws_client::ClientHandle), mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
         // a root the function writes into could hold a cached (tagged) value
         if (!/^[a-z][A-Za-z0-9]*$/.test(root) || new RegExp('&mut ' + root + '\\b').test(body)) return false;
         const bind = new RegExp('(?:^|[^.\\w])' + root + '[ \\t]*(?::[^=\\n]*)?=(?!=)(.*)$', 'gm');
@@ -7363,7 +7364,7 @@ function lendDataHandlerMessage(content: string): string {
     const m = rustBorrowMask(content);
     const edits: Array<[number, number, string]> = [];
     for (const name of RUST_LENT_DATA_HANDLERS) {
-        const hdr = new RegExp(`^    pub fn ${name}\\(&mut self, (?:client: &Value|mut client: Value), (mut message: Value)\\) \\{\\n`, 'gm');
+        const hdr = new RegExp(`^    pub fn ${name}\\(&mut self, (?:client: &Value|mut client: Value|client: &crate::pro::ws_client::ClientHandle), (mut message: Value)\\) \\{\\n`, 'gm');
         const defs = [...m.matchAll(hdr)];
         if (defs.length !== 1 || m.split(new RegExp(`\\bfn ${name}\\(`)).length !== 2) continue;
         const d = defs[0], open = d.index! + d[0].length - 2, end = rustBorrowClose(m, open);
