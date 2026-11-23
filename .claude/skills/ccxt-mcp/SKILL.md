@@ -1,6 +1,6 @@
 ---
 name: ccxt-mcp
-description: Official CCXT MCP (Model Context Protocol) server — connect an AI agent to 100+ cryptocurrency exchanges and prediction markets for market data, balances, and opt-in trading. Covers installing the server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts; configuring named accounts and API keys (kept local, never seen by the model); the capability tiers and safety rails; sandbox/testnet trading; and how to drive the tools. Use when the user wants an agent to fetch prices/order books/candles, check balances/orders/positions, place or cancel orders, or explore prediction markets across exchanges.
+description: Official CCXT MCP (Model Context Protocol) server — connect an AI agent to 100+ cryptocurrency exchanges and prediction markets for market data, balances, and opt-in trading, and render interactive candlestick charts, order-book depth and price boards. Covers installing the server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts; configuring named accounts and API keys (kept local, never seen by the model); the capability tiers and safety rails; sandbox/testnet trading; and how to drive the tools. Use when the user wants an agent to fetch prices/order books/candles, check balances/orders/positions, place or cancel orders, or explore prediction markets across exchanges.
 ---
 
 # CCXT MCP Server
@@ -17,6 +17,10 @@ Key property: **your API keys stay on your machine and the model never sees them
 Requires Node.js ≥ 18. Pick the host:
 
 - **Claude Code**: `claude mcp add ccxt -- npx -y ccxt-mcp`
+- **Plugin (server + this skill in one step)** — one plugin serves three hosts and pins the server (`npx -y ccxt-mcp@<plugin version>`), so updating the plugin updates the server:
+  - **Claude Code**: `/plugin marketplace add ccxt/ccxt` then `/plugin install ccxt-mcp@ccxt` (shell: `claude plugin marketplace add ccxt/ccxt` + `claude plugin install ccxt-mcp@ccxt`). The install can prompt for optional exchange / API key settings (stored by Claude Code, sensitive values in secure storage); the config file below works regardless. Tools are then named `mcp__plugin_ccxt-mcp_ccxt__<tool>`.
+  - **OpenAI Codex / ChatGPT desktop app**: `codex plugin marketplace add ccxt/ccxt` registers the marketplace, then install "CCXT" from the Plugins directory in the ChatGPT desktop app (a plugin with a local stdio MCP server is "desktop-only").
+  - **xAI Grok**: Grok reads Claude Code marketplaces and plugins with zero configuration — add `ccxt/ccxt` as a marketplace source from `/plugins` → Marketplace tab (its docs publish no CLI command for this), or run `grok --plugin-dir <path to mcp/plugin>`.
 - **Claude Desktop** / **Cursor** / **Windsurf** — add to the host's MCP config:
   ```json
   { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
@@ -94,6 +98,7 @@ Set `"sandbox": true` on an account to trade fake money on the exchange testnet 
 
 - **Discovery**: `list_exchanges`, `describe_exchange`, `describe_method` (search method names / signatures / per-exchange params + doc links), `get_safety_status` (which accounts/tiers are active).
 - **Market data**: `search_markets` (resolve a symbol — there is no list-all-markets tool), `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`. Long-tail reads (funding rates, open interest, ledger, …) via `call_read_method`; raw exchange GET endpoints via `call_implicit_get`.
+- **Views (MCP Apps)**: `show_chart` (candlestick + volume chart), `show_orderbook` (cumulative depth chart + bid/ask ladder), `show_tickers` (sortable 24h price board) — public data, read-only, no account; see "Showing charts and views" below.
 - **Live data (WebSocket)**: `watch_subscribe` opens a background stream and returns a `subscriptionId` and a `streamKind`. **State** streams are snapshots — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: `watch_read` returns the **full current set** in `latest` (the server merges live updates, so a multi-symbol stream always shows every subscribed symbol, not just the one that last changed) — just read it whenever you need the current value (the live order book, all your positions, the recent candle window). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` plus a `nextCursor` — thread it back as `cursor` on each poll so you don't re-receive old items. Pass `waitForChange: true` (optional `timeoutMs`) to **block until the next update** instead of polling — ideal for waiting on an order fill or position change; the response's `timedOut` says whether anything arrived. `watch_unsubscribe` when done; `watch_list` shows active streams. Prefer one-shot `get_*` tools for a single snapshot; use `watch_*` for live/continuous data.
 - **Private (read tier)**: `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
 - **Best route across exchanges**: `fetch_route` (no account needed) — see below.
@@ -107,6 +112,22 @@ Conventions to follow:
 - `since` accepts a millisecond timestamp or an ISO8601 string; results carry both `timestamp` (ms) and `datetime` (ISO8601).
 - List results are capped to fit context; check `meta` (`count`/`returned`/`available`/`hasMore`/`truncated`) and page rather than assuming completeness.
 - **Prediction markets**: use `search_events` to find an event and its outcome handles, then pass an outcome handle (priced 0–1) as the symbol to the ordinary tools.
+
+## Showing charts and views (`show_chart`, `show_orderbook`, `show_tickers`)
+
+When the user asks to **see, show, plot, chart or visualize** something, call a `show_*` tool instead of fetching rows and describing them:
+
+| User wants | Call | Arguments |
+|---|---|---|
+| a price chart / candles | `show_chart` | `exchange`, `symbol`, `timeframe` (default `1h`), `since`, `limit` (default 200, max 500), `marketType`, `prediction`, `params` |
+| the order book, depth or liquidity | `show_orderbook` | `exchange`, `symbol`, `limit` (levels per side, default 50, max 100), `marketType`, `prediction`, `params` |
+| current prices for several markets | `show_tickers` | `exchange`, `symbols` (1–50), `marketType`, `prediction`, `params` |
+
+- These are MCP Apps tools: in a host that supports MCP Apps the view is rendered for the user in a sandboxed iframe. The view gets the full dataset; **the tool result you receive is a compact summary** (chart: range, open/close, change %, high/low, volume; book: best bid/ask, spread, depth totals; board: last, 24h %, quote volume per symbol).
+- Check `meta.ui`. `"displayed"`: the user is looking at the view — comment on the summary, do **not** paste candles, levels or a table of the same data. `"unsupported"`: the host did not advertise MCP Apps support (terminal hosts such as the Claude Code, Codex and Grok CLIs have no surface to draw a view), so describe the summary in text instead and don't claim a chart was shown.
+- Need the raw rows for analysis? Use `get_ohlcv`, `get_orderbook` or `get_tickers` — the `show_*` tools never return them.
+- Resolve symbols with `search_markets` first, and take valid `timeframe` values from `describe_exchange`, exactly as for the data tools.
+- The views are self-contained (no network access, no external assets, no tracking); the user can refresh or switch timeframe from inside the view, which re-runs the same tool through the host.
 
 ## Best price / execution route (`fetch_route`, `execute_route`)
 

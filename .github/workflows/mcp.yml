@@ -6,15 +6,24 @@ on:
     branches: [ main, master ]
     paths:
       - 'mcp/**'
+      - '.claude-plugin/**'
+      - '.agents/plugins/**'
+      - '.claude/skills/ccxt-mcp/**'
       - '.github/workflows/mcp.yml'
   pull_request:
     paths:
       - 'mcp/**'
+      - '.claude-plugin/**'
+      - '.agents/plugins/**'
+      - '.claude/skills/ccxt-mcp/**'
       - '.github/workflows/mcp.yml'
 
 # The ccxt-mcp sub-package is self-contained (its own package.json + lockfile) and its
 # tests use a fake ccxt module, so this job never touches the multi-language transpiler
 # pipeline — just build (tsc + doc manifest) and run the offline test matrix.
+# The plugin (mcp/plugin) is described by files outside mcp/ too — both marketplaces and the
+# canonical ccxt-mcp skill it bundles a copy of — and test/schema/plugin.test.ts checks them
+# against each other, hence the extra path filters above.
 jobs:
   build-test:
     runs-on: ubuntu-latest

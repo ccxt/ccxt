@@ -258,3 +258,97 @@ test ('loadEnvKeys never auto-arms LIVE trading from a global flag (safety)', ()
         assert.equal (config.accounts['binance'].trading ?? false, false);
     });
 });
+
+test ('unsubstituted ${...} credential templates count as unset, not as credential values', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'okx',
+        'CCXT_MCP_APIKEY': 'FAKEKEY111111',
+        'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_API_KEY': '${user_config.api_key}',
+        'CCXT_MCP_PASSWORD': '${user_config.password}',
+        'CCXT_MCP_UID': '${user_config.uid}',
+        'CCXT_MCP_WALLETADDRESS': '${user_config.wallet_address}',
+        'CCXT_MCP_PRIVATEKEY': '${user_config.private_key}',
+    }, () => {
+        const account: any = loadConfig ().accounts['default'];
+        assert.equal (account.exchange, 'okx');
+        // the alias (API_KEY) is read after APIKEY — its template must not overwrite the real key
+        assert.equal (account.apiKey, 'FAKEKEY111111');
+        assert.equal (account.secret, 'FAKESECRET111111');
+        for (const field of [ 'password', 'uid', 'walletAddress', 'privateKey' ]) {
+            assert.equal (account[field], undefined, field + ' must stay unset');
+        }
+        assert.ok (!JSON.stringify (account).includes ('${'));
+    });
+});
+
+test ('an account whose every credential is an unsubstituted template loads as keyless', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance',
+        'CCXT_MCP_APIKEY': '${user_config.api_key}',
+        'CCXT_MCP_SECRET': '${user_config.secret}',
+    }, () => {
+        const account: any = loadConfig ().accounts['default'];
+        assert.equal (account.exchange, 'binance');
+        assert.equal (account.apiKey, undefined);
+        assert.equal (account.secret, undefined);
+    });
+});
+
+test ('an unsubstituted ${...} per-slot flag falls back to the global toggle like an empty one', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance', 'CCXT_MCP_APIKEY': 'FAKEKEY111111', 'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_SANDBOX': 'true',
+        'CCXT_MCP_TRADING': 'sandbox',
+        'CCXT_MCP_EXCHANGE_2': 'kraken', 'CCXT_MCP_APIKEY_2': 'FAKEKEY222222', 'CCXT_MCP_SECRET_2': 'FAKESECRET222222',
+        'CCXT_MCP_SANDBOX_2': '${user_config.sandbox_2}',
+        'CCXT_MCP_TRADING_2': '${user_config.trading_2}',
+        'CCXT_MCP_DEMO_2': '${user_config.demo_2}',
+        'CCXT_MCP_PREDICTION_2': '${user_config.prediction_2}',
+    }, () => {
+        const config = loadConfig ();
+        const kraken: any = config.accounts['kraken'];
+        assert.equal (kraken.sandbox, true);
+        assert.equal (kraken.trading, true);
+        assert.equal (kraken.demo ?? false, false);
+        assert.equal (kraken.prediction ?? false, false);
+        assert.equal (config.problems.length, 0, config.problems.join ('; '));
+    });
+});
+
+test ('unsubstituted ${...} global flags and cap are ignored (no mode, no NaN cap)', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance', 'CCXT_MCP_APIKEY': 'FAKEKEY111111', 'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_SANDBOX': '${user_config.sandbox}',
+        'CCXT_MCP_DEMO': '${user_config.demo}',
+        'CCXT_MCP_PREDICTION': '${user_config.prediction}',
+        'CCXT_MCP_TRADING': '${user_config.trading}',
+        'CCXT_MCP_MAX_ORDER_VALUE': '${user_config.max_order_value}',
+    }, () => {
+        const config = loadConfig ();
+        const account: any = config.accounts['default'];
+        assert.equal (account.exchange, 'binance');
+        assert.equal (account.sandbox ?? false, false);
+        assert.equal (account.demo ?? false, false);
+        assert.equal (account.prediction ?? false, false);
+        assert.equal (account.trading ?? false, false);
+        // before the hardening this was Number ('${...}') === NaN
+        assert.ok (!Number.isNaN (account.maxOrderValue), 'maxOrderValue must not be NaN');
+        assert.ok (!config.problems.some ((problem) => problem.includes ('${') || problem.includes ('maxOrderValue')), config.problems.join ('; '));
+    });
+});
+
+test ('real per-slot values still win over the global after the template hardening', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance', 'CCXT_MCP_APIKEY': 'FAKEKEY111111', 'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_SANDBOX': 'true',
+        'CCXT_MCP_EXCHANGE_2': 'kraken', 'CCXT_MCP_APIKEY_2': 'FAKEKEY222222', 'CCXT_MCP_SECRET_2': 'FAKESECRET222222',
+        'CCXT_MCP_SANDBOX_2': 'false',
+        'CCXT_MCP_MAX_ORDER_VALUE_2': '25',
+    }, () => {
+        const config = loadConfig ();
+        assert.equal (config.accounts['default'].sandbox, true);
+        assert.equal (config.accounts['kraken'].sandbox ?? false, false);
+        assert.equal ((config.accounts['kraken'] as any).maxOrderValue, 25);
+    });
+});

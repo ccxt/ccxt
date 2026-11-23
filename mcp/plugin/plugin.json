@@ -1,0 +1,48 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ccxt-mcp",
+  "version": "0.1.3",
+  "description": "The official CCXT MCP server plus the ccxt-mcp usage skill: connect your agent to 100+ crypto exchanges and prediction markets for market data, interactive charts, balances and opt-in trading, with API keys kept local.",
+  "author": {
+    "name": "CCXT",
+    "url": "https://ccxt.com"
+  },
+  "homepage": "https://ccxt.com",
+  "repository": "https://github.com/ccxt/ccxt",
+  "license": "MIT",
+  "keywords": [
+    "ccxt",
+    "crypto",
+    "cryptocurrency",
+    "exchange",
+    "trading",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "CCXT",
+        "shortDescription": "Crypto exchange data & trading",
+        "longDescription": "The official CCXT plugin. It connects your agent to 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API, and bundles a skill that teaches the agent how to use it.\n\nWith no setup and no API keys you get public market data on every exchange: tickers, order books, candles, recent trades, funding rates, market search and prediction-market events, plus interactive candlestick charts, order-book depth views and ticker boards rendered inline in hosts that support MCP Apps.\n\nAdd an account in a local config file to read balances, orders, positions and trade history. Your API keys stay on your machine and are never visible to the model, which refers to accounts by name only.\n\nTrading is opt-in and sandbox-first: order placement is off until you enable it for an account, is meant to be tried on an exchange testnet or demo account first, and live trading and withdrawals each need their own explicit switch plus optional per-order value caps.\n\nThe MCP server runs locally over stdio through npx (Node.js 18 or newer is required).",
+        "developerName": "CCXT",
+        "category": "Finance",
+        "capabilities": [
+          "Read market data",
+          "Render charts",
+          "Trade (opt-in)"
+        ],
+        "websiteURL": "https://ccxt.com",
+        "supportURL": "https://github.com/ccxt/ccxt/issues",
+        "defaultPrompt": [
+          "Show the BTC/USDT 1h chart on Binance",
+          "Compare the ETH/USDT price across exchanges",
+          "Show the BTC/USDT order book on Kraken"
+        ],
+        "brandColor": "#0a0a0a",
+        "composerIcon": "./assets/icon.svg",
+        "composerIconDark": "./assets/icon-dark.svg",
+        "logo": "./assets/logo.png"
+      }
+    }
+  }
+}

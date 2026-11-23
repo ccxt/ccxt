@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "ccxt-mcp",
   "displayName": "CCXT MCP Server",
-  "version": "0.1.0",
-  "description": "The official CCXT MCP server plus the ccxt-mcp usage skill: connect Claude Code to 100+ crypto exchanges and prediction markets for market data, balances and opt-in trading, with API keys kept local.",
+  "version": "0.1.3",
+  "description": "The official CCXT MCP server plus the ccxt-mcp usage skill: connect your agent to 100+ crypto exchanges and prediction markets for market data, interactive charts, balances and opt-in trading, with API keys kept local.",
   "author": {
     "name": "CCXT",
     "url": "https://ccxt.com"
@@ -19,14 +19,74 @@
     "trading",
     "mcp"
   ],
+  "icon": "./assets/logo.png",
+  "documentationUrl": "https://docs.ccxt.com/docs/mcp",
+  "supportUrl": "https://github.com/ccxt/ccxt/issues",
   "mcpServers": {
     "ccxt": {
       "command": "npx",
       "args": [
         "-y",
-        "ccxt-mcp"
-      ]
+        "ccxt-mcp@0.1.3"
+      ],
+      "env": {
+        "CCXT_MCP_EXCHANGE": "${user_config.exchange}",
+        "CCXT_MCP_APIKEY": "${user_config.apiKey}",
+        "CCXT_MCP_SECRET": "${user_config.secret}",
+        "CCXT_MCP_PASSWORD": "${user_config.password}",
+        "CCXT_MCP_SANDBOX": "${user_config.sandbox}",
+        "CCXT_MCP_TRADING": "${user_config.enable_trading}",
+        "CCXT_MCP_CONFIG": "${user_config.config_file}"
+      }
     }
   },
-  "skills": "./skills/"
+  "userConfig": {
+    "exchange": {
+      "type": "string",
+      "title": "Exchange (optional)",
+      "description": "Exchange id, e.g. binance, kraken, okx. Leave blank for public market data only. For several exchanges or a wallet-based venue, use the config file below.",
+      "required": false
+    },
+    "apiKey": {
+      "type": "string",
+      "title": "API key",
+      "description": "API key for the exchange above. Kept in secure storage on this machine, never shown to the model. Leave blank for market data only.",
+      "sensitive": true,
+      "required": false
+    },
+    "secret": {
+      "type": "string",
+      "title": "API secret",
+      "description": "API secret for the exchange above. Kept in secure storage on this machine.",
+      "sensitive": true,
+      "required": false
+    },
+    "password": {
+      "type": "string",
+      "title": "API passphrase (only OKX / KuCoin / Bitget)",
+      "description": "API passphrase, needed only by some exchanges (OKX, KuCoin, Bitget). Leave blank otherwise. Kept in secure storage on this machine.",
+      "sensitive": true,
+      "required": false
+    },
+    "sandbox": {
+      "type": "boolean",
+      "title": "Sandbox / testnet mode",
+      "description": "Use the exchange's testnet (fake money). Requires TESTNET API keys from the exchange's testnet portal.",
+      "default": true,
+      "required": false
+    },
+    "enable_trading": {
+      "type": "boolean",
+      "title": "Allow placing orders — sandbox/demo only",
+      "description": "Enable order placement on sandbox/testnet or demo accounts only. Live trading and withdrawals must be enabled in the config file, not here.",
+      "default": false,
+      "required": false
+    },
+    "config_file": {
+      "type": "file",
+      "title": "Config file (several exchanges, wallet venues, or live trading)",
+      "description": "Point this at a ccxt-mcp config.json with an \"accounts\" map to configure any number of exchanges, wallet-based venues (walletAddress/privateKey), or live trading/withdrawals. See https://docs.ccxt.com/docs/mcp. It merges with the exchange above; on a name clash the file wins.",
+      "required": false
+    }
+  }
 }

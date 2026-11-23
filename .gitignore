@@ -66,6 +66,7 @@ go/cli/cli
 # --- mcp sub-package build output ---
 mcp/js/
 mcp/*.mcpb
+mcp/ccxt-mcp-plugin.zip
 mcp/mcpb/staging/
 
 # # Generated Rust output — emitted by `npm run transpileRust`

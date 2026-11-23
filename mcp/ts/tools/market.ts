@@ -4,11 +4,11 @@ import { resolveMarketFields, searchMarketsMaxLimit, marketTypeCounts, zeroMatch
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
+import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
 
-const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
+export const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
 
 const READ_METHOD_PATTERN = /^(fetch|load)[A-Z]/;
 // pattern, not an allowlist: ccxt grows address-returning methods over time
@@ -275,28 +275,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, symbols, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'get_tickers', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
-        let tickers: any[];
-        if (exchange.has['fetchTickers'] && symbols.length > 1) {
-            const result = await exchange.fetchTickers (symbols, params ?? {});
-            // backfill symbol so callers can match rows to the handles they requested
-            // (some prediction/outcome tickers omit it) and preserve request order
-            tickers = symbols.map ((symbol: string) => {
-                const ticker = result[symbol];
-                if (ticker !== undefined && ticker.symbol === undefined) {
-                    ticker.symbol = symbol;
-                }
-                return ticker;
-            }).filter ((ticker: any) => ticker !== undefined);
-        } else {
-            tickers = [];
-            for (const symbol of symbols) {
-                const ticker = await exchange.fetchTicker (symbol, params ?? {});
-                if (ticker !== undefined && ticker.symbol === undefined) {
-                    ticker.symbol = symbol;
-                }
-                tickers.push (ticker);
-            }
-        }
+        const tickers = await fetchTickerList (exchange, symbols, params ?? {});
         const keepInfo = includeInfo === true && symbols.length === 1;
         const data = keepInfo ? tickers : tickers.map ((ticker) => project (ticker, TICKER_FIELDS));
         const notices: string[] = [];
@@ -327,17 +306,13 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const levels = clampLimit (limit ?? depth, 20, 100);
         const book = await exchange.fetchOrderBook (symbol, levels, params ?? {});
-        // some exchanges ignore the API-level limit — slice server-side; and normalize each
-        // level to the unified [price, amount] (some venues, e.g. kraken, append a per-level
-        // timestamp as a third element that an agent could misread as an order count)
-        const normalize = (side: any[]) => (side ?? []).slice (0, levels).map ((level: any[]) => [ level[0], level[1] ]);
         const data = {
             'symbol': book.symbol ?? symbol,
             'timestamp': book.timestamp,
             'datetime': book.datetime,
             'nonce': book.nonce,
-            'bids': normalize (book.bids),
-            'asks': normalize (book.asks),
+            'bids': normalizeBookSide (book.bids, levels),
+            'asks': normalizeBookSide (book.asks, levels),
         };
         return ok (data, { 'exchange': exchange.id, 'depth': levels, 'notice': marketTypeMismatchNotice (exchange, [ symbol ], marketType) });
     }));
@@ -359,9 +334,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_ohlcv', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const frame = timeframe ?? '1h';
-        const timeframes = exchange.timeframes;
-        if (timeframes !== null && timeframes !== undefined && timeframes[frame] === undefined) {
-            return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
+        const timeframeError = badTimeframe (exchange, frame);
+        if (timeframeError !== undefined) {
+            return timeframeError;
         }
         const rowLimit = clampLimit (limit, 100, 500);
         const rows = await exchange.fetchOHLCV (symbol, frame, parseSince (exchange, since), rowLimit, params ?? {});

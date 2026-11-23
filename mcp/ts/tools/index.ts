@@ -6,6 +6,7 @@ import { registerTradeTools } from './trade.js';
 import { registerFundsTools, registerImplicitWriteTool } from './funds.js';
 import { registerWatchTools } from './watch.js';
 import { registerRouteTools, registerRouteExecuteTool } from './route.js';
+import { registerUiTools } from './ui.js';
 import { log } from '../logging.js';
 
 // By default every tier's tools are listed so the model can discover them and, when a
@@ -21,6 +22,7 @@ export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     const fundsEnabled = accounts.some ((account) => (account.funds ?? false) !== false);
     const implicitWritesEnabled = accounts.some ((account) => account.implicitWrites === true);
     registerMarketTools (server, ctx);
+    registerUiTools (server, ctx);
     registerWatchTools (server, ctx);
     registerRouteTools (server, ctx);
     if (!hideDisabled || accounts.length > 0) {
@@ -51,6 +53,7 @@ Conventions:
 - Every exchange-touching tool accepts "params": extra exchange-specific parameters passed to ccxt unchanged. Discover supported keys and per-exchange behavior with describe_method.
 - "since" accepts ms timestamps or ISO8601 strings; results carry both timestamp (ms) and datetime (ISO8601).
 - List results are capped: search tools report meta.returned/offset/hasMore (or available); fetch tools report meta.count plus meta.hasMore when the count hit the limit — page with since/offset rather than assuming completeness. Host-oversized results are tail-trimmed and flagged meta.truncated.
+- To SHOW data to the user, prefer the render tools: show_chart (candlestick chart), show_orderbook (depth chart + ladder), show_tickers (price board). In hosts with MCP Apps support they display an interactive view; you get back only a compact summary (meta.ui says whether the view was displayed), so call the matching get_* tool when you need the raw rows yourself.
 - To find the best price or execution route for converting an asset at a given size across exchanges, use fetch_route rather than comparing order books yourself — it is a quote, not an order. Read fillRatio before effectiveRate. To act on it, pass its routeId to execute_route (trading tier; every order still goes through the account's caps and confirmation).
 - The long tail of read methods (funding rates, ledger, open interest, settlements, …) is available via call_read_method; raw exchange-specific GET endpoints via call_implicit_get.
 - For LIVE data over WebSocket, use watch_subscribe (e.g. watchOHLCV/watchTicker/watchOrderBook/watchTrades, or watchOrders/watchMyTrades with an account) to open a background stream, then poll watch_read for new updates and watch_unsubscribe to stop. One-shot fetch* tools are simpler when you just need a current snapshot.

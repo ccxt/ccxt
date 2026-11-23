@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCXT prices</title>
+<style>
+/* @include shared.css */
+.asof { color: var(--text-2); margin-top: 2px; }
+.hero .value { font-variant-numeric: normal; }
+/* sits under the table: its height may change with the row, and rows must not move under the pointer */
+.readout { display: flex; flex-wrap: wrap; gap: 2px 14px; min-height: 20px; margin: 8px 0 0; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--text); font-weight: 600; }
+.readout .sym { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board.scroll { max-height: 520px; }
+th, td { padding: 6px 10px; }
+thead th { padding: 5px 10px; }
+thead button { border: 0; border-radius: 4px; padding: 2px 4px; margin: -2px -4px; color: inherit; font-weight: inherit; white-space: nowrap; }
+thead th[aria-sort="ascending"] button, thead th[aria-sort="descending"] button { color: var(--text); font-weight: 600; }
+thead .dir { display: inline-block; width: 1em; text-align: center; }
+tbody tr:hover, tbody tr.active { --row: var(--bg-2); background: var(--bg-2); }
+tbody tr:focus-visible { outline-offset: -2px; }
+tbody th { font-weight: 600; text-align: left; border-bottom: 1px solid var(--border); padding: 6px 10px; }
+tbody tr:last-child th { border-bottom: 0; }
+.name { display: block; max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.missing, .unit { color: var(--text-3); font-weight: 400; }
+/* 24h change: signed text carries the value, the bar (centred on zero) the comparison */
+.chg { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.chg .delta { min-width: 5.4em; text-align: right; }
+.dbar { position: relative; flex: none; width: 56px; height: 14px; }
+.dbar::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; margin-left: -0.5px; background: var(--text-3); }
+.dbar i { position: absolute; top: 4px; height: 6px; }
+.dbar i.up { left: calc(50% + 0.5px); background: var(--up); border-radius: 0 3px 3px 0; }
+.dbar i.down { right: calc(50% + 0.5px); background: var(--down); border-radius: 3px 0 0 3px; }
+/* 24h range: a neutral low–high track with one marker at the last price */
+.rng { position: relative; display: inline-block; vertical-align: middle; width: 96px; height: 14px; }
+.rng::before { content: ""; position: absolute; left: 0; right: 0; top: 5px; height: 4px; border-radius: 2px; background: var(--border); }
+.rng i { position: absolute; top: 3px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--row, var(--bg)); }
+.single { max-width: 460px; }
+.single .ends { display: flex; justify-content: space-between; gap: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.single .ends b, .stats dd { color: var(--text); font-weight: 600; }
+.single .rng { display: block; width: auto; margin: 2px 4px 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px 16px; margin: 0; padding-top: 12px; border-top: 1px solid var(--border); }
+.stats dt { color: var(--text-2); }
+.stats dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+thead .short { display: none; }
+/* narrower hosts shed decoration first, then whole columns — the table never overflows */
+@media (max-width: 639px) {
+    .rng { width: 72px; }
+    thead .long { display: none; }
+    thead .short { display: inline; }
+    tbody .unit { display: block; font-size: 11px; line-height: 1.2; }
+}
+@media (max-width: 559px) {
+    .dbar { display: none; }
+    .rng { width: 56px; }
+    .chg .delta { min-width: 0; }
+    th, td, thead th, tbody th { padding-left: 5px; padding-right: 5px; }
+}
+@media (max-width: 479px) {
+    .c-range { display: none; }
+    .name { max-width: 7.5em; }
+}
+@media (max-width: 399px) {
+    body { font-size: 12px; }
+    th, td, thead th, tbody th { padding-left: 4px; padding-right: 4px; }
+}
+@media (max-width: 349px) {
+    .c-volume { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="head">
+    <div>
+        <div class="title"><h1 id="heading">Prices</h1><span class="venue" id="venue"></span></div>
+        <div class="hero" id="hero" hidden><span class="value" id="last">–</span><span class="delta" id="change"></span><span class="context">24h change</span></div>
+        <div class="asof" id="asof"></div>
+    </div>
+    <div class="controls">
+        <button type="button" id="refresh" title="Fetch the latest prices" hidden>Refresh</button>
+    </div>
+</div>
+<div class="board" id="board"></div>
+<div class="readout" id="readout" aria-live="off" hidden></div>
+<div class="status" id="status" role="status">Waiting for data…</div>
+<script>
+/* @include bridge.js */
+</script>
+<script>
+(function () {
+    'use strict';
+    var app = window.ccxtApp;
+    var NUMERIC = [ 'last', 'percentage', 'change', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap', 'open', 'close', 'timestamp' ];
+    var COLUMNS = [
+        { key: 'symbol', label: 'Symbol', hint: 'Sort by symbol' },
+        { key: 'last', label: 'Last', hint: 'Sort by last price' },
+        { key: 'percentage', label: '24h change', hint: 'Sort by 24h change' },
+        { key: 'position', label: '24h range', hint: 'Sort by where the last price sits between the 24h low and high', className: 'c-range' },
+        { key: 'turnover', label: '24h volume', hint: 'Sort by 24h volume in quote currency (base volume is valued at the average or last price)', className: 'c-volume' }
+    ];
+    var data = null;
+    var rows = [];
+    var args = null;
+    var sort = { key: null, direction: 1 };
+    var active = -1;
+    var busy = false;
+    var parts = null;
+    var nodes = {};
+    [ 'heading', 'venue', 'hero', 'last', 'change', 'asof', 'refresh', 'readout', 'board', 'status' ].forEach (function (id) {
+        nodes[id] = document.getElementById (id);
+    });
+
+    function setStatus (text, isError) {
+        nodes.status.textContent = text || '';
+        nodes.status.className = 'status' + (isError ? ' error' : '');
+    }
+
+    // bridge.price / bridge.percent print every digit: fine for prices, too wide for outliers
+    function price (value) {
+        return (app.isNumber (value) && Math.abs (value) >= 1e9) ? app.compact (value) : app.price (value);
+    }
+
+    function percent (value) {
+        if (app.isNumber (value) && Math.abs (value) >= 10000) {
+            return ((value > 0) ? '+' : '−') + app.compact (Math.abs (value)) + '%';
+        }
+        return app.percent (value);
+    }
+
+    function setDelta (node, value) {
+        var direction = app.isNumber (value) ? ((value > 0) ? 'up' : ((value < 0) ? 'down' : '')) : '';
+        var arrow = (direction === 'up') ? '▲ ' : ((direction === 'down') ? '▼ ' : '');
+        node.textContent = arrow + percent (value);
+        node.className = 'delta' + (direction ? ' ' + direction : '') + (app.isNumber (value) ? '' : ' missing');
+    }
+
+    function normalize (ticker, index) {
+        var row = { index: index, symbol: (typeof ticker.symbol === 'string' && ticker.symbol) ? ticker.symbol : '–' };
+        NUMERIC.forEach (function (key) {
+            row[key] = app.isNumber (ticker[key]) ? ticker[key] : undefined;
+        });
+        if (row.last === undefined) {
+            row.last = row.close;
+        }
+        // outside the range a Date can hold, bridge.dateTime would throw
+        if (row.timestamp !== undefined && Math.abs (row.timestamp) > 8.64e15) {
+            row.timestamp = undefined;
+        }
+        var codes = /^([^\/:\s]{1,12})\/([^\/:\s]{1,12})(?::|$)/.exec (row.symbol) || [];
+        row.base = codes[1];
+        row.quote = codes[2];
+        if (row.high !== undefined && row.low !== undefined && row.high >= row.low) {
+            row.ranged = true;
+            if (row.last !== undefined) {
+                row.position = (row.high === row.low) ? 0.5 : Math.max (0, Math.min (1, (row.last - row.low) / (row.high - row.low)));
+            }
+        }
+        // one comparable figure for sorting a column that can mix quote and base volumes
+        var reference = (row.vwap !== undefined) ? row.vwap : row.last;
+        row.turnover = (row.quoteVolume !== undefined) ? row.quoteVolume : ((row.baseVolume !== undefined && reference !== undefined) ? row.baseVolume * reference : undefined);
+        return row;
+    }
+
+    function rangeLabel (row) {
+        if (!row.ranged) {
+            return '24h range not available';
+        }
+        var where = (row.position === undefined) ? '' : ', last ' + price (row.last) + ' at ' + Math.round (row.position * 100) + '% of the range';
+        return '24h low ' + price (row.low) + ', high ' + price (row.high) + where;
+    }
+
+    function rangeTrack (row) {
+        var track = app.element ('span', 'rng');
+        track.setAttribute ('role', 'img');
+        track.setAttribute ('aria-label', rangeLabel (row));
+        track.title = rangeLabel (row);
+        if (row.position !== undefined) {
+            var marker = document.createElement ('i');
+            marker.style.left = (row.position * 100).toFixed (2) + '%';
+            track.appendChild (marker);
+        }
+        return track;
+    }
+
+    function volumeParts (row) {
+        if (row.quoteVolume !== undefined) {
+            return [ app.compact (row.quoteVolume), row.quote || 'quote' ];
+        }
+        if (row.baseVolume !== undefined) {
+            return [ app.compact (row.baseVolume), row.base || 'base' ];
+        }
+        return [ '–', '' ];
+    }
+
+    // when every row reports volume in the same unit it is named once, in the column header
+    function sharedUnit () {
+        var units = {};
+        rows.forEach (function (row) {
+            var unit = volumeParts (row)[1];
+            if (unit) {
+                units['$' + unit] = unit;
+            }
+        });
+        var keys = Object.keys (units);
+        return (keys.length === 1) ? units[keys[0]] : '';
+    }
+
+    function labelled (parent, tag, label, value) {
+        var item = app.element (tag, '', label + ' ');
+        item.appendChild (app.element ('b', '', value));
+        parent.appendChild (item);
+    }
+
+    function readoutFor (row) {
+        var node = nodes.readout;
+        node.textContent = '';
+        if (!row) {
+            node.appendChild (app.element ('span', '', 'Point at, tap or focus a row for bid, ask, low, high and volume.'));
+            return;
+        }
+        var name = app.element ('b', 'sym', row.symbol);
+        node.appendChild (name);
+        var volumes = [];
+        if (row.baseVolume !== undefined) {
+            volumes.push (app.compact (row.baseVolume) + ' ' + (row.base || 'base'));
+        }
+        if (row.quoteVolume !== undefined) {
+            volumes.push (app.compact (row.quoteVolume) + ' ' + (row.quote || 'quote'));
+        }
+        [ [ 'Bid', price (row.bid) ], [ 'Ask', price (row.ask) ], [ 'Low', price (row.low) ], [ 'High', price (row.high) ], [ 'Vol', volumes.join (' · ') || '–' ] ].forEach (function (pair) {
+            labelled (node, 'span', pair[0], pair[1]);
+        });
+    }
+
+    function setActive (index) {
+        active = index;
+        if (!parts) {
+            return;
+        }
+        Array.prototype.forEach.call (parts.body.rows, function (line) {
+            line.classList.toggle ('active', Number (line.getAttribute ('data-index')) === index);
+        });
+        readoutFor ((index >= 0) ? rows[index] : null);
+    }
+
+    function compare (a, b) {
+        var left = a[sort.key];
+        var right = b[sort.key];
+        if (sort.key === 'symbol') {
+            return (left.localeCompare (right) * sort.direction) || (a.index - b.index);
+        }
+        // a row without the value goes last whichever way the column is sorted
+        if (left === undefined || right === undefined) {
+            return (left === right) ? (a.index - b.index) : ((left === undefined) ? 1 : -1);
+        }
+        return ((left - right) * sort.direction) || (a.index - b.index);
+    }
+
+    function fillBody () {
+        var body = parts.body;
+        var ordered = rows.slice ();
+        if (sort.key) {
+            ordered.sort (compare);
+        }
+        var maxChange = 0;
+        rows.forEach (function (row) {
+            maxChange = Math.max (maxChange, Math.abs (row.percentage || 0));
+        });
+        body.textContent = '';
+        ordered.forEach (function (row, position) {
+            var line = document.createElement ('tr');
+            line.setAttribute ('data-index', row.index);
+            line.tabIndex = (position === 0) ? 0 : -1;
+            var head = document.createElement ('th');
+            head.scope = 'row';
+            var name = app.element ('span', 'name', row.symbol);
+            name.title = row.symbol;
+            head.appendChild (name);
+            line.appendChild (head);
+            line.appendChild (app.element ('td', (row.last === undefined) ? 'missing' : '', price (row.last)));
+            var changeCell = document.createElement ('td');
+            var change = app.element ('span', 'chg');
+            if (row.percentage !== undefined) {
+                var bar = app.element ('span', 'dbar');
+                bar.setAttribute ('aria-hidden', 'true');
+                if (row.percentage !== 0 && maxChange > 0) {
+                    var fill = app.element ('i', (row.percentage > 0) ? 'up' : 'down');
+                    fill.style.width = 'max(1px, ' + ((Math.abs (row.percentage) / maxChange) * 50).toFixed (2) + '% - 0.5px)';
+                    bar.appendChild (fill);
+                }
+                change.appendChild (bar);
+            }
+            var delta = app.element ('span', 'delta');
+            setDelta (delta, row.percentage);
+            change.appendChild (delta);
+            changeCell.appendChild (change);
+            line.appendChild (changeCell);
+            var rangeCell = app.element ('td', 'c-range' + (row.ranged ? '' : ' missing'));
+            if (row.ranged) {
+                rangeCell.appendChild (rangeTrack (row));
+            } else {
+                rangeCell.textContent = '–';
+            }
+            line.appendChild (rangeCell);
+            var volume = volumeParts (row);
+            var volumeCell = app.element ('td', 'c-volume' + ((volume[0] === '–') ? ' missing' : ''), volume[0]);
+            if (volume[1] && !parts.unit) {
+                volumeCell.appendChild (document.createTextNode (' '));
+                volumeCell.appendChild (app.element ('span', 'unit', volume[1]));
+            }
+            line.appendChild (volumeCell);
+            body.appendChild (line);
+        });
+        parts.heads.forEach (function (entry) {
+            var state = (sort.key === entry.column.key) ? ((sort.direction > 0) ? 'ascending' : 'descending') : 'none';
+            entry.cell.setAttribute ('aria-sort', state);
+            entry.glyph.textContent = (state === 'ascending') ? '↑' : ((state === 'descending') ? '↓' : '');
+        });
+        setActive (-1);
+    }
+
+    function sortBy (column) {
+        var natural = (column.key === 'symbol') ? 1 : -1;
+        if (sort.key !== column.key) {
+            sort = { key: column.key, direction: natural };
+        } else if (sort.direction === natural) {
+            sort = { key: column.key, direction: -natural };
+        } else {
+            // third press: back to the order the symbols were requested in
+            sort = { key: null, direction: 1 };
+        }
+        fillBody ();
+    }
+
+    function moveFocus (event) {
+        var line = event.target;
+        var all = parts.body.rows;
+        var current = Array.prototype.indexOf.call (all, line);
+        var next = { ArrowDown: current + 1, ArrowUp: current - 1, Home: 0, End: all.length - 1 }[event.key];
+        if (current < 0 || next === undefined) {
+            return;
+        }
+        event.preventDefault ();
+        next = Math.max (0, Math.min (all.length - 1, next));
+        line.tabIndex = -1;
+        all[next].tabIndex = 0;
+        all[next].focus ();
+    }
+
+    function renderTable () {
+        var table = document.createElement ('table');
+        var caption = app.element ('caption', '', '24h prices on ' + (data.exchangeName || data.exchange || 'the exchange') + '. Column headers sort the table; arrow keys move between rows.');
+        caption.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;';
+        table.appendChild (caption);
+        var unit = sharedUnit ();
+        var thead = document.createElement ('thead');
+        var headRow = document.createElement ('tr');
+        var heads = COLUMNS.map (function (column) {
+            var cell = app.element ('th', column.className || '');
+            cell.scope = 'col';
+            var button = document.createElement ('button');
+            button.type = 'button';
+            button.title = column.hint;
+            var glyph = app.element ('span', 'dir');
+            glyph.setAttribute ('aria-hidden', 'true');
+            var label = app.element ('span', '', column.label);
+            if (column.key === 'turnover') {
+                // "24h volume USDT" when there is room, "Vol USDT" when there is not
+                label.textContent = '';
+                label.appendChild (app.element ('span', 'long', '24h volume'));
+                label.appendChild (app.element ('span', 'short', 'Vol'));
+                if (unit) {
+                    label.appendChild (document.createTextNode (' '));
+                    label.appendChild (app.element ('span', 'unit', unit));
+                }
+            }
+            button.appendChild ((column.key === 'symbol') ? label : glyph);
+            button.appendChild ((column.key === 'symbol') ? glyph : label);
+            button.addEventListener ('click', function () { sortBy (column); });
+            cell.appendChild (button);
+            headRow.appendChild (cell);
+            return { column: column, cell: cell, glyph: glyph };
+        });
+        thead.appendChild (headRow);
+        table.appendChild (thead);
+        var body = document.createElement ('tbody');
+        var rowOf = function (event) {
+            var line = (event.target && event.target.closest) ? event.target.closest ('tr') : null;
+            return line ? Number (line.getAttribute ('data-index')) : -1;
+        };
+        body.addEventListener ('pointerover', function (event) { setActive (rowOf (event)); });
+        body.addEventListener ('pointerdown', function (event) { setActive (rowOf (event)); });
+        body.addEventListener ('pointerleave', function () { setActive (rowOf ({ target: document.activeElement })); });
+        body.addEventListener ('focusin', function (event) { setActive (rowOf (event)); });
+        body.addEventListener ('focusout', function () { setActive (-1); });
+        body.addEventListener ('keydown', moveFocus);
+        table.appendChild (body);
+        parts = { body: body, heads: heads, unit: unit };
+        nodes.board.className = 'board scroll';
+        nodes.board.appendChild (table);
+        fillBody ();
+    }
+
+    // exactly one market: the number is the view — a hero figure, its range and a few stats
+    function renderSingle (row) {
+        var wrap = app.element ('div', 'single');
+        if (row.ranged) {
+            var ends = app.element ('div', 'ends');
+            labelled (ends, 'span', '24h low', price (row.low));
+            labelled (ends, 'span', '24h high', price (row.high));
+            wrap.appendChild (ends);
+            wrap.appendChild (rangeTrack (row));
+        }
+        var stats = app.element ('dl', 'stats');
+        var volume = function (value, unit) {
+            return app.compact (value) + ((value !== undefined && unit) ? ' ' + unit : '');
+        };
+        [ [ 'Bid', price (row.bid) ], [ 'Ask', price (row.ask) ], [ 'Open', price (row.open) ], [ 'Average (VWAP)', price (row.vwap) ],
+            [ '24h volume', volume (row.baseVolume, row.base) ], [ '24h quote volume', volume (row.quoteVolume, row.quote) ] ].forEach (function (pair) {
+            var item = document.createElement ('div');
+            item.appendChild (app.element ('dt', '', pair[0]));
+            item.appendChild (app.element ('dd', (pair[1] === '–') ? 'missing' : '', pair[1]));
+            stats.appendChild (item);
+        });
+        wrap.appendChild (stats);
+        nodes.board.className = 'board';
+        nodes.board.appendChild (wrap);
+    }
+
+    function render () {
+        if (!data) {
+            return;
+        }
+        var single = rows.length === 1;
+        var venue = data.exchangeName || data.exchange || '';
+        var newest;
+        rows.forEach (function (row) {
+            if (row.timestamp !== undefined && (newest === undefined || row.timestamp > newest)) {
+                newest = row.timestamp;
+            }
+        });
+        nodes.heading.textContent = single ? rows[0].symbol : 'Prices';
+        nodes.venue.textContent = single ? venue : (venue + (venue ? ' · ' : '') + rows.length + ((rows.length === 1) ? ' market' : ' markets'));
+        nodes.asof.textContent = (newest === undefined) ? '' : 'as of ' + app.dateTime (newest);
+        nodes.hero.hidden = !single;
+        nodes.readout.hidden = rows.length < 2;
+        nodes.refresh.hidden = !app.canCallTools ();
+        nodes.refresh.disabled = busy;
+        nodes.board.textContent = '';
+        parts = null;
+        if (!rows.length) {
+            nodes.board.className = 'board';
+            nodes.board.appendChild (app.element ('div', 'empty', 'No prices were returned for these symbols.'));
+        } else if (single) {
+            nodes.last.textContent = price (rows[0].last);
+            setDelta (nodes.change, rows[0].percentage);
+            renderSingle (rows[0]);
+        } else {
+            renderTable ();
+        }
+    }
+
+    function accept (payload) {
+        if (!payload || payload.view !== 'tickers' || !Array.isArray (payload.tickers)) {
+            return;
+        }
+        data = payload;
+        rows = payload.tickers.filter (function (ticker) { return ticker && typeof ticker === 'object'; }).map (normalize);
+        var seen = {};
+        rows.forEach (function (row) { seen['$' + row.symbol] = true; });
+        var absent = (Array.isArray (payload.symbols) ? payload.symbols : []).filter (function (symbol) { return typeof symbol === 'string' && !seen['$' + symbol]; });
+        setStatus (absent.length ? 'No data for ' + absent.slice (0, 5).join (', ') + ((absent.length > 5) ? ' and ' + (absent.length - 5) + ' more' : '') + '.' : '');
+        render ();
+    }
+
+    function reload () {
+        if (busy || !data) {
+            return;
+        }
+        var request = {};
+        var base = args || { exchange: data.exchange, symbols: data.symbols };
+        Object.keys (base).forEach (function (key) { request[key] = base[key]; });
+        var finish = function () {
+            busy = false;
+            nodes.board.classList.remove ('busy');
+            nodes.refresh.disabled = false;
+        };
+        busy = true;
+        nodes.board.classList.add ('busy');
+        nodes.refresh.disabled = true;
+        setStatus ('Loading…');
+        app.callTool ('show_tickers', request).then (function (payload) {
+            finish ();
+            accept (payload);
+        }, function (error) {
+            finish ();
+            setStatus ('Could not load: ' + ((error && error.message) || 'unknown error'), true);
+        });
+    }
+
+    nodes.refresh.addEventListener ('click', reload);
+
+    app.connect ({
+        name: 'ccxt-tickers',
+        onInput: function (input) { args = input; },
+        onResult: accept,
+        onError: function (message) { setStatus ('Could not load: ' + message, true); },
+        onContext: function () { render (); }
+    }).then (function () {
+        nodes.refresh.hidden = !data || !app.canCallTools ();
+    }, function () {
+        setStatus ('Could not connect to the host.', true);
+    });
+    // development hook: open the file directly and call window.ccxtView.accept (payload)
+    window.ccxtView = { accept: accept };
+}) ();
+</script>
+</body>
+</html>

@@ -7,8 +7,9 @@ import { toContent, ok, type Envelope } from '../format.js';
 import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
 import { log } from '../logging.js';
+import { isUiPayload, toUiContent, type UiPayload } from '../ui.js';
 
-export type ToolResult = { content: { type: 'text', text: string }[], isError?: boolean };
+export type ToolResult = { content: { type: 'text', text: string }[], structuredContent?: Record<string, any>, isError?: boolean };
 
 export const exchangeParam = z.string ().describe ('exchange id, e.g. "binance" — validated against ccxt.exchanges; discover ids with list_exchanges');
 export const predictionParam = z.boolean ().optional ().describe ('set true to use the prediction-markets variant of an exchange that exists in both namespaces (e.g. hyperliquid)');
@@ -44,10 +45,13 @@ export function parseSince (exchange: any, since: number | string | undefined): 
     throw new ArgError ('could not parse "since" value ' + JSON.stringify (since), 'pass an ISO8601 string like "2024-01-01T00:00:00Z" or a millisecond timestamp');
 }
 
-// uniform tool wrapper: envelope + error mapping + size budget in one place
-export async function run (context: ErrorContext, fn: () => Promise<Envelope>): Promise<ToolResult> {
+// uniform tool wrapper: envelope + error mapping + size budget in one place. A UI tool
+// returns a UiPayload instead (compact envelope for the model + full dataset for its view);
+// its errors take the same path as every other tool's, so a failed UI call is plain text.
+export async function run (context: ErrorContext, fn: () => Promise<Envelope | UiPayload>): Promise<ToolResult> {
     try {
-        return toContent (await fn ());
+        const result = await fn ();
+        return isUiPayload (result) ? toUiContent (result) : toContent (result);
     } catch (error: any) {
         if (error instanceof SafetyError) {
             return toContent ({ 'ok': false, 'error': { 'code': error.code, 'message': error.message, 'retryable': false, 'hint': error.hint } });
@@ -76,6 +80,46 @@ export function marketTypeMismatchNotice (exchange: any, symbols: string[], mark
         if (market !== undefined && market.type !== undefined && market.type !== marketType) {
             return 'marketType "' + marketType + '" was requested but ' + symbol + ' is a ' + market.type + ' market — that symbol determines the market, so marketType had no effect; pass the ' + marketType + ' symbol (e.g. the ":SETTLE" form) to get ' + marketType + ' data';
         }
+    }
+    return undefined;
+}
+
+// one ticker per requested symbol, in request order; backfills `symbol` so callers can match
+// rows to the handles they requested (some prediction/outcome tickers omit it)
+export async function fetchTickerList (exchange: any, symbols: string[], params: Record<string, any>): Promise<any[]> {
+    if (exchange.has['fetchTickers'] && symbols.length > 1) {
+        const result = await exchange.fetchTickers (symbols, params);
+        return symbols.map ((symbol: string) => {
+            const ticker = result[symbol];
+            if (ticker !== undefined && ticker.symbol === undefined) {
+                ticker.symbol = symbol;
+            }
+            return ticker;
+        }).filter ((ticker: any) => ticker !== undefined);
+    }
+    const tickers: any[] = [];
+    for (const symbol of symbols) {
+        const ticker = await exchange.fetchTicker (symbol, params);
+        if (ticker !== undefined && ticker.symbol === undefined) {
+            ticker.symbol = symbol;
+        }
+        tickers.push (ticker);
+    }
+    return tickers;
+}
+
+// some exchanges ignore the API-level limit — slice server-side; and normalize each level to
+// the unified [price, amount] (some venues, e.g. kraken, append a per-level timestamp as a
+// third element that an agent could misread as an order count)
+export function normalizeBookSide (side: any[] | undefined, levels: number): number[][] {
+    return (side ?? []).slice (0, levels).map ((level: any[]) => [ level[0], level[1] ]);
+}
+
+// shared by get_ohlcv and show_chart so both reject an unsupported timeframe identically
+export function badTimeframe (exchange: any, frame: string): Envelope | undefined {
+    const timeframes = exchange.timeframes;
+    if (timeframes !== null && timeframes !== undefined && timeframes[frame] === undefined) {
+        return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
     }
     return undefined;
 }

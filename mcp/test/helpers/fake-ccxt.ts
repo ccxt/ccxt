@@ -106,6 +106,10 @@ export class FakeExchange {
         return Number.isNaN (parsed) ? undefined : parsed;
     }
 
+    iso8601 (timestamp: number): string | undefined {
+        return Number.isFinite (timestamp) ? new Date (timestamp).toISOString () : undefined;
+    }
+
     market (symbol: string): any {
         const market = this.markets[symbol];
         if (market === undefined) {

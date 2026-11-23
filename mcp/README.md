@@ -25,6 +25,23 @@ One honest caveat: any local agent with filesystem access could read the config 
 
 Requires Node.js ≥ 18. The npm package is `ccxt-mcp`; the server binary is `npx -y ccxt-mcp`.
 
+### Plugins (one-step install)
+
+A plugin installs the server **and** the `ccxt-mcp` usage skill together. One plugin directory ([`plugin/`](plugin/README.md)) serves all three hosts below; it pins the server (`npx -y ccxt-mcp@<plugin version>`), so updating the plugin updates the server.
+
+**Claude Code**
+
+```
+/plugin marketplace add ccxt/ccxt
+/plugin install ccxt-mcp@ccxt
+```
+
+(shell: `claude plugin marketplace add ccxt/ccxt` + `claude plugin install ccxt-mcp@ccxt`). On install Claude Code can prompt for optional exchange / API key settings (stored by Claude Code, sensitive values in secure storage); the config file below works regardless. Tools appear as `mcp__plugin_ccxt-mcp_ccxt__<tool>`.
+
+**OpenAI Codex / ChatGPT desktop app** — `codex plugin marketplace add ccxt/ccxt` registers the marketplace (`.agents/plugins/marketplace.json`), then install **CCXT** from the Plugins directory in the ChatGPT desktop app. Per OpenAI's docs the CLI manages marketplaces and local plugins are installed in the desktop app; a plugin with a local stdio MCP server is "desktop-only".
+
+**xAI Grok** — Grok documents that it reads Claude Code marketplaces, plugins, skills and MCPs with zero configuration, so the same marketplace is used: add `ccxt/ccxt` as a source from `/plugins` → Marketplace tab (the docs do not publish a CLI command), or run `grok --plugin-dir <path to mcp/plugin>`.
+
 ### Claude Code
 
 ```bash
@@ -138,6 +155,8 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
 
+**views (MCP Apps)** — `show_chart` (candlestick + volume; `timeframe` default `1h`, `limit` default 200 / max 500), `show_orderbook` (cumulative depth chart + ladder; `limit` default 50 / max 100 levels per side), `show_tickers` (sortable 24h price board; up to 50 symbols). Market tier: public data, read-only, no account — see [Interactive views](#interactive-views-mcp-apps).
+
 **live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream; `watch_read` returns fresh data. **State** streams are snapshots of "what is X right now" — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: the server merges live updates into the **full current set**, so `watch_read` always returns every subscribed symbol in `latest` (a multi-symbol stream never shows just the one that last ticked). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` with a cursor. Pass `waitForChange: true` to `watch_read` to **block until the next update** (or timeout) instead of polling — the efficient way to wait for a fill or position change. `watch_unsubscribe` stops it; `watch_list` shows active streams. The long-lived server holds the socket so the agent always has fresh data; idle streams auto-stop after 10 minutes.
 
 **read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
@@ -149,6 +168,16 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 **funds** — `withdraw`, `transfer`, `get_deposit_address`. **implicitWrites** — `call_implicit_write`.
 
 Every list result is capped and paginated to fit host context limits (with in-band truncation notices); the raw `info` payload is stripped by default. Prediction exchanges use the same tools with outcome handles (from `search_events`) in the symbol position.
+
+## Interactive views (MCP Apps)
+
+`show_chart`, `show_orderbook` and `show_tickers` implement [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) (extension `io.modelcontextprotocol/ui`, spec 2026-01-26): each tool's `_meta.ui.resourceUri` points at a `ui://ccxt/<view>.html` resource (`mimeType` `text/html;profile=mcp-app`) that hosts with MCP Apps support render in a sandboxed iframe.
+
+- The model gets a compact summary as text (`meta.ui` is `"displayed"` or `"unsupported"`); the view gets the full dataset as `structuredContent`.
+- Hosts without MCP Apps support just see the text summary; `get_ohlcv` / `get_orderbook` / `get_tickers` remain the raw-data tools.
+- Views are self-contained single files: no network access, no external assets, no tracking. They can ask the host to re-run the same tool (refresh, timeframe switch).
+
+The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilot, Goose, Postman, MCPJam and ChatGPT among supporting clients. Terminal hosts (Claude Code CLI, Codex CLI, Grok CLI) have no surface to draw a view and show the text summary. Whether a host renders views for a *local stdio* server varies and is not uniformly documented — the views work "in hosts that support MCP Apps", no more specific promise is made.
 
 ## Troubleshooting
 
@@ -163,7 +192,9 @@ Every list result is capped and paginated to fit host context limits (with in-ba
 ```bash
 npm run mcp.ts          # run the server from live TypeScript sources (tsx)
 cd mcp && npm test      # unit + schema + integration tests
-cd mcp && npm run build # tsc + regenerate js/data/method-docs.json
+cd mcp && npm run build # tsc + copy the UI views + regenerate js/data/method-docs.json
+cd mcp && npm run ui:preview  # write a fake-host preview page for developing the views
+cd mcp && npm run sync-plugin # copy .claude/skills/ccxt-mcp into plugin/skills (CI fails on drift)
 ```
 
 See `DESIGN.md` for the architecture, the prior-art analysis this server is built on, and the decision log.

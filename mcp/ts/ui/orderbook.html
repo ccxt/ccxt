@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCXT order book</title>
+<style>
+/* @include shared.css */
+.plot { position: relative; touch-action: pan-y; }
+.plot svg:focus { outline: none; }
+.plot svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+/* side identity is carried by the legend, the in-plot labels and the readout — the hue only repeats it */
+.area { opacity: 0.12; }
+.line { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.area.bid, .dot.bid { fill: var(--up); }
+.area.ask, .dot.ask { fill: var(--down); }
+.line.bid { stroke: var(--up); }
+.line.ask { stroke: var(--down); }
+.dot { stroke: var(--bg); stroke-width: 2; pointer-events: none; }
+.pill { fill: var(--text); }
+svg text.pill-text { fill: var(--bg); font-weight: 600; }
+svg text.side { fill: var(--text-2); font-weight: 600; }
+.legend, .readout { display: flex; flex-wrap: wrap; gap: 2px 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.legend { margin: 0 0 2px; }
+.readout { min-height: 20px; margin: 0 0 6px; }
+.legend b, .readout b { color: var(--text); font-weight: 600; }
+.readout .which { color: var(--text); font-weight: 600; }
+.key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+.key.bid { background: var(--up); }
+.key.ask { background: var(--down); }
+#ladder { max-height: 344px; margin-top: 10px; }
+.ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0 12px; align-items: start; }
+.ladder th, .ladder td, .ladder th:first-child, .ladder td:first-child { padding: 3px 8px; text-align: right; }
+.ladder .cum { position: relative; width: 40%; }
+.ladder .none, .ladder .none:first-child { color: var(--text-2); text-align: center; padding: 16px 8px; }
+.bar { position: absolute; top: 2px; bottom: 2px; right: 0; border-radius: 2px 0 0 2px; opacity: 0.16; }
+.bar.bid { background: var(--up); }
+.bar.ask { background: var(--down); }
+.cum span:last-child { position: relative; }
+/* reserve the wrapped height of the readout so the plot does not jump under the pointer */
+@media (max-width: 640px) { .readout { min-height: 40px; } }
+@media (max-width: 350px) { .readout { min-height: 60px; } }
+</style>
+</head>
+<body>
+<div class="head">
+    <div>
+        <div class="title"><h1 id="symbol">Order book</h1><span class="venue" id="venue"></span></div>
+        <div class="hero"><span class="value" id="mid">–</span><span class="context" id="spread"></span></div>
+    </div>
+    <div class="controls">
+        <button type="button" id="refresh" title="Fetch the latest order book">Refresh</button>
+        <button type="button" id="toggle" aria-pressed="false" title="List every level instead of the best 12 per side">All levels</button>
+    </div>
+</div>
+<div class="legend" id="legend"></div>
+<div class="readout" id="readout" aria-live="off"></div>
+<div class="plot" id="plot"></div>
+<div class="scroll" id="ladder" hidden></div>
+<div class="status" id="status" role="status">Waiting for data…</div>
+<script>
+/* @include bridge.js */
+</script>
+<script>
+(function () {
+    'use strict';
+    var app = window.ccxtApp;
+    var TOP_LEVELS = 12;
+    var PLOT_HEIGHT = 220;
+    var AXIS_BOTTOM = 22;
+    var AXIS_RIGHT = 58;
+    var AXIS_RIGHT_MAX = 112;
+    var PAD_TOP = 8;
+    var NAMES = { bid: 'Bid', ask: 'Ask' };
+    var data = null;
+    var book = null;
+    var args = null;
+    var hover = -1;
+    var busy = false;
+    var showAll = false;
+    var layout = null;
+    var nodes = {};
+    [ 'symbol', 'venue', 'mid', 'spread', 'refresh', 'toggle', 'legend', 'readout', 'plot', 'ladder', 'status' ].forEach (function (id) {
+        nodes[id] = document.getElementById (id);
+    });
+
+    function setStatus (text, isError) {
+        nodes.status.textContent = text || '';
+        nodes.status.className = 'status' + (isError ? ' error' : '');
+    }
+
+    function format (value, options) {
+        try {
+            return value.toLocaleString (app.context ().locale || undefined, options);
+        } catch (error) {
+            return value.toLocaleString (undefined, options);
+        }
+    }
+
+    // every price of one book shares a decimal count, so the ladder and the axis line up
+    function fixed (value, min, max) {
+        if (!app.isNumber (value)) {
+            return '–';
+        }
+        if (Math.abs (value) >= 1e9) {
+            return app.compact (value);
+        }
+        return format (value, { minimumFractionDigits: min, maximumFractionDigits: max });
+    }
+
+    function price (value) {
+        return fixed (value, book.digits, book.digits);
+    }
+
+    function amount (value, code) {
+        return app.compact (value) + ((code && app.isNumber (value)) ? ' ' + code : '');
+    }
+
+    // ladder cells: two decimals where that is meaningful, so the columns align
+    function quantity (value) {
+        var abs = Math.abs (value);
+        return (abs >= 1 && abs < 1000) ? fixed (value, 2, 2) : app.compact (value);
+    }
+
+    // spreads and distances are often a few thousandths of a percent: precision follows magnitude
+    function pct (value, signed) {
+        if (!app.isNumber (value)) {
+            return '–';
+        }
+        var abs = Math.abs (value);
+        var text = (abs >= 1 || abs === 0) ? fixed (abs, 2, 2) : ((abs < 0.0001) ? '<0.0001' : format (abs, { maximumSignificantDigits: 2 }));
+        var sign = (value < 0) ? '−' : ((signed && value > 0) ? '+' : '');
+        return sign + text + '%';
+    }
+
+    function decimals (value) {
+        for (var count = 0; count < 12; count++) {
+            var scaled = value * Math.pow (10, count);
+            if (Math.abs (scaled - Math.round (scaled)) < 1e-9 * Math.max (1, Math.abs (scaled))) {
+                return count;
+            }
+        }
+        return 12;
+    }
+
+    // malformed rows would break the scales: keep finite [price, amount >= 0], best first, with running totals
+    function buildSide (rows, name, descending) {
+        var levels = [];
+        (Array.isArray (rows) ? rows : []).forEach (function (row) {
+            if (Array.isArray (row) && app.isNumber (row[0]) && app.isNumber (row[1]) && row[1] >= 0) {
+                levels.push ({ side: name, price: row[0], amount: row[1] });
+            }
+        });
+        levels.sort (function (a, b) { return descending ? (b.price - a.price) : (a.price - b.price); });
+        var cum = 0;
+        var notional = 0;
+        return levels.filter (function (level) {
+            if (!app.isNumber (cum + level.amount) || !app.isNumber (notional + level.price * level.amount)) {
+                return false;
+            }
+            cum += level.amount;
+            notional += level.price * level.amount;
+            level.cum = cum;
+            level.notional = notional;
+            return true;
+        });
+    }
+
+    function buildBook (payload) {
+        var bids = buildSide (payload.bids, 'bid', true);
+        var asks = buildSide (payload.asks, 'ask', false);
+        var result = { bids: bids, asks: asks, digits: 0, crossed: false };
+        result.levels = bids.concat (asks).sort (function (a, b) { return a.price - b.price; });
+        result.levels.forEach (function (level) { result.digits = Math.max (result.digits, decimals (level.price)); });
+        result.base = (typeof payload.base === 'string') ? payload.base : '';
+        result.quote = (typeof payload.quote === 'string') ? payload.quote : '';
+        if (bids.length && asks.length) {
+            result.mid = (bids[0].price + asks[0].price) / 2;
+            result.gap = asks[0].price - bids[0].price;
+            result.crossed = result.gap < 0;
+        }
+        result.maxCum = Math.max (bids.length ? bids[bids.length - 1].cum : 0, asks.length ? asks[asks.length - 1].cum : 0);
+        return result;
+    }
+
+    function labelled (label, value, className) {
+        var item = app.element ('span', className || '', label ? label + ' ' : '');
+        item.appendChild (app.element ('b', '', value));
+        return item;
+    }
+
+    function distance (level) {
+        if (!app.isNumber (book.mid) || book.mid === 0) {
+            return undefined;
+        }
+        return ((level.price - book.mid) / Math.abs (book.mid)) * 100;
+    }
+
+    function readoutFor (index) {
+        var node = nodes.readout;
+        var level = book.levels[index];
+        node.textContent = '';
+        if (!level) {
+            if (book.levels.length) {
+                node.textContent = 'Point at the chart, or focus it and use the ← → keys, to inspect a level.';
+            }
+            return;
+        }
+        var away = distance (level);
+        var arrow = !app.isNumber (away) ? '' : ((away > 0) ? '▲ ' : ((away < 0) ? '▼ ' : ''));
+        node.appendChild (labelled (NAMES[level.side], price (level.price), 'which'));
+        node.appendChild (labelled ('Cumulative', amount (level.cum, book.base)));
+        node.appendChild (labelled ('Notional', amount (level.notional, book.quote)));
+        node.appendChild (labelled ('From mid', arrow + pct (away, true)));
+    }
+
+    function renderHeader () {
+        var bids = book.bids;
+        var asks = book.asks;
+        nodes.symbol.textContent = (typeof data.symbol === 'string' && data.symbol) ? data.symbol : 'Order book';
+        nodes.venue.textContent = String (data.exchangeName || data.exchange || '');
+        if (app.isNumber (book.mid)) {
+            var share = (book.mid !== 0) ? pct ((Math.abs (book.gap) / Math.abs (book.mid)) * 100) : '–';
+            var size = fixed (Math.abs (book.gap), book.digits, book.digits) + ' (' + share + ')';
+            nodes.mid.textContent = fixed (book.mid, book.digits, Math.min (book.digits + 1, 20));
+            nodes.spread.textContent = book.crossed ? ('mid price · crossed book: best bid is ' + size + ' above best ask') : ('mid price · spread ' + size);
+        } else if (bids.length || asks.length) {
+            nodes.mid.textContent = price ((bids[0] || asks[0]).price);
+            nodes.spread.textContent = bids.length ? 'best bid · no asks in this snapshot' : 'best ask · no bids in this snapshot';
+        } else {
+            nodes.mid.textContent = '–';
+            nodes.spread.textContent = '';
+        }
+        nodes.legend.textContent = '';
+        if (!book.levels.length) {
+            return;
+        }
+        nodes.legend.appendChild (app.element ('span', '', 'Cumulative depth' + (book.base ? ' in ' + book.base : '')));
+        [ [ 'bid', 'Bids', bids ], [ 'ask', 'Asks', asks ] ].forEach (function (entry) {
+            var last = entry[2][entry[2].length - 1];
+            var item = app.element ('span');
+            item.appendChild (app.element ('span', 'key ' + entry[0]));
+            item.appendChild (document.createTextNode (entry[1] + ' '));
+            item.appendChild (app.element ('b', '', last ? app.compact (last.cum) : '–'));
+            if (last && book.quote) {
+                item.appendChild (document.createTextNode (' ≈ ' + amount (last.notional, book.quote)));
+            }
+            nodes.legend.appendChild (item);
+        });
+    }
+
+    function renderControls () {
+        nodes.refresh.hidden = !app.canCallTools ();
+        nodes.refresh.disabled = busy;
+        nodes.toggle.hidden = !book || Math.max (book.bids.length, book.asks.length) <= TOP_LEVELS;
+        nodes.toggle.setAttribute ('aria-pressed', String (showAll));
+    }
+
+    function renderPlot () {
+        var levels = book.levels;
+        var host = nodes.plot;
+        host.textContent = '';
+        layout = null;
+        if (!levels.length) {
+            host.appendChild (app.element ('div', 'empty', 'The order book is empty: no bids or asks were returned for this symbol.'));
+            return;
+        }
+        var width = Math.max (240, Math.floor (host.clientWidth || document.documentElement.clientWidth - 28));
+        var top = (book.maxCum > 0) ? book.maxCum * 1.12 : 1;
+        // the axis column grows with its longest label (tiny amounts need many digits)
+        var yTicks = app.ticks (0, top, 4);
+        var axisRight = AXIS_RIGHT;
+        yTicks.concat ([ book.maxCum ]).forEach (function (tick) {
+            axisRight = Math.max (axisRight, Math.min (AXIS_RIGHT_MAX, app.compact (tick).length * 6.6 + 18));
+        });
+        var plotWidth = width - axisRight;
+        var base = PAD_TOP + PLOT_HEIGHT;
+        var height = base + AXIS_BOTTOM;
+        var count = levels.length;
+        var low = levels[0].price;
+        var high = levels[count - 1].price;
+        if (!(high - low > 0) || !app.isNumber (high - low)) {
+            // a single price still needs a non-degenerate scale
+            var pad = (high === 0) ? 1 : Math.abs (high) * 0.01;
+            high += pad;
+            low -= pad;
+        }
+        var round = function (value) { return Math.round (value * 10) / 10; };
+        var x = function (value) { return round (((value - low) / (high - low)) * plotWidth); };
+        var y = function (value) { return round (PAD_TOP + (1 - value / top) * PLOT_HEIGHT); };
+        var svg = app.svg ('svg', { viewBox: '0 0 ' + width + ' ' + height, height: height, role: 'img', tabindex: '0' });
+        svg.setAttribute ('aria-label', 'Cumulative depth chart of ' + nodes.symbol.textContent + ' on ' + nodes.venue.textContent + ': ' + book.bids.length + ' bid levels left of the mid price, ' + book.asks.length + ' ask levels right of it. Use the left and right arrow keys to inspect levels; the table below lists the values.');
+        // cumulative-amount grid + right-hand axis (the only y scale)
+        yTicks.forEach (function (tick) {
+            var ty = Math.round (y (tick)) + 0.5;
+            svg.appendChild (app.svg ('line', { 'class': 'grid', x1: 0, x2: plotWidth, y1: ty, y2: ty }));
+            var label = app.svg ('text', { x: plotWidth + 8, y: ty + 4 });
+            label.textContent = app.compact (tick);
+            svg.appendChild (label);
+        });
+        // price axis: as many labels as fit without touching
+        var labelWidth = price (high).length * 6.4 + 18;
+        var edge = -Infinity;
+        var previous = '';
+        app.ticks (low, high, Math.max (2, Math.floor (plotWidth / (labelWidth * 1.5)))).forEach (function (tick) {
+            var tx = x (tick);
+            var text = price (tick);
+            if (tx < labelWidth / 2 - 10 || tx > plotWidth - 4 || tx - edge < labelWidth || text === previous) {
+                return;
+            }
+            edge = tx;
+            previous = text;
+            var label = app.svg ('text', { x: tx, y: height - 6, 'text-anchor': 'middle' });
+            label.textContent = text;
+            svg.appendChild (label);
+        });
+        // step areas: each side accumulates away from its best price
+        [ [ book.bids, 0 ], [ book.asks, plotWidth ] ].forEach (function (entry) {
+            var side = entry[0];
+            if (!side.length) {
+                return;
+            }
+            var path = 'M' + x (side[0].price) + ' ' + base;
+            side.forEach (function (level) { path += 'H' + x (level.price) + 'V' + y (level.cum); });
+            path += 'H' + entry[1];
+            svg.appendChild (app.svg ('path', { 'class': 'area ' + side[0].side, d: path + 'V' + base + 'Z' }));
+            svg.appendChild (app.svg ('path', { 'class': 'line ' + side[0].side, d: path }));
+        });
+        // mid marker and side names in the empty band between the two best prices
+        if (app.isNumber (book.mid) && !book.crossed) {
+            var midX = Math.round (x (book.mid)) + 0.5;
+            svg.appendChild (app.svg ('line', { 'class': 'grid', x1: midX, x2: midX, y1: PAD_TOP, y2: base }));
+        }
+        if (!book.crossed) {
+            [ [ book.bids, 'Bids', 'end', -7 ], [ book.asks, 'Asks', 'start', 7 ] ].forEach (function (entry) {
+                var at = entry[0].length ? x (entry[0][0].price) + entry[3] : -1;
+                if (at >= 40 && at <= plotWidth - 40) {
+                    var name = app.svg ('text', { 'class': 'side', x: at, y: PAD_TOP + 10, 'text-anchor': entry[2] });
+                    name.textContent = entry[1];
+                    svg.appendChild (name);
+                }
+            });
+        }
+        // crosshair (hidden until hover / keyboard focus)
+        var cursor = app.svg ('line', { 'class': 'cursor', y1: PAD_TOP, y2: base, visibility: 'hidden' });
+        var dot = app.svg ('circle', { 'class': 'dot', r: 5, visibility: 'hidden' });
+        var pill = app.svg ('rect', { 'class': 'pill', x: plotWidth + 2, width: axisRight - 4, height: 18, rx: 4, visibility: 'hidden' });
+        var pillText = app.svg ('text', { 'class': 'pill-text', x: plotWidth + 8, visibility: 'hidden' });
+        // one transparent hit area for the whole plot: the pointer only has to be nearest
+        var hit = app.svg ('rect', { x: 0, y: 0, width: plotWidth, height: base, fill: 'transparent' });
+        [ cursor, dot, pill, pillText, hit ].forEach (function (node) { svg.appendChild (node); });
+        layout = { x: x, y: y, cursor: cursor, dot: dot, pill: pill, pillText: pillText };
+        var nearest = function (event) {
+            var box = svg.getBoundingClientRect ();
+            var pointer = (event.clientX - box.left) * (width / (box.width || width));
+            var best = 0;
+            for (var i = 1; i < count; i++) {
+                if (Math.abs (x (levels[i].price) - pointer) < Math.abs (x (levels[best].price) - pointer)) {
+                    best = i;
+                }
+            }
+            return best;
+        };
+        hit.addEventListener ('pointermove', function (event) { setHover (nearest (event)); });
+        hit.addEventListener ('pointerdown', function (event) { setHover (nearest (event)); });
+        hit.addEventListener ('pointerleave', function () { setHover (-1); });
+        svg.addEventListener ('keydown', function (event) {
+            // the first arrow press starts at the best price of the side it points to
+            var bestBid = book.bids.length ? levels.indexOf (book.bids[0]) : levels.indexOf (book.asks[0]);
+            var bestAsk = book.asks.length ? levels.indexOf (book.asks[0]) : bestBid;
+            var next;
+            if (event.key === 'ArrowLeft') {
+                next = (hover < 0) ? bestBid : hover - 1;
+            } else if (event.key === 'ArrowRight') {
+                next = (hover < 0) ? bestAsk : hover + 1;
+            } else if (event.key === 'Home') {
+                next = 0;
+            } else if (event.key === 'End') {
+                next = count - 1;
+            } else if (event.key === 'Escape') {
+                setHover (-1);
+                return;
+            } else {
+                return;
+            }
+            event.preventDefault ();
+            setHover (Math.max (0, Math.min (count - 1, next)));
+        });
+        svg.addEventListener ('blur', function () { setHover (-1); });
+        host.appendChild (svg);
+    }
+
+    function setHover (index) {
+        hover = index;
+        if (!layout || !book.levels.length) {
+            return;
+        }
+        var level = book.levels[index];
+        var visibility = level ? 'visible' : 'hidden';
+        [ layout.cursor, layout.dot, layout.pill, layout.pillText ].forEach (function (node) {
+            node.setAttribute ('visibility', visibility);
+        });
+        if (level) {
+            var cx = Math.round (layout.x (level.price)) + 0.5;
+            var cy = layout.y (level.cum);
+            layout.cursor.setAttribute ('x1', cx);
+            layout.cursor.setAttribute ('x2', cx);
+            layout.dot.setAttribute ('cx', cx);
+            layout.dot.setAttribute ('cy', cy);
+            layout.dot.setAttribute ('class', 'dot ' + level.side);
+            layout.pill.setAttribute ('y', cy - 9);
+            layout.pillText.setAttribute ('y', cy + 4);
+            layout.pillText.textContent = app.compact (level.cum);
+        }
+        readoutFor (index);
+    }
+
+    function ladderTable (side, name, scale) {
+        var table = document.createElement ('table');
+        var head = document.createElement ('tr');
+        var body = document.createElement ('tbody');
+        var shown = side.slice (0, showAll ? side.length : TOP_LEVELS);
+        table.setAttribute ('aria-label', NAMES[name] + 's, best price first');
+        [ NAMES[name] + ' price', 'Amount', 'Total' ].forEach (function (title, column) {
+            var cell = app.element ('th', (column === 2) ? 'cum' : '', title);
+            cell.scope = 'col';
+            if (column === 2) {
+                cell.title = 'Cumulative amount from the best price to this level';
+            }
+            head.appendChild (cell);
+        });
+        table.appendChild (document.createElement ('thead')).appendChild (head);
+        shown.forEach (function (level) {
+            var row = document.createElement ('tr');
+            var total = app.element ('td', 'cum');
+            var bar = app.element ('span', 'bar ' + name);
+            bar.style.width = ((scale > 0) ? Math.max (0, Math.min (100, (level.cum / scale) * 100)).toFixed (1) : '0') + '%';
+            total.appendChild (bar);
+            total.appendChild (app.element ('span', '', quantity (level.cum)));
+            row.appendChild (app.element ('td', '', price (level.price)));
+            row.appendChild (app.element ('td', '', quantity (level.amount)));
+            row.appendChild (total);
+            body.appendChild (row);
+        });
+        if (!shown.length) {
+            var none = app.element ('td', 'none', 'No ' + NAMES[name].toLowerCase () + 's in this snapshot.');
+            none.colSpan = 3;
+            body.appendChild (document.createElement ('tr')).appendChild (none);
+        }
+        table.appendChild (body);
+        return table;
+    }
+
+    function renderLadder () {
+        var wrap = nodes.ladder;
+        wrap.textContent = '';
+        wrap.hidden = !book.levels.length;
+        if (wrap.hidden) {
+            return;
+        }
+        // one bar scale for both sides, so the two columns compare like the chart above
+        var size = showAll ? Infinity : TOP_LEVELS;
+        var scale = 0;
+        [ book.bids, book.asks ].forEach (function (side) {
+            var last = side[Math.min (side.length, size) - 1];
+            scale = Math.max (scale, last ? last.cum : 0);
+        });
+        var grid = app.element ('div', 'ladder');
+        grid.appendChild (ladderTable (book.bids, 'bid', scale));
+        grid.appendChild (ladderTable (book.asks, 'ask', scale));
+        wrap.appendChild (grid);
+    }
+
+    function render () {
+        if (!data) {
+            return;
+        }
+        renderHeader ();
+        renderControls ();
+        renderPlot ();
+        renderLadder ();
+        hover = -1;
+        readoutFor (-1);
+    }
+
+    function accept (payload) {
+        if (!payload || payload.view !== 'orderbook' || !Array.isArray (payload.bids) || !Array.isArray (payload.asks)) {
+            return;
+        }
+        data = payload;
+        book = buildBook (payload);
+        var parts = app.isNumber (payload.timestamp) ? [ 'As of ' + app.dateTime (payload.timestamp, { dateStyle: 'medium', timeStyle: 'medium' }) ] : [];
+        if (book.levels.length) {
+            parts.push (book.bids.length + ' bid and ' + book.asks.length + ' ask levels');
+        }
+        setStatus (parts.join (' · '));
+        render ();
+    }
+
+    function setBusy (value) {
+        busy = value;
+        nodes.plot.classList.toggle ('busy', value);
+        nodes.ladder.classList.toggle ('busy', value);
+        renderControls ();
+    }
+
+    function reload () {
+        if (busy || !data) {
+            return;
+        }
+        var request = {};
+        var base = args || { exchange: data.exchange, symbol: data.symbol, limit: data.limit };
+        Object.keys (base).forEach (function (key) { request[key] = base[key]; });
+        setBusy (true);
+        setStatus ('Loading…');
+        app.callTool ('show_orderbook', request).then (function (payload) {
+            setBusy (false);
+            if (!payload || payload.view !== 'orderbook') {
+                setStatus ('Could not load: the host returned no order book.', true);
+                return;
+            }
+            accept (payload);
+        }, function (error) {
+            setBusy (false);
+            setStatus ('Could not load: ' + ((error && error.message) || 'unknown error'), true);
+        });
+    }
+
+    nodes.refresh.addEventListener ('click', reload);
+    nodes.toggle.addEventListener ('click', function () {
+        showAll = !showAll;
+        renderControls ();
+        renderLadder ();
+    });
+    var resizeTimer = null;
+    var lastWidth = 0;
+    window.addEventListener ('resize', function () {
+        // re-layout only on a real width change: the height grows with the content
+        var width = document.documentElement.clientWidth;
+        if (!data || width === lastWidth) {
+            return;
+        }
+        lastWidth = width;
+        clearTimeout (resizeTimer);
+        resizeTimer = setTimeout (function () { renderPlot (); }, 60);
+    });
+
+    app.connect ({
+        name: 'ccxt-orderbook',
+        onInput: function (input) { args = input; },
+        onResult: accept,
+        onError: function (message) { setStatus ('Could not load: ' + message, true); },
+        onContext: function () { render (); }
+    }).then (function () {
+        if (data) {
+            renderControls ();
+        }
+    }, function () {
+        setStatus ('Could not connect to the host.', true);
+    });
+    // development hook: open the file directly and call window.ccxtView.accept (payload)
+    window.ccxtView = { accept: accept };
+}) ();
+</script>
+</body>
+</html>

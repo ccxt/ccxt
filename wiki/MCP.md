@@ -28,6 +28,42 @@ Recommended exchange‑side backstops (they hold even if your machine is comprom
 
 Requires Node.js ≥ 18. The server runs with `npx -y ccxt-mcp` — no global install needed. Add it to your MCP host with one of the snippets below.
 
+### Plugins (one‑step install)
+
+A plugin installs the MCP server **and** the `ccxt-mcp` usage skill together, so the agent gets the tools and the knowledge of how to use them. One plugin directory ([`mcp/plugin`](https://github.com/ccxt/ccxt/tree/master/mcp/plugin)) serves Claude Code, OpenAI Codex / the ChatGPT desktop app, and xAI Grok. The plugin pins the server — it runs `npx -y ccxt-mcp@<plugin version>` — so updating the plugin updates the server.
+
+**Claude Code**
+
+```
+/plugin marketplace add ccxt/ccxt
+/plugin install ccxt-mcp@ccxt
+```
+
+Or from a shell:
+
+```bash
+claude plugin marketplace add ccxt/ccxt
+claude plugin install ccxt-mcp@ccxt
+```
+
+On install Claude Code can prompt for optional settings — an exchange with its API key and secret, sandbox mode, a config file path. Leave them all blank for public market data. The values are stored by Claude Code (sensitive ones in secure storage), not in the plugin. The config file described under [Configuration](#configuration) works regardless of the prompt, and is the only place to configure several exchanges, live trading or withdrawals. Tools appear as `mcp__plugin_ccxt-mcp_ccxt__<tool>`.
+
+**OpenAI Codex / ChatGPT desktop app**
+
+```bash
+codex plugin marketplace add ccxt/ccxt
+```
+
+This registers the marketplace (`.agents/plugins/marketplace.json` in the repository). Then install **CCXT** from the Plugins directory in the ChatGPT desktop app: per OpenAI's docs the CLI manages marketplaces, while installing and testing local plugins happens in the desktop app, and a plugin with a local stdio MCP server — like this one — is "desktop‑only".
+
+**xAI Grok**
+
+Grok documents that it reads Claude Code marketplaces, plugins, skills and MCPs with zero configuration, so it uses the same marketplace and plugin as Claude Code. Add `ccxt/ccxt` as a marketplace source from `/plugins` → **Marketplace** tab (the Grok docs do not publish a CLI command for this), or load the plugin directory from a checkout:
+
+```bash
+grok --plugin-dir /path/to/ccxt/mcp/plugin
+```
+
 ### Claude Code
 
 ```bash
@@ -168,6 +204,7 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 The model discovers these from the server; you don't call them directly.
 
 - **market** — `list_exchanges`, `describe_exchange`, `describe_method` (search method signatures, per‑exchange params and doc links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read‑only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
+- **views (MCP Apps)** — `show_chart` (candlestick + volume chart), `show_orderbook` (cumulative depth chart + bid/ask ladder), `show_tickers` (sortable 24h price board). Market tier: public data, read‑only, no account. See [Interactive views](#interactive-views-mcp-apps) below.
 - **live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream; `watch_read` returns fresh data. **State** streams are snapshots of "what is X right now" — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: the server merges live updates into the **full current set**, so `watch_read` always returns every subscribed symbol in `latest`, never just the one that last ticked. **Event** streams are logs of discrete events — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private ones need an account): `watch_read` returns new items oldest‑first in `events` with a cursor. Set `waitForChange: true` on `watch_read` to **block until the next update** (or timeout) instead of polling — the efficient way to wait for a fill or a position change. `watch_unsubscribe` stops it; `watch_list` shows active streams. The long‑lived server holds the socket so the agent always has fresh data; idle streams auto‑stop after 10 minutes.
 - **read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
 - **`search_markets` paging** — full market rows by default (max 100 per call); pass `fields` (e.g. `["symbol"]`) for compact rows and a max of up to 1000, so listing every USDT‑settled swap on okx takes one call. `meta` always has `returned`/`available`/`offset`/`hasMore`, plus `nextOffset` when there is more, `limitClamped` when the limit was reduced, and `marketTypes` when nothing matched (e.g. `type: "perpetual"` points at `"swap"`).
@@ -175,6 +212,24 @@ The model discovers these from the server; you don't call them directly.
 - **funds** — `withdraw`, `transfer`, `get_deposit_address`. **implicitWrites** — `call_implicit_write`.
 
 Every list result is capped and paginated to fit host context limits (with in‑band truncation notices), and the raw `info` payload is stripped by default. Symbols are unified CCXT symbols (`BTC/USDT` spot, `BTC/USDT:USDT` swap); resolve them with `search_markets`. Prediction exchanges use the same tools with outcome handles (from `search_events`) in the symbol position, priced 0–1.
+
+## Interactive views (MCP Apps)
+
+Three market‑tier tools render a view instead of returning rows. They use public data only, are read‑only, and need no account:
+
+| Tool | Renders | Arguments |
+|---|---|---|
+| `show_chart` | candlestick + volume chart | `exchange`, `symbol`, `timeframe` (default `1h`), `since`, `limit` (default 200, max 500), `marketType`, `prediction`, `params` |
+| `show_orderbook` | cumulative depth chart + bid/ask ladder | `exchange`, `symbol`, `limit` (levels per side, default 50, max 100), `marketType`, `prediction`, `params` |
+| `show_tickers` | sortable 24h price board | `exchange`, `symbols` (up to 50), `marketType`, `prediction`, `params` |
+
+They implement [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) (the `io.modelcontextprotocol/ui` extension, spec 2026‑01‑26). Each tool's `_meta.ui.resourceUri` points at a `ui://ccxt/<view>.html` resource (`mimeType` `text/html;profile=mcp-app`) that a host with MCP Apps support fetches and renders in a sandboxed iframe.
+
+- **The model gets a summary, the view gets the data.** The tool's text result is a compact summary (for a chart: range, open/close, change %, high/low, volume) with `meta.ui` set to `"displayed"` or `"unsupported"`; the full dataset goes to the view as `structuredContent`.
+- **Hosts without MCP Apps support just see the text summary** — the tools stay usable as plain tools. `get_ohlcv`, `get_orderbook` and `get_tickers` remain the tools for raw data.
+- **Views are self‑contained single files**: no network access, no external assets, no tracking. A view can ask the host to re‑run the same tool (refresh, timeframe switch); it has no other way to fetch data.
+
+**Host support.** The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilot, Goose, Postman, MCPJam and ChatGPT among the supporting clients. Terminal hosts (Claude Code CLI, Codex CLI, Grok CLI) have no surface to draw a view on and show the text summary. Whether a host renders views for a *local stdio* server like this one varies and is not uniformly documented, so treat the views as available "in hosts that support MCP Apps" rather than in any particular host.
 
 ## Prediction markets
 

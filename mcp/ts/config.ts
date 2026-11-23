@@ -210,26 +210,29 @@ function envAccountRaw (suffix: string): any | undefined {
         return undefined;
     }
     const raw: any = { exchange };
+    // Plugin hosts (.mcpb, Claude Code / Codex / Grok plugins) substitute ${user_config.X}
+    // templates into env, and an UNSET optional field can arrive as the literal template
+    // string. Like the exchange slot above, such a value counts as unset everywhere below —
+    // it must never become a "credential" or a mode flag.
+    const envValue = (key: string): string | undefined => {
+        const value = process.env[key];
+        return (value !== undefined && value !== '' && !value.includes ('${')) ? value : undefined;
+    };
     for (const [ envKey, field ] of Object.entries (ENV_CREDENTIAL_MAP)) {
-        const value = process.env['CCXT_MCP_' + envKey + suffix];
-        if (value !== undefined && value !== '') {
+        const value = envValue ('CCXT_MCP_' + envKey + suffix);
+        if (value !== undefined) {
             raw[field] = unescapePem (value);
         }
     }
     // Safe toggles (sandbox/demo/prediction, and the sandbox trading switch) may fall back to
     // the unsuffixed global — that's the single toggle the .mcpb form drives across every slot.
-    // Empty string counts as unset, so an unfilled optional form field can't override the global.
-    const flag = (name: string): string | undefined => {
-        const per = process.env['CCXT_MCP_' + name + suffix];
-        return (per !== undefined && per !== '') ? per : process.env['CCXT_MCP_' + name];
-    };
+    // Empty string (or an unsubstituted template) counts as unset, so an unfilled optional
+    // form field can't override the global.
+    const flag = (name: string): string | undefined => envValue ('CCXT_MCP_' + name + suffix) ?? envValue ('CCXT_MCP_' + name);
     // Live trading and its USD cap are real money and must be scoped PER SLOT: a global
     // CCXT_MCP_TRADING=live / MAX_ORDER_VALUE must never arm an EXTRA exchange the user added
     // only to read. For slot 1 the suffix is '' so perSlot IS the global (backwards compatible).
-    const perSlot = (name: string): string | undefined => {
-        const v = process.env['CCXT_MCP_' + name + suffix];
-        return (v !== undefined && v !== '') ? v : undefined;
-    };
+    const perSlot = (name: string): string | undefined => envValue ('CCXT_MCP_' + name + suffix);
     if (flag ('SANDBOX') === 'true') {
         raw['sandbox'] = true;
     }

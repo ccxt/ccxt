@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "ccxt": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "ccxt-mcp@0.1.3"
+      ]
+    }
+  }
+}

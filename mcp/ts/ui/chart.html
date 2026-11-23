@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCXT chart</title>
+<style>
+/* @include shared.css */
+.plot { position: relative; touch-action: pan-y; }
+.plot svg:focus { outline: none; }
+.plot svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.wick { fill: none; stroke-width: 1; shape-rendering: crispEdges; }
+.wick.up, .body.up { stroke: var(--up); }
+.wick.down, .body.down { stroke: var(--down); }
+/* secondary encoding for direction: rising candles are hollow, falling candles are filled */
+.body { stroke-width: 1; shape-rendering: crispEdges; }
+.body.up { fill: var(--bg); }
+.body.up.solid { fill: var(--up); }
+.body.down { fill: var(--down); }
+.volume.up { fill: var(--up); opacity: 0.35; }
+.volume.down { fill: var(--down); opacity: 0.35; }
+.pill { fill: var(--text); }
+svg text.pill-text { fill: var(--bg); font-weight: 600; }
+.readout { display: flex; flex-wrap: wrap; gap: 2px 14px; min-height: 20px; margin: 0 0 6px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--text); font-weight: 600; }
+.readout .when { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="head">
+    <div>
+        <div class="title"><h1 id="symbol">Chart</h1><span class="venue" id="venue"></span></div>
+        <div class="hero"><span class="value" id="last">–</span><span class="delta" id="change"></span><span class="context" id="range"></span></div>
+    </div>
+    <div class="controls">
+        <div class="segmented" id="timeframes" role="group" aria-label="Timeframe"></div>
+        <button type="button" id="refresh" title="Fetch the latest candles">Refresh</button>
+        <button type="button" id="toggle" aria-pressed="false" title="Show the candles as a table">Table</button>
+    </div>
+</div>
+<div class="readout" id="readout" aria-live="off"></div>
+<div class="plot" id="plot"></div>
+<div class="scroll" id="tablewrap" hidden></div>
+<div class="status" id="status" role="status">Waiting for data…</div>
+<script>
+/* @include bridge.js */
+</script>
+<script>
+(function () {
+    'use strict';
+    var app = window.ccxtApp;
+    var PREFERRED = [ '1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w', '1M' ];
+    var PRICE_HEIGHT = 280;
+    var VOLUME_HEIGHT = 56;
+    var GAP = 14;
+    var AXIS_BOTTOM = 22;
+    var AXIS_MIN = 56;
+    var PAD_TOP = 8;
+    var data = null;
+    var args = null;
+    var hover = -1;
+    var busy = false;
+    var layout = null;
+    var nodes = {};
+    [ 'symbol', 'venue', 'last', 'change', 'range', 'timeframes', 'refresh', 'toggle', 'readout', 'plot', 'tablewrap', 'status' ].forEach (function (id) {
+        nodes[id] = document.getElementById (id);
+    });
+
+    function setStatus (text, isError) {
+        nodes.status.textContent = text || '';
+        nodes.status.className = 'status' + (isError ? ' error' : '');
+    }
+
+    function setDelta (node, value) {
+        if (!app.isNumber (value)) {
+            node.textContent = '';
+            node.className = 'delta';
+            return;
+        }
+        var direction = (value > 0) ? 'up' : ((value < 0) ? 'down' : '');
+        var arrow = (value > 0) ? '▲ ' : ((value < 0) ? '▼ ' : '');
+        node.textContent = arrow + app.percent (value);
+        node.className = 'delta' + (direction ? ' ' + direction : '');
+    }
+
+    function intraday () {
+        var candles = data.candles;
+        return candles.length < 2 || (candles[1][0] - candles[0][0]) < 86400000;
+    }
+
+    function readoutFor (index) {
+        var candle = data.candles[index];
+        var node = nodes.readout;
+        node.textContent = '';
+        if (!candle) {
+            return;
+        }
+        var when = intraday () ? app.dateTime (candle[0]) : app.dateTime (candle[0], { dateStyle: 'medium' });
+        node.appendChild (app.element ('span', 'when', when));
+        [ [ 'O', candle[1] ], [ 'H', candle[2] ], [ 'L', candle[3] ], [ 'C', candle[4] ] ].forEach (function (pair) {
+            var item = app.element ('span', '', pair[0] + ' ');
+            item.appendChild (app.element ('b', '', app.price (pair[1])));
+            node.appendChild (item);
+        });
+        var volume = app.element ('span', '', 'Vol ');
+        volume.appendChild (app.element ('b', '', app.compact (candle[5])));
+        node.appendChild (volume);
+        var change = app.element ('span', 'delta');
+        setDelta (change, (candle[1] !== 0) ? ((candle[4] - candle[1]) / candle[1]) * 100 : undefined);
+        node.appendChild (change);
+    }
+
+    function renderHeader () {
+        var candles = data.candles;
+        nodes.symbol.textContent = data.symbol || 'Chart';
+        nodes.venue.textContent = (data.exchangeName || data.exchange || '') + (data.timeframe ? ' · ' + data.timeframe : '');
+        if (!candles.length) {
+            nodes.last.textContent = '–';
+            setDelta (nodes.change, undefined);
+            nodes.range.textContent = '';
+            return;
+        }
+        var first = candles[0];
+        var last = candles[candles.length - 1];
+        nodes.last.textContent = app.price (last[4]);
+        setDelta (nodes.change, (first[1] !== 0) ? ((last[4] - first[1]) / first[1]) * 100 : undefined);
+        nodes.range.textContent = 'over ' + candles.length + ' × ' + data.timeframe + ' candles';
+    }
+
+    function renderTimeframes () {
+        var available = data.timeframes || [];
+        var list = PREFERRED.filter (function (frame) { return available.indexOf (frame) !== -1; });
+        if (data.timeframe && list.indexOf (data.timeframe) === -1) {
+            list.push (data.timeframe);
+        }
+        var interactive = app.canCallTools ();
+        nodes.timeframes.textContent = '';
+        nodes.timeframes.hidden = !interactive || list.length < 2;
+        nodes.refresh.hidden = !interactive;
+        list.forEach (function (frame) {
+            var button = app.element ('button', '', frame);
+            button.type = 'button';
+            button.setAttribute ('aria-pressed', String (frame === data.timeframe));
+            button.disabled = busy;
+            button.addEventListener ('click', function () {
+                if (frame !== data.timeframe) {
+                    reload ({ timeframe: frame });
+                }
+            });
+            nodes.timeframes.appendChild (button);
+        });
+        nodes.refresh.disabled = busy;
+    }
+
+    // Picks the candles that get a time label. When the range crosses several calendar
+    // boundaries (days for intraday candles, months or years for daily ones) the labels sit
+    // on those boundaries, so every label has the same form; otherwise they are evenly spaced.
+    function timeTicks (step, count) {
+        var candles = data.candles;
+        var span = candles[count - 1][0] - candles[0][0];
+        var DAY = 86400000;
+        var bucket;
+        var label;
+        var fallback;
+        if (intraday ()) {
+            bucket = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            label = { month: 'short', day: 'numeric' };
+            fallback = { hour: '2-digit', minute: '2-digit' };
+        } else if (span > 730 * DAY) {
+            bucket = { year: 'numeric' };
+            label = { year: 'numeric' };
+            fallback = label;
+        } else {
+            bucket = { year: 'numeric', month: 'numeric' };
+            label = (span > 300 * DAY) ? { month: 'short', year: '2-digit' } : { month: 'short' };
+            fallback = { month: 'short', day: 'numeric' };
+        }
+        var minGap = 64;
+        var boundaries = [];
+        var previousKey = app.dateTime (candles[0][0], bucket);
+        for (var i = 1; i < count; i++) {
+            var key = app.dateTime (candles[i][0], bucket);
+            if (key !== previousKey) {
+                boundaries.push (i);
+                previousKey = key;
+            }
+        }
+        var result = [];
+        var lastX = -Infinity;
+        if (boundaries.length >= 2) {
+            boundaries.forEach (function (index) {
+                if (index * step - lastX >= minGap) {
+                    result.push ({ index: index, label: app.dateTime (candles[index][0], label) });
+                    lastX = index * step;
+                }
+            });
+            return result;
+        }
+        var every = Math.max (1, Math.ceil (86 / step));
+        for (var j = Math.floor (every / 2); j < count; j += every) {
+            result.push ({ index: j, label: app.dateTime (candles[j][0], fallback) });
+        }
+        return result;
+    }
+
+    function renderPlot () {
+        var candles = data.candles;
+        var host = nodes.plot;
+        host.textContent = '';
+        layout = null;
+        if (!candles.length) {
+            host.appendChild (app.element ('div', 'empty', 'No candles were returned for this symbol and timeframe.'));
+            return;
+        }
+        var width = Math.max (240, Math.floor (host.clientWidth || document.documentElement.clientWidth - 28));
+        var height = PAD_TOP + PRICE_HEIGHT + GAP + VOLUME_HEIGHT + AXIS_BOTTOM;
+        var count = candles.length;
+        var low = Infinity;
+        var high = -Infinity;
+        var maxVolume = 0;
+        candles.forEach (function (candle) {
+            low = Math.min (low, candle[3]);
+            high = Math.max (high, candle[2]);
+            maxVolume = Math.max (maxVolume, candle[5]);
+        });
+        if (high === low) {
+            // a flat series still needs a non-degenerate scale
+            var pad = (high === 0) ? 1 : Math.abs (high) * 0.01;
+            high += pad;
+            low -= pad;
+        }
+        var span = high - low;
+        var top = high + span * 0.04;
+        var bottom = low - span * 0.04;
+        // the axis gutter fits the longest price label (tabular digits are ~6.6px at 11px)
+        var priceTicks = app.ticks (bottom, top, 5);
+        var longest = Math.max (app.price (high).length, app.price (low).length, ('Vol ' + app.compact (maxVolume)).length);
+        priceTicks.forEach (function (tick) { longest = Math.max (longest, app.price (tick).length); });
+        var axisRight = Math.max (AXIS_MIN, Math.ceil (longest * 6.6) + 18);
+        var plotWidth = width - axisRight;
+        var step = plotWidth / count;
+        var bodyWidth = Math.max (1, Math.min (Math.floor (step * 0.7), 15));
+        var hollow = bodyWidth >= 4;
+        var y = function (value) { return PAD_TOP + ((top - value) / (top - bottom)) * PRICE_HEIGHT; };
+        var x = function (index) { return (index + 0.5) * step; };
+        var volumeBase = PAD_TOP + PRICE_HEIGHT + GAP + VOLUME_HEIGHT;
+        var svg = app.svg ('svg', { viewBox: '0 0 ' + width + ' ' + height, height: height, role: 'img', tabindex: '0' });
+        svg.setAttribute ('aria-label', 'Candlestick chart of ' + data.symbol + ' on ' + (data.exchangeName || data.exchange) + ', ' + data.timeframe + ' candles. Use the left and right arrow keys to inspect candles, or the Table button for the values.');
+        // price grid + right-hand axis
+        priceTicks.forEach (function (tick) {
+            var ty = Math.round (y (tick)) + 0.5;
+            svg.appendChild (app.svg ('line', { 'class': 'grid', x1: 0, x2: plotWidth, y1: ty, y2: ty }));
+            var label = app.svg ('text', { x: plotWidth + 8, y: ty + 4 });
+            label.textContent = app.price (tick);
+            svg.appendChild (label);
+        });
+        // volume baseline + its single scale label
+        svg.appendChild (app.svg ('line', { 'class': 'grid', x1: 0, x2: plotWidth, y1: volumeBase + 0.5, y2: volumeBase + 0.5 }));
+        var volumeLabel = app.svg ('text', { x: plotWidth + 8, y: volumeBase - VOLUME_HEIGHT + 10 });
+        volumeLabel.textContent = 'Vol ' + app.compact (maxVolume);
+        svg.appendChild (volumeLabel);
+        // time axis: labels sit on calendar boundaries when the range spans several of them
+        timeTicks (step, count).forEach (function (entry) {
+            var tx = x (entry.index);
+            if (tx < 24 || tx > plotWidth - 24) {
+                return;
+            }
+            var tick = app.svg ('text', { x: tx, y: height - 6, 'text-anchor': 'middle' });
+            tick.textContent = entry.label;
+            svg.appendChild (tick);
+        });
+        // marks: four paths (wicks and bodies, by direction) keep 500 candles cheap
+        var paths = { wickUp: '', wickDown: '', bodyUp: '', bodyDown: '', volumeUp: '', volumeDown: '' };
+        candles.forEach (function (candle, index) {
+            var up = candle[4] >= candle[1];
+            var cx = Math.round (x (index)) + 0.5;
+            var left = Math.round (x (index) - bodyWidth / 2) + 0.5;
+            var bodyTop = Math.round (y (Math.max (candle[1], candle[4]))) + 0.5;
+            var bodyBottom = Math.round (y (Math.min (candle[1], candle[4]))) + 0.5;
+            if (bodyBottom - bodyTop < 1) {
+                bodyBottom = bodyTop + 1;
+            }
+            var wick = 'M' + cx + ' ' + Math.round (y (candle[2])) + 'V' + bodyTop + 'M' + cx + ' ' + bodyBottom + 'V' + Math.round (y (candle[3]));
+            var body = 'M' + left + ' ' + bodyTop + 'h' + (bodyWidth - 1) + 'V' + bodyBottom + 'h' + (-(bodyWidth - 1)) + 'Z';
+            if (bodyWidth < 2) {
+                body = 'M' + cx + ' ' + bodyTop + 'V' + bodyBottom;
+            }
+            var barHeight = (maxVolume > 0) ? Math.max ((candle[5] > 0) ? 1 : 0, Math.round ((candle[5] / maxVolume) * VOLUME_HEIGHT)) : 0;
+            var bar = (barHeight > 0) ? ('M' + (left - 0.5) + ' ' + volumeBase + 'v' + (-barHeight) + 'h' + bodyWidth + 'v' + barHeight + 'Z') : '';
+            if (up) {
+                paths.wickUp += wick;
+                paths.bodyUp += body;
+                paths.volumeUp += bar;
+            } else {
+                paths.wickDown += wick;
+                paths.bodyDown += body;
+                paths.volumeDown += bar;
+            }
+        });
+        svg.appendChild (app.svg ('path', { 'class': 'volume up', d: paths.volumeUp }));
+        svg.appendChild (app.svg ('path', { 'class': 'volume down', d: paths.volumeDown }));
+        svg.appendChild (app.svg ('path', { 'class': 'wick up', d: paths.wickUp }));
+        svg.appendChild (app.svg ('path', { 'class': 'wick down', d: paths.wickDown }));
+        svg.appendChild (app.svg ('path', { 'class': 'body up' + (hollow ? '' : ' solid'), d: paths.bodyUp }));
+        svg.appendChild (app.svg ('path', { 'class': 'body down', d: paths.bodyDown }));
+        // last-price marker on the axis
+        var last = candles[count - 1];
+        var lastY = Math.round (y (last[4])) + 0.5;
+        svg.appendChild (app.svg ('line', { 'class': 'cursor', x1: 0, x2: plotWidth, y1: lastY, y2: lastY }));
+        // crosshair (hidden until hover / keyboard focus)
+        var cursorX = app.svg ('line', { 'class': 'cursor', y1: PAD_TOP, y2: volumeBase, visibility: 'hidden' });
+        var cursorY = app.svg ('line', { 'class': 'cursor', x1: 0, x2: plotWidth, visibility: 'hidden' });
+        var pill = app.svg ('rect', { 'class': 'pill', x: plotWidth + 2, width: axisRight - 4, height: 18, rx: 4, visibility: 'hidden' });
+        var pillText = app.svg ('text', { 'class': 'pill-text', x: plotWidth + 8, visibility: 'hidden' });
+        svg.appendChild (cursorX);
+        svg.appendChild (cursorY);
+        svg.appendChild (pill);
+        svg.appendChild (pillText);
+        // one transparent hit area for the whole plot: the pointer only has to be nearest
+        var hit = app.svg ('rect', { x: 0, y: 0, width: plotWidth, height: volumeBase, fill: 'transparent' });
+        svg.appendChild (hit);
+        layout = { svg: svg, step: step, count: count, x: x, y: y, cursorX: cursorX, cursorY: cursorY, pill: pill, pillText: pillText };
+        var indexAt = function (event) {
+            var box = svg.getBoundingClientRect ();
+            var scale = width / (box.width || width);
+            return Math.max (0, Math.min (count - 1, Math.floor (((event.clientX - box.left) * scale) / step)));
+        };
+        hit.addEventListener ('pointermove', function (event) { setHover (indexAt (event)); });
+        hit.addEventListener ('pointerdown', function (event) { setHover (indexAt (event)); });
+        hit.addEventListener ('pointerleave', function () { setHover (-1); });
+        svg.addEventListener ('keydown', function (event) {
+            var current = (hover < 0) ? count - 1 : hover;
+            var next = current;
+            if (event.key === 'ArrowLeft') {
+                next = current - 1;
+            } else if (event.key === 'ArrowRight') {
+                next = current + 1;
+            } else if (event.key === 'Home') {
+                next = 0;
+            } else if (event.key === 'End') {
+                next = count - 1;
+            } else if (event.key === 'Escape') {
+                setHover (-1);
+                return;
+            } else {
+                return;
+            }
+            event.preventDefault ();
+            setHover (Math.max (0, Math.min (count - 1, next)));
+        });
+        svg.addEventListener ('blur', function () { setHover (-1); });
+        host.appendChild (svg);
+    }
+
+    function setHover (index) {
+        hover = index;
+        if (!layout || !data.candles.length) {
+            return;
+        }
+        var active = index >= 0;
+        var visibility = active ? 'visible' : 'hidden';
+        [ layout.cursorX, layout.cursorY, layout.pill, layout.pillText ].forEach (function (node) {
+            node.setAttribute ('visibility', visibility);
+        });
+        if (active) {
+            var candle = data.candles[index];
+            var cx = Math.round (layout.x (index)) + 0.5;
+            var cy = Math.round (layout.y (candle[4])) + 0.5;
+            layout.cursorX.setAttribute ('x1', cx);
+            layout.cursorX.setAttribute ('x2', cx);
+            layout.cursorY.setAttribute ('y1', cy);
+            layout.cursorY.setAttribute ('y2', cy);
+            layout.pill.setAttribute ('y', cy - 9);
+            layout.pillText.setAttribute ('y', cy + 4);
+            layout.pillText.textContent = app.price (candle[4]);
+        }
+        readoutFor (active ? index : data.candles.length - 1);
+    }
+
+    function renderTable () {
+        var wrap = nodes.tablewrap;
+        wrap.textContent = '';
+        if (wrap.hidden || !data.candles.length) {
+            return;
+        }
+        var table = document.createElement ('table');
+        var head = document.createElement ('tr');
+        [ 'Time', 'Open', 'High', 'Low', 'Close', 'Volume' ].forEach (function (name) {
+            var cell = app.element ('th', '', name);
+            cell.scope = 'col';
+            head.appendChild (cell);
+        });
+        var thead = document.createElement ('thead');
+        thead.appendChild (head);
+        table.appendChild (thead);
+        var body = document.createElement ('tbody');
+        var dateOnly = !intraday ();
+        for (var i = data.candles.length - 1; i >= 0; i--) {
+            var candle = data.candles[i];
+            var row = document.createElement ('tr');
+            row.appendChild (app.element ('td', '', dateOnly ? app.dateTime (candle[0], { dateStyle: 'medium' }) : app.dateTime (candle[0])));
+            for (var column = 1; column <= 4; column++) {
+                row.appendChild (app.element ('td', '', app.price (candle[column])));
+            }
+            row.appendChild (app.element ('td', '', app.compact (candle[5])));
+            body.appendChild (row);
+        }
+        table.appendChild (body);
+        wrap.appendChild (table);
+    }
+
+    function render () {
+        if (!data) {
+            return;
+        }
+        renderHeader ();
+        renderTimeframes ();
+        renderPlot ();
+        renderTable ();
+        hover = -1;
+        readoutFor (data.candles.length - 1);
+    }
+
+    function accept (payload) {
+        if (!payload || payload.view !== 'chart' || !Array.isArray (payload.candles)) {
+            return;
+        }
+        data = payload;
+        setStatus ('');
+        render ();
+    }
+
+    function reload (changes) {
+        if (busy || !data) {
+            return;
+        }
+        var request = {};
+        var base = args || { exchange: data.exchange, symbol: data.symbol, limit: data.limit };
+        Object.keys (base).forEach (function (key) { request[key] = base[key]; });
+        request.timeframe = data.timeframe;
+        Object.keys (changes || {}).forEach (function (key) { request[key] = changes[key]; });
+        busy = true;
+        nodes.plot.classList.add ('busy');
+        renderTimeframes ();
+        setStatus ('Loading…');
+        app.callTool ('show_chart', request).then (function (payload) {
+            busy = false;
+            nodes.plot.classList.remove ('busy');
+            args = request;
+            accept (payload);
+        }, function (error) {
+            busy = false;
+            nodes.plot.classList.remove ('busy');
+            renderTimeframes ();
+            setStatus ('Could not load: ' + ((error && error.message) || 'unknown error'), true);
+        });
+    }
+
+    nodes.refresh.addEventListener ('click', function () { reload ({}); });
+    nodes.toggle.addEventListener ('click', function () {
+        var show = nodes.tablewrap.hidden;
+        nodes.tablewrap.hidden = !show;
+        nodes.toggle.setAttribute ('aria-pressed', String (show));
+        renderTable ();
+    });
+    var resizeTimer = null;
+    var lastWidth = 0;
+    window.addEventListener ('resize', function () {
+        // re-layout only on a real width change: the height grows with the content
+        var width = document.documentElement.clientWidth;
+        if (!data || width === lastWidth) {
+            return;
+        }
+        lastWidth = width;
+        clearTimeout (resizeTimer);
+        resizeTimer = setTimeout (function () { renderPlot (); }, 60);
+    });
+
+    app.connect ({
+        name: 'ccxt-chart',
+        onInput: function (input) { args = input; },
+        onResult: accept,
+        onError: function (message) { setStatus ('Could not load: ' + message, true); },
+        onContext: function () { render (); }
+    }).then (function () {
+        if (data) {
+            renderTimeframes ();
+        }
+    }, function () {
+        setStatus ('Could not connect to the host.', true);
+    });
+    // development hook: open the file directly and call window.ccxtView.accept (payload)
+    window.ccxtView = { accept: accept };
+}) ();
+</script>
+</body>
+</html>
