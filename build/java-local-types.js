@@ -12605,7 +12605,22 @@ function stringListElementOk (printer, element) {
     if (e !== undefined && ts.isAsExpression (e) && e.type.kind === ts.SyntaxKind.StringKeyword) {
         return true; // prints ((String) x)
     }
-    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e) || r87j8StringElement (printer, e, 0, false));
+    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e) || r87j8StringElement (printer, e, 0, false)
+        || stringParameterElement (printer, e));
+}
+
+// a parameter the printer declares `String` (a fixed or defaulted `Str` slot) is a String element
+function stringParameterElement (printer, e) {
+    if (!ts.isIdentifier (e)) {
+        return false;
+    }
+    try {
+        const declaration = printer.javaDeclarationOfIdentifier (e);
+        return declaration !== undefined && ts.isParameterDeclaration (declaration)
+            && (printer.javaNativeParameterType (declaration) ?? printer.javaOptionalParameterType (declaration)) === 'String';
+    } catch (err) {
+        return false;
+    }
 }
 
 function stringListLocalDeclaration (printer, node) {
@@ -12776,7 +12791,8 @@ function stringListJoinLocal (printer, declaration, seen) {
             }
             continue;
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope) && !literalFeedsVenueOwnAsyncCall (printer, n, scope)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope) && !literalFeedsVenueOwnAsyncCall (printer, n, scope)
+            && !feedsStringListCoreSlot (printer, host)) {
             return false;
         }
         if (stringListFeedsJoinedLocal (printer, host, seen)) {
@@ -12794,6 +12810,20 @@ function stringListJoinLocal (printer, declaration, seen) {
         return false;
     }
     return true;
+}
+
+// a direct argument of a call whose core slot prints `java.util.List<String>` binds it with no conversion
+function feedsStringListCoreSlot (printer, host) {
+    const call = host.parent;
+    if (call === undefined || !ts.isCallExpression (call)) {
+        return false;
+    }
+    const at = call.arguments.indexOf (host);
+    try {
+        return at !== -1 && printer.javaNativeCallParameterTypes (call)[at] === JAVA_STRING_LIST_TYPE;
+    } catch (e) {
+        return false;
+    }
 }
 
 // ral-84j5: `x as string[]`: printAsExpression prints `(java.util.List<String>)(x)`, an expression whose static
