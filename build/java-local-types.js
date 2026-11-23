@@ -18176,6 +18176,10 @@ export function installJavaMapArgAlreadyTyped (transpiler) {
         if (upstreamTyped (arg, type)) {
             return true;
         }
+        // `x as Dict` / `(x)` on such a local prints the bare identifier too
+        while (arg !== undefined && (ts.isAsExpression (arg) || ts.isParenthesizedExpression (arg)) && printer.printNode (arg, 0) === printer.printNode (arg.expression, 0)) {
+            arg = arg.expression;
+        }
         if (String (type).replace (/java\.util\./g, '').replace (/\s/g, '') !== MAP_SLOT_TYPE
             || arg === undefined || !ts.isIdentifier (arg) || printer.printNode (arg, 0) !== arg.text) {
             return false;
