@@ -1259,9 +1259,62 @@ public partial class BaseExchange
         return Activator.CreateInstance(exception, message) as Exception;
     }
 
-    public static object toFixed(object number, object decimals)
+    // JavaScript Number.prototype.toFixed: exact binary value, ties away from zero, zero padded
+    public static string toFixed(object number, object decimals)
     {
-        return Math.Round((double)number, (int)decimals);
+        var value = Convert.ToDouble(number, CultureInfo.InvariantCulture);
+        var digits = Convert.ToInt32(decimals, CultureInfo.InvariantCulture);
+        if (digits < 0 || digits > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(decimals), "toFixed() digits argument must be between 0 and 100");
+        }
+        if (double.IsNaN(value))
+        {
+            return "NaN";
+        }
+        if (double.IsInfinity(value))
+        {
+            return value > 0 ? "Infinity" : "-Infinity";
+        }
+        if (Math.Abs(value) >= 1e21)
+        {
+            return value.ToString("R", CultureInfo.InvariantCulture);
+        }
+        var negative = value < 0;
+        var bits = BitConverter.DoubleToInt64Bits(value);
+        var exponent = (int)((bits >> 52) & 0x7FFL);
+        var mantissa = bits & 0xFFFFFFFFFFFFFL;
+        if (exponent == 0)
+        {
+            exponent = 1;
+        }
+        else
+        {
+            mantissa = mantissa | (1L << 52);
+        }
+        exponent = exponent - 1075;
+        var numerator = new System.Numerics.BigInteger(mantissa) * System.Numerics.BigInteger.Pow(10, digits);
+        var denominator = System.Numerics.BigInteger.One;
+        if (exponent > 0)
+        {
+            numerator = numerator << exponent;
+        }
+        else
+        {
+            denominator = System.Numerics.BigInteger.One << (-exponent);
+        }
+        System.Numerics.BigInteger remainder;
+        var quotient = System.Numerics.BigInteger.DivRem(numerator, denominator, out remainder);
+        if (remainder * 2 >= denominator)
+        {
+            quotient = quotient + System.Numerics.BigInteger.One;
+        }
+        var text = quotient.ToString(CultureInfo.InvariantCulture).PadLeft(digits + 1, '0');
+        if (digits > 0)
+        {
+            text = text.Substring(0, text.Length - digits) + "." + text.Substring(text.Length - digits);
+        }
+        return (negative ? "-" : "") + text;
     }
 
     // Typed cores are emitted PascalCase (`CreateOrder`), but the method-name strings that drive

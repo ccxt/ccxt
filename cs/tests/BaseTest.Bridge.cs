@@ -284,5 +284,8 @@ public partial class BaseTest
 
         // hand-written C#-only: a wrong-typed option throws BadRequest (offline)
         testOptionTypes();
+
+        // hand-written C#-only: toFixed returns the JavaScript string (offline)
+        testToFixed();
     }
 }
