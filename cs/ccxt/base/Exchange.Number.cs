@@ -423,6 +423,11 @@ public partial class BaseExchange
         return (fracLength > precision) ? (dot + 1 + precision) : 0;
     }
 
+    // typed twins of the generated parseToInt(object) for an operand C# already types as a number: the same
+    // numberToString -> parseFloat -> floor pipeline, whose only null is an Int64 overflow (|x| >= 2^63), which throws here
+    protected virtual Int64 parseToInt(Int64 number) => parseToInt((object)number) ?? throw new OverflowException("parseToInt: " + number);
+    protected virtual Int64 parseToInt(double number) => parseToInt((object)number) ?? throw new OverflowException("parseToInt: " + number);
+
     public virtual string numberToString(object number) => NumberToString(number);
 
     public static string NumberToString(object number)
