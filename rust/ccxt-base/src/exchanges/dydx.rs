@@ -49,15 +49,10 @@ impl Dydx {
 }
 
 impl crate::exchange::DerivedExchange for Dydx {
-    fn nonce(&self) -> Value {
-        let timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
-        if (timeDifference.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
-        }
-        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Dydx.
+        crate::Value::from(Dydx::nonce(self, ))
+    }
     fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
         //
@@ -368,7 +363,7 @@ impl crate::exchange::DerivedExchange for Dydx {
 
     None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         // {
@@ -405,7 +400,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&item, "createdAt", &[]));
         let sender: crate::value::Dict = self.safe_dict_k_t(&item, "sender");
         let recipient: crate::value::Dict = self.safe_dict_k_t(&item, "recipient");
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
@@ -423,9 +418,9 @@ impl crate::exchange::DerivedExchange for Dydx {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -575,7 +570,7 @@ impl crate::exchange::DerivedExchange for Dydx {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) || (response == Value::Null) {
             return Value::Null;
         }
@@ -643,12 +638,12 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_wallet_address" => self.get_wallet_address(),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_public_address" => { let __t = self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "hash_message" => crate::Value::from(self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -661,7 +656,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-                "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_onboarding_action" => self.sign_onboarding_action(),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -1619,10 +1614,7 @@ impl Dydx {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2098,12 +2090,9 @@ impl Dydx {
 });
 }
 
-    pub fn sign_message(&self, message: impl Into<crate::Value>, mut privateKey: Value) -> crate::value::Dict {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), (match (&(privateKey), (-64i64), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }));
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Some(privateKey).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }
 
     pub fn sign_onboarding_action(&self) -> Value {
@@ -2133,7 +2122,7 @@ impl Dydx {
         if (self.privateKey == Value::Null) || (self.privateKey.as_str() == Some("")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " signOnboardingAction() requires a privateKey to be set.")));
         }
-        let signature: crate::value::Dict = self.sign_message(Value::from(&msg), self.privateKey.clone());
+        let signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
         return Value::Dict(signature);
 
     Value::Null
@@ -2853,10 +2842,7 @@ impl Dydx {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2960,12 +2946,7 @@ impl Dydx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let __params_empty = indexmap::IndexMap::new();
-        let params = params.as_map().unwrap_or(&__params_empty);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (code.as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " transfer() only support USDC")));
         }
@@ -3084,10 +3065,7 @@ impl Dydx {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3125,10 +3103,7 @@ impl Dydx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let tag: Option<String> = self.safe_string_k_opt(&params, "tag", &[]);
         let paramsWithdrawTag: crate::value::Dict = self.omit_t(params, Value::Str("tag".into()), &[]);
         if (code.as_str() != Some("USDC")) {
@@ -3216,10 +3191,7 @@ impl Dydx {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3256,10 +3228,7 @@ impl Dydx {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3296,10 +3265,7 @@ impl Dydx {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3561,6 +3527,13 @@ impl Dydx {
     }
 
 
+    pub fn nonce(&self) -> i64 {
+        let timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
+        }
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None })).as_i64().unwrap_or_default();
+}
 
     pub fn get_wallet_address(&self) -> Value {
         if (self.walletAddress != Value::Null) && (self.walletAddress.as_str() != Some("")) {

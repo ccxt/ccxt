@@ -60,9 +60,9 @@ impl crate::exchange_generated::ExchangeBase for Independentreserve {
     {
         Box::pin(async move {
             match method {
-                "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_heartbeat" => self.handle_heartbeat(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_subscriptions" => self.handle_subscriptions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_subscriptions" => self.handle_subscriptions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "value_to_checksum" => crate::Value::from(self.value_to_checksum(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -82,11 +82,11 @@ impl Independentreserve {
         match __n {
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_heartbeat" => { self.handle_heartbeat(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_heartbeat" => { self.handle_heartbeat(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_subscriptions" => { self.handle_subscriptions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_subscriptions" => { self.handle_subscriptions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "value_to_checksum" => { self.value_to_checksum(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "watch_order_book" => crate::exchange_stubs::enqueue_spawn("watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -197,9 +197,7 @@ impl Independentreserve {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "Channel": "ticker-btc-usd",
@@ -459,13 +457,13 @@ impl Independentreserve {
         }
 }
 
-    pub fn handle_heartbeat(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_heartbeat(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         return message;
 
     Value::Null
 }
 
-    pub fn handle_subscriptions(&self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_subscriptions(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         return message;
 
     Value::Null

@@ -49,11 +49,10 @@ impl Coinmate {
 }
 
 impl crate::exchange::DerivedExchange for Coinmate {
-    fn nonce(&self) -> Value {
-        return Value::Int(self.milliseconds());
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Coinmate.
+        crate::Value::from(Coinmate::nonce(self, ))
+    }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
@@ -423,7 +422,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -467,8 +466,8 @@ impl crate::exchange_generated::ExchangeBase for Coinmate {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "nonce" => self.nonce(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2073,6 +2072,9 @@ impl Coinmate {
         }).await?))
     }
 
+    pub fn nonce(&self) -> i64 {
+        return self.milliseconds();
+}
 
 
 }

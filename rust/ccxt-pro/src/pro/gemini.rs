@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_subscription" => self.handle_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_subscription" => self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -100,8 +100,8 @@ impl Gemini {
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_for_multidata" => { self.handle_order_book_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_subscription" => { self.handle_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_subscription" => { self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trades_for_multidata" => { self.handle_trades_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "helper_for_watch_multiple_construct" => crate::exchange_stubs::enqueue_spawn("helper_for_watch_multiple_construct", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -326,7 +326,7 @@ impl Gemini {
     Default::default()
 }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //     {
         //         "type": "trade",
@@ -1047,7 +1047,7 @@ impl Gemini {
     Value::Null
 }
 
-    pub fn handle_subscription(&self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_subscription(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         return message;
 
     Value::Null

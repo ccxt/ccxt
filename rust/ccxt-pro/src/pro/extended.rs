@@ -740,7 +740,7 @@ impl Extended {
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let symbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let filtered: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let filtered: crate::value::List = self.filter_by_array_list(&newPositions, Value::Str("symbol".into()), &symbols);
             if !(self.is_empty(&filtered).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(filtered), messageHash.as_deref());
             }
@@ -1143,10 +1143,7 @@ impl Extended {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

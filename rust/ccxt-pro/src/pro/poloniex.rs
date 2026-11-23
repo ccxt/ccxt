@@ -69,10 +69,10 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_ohlcv" => self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order" => self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_trade" => self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_trade" => self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -113,17 +113,17 @@ impl Poloniex {
             "cancel_orders_ws" => crate::exchange_stubs::enqueue_spawn("cancel_orders_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "create_order_ws" => crate::exchange_stubs::enqueue_spawn("create_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_order_request" => { self.handle_order_request(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_unsubscription" => { self.handle_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "parse_ws_ohlcv" => { Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -420,7 +420,7 @@ impl Poloniex {
     m
 }));
         let url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let messageHash: Option<String> = self.number_to_string(self.nonce());
+        let messageHash: Option<String> = self.number_to_string(Value::Int(self.nonce()));
         let subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_deref()));
@@ -800,7 +800,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -1176,7 +1176,7 @@ impl Poloniex {
         return std::sync::Arc::new(vec![self.safe_integer_k(&ohlcv, "startTime", &[]), self.safe_number_k(&ohlcv, "open", &[]), self.safe_number_k(&ohlcv, "high", &[]), self.safe_number_k(&ohlcv, "low", &[]), self.safe_number_k(&ohlcv, "close", &[]), self.safe_number_k(ohlcv, "quantity", &[])]);
 }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1229,7 +1229,7 @@ impl Poloniex {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1712,7 +1712,7 @@ impl Poloniex {
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let symbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let tickers: crate::value::Dict = self.filter_by_array(&newTickers, Value::Str("symbol".into()), &symbols, &[]).into_dict();
+            let tickers: crate::value::Dict = self.filter_by_array_dict(&newTickers, Value::Str("symbol".into()), &symbols);
             if !(self.is_empty(&tickers).as_bool() == Some(true)) {
                 client.resolve(Value::Dict(tickers), messageHash.as_deref());
             }
@@ -1724,8 +1724,7 @@ impl Poloniex {
     Value::Null
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1789,7 +1788,7 @@ impl Poloniex {
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let name: String = "book_lv2".to_string();
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol.as_deref().unwrap_or("null"));
-            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
+            let subscription: crate::value::Dict = self.safe_dict_t(&(client).subscriptions, Value::from(messageHash.as_str()));
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
             let timestamp: Option<i64> = self.safe_integer_k(&item, "ts", &[]).as_i64();
             let asks: crate::value::List = self.safe_list_k_t(&item, "asks");
@@ -1851,7 +1850,7 @@ impl Poloniex {
         }
 }
 
-    pub fn handle_balance(&mut self, client: &Value, message: &Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //

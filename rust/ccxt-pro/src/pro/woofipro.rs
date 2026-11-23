@@ -64,8 +64,8 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_subscribe" => self.handle_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_subscribe" => self.handle_subscribe(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -103,22 +103,22 @@ impl Woofipro {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_auth" => { self.handle_auth(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_order_update" => { self.handle_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_update" => { self.handle_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_subscribe" => { self.handle_subscribe(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_tickers" => { self.handle_tickers(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_positions" => { self.handle_positions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_subscribe" => { self.handle_subscribe(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_tickers" => { self.handle_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "load_positions_snapshot" => crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -328,7 +328,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -436,7 +436,7 @@ impl Woofipro {
     Default::default()
 }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -507,12 +507,12 @@ impl Woofipro {
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let tickers: Value = self.watch_public(topic.as_str(), &message).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_tickers(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_tickers(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "topic":"tickers",
@@ -589,14 +589,12 @@ impl Woofipro {
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let tickers: Value = self.watch_public(topic.as_str(), &message).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //       "topic": "bbos",
@@ -711,9 +709,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -801,9 +797,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -1297,9 +1291,7 @@ impl Woofipro {
     Default::default()
 }
 
-    pub fn handle_order_update(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_update(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "topic": "executionreport",
@@ -1547,9 +1539,7 @@ impl Woofipro {
     Value::Null
 }
 
-    pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_positions(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "topic":"position",
@@ -1718,9 +1708,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "topic":"balance",
@@ -1919,7 +1907,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_subscribe(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_subscribe(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         return message;
 
     Value::Null

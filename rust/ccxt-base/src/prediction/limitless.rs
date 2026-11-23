@@ -52,11 +52,10 @@ impl Limitless {
 }
 
 impl crate::exchange::DerivedExchange for Limitless {
-    fn nonce(&self) -> Value {
-        return Value::Int(self.milliseconds());
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Limitless.
+        crate::Value::from(Limitless::nonce(self, ))
+    }
     fn parse_market(&self, raw: impl Into<crate::Value>) -> Value {
         let raw: Value = raw.into();
         //
@@ -306,7 +305,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     Value::Null
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         let accountId: Option<String> = self.safe_string_k_opt(&account, "id", &[]);
         return Some(std::sync::Arc::new({
@@ -767,7 +766,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -829,8 +828,8 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "nonce" => self.nonce(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -4344,6 +4343,9 @@ if _try_result.is_err() {
     Value::Null
 }
 
+    pub fn nonce(&self) -> i64 {
+        return self.milliseconds();
+}
 
 /*
  * @ignore

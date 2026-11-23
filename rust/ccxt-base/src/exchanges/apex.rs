@@ -461,7 +461,7 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let currency: Value = currency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&currency, "token", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -525,7 +525,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let networksLength: i64 = networkKeys.len() as i64;
         let emptyChains: bool = networksLength == 0; // non-functional coins
         let mut valueForEmpty: Option<bool> = (if emptyChains { Some(false) } else { None });
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency);
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -561,11 +561,11 @@ impl crate::exchange::DerivedExchange for Apex {
 }));
         m.insert("networks".to_string(), Value::Map(networks));
     m
-}));
+})));
 
-    Value::Null
+    None
 }
-    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
         //
         // {
@@ -588,7 +588,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let marketId: Option<String> = self.safe_string_k_opt(&interest, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
-        return self.safe_open_interest(Value::Map({
+        return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("openInterestAmount".to_string(), self.safe_string_k(&interest, "openInterest", &[]));
@@ -597,11 +597,11 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), interest);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         let accountId: String = self.safe_string_k(&account, "id", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         return Some(std::sync::Arc::new({
@@ -615,7 +615,7 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn parse_income(&self, income: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         // {
@@ -707,7 +707,7 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
@@ -762,14 +762,14 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "get_account_id" => self.get_account_id().await,
                 "get_seeds" => crate::Value::from(self.get_seeds()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1807,7 +1807,7 @@ impl Apex {
         let response: crate::value::Dict = self.public_get_v3_ticker(&[&__ws_arg_4]).await.unwrap_or_default();
         let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let rawTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &rawTicker, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &rawTicker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2530,10 +2530,7 @@ impl Apex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2591,10 +2588,7 @@ impl Apex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2642,10 +2636,7 @@ impl Apex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2704,10 +2695,7 @@ impl Apex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

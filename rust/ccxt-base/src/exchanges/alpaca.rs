@@ -420,7 +420,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let depositAddress: Value = depositAddress.into();
         //
         //     {
@@ -433,7 +433,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         if (currency.is_some()) {
             parsedCurrency = self.safe_string_k_opt(&currency, "id", &[]);
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), parsedCurrency.map(Value::from).unwrap_or(Value::Null));
@@ -441,9 +441,9 @@ impl crate::exchange::DerivedExchange for Alpaca {
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), Value::Null);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -609,7 +609,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -671,9 +671,9 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "fetch_transactions_helper" => Value::Arr(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or(crate::Value::Null)).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1698,10 +1698,7 @@ impl Alpaca {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2062,22 +2059,19 @@ impl Alpaca {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
         // symbol iteration order differs per language
-        let symbolsSorted: Value = (if (symbols.is_none()) { self.sort(Value::Arr(self.symbols.clone()), &[]) } else { Value::from(symbols) });
+        let symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(Value::Arr(self.symbols.clone()), &[]) } else { symbols });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbolsSorted]);
         let loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let ids: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
@@ -2833,7 +2827,7 @@ impl Alpaca {
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.trader_private_get_v2_wallets(&[&__ws_arg_19]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

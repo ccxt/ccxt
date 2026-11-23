@@ -129,20 +129,20 @@ impl Toobit {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_incoming_pong" => { self.handle_incoming_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_partial_snapshot" => { self.handle_order_book_partial_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_tickers" => { self.handle_tickers(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_tickers" => { self.handle_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "keep_alive_listen_key" => crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "load_positions_snapshot" => crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -485,7 +485,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -652,7 +652,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -816,12 +816,12 @@ impl Toobit {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_tickers(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_tickers(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "symbol": "DOGEUSDT",
@@ -1174,7 +1174,7 @@ impl Toobit {
         }
 }
 
-    pub fn handle_balance(&mut self, client: &Value, message: &Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1323,7 +1323,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //    {
         //        "e": "executionReport",
@@ -1467,7 +1467,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_my_trade(&self, client: &Value, mut message: Value) {
+    pub fn handle_my_trade(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //    {
         //        "e": "ticketInfo",
@@ -1648,7 +1648,7 @@ impl Toobit {
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let symbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let filtered: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let filtered: crate::value::List = self.filter_by_array_list(&newPositions, Value::Str("symbol".into()), &symbols);
             if !(self.is_empty(&filtered).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(filtered), messageHash.as_deref());
             }

@@ -64,9 +64,9 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_ohlcv" => self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -97,19 +97,19 @@ impl Whitebit {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -266,7 +266,7 @@ impl Whitebit {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -334,10 +334,7 @@ impl Whitebit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -355,7 +352,7 @@ impl Whitebit {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -519,13 +516,12 @@ impl Whitebit {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -558,7 +554,7 @@ impl Whitebit {
         // watchTicker
         client.resolve(Value::from(&ticker), messageHash.as_str());
         // watchTickers
-        let messageHashes: Vec<Value> = __ch.future_keys();
+        let messageHashes: Vec<Value> = client.future_keys();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
@@ -625,9 +621,7 @@ impl Whitebit {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "method":"trades_update",
@@ -720,7 +714,7 @@ impl Whitebit {
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -876,7 +870,7 @@ impl Whitebit {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -1131,7 +1125,7 @@ impl Whitebit {
     Value::Null
 }
 
-    pub fn handle_balance(&mut self, client: &Value, message: &Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //

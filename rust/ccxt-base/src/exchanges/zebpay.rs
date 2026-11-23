@@ -315,7 +315,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -402,7 +402,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
             }
         }
         }
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency);
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -437,9 +437,9 @@ impl crate::exchange::DerivedExchange for Zebpay {
 }));
         m.insert("networks".to_string(), Value::Map(networks));
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_margin_modification(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
@@ -460,14 +460,14 @@ impl crate::exchange::DerivedExchange for Zebpay {
 
     None
 }
-    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let leverage: Value = leverage.into();
         let marketId: Option<String> = self.safe_string_k_opt(&leverage, "symbol", &[]);
         let info: indexmap::IndexMap<String, Value> = self.safe_dict_k(&leverage, "info", &[]).as_map().cloned().unwrap_or_default();
         let leverageValue: Option<i64> = self.safe_integer_k(&leverage, "longLeverage", &[]).as_i64();
         let leverageValueShort: Option<i64> = self.safe_integer_k(&leverage, "shortLeverage", &[]).as_i64();
         let marginMode: Option<String> = self.safe_string_k_opt(leverage, "marginMode", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(info));
         m.insert("symbol".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -475,17 +475,14 @@ impl crate::exchange::DerivedExchange for Zebpay {
         m.insert("longLeverage".to_string(), Value::from(leverageValue));
         m.insert("shortLeverage".to_string(), Value::from(leverageValueShort));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut bodySigned: Option<String> = None;
@@ -570,7 +567,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), Value::from(body));
             return Value::Null;
@@ -628,10 +625,10 @@ impl crate::exchange_generated::ExchangeBase for Zebpay {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -641,8 +638,8 @@ impl crate::exchange_generated::ExchangeBase for Zebpay {
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
-                "spot_order_body" => self.spot_order_body(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), &mut { let __m = args.get(3).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
-                    __m }, args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
+                "spot_order_body" => crate::Value::Dict(self.spot_order_body(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), &mut { let __m = args.get(3).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
+                    __m }, args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -1696,10 +1693,7 @@ impl Zebpay {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2027,10 +2021,7 @@ impl Zebpay {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2048,7 +2039,7 @@ impl Zebpay {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            response = self.private_spot_post_v2_ex_orders(&[&self.spot_order_body(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), Some(amount), &mut request, price, &[&Value::from(&query)])]).await;
+            response = self.private_spot_post_v2_ex_orders(&[&Value::Dict(self.spot_order_body(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), Some(amount), &mut request, price, &[&Value::from(&query)]))]).await;
         }  else {
             let marginAsset: String = self.safe_string_k(&query, "marginAsset", &[Value::Str("INR".into())]).as_str().unwrap_or("INR").to_string();
             let formType: String = self.safe_string_upper_k(&query, "formType", &[Value::Str("ORDER_FORM".into())]).as_str().unwrap_or("ORDER_FORM").to_string();
@@ -2091,7 +2082,7 @@ impl Zebpay {
         }).await?))
     }
 
-    pub fn spot_order_body(&self, symbol: &str, type_var: &str, amount: Option<f64>, request: &mut indexmap::IndexMap<String, Value>, price: Option<f64>, optional_args: &[&Value]) -> Value {
+    pub fn spot_order_body(&self, symbol: &str, type_var: &str, amount: Option<f64>, request: &mut indexmap::IndexMap<String, Value>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2117,9 +2108,7 @@ impl Zebpay {
             request.insert("amount".into(), Value::from(self.amount_to_precision(Some(symbol), Value::from(amount))));
             request.insert("price".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(price))));
         }
-        return self.extend(&request, &[&paramsOmitted]);
-
-    Value::Null
+        return self.extend_t(&*request, &[&paramsOmitted]);
 }
 
 /*
@@ -2479,7 +2468,7 @@ impl Zebpay {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

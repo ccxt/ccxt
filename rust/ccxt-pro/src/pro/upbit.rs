@@ -88,15 +88,15 @@ impl Upbit {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => { self.authenticate(&args[..]); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_order" => { self.handle_my_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "watch_balance" => crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -283,7 +283,7 @@ impl Upbit {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), Value::from(symbols), &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), Value::from(symbols)));
         Value::Null
         }).await?))
     }
@@ -417,7 +417,7 @@ impl Upbit {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
         //   "code": "BTC-ETH",
@@ -463,7 +463,7 @@ impl Upbit {
         }
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         // { type: "orderbook",
@@ -533,7 +533,7 @@ impl Upbit {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         // { type: "trade",
         //   "code": "KRW-BTC",
         //   "timestamp": 1584508285812,
@@ -564,7 +564,7 @@ impl Upbit {
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         // {
@@ -1036,7 +1036,7 @@ impl Upbit {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //

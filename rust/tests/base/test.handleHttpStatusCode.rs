@@ -100,7 +100,7 @@ if _try_result.is_err() {
     }), Value::Map({
         let m = indexmap::IndexMap::new();
         m
-    }), Value::Null);
+    }), None);
     assert!(ccxt::runtime::is_true(&((skip == Value::Null))));
     exchange.handle_http_status_code(Value::Int(406), Value::Str("Not Acceptable".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("{\"success\":false}".into()));
 }

@@ -64,7 +64,7 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_order" => self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_order" => self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order_trade" => Value::Dict(self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -102,18 +102,18 @@ impl Krakenfutures {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_snapshot" => { self.handle_order_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_snapshot" => { self.handle_order_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_my_trade" => { Value::Dict(self.parse_ws_my_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_order_trade" => { Value::Dict(self.parse_ws_order_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -435,7 +435,7 @@ impl Krakenfutures {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -472,7 +472,7 @@ impl Krakenfutures {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), symbols, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), symbols));
         Value::Null
         }).await?))
     }
@@ -671,7 +671,7 @@ impl Krakenfutures {
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let symbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let positions: crate::value::List = self.filter_by_array_list(&newPositions, Value::Str("symbol".into()), &symbols);
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
@@ -882,7 +882,7 @@ impl Krakenfutures {
         }).await?))
     }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1075,7 +1075,7 @@ impl Krakenfutures {
     Default::default()
 }
 
-    pub fn handle_order(&mut self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1277,7 +1277,7 @@ impl Krakenfutures {
     Value::Null
 }
 
-    pub fn handle_order_snapshot(&mut self, client: &Value, message: &Value) {
+    pub fn handle_order_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1507,7 +1507,7 @@ impl Krakenfutures {
     Default::default()
 }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1553,7 +1553,7 @@ impl Krakenfutures {
         }
 }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1668,8 +1668,7 @@ impl Krakenfutures {
     Default::default()
 }
 
-    pub fn handle_order_book_snapshot(&mut self, client: &Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_order_book_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1704,7 +1703,7 @@ impl Krakenfutures {
         let marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::Null, &Value::from(symbol.as_deref())]);
-        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_deref()));
+        let subscription: crate::value::Dict = self.safe_dict_t(&(client).subscriptions, Value::from(messageHash.as_deref()));
         let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         let timestamp: Option<i64> = self.safe_integer_k(&message, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
@@ -1727,7 +1726,7 @@ impl Krakenfutures {
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1761,7 +1760,7 @@ impl Krakenfutures {
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
-    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2086,9 +2085,7 @@ impl Krakenfutures {
     Value::Null
 }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "feed": "fills_snapshot",

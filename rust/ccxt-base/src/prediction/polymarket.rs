@@ -52,11 +52,10 @@ impl Polymarket {
 }
 
 impl crate::exchange::DerivedExchange for Polymarket {
-    fn nonce(&self) -> Value {
-        return Value::Int(self.milliseconds());
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Polymarket.
+        crate::Value::from(Polymarket::nonce(self, ))
+    }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
@@ -410,7 +409,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
@@ -470,12 +469,12 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "load_api_credentials" => self.load_api_credentials().await,
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event_to_markets" => Value::Arr(self.parse_event_to_markets(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2777,7 +2776,7 @@ impl Polymarket {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        let mut openInterest: Value = self.safe_open_interest(Value::Map({
+        let mut openInterest: Value = Value::Dict(self.safe_open_interest(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
                 m.insert("openInterestAmount".to_string(), Value::Null);
@@ -2788,7 +2787,7 @@ impl Polymarket {
                 m.insert("datetime".to_string(), Value::Null);
                 m.insert("info".to_string(), interest);
             m
-        }), market);
+        }), market));
         if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)])); }
         if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[])); }
         if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("market".to_string(), self.safe_string_k(&market, "market", &[])); }
@@ -3035,10 +3034,7 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.load_api_credentials().await;
         // the collateral balance is tied to the signature type / funder that holds the USDC
         let signatureType: Option<i64> = self.safe_integer2(&params, Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(&self.options, "signatureType", &[Value::Int(3)])]).as_i64();
@@ -4389,6 +4385,9 @@ impl Polymarket {
 }
 
 
+    pub fn nonce(&self) -> i64 {
+        return self.milliseconds();
+}
 
 /*
  * @ignore

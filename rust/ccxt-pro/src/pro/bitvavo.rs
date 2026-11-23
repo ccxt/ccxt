@@ -142,31 +142,31 @@ impl Bitvavo {
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deposits" => { self.handle_deposits(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_deposits" => { self.handle_deposits(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_fetch_balance" => { self.handle_fetch_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_fetch_currencies" => { self.handle_fetch_currencies(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_fetch_ohlcv" => { self.handle_fetch_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_markets" => { self.handle_markets(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_fetch_balance" => { self.handle_fetch_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_fetch_currencies" => { self.handle_fetch_currencies(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_fetch_ohlcv" => { self.handle_fetch_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_markets" => { self.handle_markets(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_multiple_orders" => { self.handle_multiple_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_multiple_orders" => { self.handle_multiple_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => crate::exchange_stubs::enqueue_spawn("handle_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_subscriptions" => { self.handle_order_book_subscriptions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_single_order" => { self.handle_single_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_single_order" => { self.handle_single_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trading_fees" => { self.handle_trading_fees(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trading_fees" => { self.handle_trading_fees(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription_status" => { self.handle_unsubscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_withdraw" => { self.handle_withdraw(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_withdraws" => { self.handle_withdraws(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_withdraw" => { self.handle_withdraw(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_withdraws" => { self.handle_withdraws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "request_id" => { self.request_id(); },
             "un_watch_channels" => crate::exchange_stubs::enqueue_spawn("un_watch_channels", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -397,7 +397,7 @@ impl Bitvavo {
         let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let channel: String = "ticker24h".to_string();
         let tickers: Option<crate::value::List> = self.watch_public_multiple(channel.as_str(), channel.as_str(), Value::Arr(symbolsNormalized.clone()), &[&params]).await.into_opt_list();
-        return self.filter_by_array(&tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -476,7 +476,7 @@ impl Bitvavo {
         let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let channel: String = "ticker24h".to_string();
         let tickers: Option<crate::value::List> = self.watch_public_multiple("bidask", channel.as_str(), Value::Arr(symbolsNormalized.clone()), &[&params]).await.into_opt_list();
-        return self.filter_by_array(&tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -561,7 +561,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -792,7 +792,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_fetch_ohlcv(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_fetch_ohlcv(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'getCandles',
@@ -808,9 +808,7 @@ impl Bitvavo {
         client.resolve(Value::Arr(ohlcv), messageHash.as_deref());
 }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "event": "candle",
@@ -1436,7 +1434,7 @@ impl Bitvavo {
         }
 }
 
-    pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_order_book_subscription(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, mut subscription: Value) {
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
         let mut limits: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "orderBookLimits", &[Value::Map({
@@ -1840,7 +1838,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_multiple_orders(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_multiple_orders(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateCancelOrders',
@@ -2040,9 +2038,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_my_trades(&self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_my_trades(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateGetTrades',
@@ -2111,7 +2107,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_withdraw(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_withdraw(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateWithdrawAssets',
@@ -2165,7 +2161,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_withdraws(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_withdraws(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateGetWithdrawalHistory',
@@ -2265,7 +2261,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_deposits(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_deposits(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateGetDepositHistory',
@@ -2367,7 +2363,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_fetch_currencies(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_fetch_currencies(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'getAssets',
@@ -2394,7 +2390,7 @@ impl Bitvavo {
         client.resolve(Value::Dict(currencies), messageHash.as_deref());
 }
 
-    pub fn handle_trading_fees(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_trading_fees(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateGetAccount',
@@ -2440,7 +2436,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_fetch_balance(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_fetch_balance(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateGetBalance',
@@ -2459,7 +2455,7 @@ impl Bitvavo {
         client.resolve(Value::Dict(balance), messageHash.as_deref());
 }
 
-    pub fn handle_single_order(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_single_order(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -2494,7 +2490,7 @@ impl Bitvavo {
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
 
-    pub fn handle_markets(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_markets(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        action: 'getMarkets',
@@ -2559,7 +2555,7 @@ impl Bitvavo {
         return Some(format!("{}{}", action, orderId.as_deref().unwrap_or("null")));
 }
 
-    pub fn handle_order(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2596,7 +2592,7 @@ impl Bitvavo {
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
-    pub fn handle_my_trade(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_my_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2751,7 +2747,7 @@ impl Bitvavo {
             }), error.as_deref().unwrap_or_default(), message.clone(), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), Value::Null);
+            }), None);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             rejected = true;

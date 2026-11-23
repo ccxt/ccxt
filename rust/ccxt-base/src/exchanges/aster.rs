@@ -475,7 +475,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         // fundingRate
@@ -510,7 +510,7 @@ impl crate::exchange::DerivedExchange for Aster {
         if (interval.is_some()) {
             intervalString = Some(format!("{}{}", interval.as_deref().unwrap_or("null"), "h"));
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
@@ -531,9 +531,9 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("previousFundingDatetime".to_string(), Value::Null);
         m.insert("interval".to_string(), intervalString.map(Value::from).unwrap_or(Value::Null));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let entry: Value = entry.into();
@@ -560,7 +560,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     Value::Null
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         //     {
@@ -587,7 +587,7 @@ impl crate::exchange::DerivedExchange for Aster {
         let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
         let timestamp: Option<i64> = self.safe_integer_k(&item, "time", &[]).as_i64();
         let type_var: Option<String> = self.safe_string_k_opt(&item, "incomeType", &[]);
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "tranId", &[]));
@@ -605,9 +605,9 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -628,11 +628,11 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "asset", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("code".to_string(), Value::from(code.as_deref()));
@@ -669,9 +669,9 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("networks".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("crypto".into()));
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
         //
@@ -766,7 +766,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_income(&self, income: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -797,7 +797,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         //
         //     {
@@ -830,7 +830,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let leverage: Value = leverage.into();
         //
         //     {
@@ -865,7 +865,7 @@ impl crate::exchange::DerivedExchange for Aster {
         }  else if (side.as_deref() == Some("short")) {
             shortLeverage = leverageValue;
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
@@ -873,9 +873,9 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("longLeverage".to_string(), Value::from(longLeverage));
         m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1024,7 +1024,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -1062,7 +1062,7 @@ impl crate::exchange_generated::ExchangeBase for Aster {
                 "capitalize_keys" => crate::Value::Dict(self.capitalize_keys(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_account_positions" => self.fetch_account_positions(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -1095,23 +1095,23 @@ impl crate::exchange_generated::ExchangeBase for Aster {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "initialize_client" => self.initialize_client(&args[..]).await,
                 "is_inverse" => self.is_inverse(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "is_linear" => self.is_linear(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "load_leverage_brackets" => self.load_leverage_brackets(&args[..]).await,
                 "load_markets_and_sign_in" => self.load_markets_and_sign_in().await,
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "parse_account_position" => self.parse_account_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_account_positions" => Value::Arr(self.parse_account_positions(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -3377,7 +3377,7 @@ impl Aster {
         }
         }
         let symbolsNormalized2: Option<crate::value::List> = self.market_symbols(&[&symbolsNormalized.map_or(Value::Null, Value::Arr)]);
-        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2, &[Value::Bool(false)]), Value::Str("symbol".into())));
+        return Value::Dict(self.index_by(Value::Arr(self.filter_by_array_list(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2)), Value::Str("symbol".into())));
         Value::Null
         }).await?))
     }
@@ -3459,7 +3459,11 @@ impl Aster {
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let response: Value = self.fapi_public_get_v3_premium_index(&[&__ws_arg_16]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, response, Some(&market));
+        let __ws_arg_17 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, __ws_arg_17, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3488,8 +3492,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
-        let __ws_arg_17 = self.extend(params, &[]);
-        let response: Value = self.fapi_public_get_v3_premium_index(&[&__ws_arg_17]).await;
+        let __ws_arg_18 = self.extend(params, &[]);
+        let response: Value = self.fapi_public_get_v3_premium_index(&[&__ws_arg_18]).await;
         return self.parse_funding_rates(self.to_array(response), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3571,8 +3575,8 @@ impl Aster {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::List = self.fapi_public_get_v3_funding_rate(&[&__ws_arg_18]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::List = self.fapi_public_get_v3_funding_rate(&[&__ws_arg_19]).await.unwrap_or_default();
         return self.parse_funding_rate_histories(&response, &[crate::Value::from(market.as_ref())]);
         Value::Null
         }).await?))
@@ -3684,8 +3688,8 @@ impl Aster {
                 m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.fapi_private_post_v3_margin_type(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.fapi_private_post_v3_margin_type(&[&__ws_arg_20]).await.unwrap_or_default();
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -3747,8 +3751,8 @@ impl Aster {
                 m.insert("dualSidePosition".to_string(), Value::from(strValue));
             m
         });
-        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        return self.fapi_private_post_v3_position_side_dual(&[&__ws_arg_20]).await;
+        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
+        return self.fapi_private_post_v3_position_side_dual(&[&__ws_arg_21]).await;
 
     Value::Null
 }
@@ -3802,11 +3806,11 @@ impl Aster {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            let __ws_arg_21 = self.extend(&request, &[&params]);
-            response = self.fapi_private_get_v3_commission_rate(&[&__ws_arg_21]).await;
+            let __ws_arg_22 = self.extend(&request, &[&params]);
+            response = self.fapi_private_get_v3_commission_rate(&[&__ws_arg_22]).await;
         }  else {
-            let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_private_get_v3_commission_rate(&[&__ws_arg_22]).await;
+            let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
+            response = self.sapi_private_get_v3_commission_rate(&[&__ws_arg_23]).await;
         }
         return Value::Dict(self.parse_trading_fee(&response, Some(&market)));
         Value::Null
@@ -3863,10 +3867,7 @@ impl Aster {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires a symbol argument")));
         }
@@ -3886,11 +3887,11 @@ impl Aster {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
-            response = self.fapi_private_get_v3_order(&[&__ws_arg_23]).await;
+            let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+            response = self.fapi_private_get_v3_order(&[&__ws_arg_24]).await;
         }  else {
-            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_private_get_v3_order(&[&__ws_arg_24]).await;
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.sapi_private_get_v3_order(&[&__ws_arg_25]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         None
@@ -3916,10 +3917,7 @@ impl Aster {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrder() requires a symbol argument")));
         }
@@ -3939,11 +3937,11 @@ impl Aster {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
-            response = self.sapi_private_get_v3_open_order(&[&__ws_arg_25]).await;
+            let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
+            response = self.sapi_private_get_v3_open_order(&[&__ws_arg_26]).await;
         }  else {
-            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.fapi_private_get_v3_open_order(&[&__ws_arg_26]).await;
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.fapi_private_get_v3_open_order(&[&__ws_arg_27]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -3997,11 +3995,11 @@ impl Aster {
         let paramsUntil: crate::value::Dict = __until1;
         let mut response: Option<crate::value::List> = None;
         if (market).swap {
-            let __ws_arg_27 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.fapi_private_get_v3_all_orders(&[&__ws_arg_27]).await;
+            let __ws_arg_28 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.fapi_private_get_v3_all_orders(&[&__ws_arg_28]).await;
         }  else {
-            let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.sapi_private_get_v3_all_orders(&[&__ws_arg_28]).await;
+            let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
+            response = self.sapi_private_get_v3_all_orders(&[&__ws_arg_29]).await;
         }
         return Value::Arr(self.parse_orders(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -4062,11 +4060,11 @@ impl Aster {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(marketType.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            let __ws_arg_29 = self.extend(&request, &[&paramsSubType]);
-            response = self.fapi_private_get_v3_open_orders(&[&__ws_arg_29]).await;
+            let __ws_arg_30 = self.extend(&request, &[&paramsSubType]);
+            response = self.fapi_private_get_v3_open_orders(&[&__ws_arg_30]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.sapi_private_get_v3_open_orders(&[&__ws_arg_30]).await;
+            let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.sapi_private_get_v3_open_orders(&[&__ws_arg_31]).await;
         }
         return Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -4177,8 +4175,8 @@ impl Aster {
                 m.insert("batchOrders".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.fapi_private_post_v3_batch_orders(&[&__ws_arg_31]).await.unwrap_or_default();
+        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.fapi_private_post_v3_batch_orders(&[&__ws_arg_32]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, None, &[]));
         Value::Null
         }).await?))
@@ -4362,8 +4360,6 @@ impl Aster {
             request.insert("feeRate".into(), self.safe_string_k(&self.options, "builderRate", &[]));
         }
         return self.extend_t(Value::Map(request), &[&requestParams]);
-
-    Default::default()
 }
 
 /*
@@ -4399,11 +4395,11 @@ impl Aster {
         });
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_32 = self.extend(&request, &[&params]);
-            response = self.fapi_private_delete_v3_all_open_orders(&[&__ws_arg_32]).await;
+            let __ws_arg_33 = self.extend(&request, &[&params]);
+            response = self.fapi_private_delete_v3_all_open_orders(&[&__ws_arg_33]).await;
         }  else {
-            let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method(Value::Str("sapi_private_delete_v3_all_open_orders".into()), &[&__ws_arg_33]).await;
+            let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
+            response = self.call_method(Value::Str("sapi_private_delete_v3_all_open_orders".into()), &[&__ws_arg_34]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4433,10 +4429,7 @@ impl Aster {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
         }
@@ -4456,11 +4449,11 @@ impl Aster {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["origClientOrderId", "clientOrderId"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            let __ws_arg_34 = self.extend(&request, &[&paramsOmitted]);
-            response = self.fapi_private_delete_v3_order(&[&__ws_arg_34]).await;
+            let __ws_arg_35 = self.extend(&request, &[&paramsOmitted]);
+            response = self.fapi_private_delete_v3_order(&[&__ws_arg_35]).await;
         }  else {
-            let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_private_delete_v3_order(&[&__ws_arg_35]).await;
+            let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.sapi_private_delete_v3_order(&[&__ws_arg_36]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         None
@@ -4523,11 +4516,11 @@ impl Aster {
         }
         let mut response: Option<crate::value::List> = None;
         if (market).swap {
-            let __ws_arg_36 = self.extend(&request, &[&params]);
-            response = self.fapi_private_delete_v3_batch_orders(&[&__ws_arg_36]).await;
+            let __ws_arg_37 = self.extend(&request, &[&params]);
+            response = self.fapi_private_delete_v3_batch_orders(&[&__ws_arg_37]).await;
         }  else {
-            let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_private_delete_v3_all_open_orders(&[&__ws_arg_37]).await;
+            let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
+            response = self.sapi_private_delete_v3_all_open_orders(&[&__ws_arg_38]).await;
         }
         return Value::Arr(self.parse_orders(&response, Some(&market), &[]));
         Value::Null
@@ -4570,8 +4563,8 @@ impl Aster {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.fapi_private_post_v3_leverage(&[&__ws_arg_38]).await.unwrap_or_default();
+        let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.fapi_private_post_v3_leverage(&[&__ws_arg_39]).await.unwrap_or_default();
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -4656,10 +4649,7 @@ impl Aster {
         let type_var = get_arg(optional_args, 1, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 4, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 4);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMarginAdjustmentHistory () requires a symbol argument")));
         }
@@ -4684,8 +4674,8 @@ impl Aster {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::List = self.fapi_private_get_v3_position_margin_history(&[&__ws_arg_39]).await.unwrap_or_default();
+        let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::List = self.fapi_private_get_v3_position_margin_history(&[&__ws_arg_40]).await.unwrap_or_default();
         //
         //     [
         //         {
@@ -4705,14 +4695,14 @@ impl Aster {
     }
 
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, mut addOrReduce: Value, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: f64, mut addOrReduce: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let amountValue: Value = Value::from(self.amount_to_precision(Some(symbol), amount));
+        let amountValue: Value = Value::from(self.amount_to_precision(Some(symbol), Value::from(amount)));
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), addOrReduce);
@@ -4721,10 +4711,10 @@ impl Aster {
             m
         });
         let code: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);
-        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.fapi_private_post_v3_position_margin(&[&__ws_arg_40]).await.unwrap_or_default();
-        let __ws_arg_41 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_41, &[Value::Map({
+        let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.fapi_private_post_v3_position_margin(&[&__ws_arg_41]).await.unwrap_or_default();
+        let __ws_arg_42 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_42, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
     m
@@ -4755,7 +4745,7 @@ impl Aster {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Value::Int(2), &[&params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(2), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4782,7 +4772,7 @@ impl Aster {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Value::Int(1), &[&params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(1), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4835,8 +4825,8 @@ impl Aster {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::List = self.fapi_private_get_v3_income(&[&__ws_arg_42]).await.unwrap_or_default();
+        let __ws_arg_43 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::List = self.fapi_private_get_v3_income(&[&__ws_arg_43]).await.unwrap_or_default();
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
@@ -4879,10 +4869,7 @@ impl Aster {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.load_markets_and_sign_in().await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
@@ -4899,12 +4886,12 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); // max 1000
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
+        let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&params, Value::Str("until".into()), &[]) } else { params });
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::List = self.fapi_private_get_v3_income(&[&__ws_arg_43]).await.unwrap_or_default();
+        let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::List = self.fapi_private_get_v3_income(&[&__ws_arg_44]).await.unwrap_or_default();
         return self.parse_ledger(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))
@@ -5121,8 +5108,8 @@ impl Aster {
             let m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.fapi_private_get_v3_position_risk(&[&__ws_arg_44]).await.unwrap_or_default();
+        let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.fapi_private_get_v3_position_risk(&[&__ws_arg_45]).await.unwrap_or_default();
         //
         //     [
         //         {
@@ -5248,13 +5235,13 @@ impl Aster {
                 // sometimes not all the codes are correctly returned...
                 let balance: Option<crate::value::Dict> = self.safe_dict_o(&balances, code);
                 if (balance.is_some()) {
-                    let __ws_arg_45 = self.extend(position, &[Value::Map({
+                    let __ws_arg_46 = self.extend(position, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("crossMargin".to_string(), self.safe_string_k(&balance, "crossMargin", &[]));
                             m.insert("crossWalletBalance".to_string(), self.safe_string_k(&balance, "crossWalletBalance", &[]));
                         m
                     })]);
-                    let parsed: crate::value::Dict = self.parse_account_position(__ws_arg_45, Some(&market)).into_dict();
+                    let parsed: crate::value::Dict = self.parse_account_position(__ws_arg_46, Some(&market)).into_dict();
                     result.push(Value::Dict(parsed));
                 }
             }
@@ -5693,8 +5680,8 @@ impl Aster {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, &["chainId", "network", "fee"], &[]);
         request.insert("amount".into(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[Value::from(network.as_deref())])));
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
-        let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.sapi_private_post_v3_aster_user_withdraw(&[&__ws_arg_46]).await.unwrap_or_default();
+        let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.sapi_private_post_v3_aster_user_withdraw(&[&__ws_arg_47]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -5751,8 +5738,8 @@ impl Aster {
         let clientTranId: Option<String> = self.safe_string_k_opt(&params, "clientTranId", &[&defaultClientTranId]);
         request.insert("kindType".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         request.insert("clientTranId".into(), clientTranId.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.sapi_private_post_v3_asset_wallet_transfer(&[&__ws_arg_47]).await.unwrap_or_default();
+        let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.sapi_private_post_v3_asset_wallet_transfer(&[&__ws_arg_48]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -5914,8 +5901,8 @@ impl Aster {
                         m.insert("asterChain".to_string(), Value::Str("Mainnet".into()));
                     m
                 });
-                let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
-                let authResponse: crate::value::Dict = self.fapi_private_post_v3_approve_builder(&[&__ws_arg_48]).await.unwrap_or_default();
+                let __ws_arg_49 = self.extend(Value::Map(request), &[params]);
+                let authResponse: crate::value::Dict = self.fapi_private_post_v3_approve_builder(&[&__ws_arg_49]).await.unwrap_or_default();
                 //
                 // {"code": 200,"msg": "success"}
                 //

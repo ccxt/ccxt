@@ -522,7 +522,7 @@ impl Weex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -1046,10 +1046,7 @@ impl Weex {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1146,10 +1143,7 @@ impl Weex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1321,10 +1315,7 @@ impl Weex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1411,10 +1402,7 @@ impl Weex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1577,7 +1565,7 @@ impl Weex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -2692,7 +2680,7 @@ impl Weex {
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let symbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let positions: crate::value::List = self.filter_by_array_list(&newPositions, Value::Str("symbol".into()), &symbols);
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }

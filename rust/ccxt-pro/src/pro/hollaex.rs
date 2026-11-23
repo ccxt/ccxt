@@ -84,14 +84,14 @@ impl Hollaex {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "on_close" => { self.on_close(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "on_error" => { self.on_error(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -219,7 +219,7 @@ impl Hollaex {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -312,7 +312,7 @@ impl Hollaex {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -402,7 +402,7 @@ impl Hollaex {
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -520,7 +520,7 @@ impl Hollaex {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -655,7 +655,7 @@ impl Hollaex {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //

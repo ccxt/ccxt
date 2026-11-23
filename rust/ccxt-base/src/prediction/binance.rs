@@ -52,11 +52,10 @@ impl Binance {
 }
 
 impl crate::exchange::DerivedExchange for Binance {
-    fn nonce(&self) -> Value {
-        return Value::Int(self.milliseconds());
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Binance.
+        crate::Value::from(Binance::nonce(self, ))
+    }
     fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, outcomeObj: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         //
@@ -274,7 +273,7 @@ impl crate::exchange::DerivedExchange for Binance {
         self.check_required_credentials(&[]);
         let mut extendedParams: crate::value::Dict = self.extend_t(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
+                m.insert("timestamp".to_string(), Value::Int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self)));
             m
         }), &[&query]);
         let defaultRecvWindow: Option<i64> = self.safe_integer_k(&self.options, "recvWindow", &[]).as_i64();
@@ -309,7 +308,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -358,8 +357,8 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_wallet" => self.fetch_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "nonce" => self.nonce(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_event" => crate::Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -618,6 +617,9 @@ impl Binance {
     Value::Null
 }
 
+    pub fn nonce(&self) -> i64 {
+        return self.milliseconds();
+}
 
 /*
  * @method

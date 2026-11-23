@@ -697,7 +697,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -761,7 +761,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_binary_market_to_outcomes" => self.parse_binary_market_to_outcomes(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -1856,7 +1856,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&interest, "updated_time", &[]));
-        let mut openInterest: Value = self.safe_open_interest(Value::Map({
+        let mut openInterest: Value = Value::Dict(self.safe_open_interest(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
                 m.insert("openInterestAmount".to_string(), self.safe_number2(&interest, Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
@@ -1867,7 +1867,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("info".to_string(), interest);
             m
-        }), market);
+        }), market));
         if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)])); }
         if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[])); }
         if let Value::Dict(__d) = &mut openInterest { std::sync::Arc::make_mut(__d).shift_remove("symbol"); }
@@ -3028,10 +3028,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         // kalshi has no market orders — every order is a limit order and the price is required
         if (price.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")));

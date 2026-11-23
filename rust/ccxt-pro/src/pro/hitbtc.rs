@@ -70,11 +70,11 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error" => self.handle_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_notification" => self.handle_notification(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_notification" => self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_ohlcv" => self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order" => self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order_request" => self.handle_order_request(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_trades" => self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_trades" => self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -116,19 +116,19 @@ impl Hitbtc {
             "describe_data" => { self.describe_data(); },
             "fetch_open_orders_ws" => crate::exchange_stubs::enqueue_spawn("fetch_open_orders_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_notification" => { self.handle_notification(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_notification" => { self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_helper" => { self.handle_order_helper(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_request" => { self.handle_order_request(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ohlcv" => { Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -520,10 +520,7 @@ impl Hitbtc {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
         let defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/full".into())]).as_str().unwrap_or("orderbook/full").to_string();
         let mut name: Option<String> = self.safe_string2_opt(&params, Value::Str("method".into()), Value::Str("defaultMethod".into()), &[&defaultMethod]);
@@ -551,8 +548,7 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -612,7 +608,7 @@ impl Hitbtc {
             let item: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::from(marketId)).into_dict();
             let messageHash: String = format!("{}{}", "orderbooks::", symbol.as_deref().unwrap_or("null"));
             if !(self.orderbooks.has(&symbol)) {
-                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
+                let subscription: crate::value::Dict = self.safe_dict_t(&(client).subscriptions, Value::from(messageHash.as_str()));
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 { let __cv = self.order_book(&[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -764,14 +760,12 @@ impl Hitbtc {
                 return Value::Map(tickers);
             }
         }
-        return self.filter_by_array(newTickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(newTickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "ch": "ticker/1s",
@@ -906,20 +900,17 @@ impl Hitbtc {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchBidsAsks");
         let defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/top/{speed}/batch".into())]).as_str().unwrap_or("orderbook/top/{speed}/batch").to_string();
         let method: Option<String> = self.safe_string2_opt(&params, Value::Str("method".into()), Value::Str("defaultMethod".into()), &[&defaultMethod]);
@@ -954,14 +945,12 @@ impl Hitbtc {
                 return Value::Map(tickers);
             }
         }
-        return self.filter_by_array(newTickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(newTickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -1106,7 +1095,7 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         //
         //    {
         //        "result": {
@@ -1326,7 +1315,7 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1971,9 +1960,7 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -2022,7 +2009,7 @@ impl Hitbtc {
         client.resolve(Value::Dict(self.balance.clone()), messageHash.as_deref());
 }
 
-    pub fn handle_notification(&self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_notification(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         return message;
 
     Value::Null

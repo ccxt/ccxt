@@ -537,11 +537,11 @@ impl crate::exchange::DerivedExchange for Onetrading {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "code", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -573,9 +573,9 @@ impl crate::exchange::DerivedExchange for Onetrading {
     m
 }));
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -633,7 +633,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -683,9 +683,9 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_fee_tiers" => crate::Value::Dict(self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1365,10 +1365,7 @@ impl Onetrading {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut method: Option<String> = self.safe_string_k_opt(&params, "method", &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);
         if (method.is_none()) {
@@ -2017,10 +2014,7 @@ impl Onetrading {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2197,10 +2191,7 @@ impl Onetrading {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2217,7 +2208,7 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(&Value::from(since)));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
+        let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&params, Value::Str("until".into()), &[]) } else { params });
         if (until.is_some()) {
             request.insert("to".into(), self.iso8601(until));
         }
@@ -2447,10 +2438,7 @@ impl Onetrading {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2467,7 +2455,7 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(&Value::from(since)));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
+        let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&params, Value::Str("until".into()), &[]) } else { params });
         if (until.is_some()) {
             request.insert("to".into(), self.iso8601(until));
         }

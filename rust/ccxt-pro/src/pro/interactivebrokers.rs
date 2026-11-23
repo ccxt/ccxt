@@ -583,7 +583,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             result.insert(tickerSymbol, Value::Dict(ticker));
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), Value::from(symbols), &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), Value::from(symbols)));
         Value::Null
         }).await?))
     }
@@ -618,7 +618,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             result.insert(tickerSymbol, Value::Dict(ticker));
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbols), &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbols)));
         Value::Null
         }).await?))
     }
@@ -1467,12 +1467,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let __params_empty = indexmap::IndexMap::new();
-        let params = params.as_map().unwrap_or(&__params_empty);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut messageHash: String = "orders".to_string();
         let mut unifiedSymbol: Option<String> = None;
@@ -1681,12 +1676,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let __params_empty = indexmap::IndexMap::new();
-        let params = params.as_map().unwrap_or(&__params_empty);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut messageHash: String = "myTrades".to_string();
         let mut unifiedSymbol: Option<String> = None;

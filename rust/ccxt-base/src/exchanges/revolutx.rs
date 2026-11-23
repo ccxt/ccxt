@@ -337,7 +337,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
 
     None
 }
-    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let currency: Value = currency.into();
         let id: String = self.safe_string2(&currency, Value::Str("id".into()), Value::Str("symbol".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let code: Option<String> = self.safe_currency_code(Some(id.as_str()), None);
@@ -348,7 +348,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         let assetType: Option<String> = self.safe_string_k_opt(&currency, "asset_type", &[]);
         let type_var: String = (if (assetType.as_deref() == Some("crypto")) { "crypto".to_string() } else { "fiat".to_string() });
         let precision: Value = (if (scale.is_some()) { crate::runtime::Math::pow(&Value::Int(10), &Value::from((if let Some(__v) = scale { Some(-__v) } else { None }))) } else { Value::Null });
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency);
         m.insert("id".to_string(), Value::from(id));
@@ -387,9 +387,9 @@ impl crate::exchange::DerivedExchange for Revolutx {
     m
 }));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
@@ -511,7 +511,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         let statusCode: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
         if statusCode >= 400 {
             if (response == Value::Null) {
@@ -558,8 +558,8 @@ impl crate::exchange_generated::ExchangeBase for Revolutx {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_my_trade" => self.parse_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1036,7 +1036,7 @@ impl Revolutx {
                     m.insert("id".to_string(), Value::from(key.as_deref()));
                 m
             })]);
-            let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &currencyData).into_dict();
+            let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &currencyData).unwrap_or_default();
             let code: String = self.safe_string_k(&parsed, "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (code == "") {
                 continue;
@@ -1560,10 +1560,7 @@ impl Revolutx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2120,10 +2117,7 @@ impl Revolutx {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2212,10 +2206,7 @@ impl Revolutx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }

@@ -319,7 +319,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
 
     None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         let rawType: Option<String> = self.safe_string_k_opt(&item, "type", &[]);
         let type_var: Option<String> = self.parse_ledger_entry_type(rawType.as_deref());
@@ -346,7 +346,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
                 m
             }));
         }
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "transactionId", &[]));
@@ -364,9 +364,9 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         //
         //     [
@@ -485,7 +485,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
             }
         }
         }
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -521,11 +521,11 @@ impl crate::exchange::DerivedExchange for Bitvavo {
     m
 }));
     m
-}));
+})));
 
-    Value::Null
+    None
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -750,7 +750,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -783,33 +783,33 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_order_request" => Value::Dict(self.cancel_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
+                "cancel_order_request" => crate::Value::Dict(self.cancel_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "edit_order_request" => Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>())),
+                "edit_order_request" => crate::Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_withdraw_fees" => crate::types::IntoRaw::into_raw(self.fetch_deposit_withdraw_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_deposits_request" => Value::Dict(self.fetch_deposits_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "fetch_deposits_request" => crate::Value::Dict(self.fetch_deposits_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_trades" => crate::types::IntoRaw::into_raw(self.fetch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_my_trades_request" => Value::Dict(self.fetch_my_trades_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "fetch_my_trades_request" => crate::Value::Dict(self.fetch_my_trades_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_ohlcv_request" => Value::Dict(self.fetch_ohlcv_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
+                "fetch_ohlcv_request" => crate::Value::Dict(self.fetch_ohlcv_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_request" => Value::Dict(self.fetch_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "fetch_orders_request" => crate::Value::Dict(self.fetch_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -819,14 +819,14 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "fetch_transfer" => crate::types::IntoRaw::into_raw(self.fetch_transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawals_request" => Value::Dict(self.fetch_withdrawals_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "fetch_withdrawals_request" => crate::Value::Dict(self.fetch_withdrawals_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_markets" => self.parse_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -840,7 +840,7 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
-                "withdraw_request" => Value::Dict(self.withdraw_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "withdraw_request" => crate::Value::Dict(self.withdraw_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -2023,8 +2023,6 @@ impl Bitvavo {
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
         return self.extend_t(requestUntil, &[&paramsUntil]);
-
-    Default::default()
 }
 
 /*
@@ -2196,10 +2194,7 @@ impl Bitvavo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2513,8 +2508,6 @@ impl Bitvavo {
             }
         }
         return self.extend_t(Value::Map(request), &[&paramsSelfTradePrevention]);
-
-    Default::default()
 }
 
 /*
@@ -2608,8 +2601,6 @@ impl Bitvavo {
         }
         std::sync::Arc::make_mut(&mut request).insert("market".into(), Value::from((market).id.as_deref()));
         return request;
-
-    Default::default()
 }
 
 /*
@@ -2678,8 +2669,6 @@ impl Bitvavo {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")));
         }
         return self.extend_t(Value::Map(request), &[&paramsOperatorId]);
-
-    Default::default()
 }
 
 /*
@@ -2868,8 +2857,6 @@ impl Bitvavo {
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
         return self.extend_t(requestUntil, &[&paramsUntil]);
-
-    Default::default()
 }
 
 /*
@@ -3004,8 +2991,6 @@ impl Bitvavo {
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
         return self.extend_t(requestUntil, &[&paramsUntil]);
-
-    Default::default()
 }
 
 /*
@@ -3164,8 +3149,6 @@ impl Bitvavo {
             request.insert("paymentId".into(), Value::from(tag));
         }
         return self.extend_t(Value::Map(request), &[params]);
-
-    Default::default()
 }
 
 /*
@@ -3229,8 +3212,6 @@ impl Bitvavo {
             request.insert("limit".into(), Value::from(limit)); // default 500, max 1000
         }
         return self.extend_t(Value::Map(request), &[params]);
-
-    Default::default()
 }
 
 /*
@@ -3296,8 +3277,6 @@ impl Bitvavo {
             request.insert("limit".into(), Value::from(limit)); // default 500, max 1000
         }
         return self.extend_t(Value::Map(request), &[params]);
-
-    Default::default()
 }
 
 /*

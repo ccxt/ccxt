@@ -117,16 +117,16 @@ impl Aster {
             "get_private_url" => { self.get_private_url(&args[..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance_and_position" => { self.handle_balance_and_position(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_update" => { self.handle_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "keep_alive_listen_key" => crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "load_positions_snapshot" => crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -437,7 +437,7 @@ impl Aster {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -647,7 +647,7 @@ impl Aster {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -723,7 +723,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //     {
         //             "e": "24hrTicker",
@@ -756,7 +756,7 @@ impl Aster {
         //             "T": 1754668800000
         //     }
         //
-        let marketType: Option<String> = self.get_account_type_from_url(client.url());
+        let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
         let parsed: crate::value::Dict = self.parse_ws_ticker(message, marketType.map(Value::from).unwrap_or(Value::Null));
         let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         if (symbol.is_some()) {
@@ -882,7 +882,7 @@ impl Aster {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -950,7 +950,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -966,7 +966,7 @@ impl Aster {
         //             "E": 1754896692926
         //     }
         //
-        let marketType: Option<String> = self.get_account_type_from_url(client.url());
+        let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
         let marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
         let ticker: crate::value::Dict = self.parse_ws_bid_ask(message, Some(&market));
@@ -1199,7 +1199,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1216,7 +1216,7 @@ impl Aster {
         //         "m": false
         //     }
         //
-        let marketType: Option<String> = self.get_account_type_from_url(client.url());
+        let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
         let marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
         let parsed: crate::value::Dict = self.parse_ws_trade(message, Some(&market));
@@ -1600,7 +1600,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1626,7 +1626,7 @@ impl Aster {
         //             ]
         //     }
         //
-        let marketType: Option<String> = self.get_account_type_from_url(client.url());
+        let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
         let marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let timestamp: Option<i64> = (match __pro_message.get("T") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
@@ -1864,9 +1864,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //             "e": "kline",
@@ -1893,7 +1891,7 @@ impl Aster {
         //             }
         //     }
         //
-        let marketType: Option<String> = self.get_account_type_from_url(client.url());
+        let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
         let marketId: Option<String> = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);

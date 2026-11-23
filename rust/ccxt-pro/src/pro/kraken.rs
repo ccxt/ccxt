@@ -71,7 +71,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_system_status" => self.handle_system_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_system_status" => self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
                 "order_request_ws" => { let __t = self.order_request_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &mut { let __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
@@ -118,22 +118,22 @@ impl Kraken {
             "create_order_ws" => crate::exchange_stubs::enqueue_spawn("create_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "custom_handle_deltas" => { self.custom_handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "edit_order_ws" => crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_cancel_all_orders" => { self.handle_cancel_all_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_cancel_order" => { self.handle_cancel_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_create_edit_order" => { self.handle_create_edit_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_cancel_all_orders" => { self.handle_cancel_all_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_cancel_order" => { self.handle_cancel_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_create_edit_order" => { self.handle_create_edit_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_heartbeat" => { self.handle_heartbeat(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_heartbeat" => { self.handle_heartbeat(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_system_status" => { self.handle_system_status(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_system_status" => { self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription_status" => { self.handle_unsubscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "load_markets" => crate::exchange_stubs::enqueue_spawn("load_markets", args.iter().copied().cloned().collect::<Vec<_>>()),
             "order_request_ws" => { { let __t = self.order_request_ws(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null),
@@ -556,7 +556,7 @@ impl Kraken {
         }).await?))
     }
 
-    pub fn handle_create_edit_order(&self, client: &Value, mut message: Value) {
+    pub fn handle_create_edit_order(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -743,7 +743,7 @@ impl Kraken {
         }).await?))
     }
 
-    pub fn handle_cancel_order(&self, client: &Value, mut message: Value) {
+    pub fn handle_cancel_order(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -807,7 +807,7 @@ impl Kraken {
         }).await?))
     }
 
-    pub fn handle_cancel_all_orders(&self, client: &Value, mut message: Value) {
+    pub fn handle_cancel_all_orders(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -826,9 +826,7 @@ impl Kraken {
         client.resolve(message, reqId.as_deref());
 }
 
-    pub fn handle_ticker(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "channel": "ticker",
@@ -890,9 +888,7 @@ impl Kraken {
         client.resolve(result, messageHash.as_deref());
 }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "channel": "trade",
@@ -932,9 +928,7 @@ impl Kraken {
         client.resolve(Value::from(&stored), messageHash.as_deref());
 }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "channel": "ohlc",
@@ -1060,7 +1054,7 @@ impl Kraken {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -1100,7 +1094,7 @@ impl Kraken {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized));
         Value::Null
         }).await?))
     }
@@ -1493,7 +1487,7 @@ impl Kraken {
     Value::Null
 }
 
-    pub fn handle_heartbeat(&self, mut client: Value, mut message: Value) {
+    pub fn handle_heartbeat(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1707,7 +1701,7 @@ impl Kraken {
         return Some(joinedResult);
 }
 
-    pub fn handle_system_status(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_system_status(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
         return message;
 
     Value::Null
@@ -1860,7 +1854,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -2033,7 +2027,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_orders(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -2284,7 +2278,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //

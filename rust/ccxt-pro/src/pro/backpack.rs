@@ -445,9 +445,9 @@ impl Backpack {
             self.watch_public(topics, Value::from(messageHashes), &[Value::Dict(payload)]).await;
         }
         if bidAsk.as_bool() == Some(true) {
-            return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
+            return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbolsResolved)));
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), Value::from(symbolsResolved)));
 
     Value::Null
 }
@@ -495,7 +495,7 @@ impl Backpack {
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: String = self.safe_string_k(&wsUrls, "private", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut instruction: String = "subscribe".to_string();
-        let ts: Option<String> = self.number_to_string(self.nonce());
+        let ts: Option<String> = self.number_to_string(Value::Int(self.nonce()));
         let mut method: String = "SUBSCRIBE".to_string();
         if unwatch {
             method = "UNSUBSCRIBE".to_string();

@@ -1204,7 +1204,7 @@ impl Bingx {
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let timeframeParts: crate::value::List = crate::value::List::new(dataType.split("_").map(Value::from).collect());
         let rawTimeframe: Option<String> = self.safe_string_opt(&timeframeParts, Value::Int(1), &[]);
-        let marketOptions: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(marketType));
+        let marketOptions: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(marketType.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&marketOptions, "timeframes");
         let unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]));
         if (self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe).is_none()) {
@@ -1937,7 +1937,7 @@ impl Bingx {
             let parts: Vec<Value> = Value::Array(messageHash.split("::").map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let filteredSymbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &filteredSymbols, &[Value::Bool(false)]).into_list();
+            let positions: crate::value::List = self.filter_by_array_list(&newPositions, Value::Str("symbol".into()), &filteredSymbols);
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_str());
             }

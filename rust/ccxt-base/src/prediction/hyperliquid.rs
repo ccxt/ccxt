@@ -52,11 +52,10 @@ impl Hyperliquid {
 }
 
 impl crate::exchange::DerivedExchange for Hyperliquid {
-    fn nonce(&self) -> Value {
-        return Value::Int(self.milliseconds());
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Hyperliquid.
+        crate::Value::from(Hyperliquid::nonce(self, ))
+    }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         return Some(std::sync::Arc::new(vec![self.safe_integer_k(&ohlcv, "t", &[]), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(ohlcv, "v", &[])]));
 
@@ -319,7 +318,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -386,12 +385,12 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "find_outcome_in_market" => self.find_outcome_in_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_public_address" => { let __t = self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "info_dict" => Value::Dict(Self::info_dict(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "initialize_client" => self.initialize_client().await,
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "outcome_asset_id" => self.outcome_asset_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "outcome_encoding" => self.outcome_encoding(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -621,6 +620,9 @@ impl Hyperliquid {
         })).expect("a sync body never awaits")?))
     }
 
+    pub fn nonce(&self) -> i64 {
+        return self.milliseconds();
+}
 
 /*
  * @ignore
@@ -828,9 +830,9 @@ impl Hyperliquid {
                             bucketLabel = format!("{}{}", "BELOW_", thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                         }  else if index >= Some(thresholdsLength) {
                             let lastIdx: i64 = (thresholdsLength - 1);
-                            bucketLabel = format!("{}{}", "ABOVE_", get_value(&thresholds, &Value::from(lastIdx)));
+                            bucketLabel = format!("{}{}", "ABOVE_", thresholds.as_array().zip(Some(lastIdx)).and_then(|(__arr, __n)| if __n < 0 { None } else { __arr.get(__n as usize) }).cloned().unwrap_or(Value::Null));
                         }  else {
-                            bucketLabel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &Value::from((if let Some(__l) = index { Some(__l - 1) } else { None })))).into()), "_").into()), get_value(&thresholds, &Value::from(index)));
+                            bucketLabel = format!("{}{}{}{}", "BETWEEN_", thresholds.as_array().zip(index.map(|__k| __k - 1)).and_then(|(__arr, __n)| if __n < 0 { None } else { __arr.get(__n as usize) }).cloned().unwrap_or(Value::Null), "_", thresholds.as_array().zip(index).and_then(|(__arr, __n)| if __n < 0 { None } else { __arr.get(__n as usize) }).cloned().unwrap_or(Value::Null));
                         }
                         let upperUnderlying: Option<String> = questionUnderlying.as_deref().map(str::to_uppercase);
                         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", upperUnderlying.as_deref().unwrap_or("null"), "_").into()), bucketLabel).into()), questionExpiryPart));
@@ -1568,10 +1570,7 @@ impl Hyperliquid {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")

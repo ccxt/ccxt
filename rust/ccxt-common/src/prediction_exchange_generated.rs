@@ -2443,7 +2443,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let since = get_arg(optional_args, 1, Value::Null);
         let limit = get_arg(optional_args, 2, Value::Null);
         let tail = get_arg(optional_args, 3, Value::Bool(false));
-        let result: crate::value::List = self.filter_by_array(array, Value::Str("outcome".into()), outcomes, &[Value::Bool(false)]).into_list();
+        let result: crate::value::List = self.filter_by_array_list(array, Value::Str("outcome".into()), outcomes);
         return Value::Arr(self.filter_by_since_limit(&result, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]));
 
     Value::Null

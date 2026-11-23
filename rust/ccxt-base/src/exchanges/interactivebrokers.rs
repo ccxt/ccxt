@@ -741,7 +741,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     Value::Null
 }
-    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
         let marketId: Option<String> = self.safe_string_k_opt(&interest, "conid", &[]);
         let resolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -753,7 +753,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         if (openInterest.is_some()) && (last.is_some()) && (contractSize.is_some()) {
             openInterestValue = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&openInterest, &contractSize), &last).as_str().map(str::to_owned);
         }
-        return self.safe_open_interest(Value::Map({
+        return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&resolved, "symbol"));
         m.insert("openInterestAmount".to_string(), self.parse_number(openInterest.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -762,11 +762,11 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
-}), Some(&resolved));
+}), Some(&resolved)));
 
-    Value::Null
+    None
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         //
         //     {
@@ -900,7 +900,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         let url: Value = url.into();
         let method: Value = method.into();
         let body: Value = body.into();
@@ -983,7 +983,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "ibkr_balance_code" => crate::Value::from(self.ibkr_balance_code(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "ibkr_check_oauth_credentials" => self.ibkr_check_oauth_credentials(),
                 "ibkr_disambiguate_contract_symbols" => self.ibkr_disambiguate_contract_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -992,7 +992,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_gateway_on_session_lost" => self.ibkr_gateway_on_session_lost().await,
                 "ibkr_gateway_regain_delay" => self.ibkr_gateway_regain_delay(),
                 "ibkr_gateway_regain_loop" => self.ibkr_gateway_regain_loop().await,
-                "ibkr_gateway_regain_session" => self.ibkr_gateway_regain_session(&args[..]).await,
+                "ibkr_gateway_regain_session" => crate::Value::Dict(self.ibkr_gateway_regain_session(&args[..]).await),
                 "ibkr_gateway_schedule_regain" => self.ibkr_gateway_schedule_regain().await,
                 "ibkr_gateway_sign_in" => self.ibkr_gateway_sign_in(&args[..]).await,
                 "ibkr_gateway_start_keep_alive" => self.ibkr_gateway_start_keep_alive().await,
@@ -1012,7 +1012,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2652,7 +2652,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let openOnStart: bool = self.safe_bool_k_opt(&self.options, "gatewayReauthenticate", &[Value::Bool(true)]).unwrap_or(true);
         if !authenticated && !established && openOnStart {
             // the first sign in of this instance opens the brokerage session right away
-            response = self.ibkr_gateway_regain_session(&[params.clone()]).await;
+            response = Value::Dict(self.ibkr_gateway_regain_session(&[params.clone()]).await);
             authenticated = self.safe_bool_k_opt(&response, "authenticated", &[Value::Bool(false)]).unwrap_or(false);
             if !authenticated {
                 let gatewayUrl: Option<String> = self.safe_string_k_opt(&self.options, "gatewayUrl", &[]);
@@ -2673,7 +2673,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let regainDatetime: Option<String> = self.iso8601(regainTimestamp).as_str().map(str::to_owned);
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}{}{}{}", self.id, " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ", regainDatetime.map(Value::from).unwrap_or(Value::Null), " (options.autoRegainSession), ", json_stringify(&response))));
             }
-            response = self.ibkr_gateway_regain_session(&[params]).await;
+            response = Value::Dict(self.ibkr_gateway_regain_session(&[params]).await);
             authenticated = self.safe_bool_k_opt(&response, "authenticated", &[Value::Bool(false)]).unwrap_or(false);
             if !authenticated {
                 // try again options.autoRegainSession seconds later
@@ -2703,7 +2703,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the last iserver/auth/status response
  */
-    pub async fn ibkr_gateway_regain_session(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn ibkr_gateway_regain_session(&mut self, optional_args: &[Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2727,9 +2727,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
 /*
@@ -3391,18 +3389,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             promises.push(self.markets_endpoint_call(__ws_arg_5, "webapiPostV1ApiIserverSecdefSearch", &[Value::from(vec![])]).await);
         }
         }
-        let results: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
+        let results: crate::value::List = promise_all(&Value::from(promises)).await;
         let neededSecTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("CRYPTO".into())]); // CFD, OPT - they should already be fetched in other calls
         {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (results.len() as i64) } {
-            let result: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
+            let result: crate::value::List = self.safe_list_t(&results, Value::Int(i));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_15: bool = true;
-                while { if !__for_first_15 { j += 1; } __for_first_15 = false; (j as f64) < get_array_length(&result).as_f64().unwrap_or(f64::NAN) } {
-                let entry: Value = get_value(&result, &Value::Int(j));
+                while { if !__for_first_15 { j += 1; } __for_first_15 = false; j < (result.len() as i64) } {
+                let entry: Value = result.get(j as usize).cloned().unwrap_or(Value::Null);
                 let sections: crate::value::List = self.safe_list_k_t(&entry, "sections");
                 {
                                         let mut k: i64 = 0;
@@ -3646,17 +3644,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             promises.push(self.markets_endpoint_call(Value::Map(request), "webapiGetV1ApiTrsrvAllConids", &[Value::from(vec![])]).await);
         }
         }
-        let responses: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
+        let responses: crate::value::List = promise_all(&Value::from(promises)).await;
         {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
             while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (responses.len() as i64) } {
-            let cfds: Value = responses.get(i as usize).cloned().unwrap_or(Value::Null);
+            let cfds: crate::value::List = self.safe_list_t(&responses, Value::Int(i));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_24: bool = true;
-                while { if !__for_first_24 { j += 1; } __for_first_24 = false; (j as f64) < get_array_length(&cfds).as_f64().unwrap_or(f64::NAN) } {
-                let cfd: Value = get_value(&cfds, &Value::Int(j));
+                while { if !__for_first_24 { j += 1; } __for_first_24 = false; j < (cfds.len() as i64) } {
+                let cfd: Value = cfds.get(j as usize).cloned().unwrap_or(Value::Null);
                 let conid: Option<String> = self.safe_string_k_opt(&cfd, "conid", &[]);
                 entries.insert(conid.as_deref().unwrap_or("null").to_string(), cfd);
             }
@@ -3728,7 +3726,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             searchPromises.push(self.markets_endpoint_call(__ws_arg_7, "webapiPostV1ApiIserverSecdefSearch", &[Value::from(vec![])]).await);
         }
         }
-        let searchResults: Vec<Value> = promise_all(&Value::from(searchPromises)).await.to_vec();
+        let searchResults: crate::value::List = promise_all(&Value::from(searchPromises)).await;
         // the filters are sent as columnId:value pairs joined by a comma, e.g. 29:Notes,27:202701
         let filterIds: Vec<Value> = Value::Array(bondFilters.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut filterParts: Vec<Value> = Vec::new();
@@ -3747,12 +3745,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_32: bool = true;
             while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (searchResults.len() as i64) } {
-            let searchResult: Value = searchResults.get(i as usize).cloned().unwrap_or(Value::Null);
+            let searchResult: crate::value::List = self.safe_list_t(&searchResults, Value::Int(i));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_31: bool = true;
-                while { if !__for_first_31 { j += 1; } __for_first_31 = false; (j as f64) < get_array_length(&searchResult).as_f64().unwrap_or(f64::NAN) } {
-                let issuers: crate::value::List = self.safe_list_t(get_value(&searchResult, &Value::Int(j)), Value::Str("issuers".into()));
+                while { if !__for_first_31 { j += 1; } __for_first_31 = false; j < (searchResult.len() as i64) } {
+                let issuers: crate::value::List = self.safe_list_k_t(searchResult.get(j as usize).cloned().unwrap_or(Value::Null), "issuers");
                 {
                                         let mut k: i64 = 0;
                     let mut __for_first_30: bool = true;
@@ -3773,17 +3771,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let contractResults: Vec<Value> = promise_all(&Value::from(contractPromises)).await.to_vec();
+        let contractResults: crate::value::List = promise_all(&Value::from(contractPromises)).await;
         {
                         let mut i: i64 = 0;
             let mut __for_first_34: bool = true;
             while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (contractResults.len() as i64) } {
-            let contracts: Value = contractResults.get(i as usize).cloned().unwrap_or(Value::Null);
+            let contracts: crate::value::List = self.safe_list_t(&contractResults, Value::Int(i));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_33: bool = true;
-                while { if !__for_first_33 { j += 1; } __for_first_33 = false; (j as f64) < get_array_length(&contracts).as_f64().unwrap_or(f64::NAN) } {
-                let contract: Value = get_value(&contracts, &Value::Int(j));
+                while { if !__for_first_33 { j += 1; } __for_first_33 = false; j < (contracts.len() as i64) } {
+                let contract: Value = contracts.get(j as usize).cloned().unwrap_or(Value::Null);
                 let conid: Option<String> = self.safe_string_k_opt(&contract, "conid", &[]);
                 if (conid.is_some()) {
                     entries.insert(conid.as_deref().unwrap_or("null").to_string(), contract);
@@ -4067,24 +4065,21 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        if (symbols.is_none()) {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchBidsAsks() requires a symbols argument")));
         }
         self.authenticate(&[]).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let fields: String = self.safe_string_k(&params, "fields", &[Value::Str("84,85,86,88".into())]).as_str().unwrap_or("84,85,86,88").to_string();
         let query: crate::value::Dict = self.omit_t(params, Value::Str("fields".into()), &[]);
         let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::from(fields), &[Value::Str("84".into()), Value::Str("86".into())], &[Value::Dict(query)]).await);
@@ -4443,7 +4438,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_44: bool = true;
             while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < (portfolioAccounts.len() as i64) } {
-            accounts.push(<Self as crate::exchange::DerivedExchange>::parse_account(self, crate::value::KeyRead::read(&&portfolioAccounts, &Value::Int(i))).map_or(Value::Null, Value::Dict));
+            accounts.push(<Self as crate::exchange::DerivedExchange>::parse_account(self, &<crate::value::Dict as crate::value::EndpointBody>::from_body(crate::value::KeyRead::read(&&portfolioAccounts, &Value::Int(i))).unwrap_or_default()).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(accounts);
@@ -5296,10 +5291,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.authenticate(&[]).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }

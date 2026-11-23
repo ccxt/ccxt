@@ -103,17 +103,17 @@ impl Blofin {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_funding_rate" => { self.handle_funding_rate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_positions" => { self.handle_positions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription" => { self.handle_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_balance" => { Value::Dict(self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -368,9 +368,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //       arg: {
@@ -493,7 +491,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -607,7 +605,7 @@ impl Blofin {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), symbols, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), symbols));
         Value::Null
         }).await?))
     }
@@ -711,7 +709,7 @@ impl Blofin {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsList, &[]);
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), &symbolsList));
         Value::Null
         }).await?))
     }
@@ -892,9 +890,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // message
         //
@@ -980,7 +976,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //     {
         //         arg: {
@@ -1060,9 +1056,9 @@ impl Blofin {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOrders".into())); }
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-            return crate::types::IntoRaw::into_raw(self.watch_orders_for_symbols((Value::from(vec![Value::from(self.symbol(symbol.as_str()))])).to_str_vec(), since, limit, params).await);
+            return crate::types::IntoRaw::into_raw(self.watch_orders_for_symbols(vec![Value::from(self.symbol(symbol.as_str())).to_string()], since, limit, params).await);
         }
-        return crate::types::IntoRaw::into_raw(self.watch_orders_for_symbols(Vec::<String>::new(), since, limit, params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_orders_for_symbols(vec![], since, limit, params).await);
         Value::Null
         }).await?))
     }
@@ -1135,15 +1131,13 @@ impl Blofin {
                 }
             }
         }
-        let requested: crate::value::List = self.filter_by_array(newest, Value::Str("symbol".into()), requestedSymbols, &[Value::Bool(false)]).into_list();
+        let requested: crate::value::List = self.filter_by_array_list(newest, Value::Str("symbol".into()), requestedSymbols);
         return Value::Arr(self.filter_by_since_limit(&requested, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_orders(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         action: 'update',
@@ -1233,9 +1227,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_positions(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         arg: { channel: 'positions' },
@@ -1311,9 +1303,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_funding_rate(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_funding_rate(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "arg": {
@@ -1331,7 +1321,7 @@ impl Blofin {
         //
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        let fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
+        let fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None);
         let symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
         let messageHash: String = format!("{}{}", "fundingRate:", symbol);

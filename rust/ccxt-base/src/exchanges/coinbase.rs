@@ -49,15 +49,10 @@ impl Coinbase {
 }
 
 impl crate::exchange::DerivedExchange for Coinbase {
-    fn nonce(&self) -> Value {
-        let timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
-        if (timeDifference.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
-        }
-        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Coinbase.
+        crate::Value::from(Coinbase::nonce(self, ))
+    }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
@@ -559,7 +554,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
 
     None
 }
-    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let depositAddress: Value = depositAddress.into();
         //
         //    {
@@ -630,7 +625,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
             currencyId = self.safe_string_k_opt(&depositAddress, "currency", &[]);
         }
         let addressInfo: crate::value::Dict = self.safe_dict_k_t(&depositAddress, "address_info");
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
@@ -638,11 +633,11 @@ impl crate::exchange::DerivedExchange for Coinbase {
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(&addressInfo, "destination_tag", &[]));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         // crypto deposit transaction
@@ -936,7 +931,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
                 accountId = parts.get(3).and_then(Value::as_str).map(str::to_owned);
             }
         }
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -954,9 +949,9 @@ impl crate::exchange::DerivedExchange for Coinbase {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -983,7 +978,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
 
     None
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         //
         // fetchAccountsV2
@@ -1400,7 +1395,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = Some(format!("{}{}", "Bearer ", token.as_deref().unwrap_or("null")));
                 }  else {
-                    let mut nonce: Option<i64> = self.parse_to_int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
+                    let mut nonce: Option<i64> = self.parse_to_int(Value::Int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self)));
                     let timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = nonce { Some((__l as f64) / 1000.0) } else { None })));
                     let timestampString: String = format!("{}", Value::from(timestamp));
                     let auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.as_deref().unwrap_or("null"));
@@ -1442,7 +1437,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -1584,17 +1579,17 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "find_account_id" => self.find_account_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "is_eddsa_api_key" => self.is_eddsa_api_key(),
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_contract_market" => self.parse_contract_market(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "parse_custom_balance" => self.parse_custom_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_deposit_method_id" => crate::Value::Dict(self.parse_deposit_method_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_method_ids" => crate::Value::Arr(self.parse_deposit_method_ids(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_portfolio_details" => Value::Arr(self.parse_portfolio_details(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2570,10 +2565,7 @@ impl Coinbase {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let defaultMethod: String = self.safe_string_k(&self.options, "fetchTime", &[Value::Str("v2PublicGetTime".into())]).as_str().unwrap_or("v2PublicGetTime").to_string();
         let method: Option<String> = self.safe_string_k_opt(&params, "method", &[&defaultMethod]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);
@@ -2840,10 +2832,7 @@ impl Coinbase {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut accountId: Option<String> = self.safe_string_k_opt(&params, "account_id", &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("account_id".into()), &[]);
         if (accountId.is_none()) {
@@ -3040,7 +3029,7 @@ impl Coinbase {
         let paramsCurrencyType: crate::value::Dict = currencyTypeparamsCurrencyTypeVariable.1;
         if (currencyType.as_deref() == Some("crypto")) {
             let results: crate::value::List = self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdTransactions", code.as_str(), since, limit, &[&Value::from(&paramsCurrencyType)]).await;
-            return self.to_array(self.filter_by_array(&results, Value::Str("type".into()), Value::Str("withdrawal".into()), &[Value::Bool(false)]));
+            return self.to_array(Value::Arr(self.filter_by_array_list(&results, Value::Str("type".into()), Value::Str("withdrawal".into()))));
         }
         return Value::Arr(self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdWithdrawals", code.as_str(), since, limit, &[&Value::Dict(paramsCurrencyType)]).await);
         Value::Null
@@ -3078,7 +3067,7 @@ impl Coinbase {
         let paramsCurrencyType: crate::value::Dict = currencyTypeparamsCurrencyTypeVariable.1;
         if (currencyType.as_deref() == Some("crypto")) {
             let results: crate::value::List = self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdTransactions", code.as_str(), since, limit, &[&Value::from(&paramsCurrencyType)]).await;
-            return self.to_array(self.filter_by_array(&results, Value::Str("type".into()), Value::Str("deposit".into()), &[Value::Bool(false)]));
+            return self.to_array(Value::Arr(self.filter_by_array_list(&results, Value::Str("type".into()), Value::Str("deposit".into()))));
         }
         return Value::Arr(self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdDeposits", code.as_str(), since, limit, &[&Value::Dict(paramsCurrencyType)]).await);
         Value::Null
@@ -3113,7 +3102,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let results: crate::value::List = self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdTransactions", code.as_str(), since, limit, &[&params]).await;
-        return self.to_array(self.filter_by_array(&results, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]), &[Value::Bool(false)]));
+        return self.to_array(Value::Arr(self.filter_by_array_list(&results, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]))));
         Value::Null
         }).await?))
     }
@@ -3971,7 +3960,7 @@ if _try_result.is_err() {
                 type_var = "crypto".to_string();
             }
             if (code.is_some()) {
-                result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&currency));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -4004,7 +3993,7 @@ if _try_result.is_err() {
     m
 }));
     m
-})));
+}))));
             }
             if (assetId.is_some()) {
                 let lowerCaseName: Option<String> = name.as_deref().map(str::to_lowercase);
@@ -4023,7 +4012,7 @@ if _try_result.is_err() {
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.is_none()) || !(matches!(code.as_deref(), Some(__k) if result.contains_key(__k))) {
                 if (code.is_some()) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4037,7 +4026,7 @@ if _try_result.is_err() {
     m
 }));
     m
-})));
+}))));
                 }
             }
         }
@@ -4496,10 +4485,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -6712,10 +6698,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let code = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -6820,10 +6803,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let side = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7211,6 +7191,13 @@ if _try_result.is_err() {
     Value::Null
 }
 
+    pub fn nonce(&self) -> i64 {
+        let timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
+        }
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None })).as_i64().unwrap_or_default();
+}
 
 
 

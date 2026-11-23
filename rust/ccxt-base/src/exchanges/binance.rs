@@ -49,15 +49,10 @@ impl Binance {
 }
 
 impl crate::exchange::DerivedExchange for Binance {
-    fn nonce(&self) -> Value {
-        let timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
-        if (timeDifference.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
-        }
-        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Binance.
+        crate::Value::from(Binance::nonce(self, ))
+    }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         // markPrices
@@ -1593,7 +1588,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
@@ -1634,7 +1629,7 @@ impl crate::exchange::DerivedExchange for Binance {
         if (interval.is_some()) {
             intervalString = Some(format!("{}{}", interval.as_deref().unwrap_or("null"), "h"));
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1655,11 +1650,11 @@ impl crate::exchange::DerivedExchange for Binance {
         m.insert("previousFundingDatetime".to_string(), Value::Null);
         m.insert("interval".to_string(), intervalString.map(Value::from).unwrap_or(Value::Null));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn parse_deposit_address(&self, response: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_address(&self, response: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let response: Value = response.into();
         //
         //     {
@@ -1681,7 +1676,7 @@ impl crate::exchange::DerivedExchange for Binance {
             tag = None;
         }
         self.check_address(&[&Value::from(address.as_deref())]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -1689,9 +1684,9 @@ impl crate::exchange::DerivedExchange for Binance {
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let entry: Value = entry.into();
@@ -1741,7 +1736,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     Value::Null
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         // options (eapi)
@@ -1780,7 +1775,7 @@ impl crate::exchange::DerivedExchange for Binance {
         let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
         let timestamp: Option<i64> = self.safe_integer2(&item, Value::Str("createDate".into()), Value::Str("time".into()), &[]).as_i64();
         let type_var: Option<String> = self.safe_string2_opt(&item, Value::Str("type".into()), Value::Str("incomeType".into()), &[]);
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string2(&item, Value::Str("id".into()), Value::Str("tranId".into()), &[]));
@@ -1798,9 +1793,9 @@ impl crate::exchange::DerivedExchange for Binance {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -1910,7 +1905,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         //
         //    {
@@ -2100,7 +2095,7 @@ impl crate::exchange::DerivedExchange for Binance {
             type_var = Some("crypto".to_string());
         }
         let mut trading: Option<bool> = self.safe_bool_k_opt(&entry, "trading", &[]);
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));
@@ -2116,11 +2111,11 @@ impl crate::exchange::DerivedExchange for Binance {
         m.insert("fees".to_string(), Value::Map(fees));
         m.insert("limits".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
-    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
         let timestamp: Option<i64> = self.safe_integer2(&interest, Value::Str("timestamp".into()), Value::Str("time".into()), &[]).as_i64();
         let id: Option<String> = self.safe_string_k_opt(&interest, "symbol", &[]);
@@ -2130,7 +2125,7 @@ impl crate::exchange::DerivedExchange for Binance {
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         let isInverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let baseVolume: Option<f64> = (if isInverse { None } else { amount });
-        return self.safe_open_interest(Value::Map({
+        return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(id.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
         m.insert("baseVolume".to_string(), Value::from(baseVolume));
@@ -2141,9 +2136,9 @@ impl crate::exchange::DerivedExchange for Binance {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
-}), market);
+}), market));
 
-    Value::Null
+    None
 }
     fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
         //
@@ -2522,7 +2517,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     Value::Null
 }
-    fn parse_income(&self, income: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -2598,7 +2593,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     Value::Null
 }
-    fn parse_margin_mode(&self, marginMode: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         let marketId: Option<String> = self.safe_string_k_opt(&marginMode, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -2739,7 +2734,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     Value::Null
 }
-    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let leverage: Value = leverage.into();
         let marketId: Option<String> = self.safe_string_k_opt(&leverage, "symbol", &[]);
         let marginModeRaw: Option<bool> = self.safe_bool_k_opt(&leverage, "isolated", &[]);
@@ -2763,7 +2758,7 @@ impl crate::exchange::DerivedExchange for Binance {
         }  else if (side.as_deref() == Some("short")) {
             shortLeverage = leverageValue;
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
@@ -2771,9 +2766,9 @@ impl crate::exchange::DerivedExchange for Binance {
         m.insert("longLeverage".to_string(), Value::from(longLeverage));
         m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let info: Value = info.into();
@@ -3133,7 +3128,7 @@ impl crate::exchange::DerivedExchange for Binance {
             let defaultRecvWindow: Option<i64> = self.safe_integer_k(&self.options, "recvWindow", &[]).as_i64();
             let mut extendedParams: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
+                    m.insert("timestamp".to_string(), Value::Int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self)));
                 m
             }), &[&requestParams]);
             if (defaultRecvWindow.is_some()) {
@@ -3227,7 +3222,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (code == 418) || (code == 429) {
             panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
         }
@@ -3363,7 +3358,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "create_market_sell_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_sell_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_contract_order" => self.edit_contract_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -3374,7 +3369,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_spot_order" => self.edit_spot_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "edit_spot_order_request" => Value::Dict(self.edit_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                "edit_spot_order_request" => crate::Value::Dict(self.edit_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_account_positions" => self.fetch_account_positions(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_adl_rank" => crate::types::IntoRaw::into_raw(self.fetch_adl_rank(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -3451,7 +3446,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "get_exceptions_by_url" => self.get_exceptions_by_url(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_client_order_id" => self.handle_client_order_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "is_conditional_order" => self.is_conditional_order(&args[..].iter().collect::<Vec<_>>()),
                 "is_inverse" => self.is_inverse(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "is_linear" => self.is_linear(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -3459,7 +3454,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "market" => crate::types::IntoRaw::into_raw(self.market(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "mint_tokenized_asset" => self.mint_tokenized_asset(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_account_position" => self.parse_account_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_account_positions" => Value::Arr(self.parse_account_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -3470,18 +3465,18 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "parse_currencies_custom" => self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_dust_trade" => Value::Dict(self.parse_dust_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_isolated_borrow_rate" => self.parse_isolated_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_long_short_ratio" => self.parse_long_short_ratio(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_margin_loan" => Value::Dict(self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -3490,7 +3485,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_option_position" => self.parse_option_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -8317,13 +8312,13 @@ impl Binance {
 }));
         m.insert("currencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("BNFCR".to_string(), self.safe_currency_structure(Value::Map({
+        m.insert("BNFCR".to_string(), Value::Dict(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("BNFCR".into()));
         m.insert("code".to_string(), Value::Str("BNFCR".into()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
     m
-})));
+}))));
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
@@ -9814,6 +9809,13 @@ impl Binance {
         return self.super_safe_market(marketId, market, delimiter, marketType);
 }
 
+    pub fn nonce(&self) -> i64 {
+        let timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
+        }
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None })).as_i64().unwrap_or_default();
+}
 
 /*
  * @method
@@ -10091,7 +10093,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (responseCurrencies.len() as i64) } {
-            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, responseCurrencies.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, responseCurrencies.get(i as usize).cloned().unwrap_or(Value::Null)).unwrap_or_default();
             if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseCurrenciesCustom() could not resolve parsed")));
             }
@@ -11926,8 +11928,6 @@ impl Binance {
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsTimeInForce, &["quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"], &[]);
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
-
-    Default::default()
 }
 
     pub fn edit_contract_order_request(&self, id: Option<&str>, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
@@ -13031,8 +13031,6 @@ impl Binance {
         }
         let requestParams: crate::value::Dict = self.omit_t(&paramsStp, Value::from(omitKeys), &[]);
         return self.extend_t(Value::Map(request), &[&requestParams]);
-
-    Default::default()
 }
 
 /*
@@ -14448,10 +14446,7 @@ impl Binance {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrderTrades() requires a symbol argument")));
         }
@@ -15253,10 +15248,7 @@ impl Binance {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -15371,10 +15363,7 @@ impl Binance {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -15484,7 +15473,7 @@ impl Binance {
         // has support for the 'network' parameter
         let __ws_arg_149 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.sapi_get_capital_deposit_address(&[&__ws_arg_149]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -16177,7 +16166,11 @@ impl Binance {
         if ((market).inverse == Some(true)) {
             response = self.safe_value(&response, Value::Int(0), &[]);
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, response, Some(&market));
+        let __ws_arg_159 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, __ws_arg_159, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -16248,11 +16241,11 @@ impl Binance {
         }
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            let __ws_arg_159 = self.extend(&request, &[&paramsOmitted2]);
-            response = self.fapi_public_get_funding_rate(&[&__ws_arg_159]).await;
+            let __ws_arg_160 = self.extend(&request, &[&paramsOmitted2]);
+            response = self.fapi_public_get_funding_rate(&[&__ws_arg_160]).await;
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            let __ws_arg_160 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.dapi_public_get_funding_rate(&[&__ws_arg_160]).await;
+            let __ws_arg_161 = self.extend(Value::Map(request), &[&paramsOmitted2]);
+            response = self.dapi_public_get_funding_rate(&[&__ws_arg_161]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRateHistory() is not supported for ").into()), type_var.as_deref().unwrap_or("null")).into()), " markets")));
         }
@@ -16353,13 +16346,13 @@ impl Binance {
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
                 if (balances.contains_key(code.as_str())) {
-                    let __ws_arg_161 = self.extend(position, &[Value::Map({
+                    let __ws_arg_162 = self.extend(position, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("crossMargin".to_string(), self.safe_string(balances.get(code.as_str()).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
                             m.insert("crossWalletBalance".to_string(), self.safe_string(balances.get(code.as_str()).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
                         m
                     })]);
-                    let parsed: crate::value::Dict = self.parse_account_position(__ws_arg_161, Some(&market)).into_dict();
+                    let parsed: crate::value::Dict = self.parse_account_position(__ws_arg_162, Some(&market)).into_dict();
                     result.push(Value::Dict(parsed));
                 }
             }
@@ -17049,8 +17042,8 @@ impl Binance {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_162 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.eapi_private_get_position(&[&__ws_arg_162]).await.unwrap_or_default();
+        let __ws_arg_163 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.eapi_private_get_position(&[&__ws_arg_163]).await.unwrap_or_default();
         return self.parse_option_position(self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -17099,8 +17092,8 @@ impl Binance {
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_163 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.eapi_private_get_position(&[&__ws_arg_163]).await.unwrap_or_default();
+        let __ws_arg_164 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.eapi_private_get_position(&[&__ws_arg_164]).await.unwrap_or_default();
         //
         //     [
         //         {
@@ -17379,8 +17372,8 @@ impl Binance {
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if (isPortfolioMargin == Some(true)) {
-                let __ws_arg_164 = self.extend(&request, &[&paramsSubType]);
-                response = self.papi_get_um_position_risk(&[&__ws_arg_164]).await;
+                let __ws_arg_165 = self.extend(&request, &[&paramsSubType]);
+                response = self.papi_get_um_position_risk(&[&__ws_arg_165]).await;
             }  else {
                 let mut useV2: Option<bool> = None;
                 { let __destr_tmp = self.handle_option_bool_and_params(&paramsSubType, Value::Str("fetchPositionsRisk".into()), Value::Str("useV2".into()), &[Value::Bool(false)]); useV2 = __destr_tmp.0; paramsSubType = __destr_tmp.1; }
@@ -17393,11 +17386,11 @@ impl Binance {
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if (isPortfolioMargin == Some(true)) {
-                let __ws_arg_165 = self.extend(&request, &[&paramsSubType]);
-                response = self.papi_get_cm_position_risk(&[&__ws_arg_165]).await;
+                let __ws_arg_166 = self.extend(&request, &[&paramsSubType]);
+                response = self.papi_get_cm_position_risk(&[&__ws_arg_166]).await;
             }  else {
-                let __ws_arg_166 = self.extend(Value::Map(request), &[&paramsSubType]);
-                response = self.dapi_private_get_position_risk(&[&__ws_arg_166]).await;
+                let __ws_arg_167 = self.extend(Value::Map(request), &[&paramsSubType]);
+                response = self.dapi_private_get_position_risk(&[&__ws_arg_167]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositionsRisk() supports linear and inverse contracts only")));
@@ -17573,19 +17566,19 @@ impl Binance {
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                let __ws_arg_167 = self.extend(&requestUntil, &[&paramsOmitted]);
-                response = self.papi_get_um_income(&[&__ws_arg_167]).await;
-            }  else {
                 let __ws_arg_168 = self.extend(&requestUntil, &[&paramsOmitted]);
-                response = self.fapi_private_get_income(&[&__ws_arg_168]).await;
+                response = self.papi_get_um_income(&[&__ws_arg_168]).await;
+            }  else {
+                let __ws_arg_169 = self.extend(&requestUntil, &[&paramsOmitted]);
+                response = self.fapi_private_get_income(&[&__ws_arg_169]).await;
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                let __ws_arg_169 = self.extend(&requestUntil, &[&paramsOmitted]);
-                response = self.papi_get_cm_income(&[&__ws_arg_169]).await;
+                let __ws_arg_170 = self.extend(&requestUntil, &[&paramsOmitted]);
+                response = self.papi_get_cm_income(&[&__ws_arg_170]).await;
             }  else {
-                let __ws_arg_170 = self.extend(requestUntil, &[&paramsOmitted]);
-                response = self.dapi_private_get_income(&[&__ws_arg_170]).await;
+                let __ws_arg_171 = self.extend(requestUntil, &[&paramsOmitted]);
+                response = self.dapi_private_get_income(&[&__ws_arg_171]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingHistory() supports linear and inverse contracts only")));
@@ -17645,19 +17638,19 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
             if isPortfolioMargin {
-                let __ws_arg_171 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_um_leverage(&[&__ws_arg_171]).await;
-            }  else {
                 let __ws_arg_172 = self.extend(&request, &[&paramsPapi]);
-                response = self.fapi_private_post_leverage(&[&__ws_arg_172]).await;
+                response = self.papi_post_um_leverage(&[&__ws_arg_172]).await;
+            }  else {
+                let __ws_arg_173 = self.extend(&request, &[&paramsPapi]);
+                response = self.fapi_private_post_leverage(&[&__ws_arg_173]).await;
             }
         }  else if ((market).inverse == Some(true)) {
             if isPortfolioMargin {
-                let __ws_arg_173 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_cm_leverage(&[&__ws_arg_173]).await;
+                let __ws_arg_174 = self.extend(&request, &[&paramsPapi]);
+                response = self.papi_post_cm_leverage(&[&__ws_arg_174]).await;
             }  else {
-                let __ws_arg_174 = self.extend(Value::Map(request), &[&paramsPapi]);
-                response = self.dapi_private_post_leverage(&[&__ws_arg_174]).await;
+                let __ws_arg_175 = self.extend(Value::Map(request), &[&paramsPapi]);
+                response = self.dapi_private_post_leverage(&[&__ws_arg_175]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setLeverage() supports linear and inverse contracts only")));
@@ -17723,11 +17716,11 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if ((market).linear == Some(true)) {
-                let __ws_arg_175 = self.extend(&request, &[&params]);
-                response = self.fapi_private_post_margin_type(&[&__ws_arg_175]).await;
+                let __ws_arg_176 = self.extend(&request, &[&params]);
+                response = self.fapi_private_post_margin_type(&[&__ws_arg_176]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_176 = self.extend(Value::Map(request), &[params]);
-                response = self.dapi_private_post_margin_type(&[&__ws_arg_176]).await;
+                let __ws_arg_177 = self.extend(Value::Map(request), &[params]);
+                response = self.dapi_private_post_margin_type(&[&__ws_arg_177]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setMarginMode() supports linear and inverse contracts only")));
             }
@@ -17810,19 +17803,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Option<crate::value::Dict> = None;
         if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                let __ws_arg_177 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_cm_position_side_dual(&[&__ws_arg_177]).await;
-            }  else {
                 let __ws_arg_178 = self.extend(&request, &[&paramsPapi]);
-                response = self.dapi_private_post_position_side_dual(&[&__ws_arg_178]).await;
+                response = self.papi_post_cm_position_side_dual(&[&__ws_arg_178]).await;
+            }  else {
+                let __ws_arg_179 = self.extend(&request, &[&paramsPapi]);
+                response = self.dapi_private_post_position_side_dual(&[&__ws_arg_179]).await;
             }
         }  else if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                let __ws_arg_179 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_um_position_side_dual(&[&__ws_arg_179]).await;
+                let __ws_arg_180 = self.extend(&request, &[&paramsPapi]);
+                response = self.papi_post_um_position_side_dual(&[&__ws_arg_180]).await;
             }  else {
-                let __ws_arg_180 = self.extend(Value::Map(request), &[&paramsPapi]);
-                response = self.fapi_private_post_position_side_dual(&[&__ws_arg_180]).await;
+                let __ws_arg_181 = self.extend(Value::Map(request), &[&paramsPapi]);
+                response = self.fapi_private_post_position_side_dual(&[&__ws_arg_181]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " setPositionMode() supports linear and inverse contracts only")));
@@ -17943,8 +17936,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_181 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::List = self.eapi_public_get_exercise_history(&[&__ws_arg_181]).await.unwrap_or_default();
+        let __ws_arg_182 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::List = self.eapi_public_get_exercise_history(&[&__ws_arg_182]).await.unwrap_or_default();
         //
         //     [
         //         {
@@ -18003,8 +17996,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_182 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::List = self.eapi_private_get_exercise_record(&[&__ws_arg_182]).await.unwrap_or_default();
+        let __ws_arg_183 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::List = self.eapi_private_get_exercise_record(&[&__ws_arg_183]).await.unwrap_or_default();
         //
         //     [
         //         {
@@ -18162,12 +18155,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_183 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::List = self.eapi_private_get_bill(&[&__ws_arg_183]).await.unwrap_or_default();
+        let __ws_arg_184 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::List = self.eapi_private_get_bill(&[&__ws_arg_184]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ledger_entry(self, self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Some(&currency));
+})]), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -18245,23 +18238,23 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchLedger() could not resolve currency")));
             }
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_184 = self.extend(&request, &[&paramsPaginate]);
-            response = self.eapi_private_get_bill(&[&__ws_arg_184]).await;
+            let __ws_arg_185 = self.extend(&request, &[&paramsPaginate]);
+            response = self.eapi_private_get_bill(&[&__ws_arg_185]).await;
         }  else if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if (isPortfolioMargin == Some(true)) {
-                let __ws_arg_185 = self.extend(&request, &[&paramsPaginate]);
-                response = self.papi_get_um_income(&[&__ws_arg_185]).await;
-            }  else {
                 let __ws_arg_186 = self.extend(&request, &[&paramsPaginate]);
-                response = self.fapi_private_get_income(&[&__ws_arg_186]).await;
+                response = self.papi_get_um_income(&[&__ws_arg_186]).await;
+            }  else {
+                let __ws_arg_187 = self.extend(&request, &[&paramsPaginate]);
+                response = self.fapi_private_get_income(&[&__ws_arg_187]).await;
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if (isPortfolioMargin == Some(true)) {
-                let __ws_arg_187 = self.extend(&request, &[&paramsPaginate]);
-                response = self.papi_get_cm_income(&[&__ws_arg_187]).await;
+                let __ws_arg_188 = self.extend(&request, &[&paramsPaginate]);
+                response = self.papi_get_cm_income(&[&__ws_arg_188]).await;
             }  else {
-                let __ws_arg_188 = self.extend(Value::Map(request), &[&paramsPaginate]);
-                response = self.dapi_private_get_income(&[&__ws_arg_188]).await;
+                let __ws_arg_189 = self.extend(Value::Map(request), &[&paramsPaginate]);
+                response = self.dapi_private_get_income(&[&__ws_arg_189]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLedger() supports contract wallets only")));
@@ -18479,12 +18472,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut code: Option<String> = None;
         if ((market).linear == Some(true)) {
             code = Some((market).quote.clone());
-            let __ws_arg_189 = self.extend(&request, &[&params]);
-            response = self.fapi_private_post_position_margin(&[&__ws_arg_189]).await;
+            let __ws_arg_190 = self.extend(&request, &[&params]);
+            response = self.fapi_private_post_position_margin(&[&__ws_arg_190]).await;
         }  else {
             code = Some((market).base.clone());
-            let __ws_arg_190 = self.extend(Value::Map(request), &[params]);
-            response = self.dapi_private_post_position_margin(&[&__ws_arg_190]).await;
+            let __ws_arg_191 = self.extend(Value::Map(request), &[params]);
+            response = self.dapi_private_post_position_margin(&[&__ws_arg_191]).await;
         }
         //
         //     {
@@ -18497,8 +18490,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " parseMarginModification() returned empty response")));
         }
-        let __ws_arg_191 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_191, &[Value::Map({
+        let __ws_arg_192 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_192, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
     m
@@ -18593,8 +18586,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_192 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[&__ws_arg_192]).await.unwrap_or_default();
+        let __ws_arg_193 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[&__ws_arg_193]).await.unwrap_or_default();
         //
         //     [
         //         {
@@ -18639,8 +18632,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbol".to_string(), symbol.clone());
             m
         });
-        let __ws_arg_193 = self.extend(Value::Map(request), &[params]);
-        let borrowRates: crate::types::IsolatedBorrowRates = (match self.fetch_isolated_borrow_rates(__ws_arg_193).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let __ws_arg_194 = self.extend(Value::Map(request), &[params]);
+        let borrowRates: crate::types::IsolatedBorrowRates = (match self.fetch_isolated_borrow_rates(__ws_arg_194).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rate: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(borrowRates), symbol);
         return rate.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -18665,10 +18658,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -18682,8 +18672,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
-        let __ws_arg_194 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::List = self.sapi_get_margin_isolated_margin_data(&[&__ws_arg_194]).await.unwrap_or_default();
+        let __ws_arg_195 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::List = self.sapi_get_margin_isolated_margin_data(&[&__ws_arg_195]).await.unwrap_or_default();
         return self.parse_isolated_borrow_rates(&response);
         Value::Null
         }).await?))
@@ -18726,8 +18716,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let now: i64 = self.milliseconds();
             request.insert("endTime".into(), Value::from((if let Some(__m0) = endTime { Some(i64::min(__m0, now)) } else { None }))); // cannot have an endTime later than current time
         }
-        let __ws_arg_195 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[&__ws_arg_195]).await.unwrap_or_default();
+        let __ws_arg_196 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[&__ws_arg_196]).await.unwrap_or_default();
         return self.parse_borrow_rate_history(&response, Value::from(code), Value::from(since), Value::from(limitResolved));
 
     Value::Null
@@ -18803,8 +18793,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let __ws_arg_196 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.sapi_post_giftcard_create_code(&[&__ws_arg_196]).await.unwrap_or_default();
+        let __ws_arg_197 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.sapi_post_giftcard_create_code(&[&__ws_arg_197]).await.unwrap_or_default();
         //
         //     {
         //         "code": "000000",
@@ -18846,8 +18836,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("code".to_string(), Value::from(giftcardCode));
             m
         });
-        let __ws_arg_197 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.sapi_post_giftcard_redeem_code(&[&__ws_arg_197]).await.unwrap_or_default();
+        let __ws_arg_198 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.sapi_post_giftcard_redeem_code(&[&__ws_arg_198]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -18872,8 +18862,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("referenceNo".to_string(), Value::from(id));
             m
         });
-        let __ws_arg_198 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.sapi_get_giftcard_verify(&[&__ws_arg_198]).await.unwrap_or_default();
+        let __ws_arg_199 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.sapi_get_giftcard_verify(&[&__ws_arg_199]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -18933,15 +18923,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let paramsUntil: crate::value::Dict = __until1;
         let mut response: Option<crate::value::Dict> = None;
         if isPortfolioMargin {
-            let __ws_arg_199 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.papi_get_margin_margin_interest_history(&[&__ws_arg_199]).await;
+            let __ws_arg_200 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.papi_get_margin_margin_interest_history(&[&__ws_arg_200]).await;
         }  else {
             if (symbol != Value::Null) {
                 market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 std::sync::Arc::make_mut(&mut requestUntil).insert("isolatedSymbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
-            let __ws_arg_200 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.sapi_get_margin_interest_history(&[&__ws_arg_200]).await;
+            let __ws_arg_201 = self.extend(requestUntil, &[&paramsUntil]);
+            response = self.sapi_get_margin_interest_history(&[&__ws_arg_201]).await;
         }
         //
         // spot margin
@@ -19032,17 +19022,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut method: Option<String> = None;
             { let __destr_tmp = self.handle_option_string_and_params2(&paramsPapi, Value::Str("repayCrossMargin".into()), Value::Str("repayCrossMarginMethod".into()), Value::Str("method".into()), &[]); method = __destr_tmp.0.as_str().map(str::to_owned); paramsPapi = __destr_tmp.1; }
             if (method.as_deref() == Some("papiPostMarginRepayDebt")) {
-                let __ws_arg_201 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_margin_repay_debt(&[&__ws_arg_201]).await;
-            }  else {
                 let __ws_arg_202 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_repay_loan(&[&__ws_arg_202]).await;
+                response = self.papi_post_margin_repay_debt(&[&__ws_arg_202]).await;
+            }  else {
+                let __ws_arg_203 = self.extend(&request, &[&paramsPapi]);
+                response = self.papi_post_repay_loan(&[&__ws_arg_203]).await;
             }
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("REPAY".into()));
-            let __ws_arg_203 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[&__ws_arg_203]).await;
+            let __ws_arg_204 = self.extend(Value::Map(request), &[&paramsPapi]);
+            response = self.sapi_post_margin_borrow_repay(&[&__ws_arg_204]).await;
         }
         return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
@@ -19087,8 +19077,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("type".to_string(), Value::Str("REPAY".into()));
             m
         });
-        let __ws_arg_204 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[&__ws_arg_204]).await.unwrap_or_default();
+        let __ws_arg_205 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[&__ws_arg_205]).await.unwrap_or_default();
         return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
         }).await?))
@@ -19133,13 +19123,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.0 == Some(true);
         let paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.1;
         if isPortfolioMargin {
-            let __ws_arg_205 = self.extend(&request, &[&paramsPapi]);
-            response = self.papi_post_margin_loan(&[&__ws_arg_205]).await;
+            let __ws_arg_206 = self.extend(&request, &[&paramsPapi]);
+            response = self.papi_post_margin_loan(&[&__ws_arg_206]).await;
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("BORROW".into()));
-            let __ws_arg_206 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[&__ws_arg_206]).await;
+            let __ws_arg_207 = self.extend(Value::Map(request), &[&paramsPapi]);
+            response = self.sapi_post_margin_borrow_repay(&[&__ws_arg_207]).await;
         }
         return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
@@ -19184,8 +19174,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("type".to_string(), Value::Str("BORROW".into()));
             m
         });
-        let __ws_arg_207 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[&__ws_arg_207]).await.unwrap_or_default();
+        let __ws_arg_208 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[&__ws_arg_208]).await.unwrap_or_default();
         return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
         }).await?))
@@ -19301,11 +19291,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut response: Option<crate::value::List> = None;
         if ((market).inverse == Some(true)) {
-            let __ws_arg_208 = self.extend(&request, &[&paramsOmitted]);
-            response = self.dapi_data_get_open_interest_hist(&[&__ws_arg_208]).await;
+            let __ws_arg_209 = self.extend(&request, &[&paramsOmitted]);
+            response = self.dapi_data_get_open_interest_hist(&[&__ws_arg_209]).await;
         }  else {
-            let __ws_arg_209 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.fapi_data_get_open_interest_hist(&[&__ws_arg_209]).await;
+            let __ws_arg_210 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.fapi_data_get_open_interest_hist(&[&__ws_arg_210]).await;
         }
         return self.parse_open_interests_history(&response, Some(&market), &[since, Value::from(limit)]);
         Value::Null
@@ -19352,8 +19342,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
         if (market).option {
-            let __ws_arg_210 = self.extend(&request, &[&params]);
-            let optionResponse: crate::value::List = self.eapi_public_get_open_interest(&[&__ws_arg_210]).await.unwrap_or_default();
+            let __ws_arg_211 = self.extend(&request, &[&params]);
+            let optionResponse: crate::value::List = self.eapi_public_get_open_interest(&[&__ws_arg_211]).await.unwrap_or_default();
             let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let result: Vec<Value> = self.parse_open_interests_history(&optionResponse, Some(&market), &[]).as_array().cloned().unwrap_or_default();
             {
@@ -19370,13 +19360,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).inverse == Some(true)) {
-            let __ws_arg_211 = self.extend(&request, &[&params]);
-            response = self.dapi_public_get_open_interest(&[&__ws_arg_211]).await;
+            let __ws_arg_212 = self.extend(&request, &[&params]);
+            response = self.dapi_public_get_open_interest(&[&__ws_arg_212]).await;
         }  else {
-            let __ws_arg_212 = self.extend(Value::Map(request), &[params]);
-            response = self.fapi_public_get_open_interest(&[&__ws_arg_212]).await;
+            let __ws_arg_213 = self.extend(Value::Map(request), &[params]);
+            response = self.fapi_public_get_open_interest(&[&__ws_arg_213]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -19470,27 +19460,27 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Value = Value::Null;
         if (type_var.as_deref() == Some("spot")) {
             if isPortfolioMargin {
-                let __ws_arg_213 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.papi_get_margin_force_orders(&[&__ws_arg_213]).await;
-            }  else {
                 let __ws_arg_214 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.sapi_get_margin_force_liquidation_rec(&[&__ws_arg_214]).await;
+                response = self.papi_get_margin_force_orders(&[&__ws_arg_214]).await;
+            }  else {
+                let __ws_arg_215 = self.extend(&requestUntil, &[&paramsUntil]);
+                response = self.sapi_get_margin_force_liquidation_rec(&[&__ws_arg_215]).await;
             }
         }  else if (subType.as_deref() == Some("linear")) {
             if isPortfolioMargin {
-                let __ws_arg_215 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.papi_get_um_force_orders(&[&__ws_arg_215]).await;
-            }  else {
                 let __ws_arg_216 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.fapi_private_get_force_orders(&[&__ws_arg_216]).await;
+                response = self.papi_get_um_force_orders(&[&__ws_arg_216]).await;
+            }  else {
+                let __ws_arg_217 = self.extend(&requestUntil, &[&paramsUntil]);
+                response = self.fapi_private_get_force_orders(&[&__ws_arg_217]).await;
             }
         }  else if (subType.as_deref() == Some("inverse")) {
             if isPortfolioMargin {
-                let __ws_arg_217 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.papi_get_cm_force_orders(&[&__ws_arg_217]).await;
+                let __ws_arg_218 = self.extend(&requestUntil, &[&paramsUntil]);
+                response = self.papi_get_cm_force_orders(&[&__ws_arg_218]).await;
             }  else {
-                let __ws_arg_218 = self.extend(requestUntil, &[&paramsUntil]);
-                response = self.dapi_private_get_force_orders(&[&__ws_arg_218]).await;
+                let __ws_arg_219 = self.extend(requestUntil, &[&paramsUntil]);
+                response = self.dapi_private_get_force_orders(&[&__ws_arg_219]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMyLiquidations() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " markets")));
@@ -19615,8 +19605,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_219 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.eapi_public_get_mark(&[&__ws_arg_219]).await.unwrap_or_default();
+        let __ws_arg_220 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.eapi_public_get_mark(&[&__ws_arg_220]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -19661,8 +19651,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
         }
-        let __ws_arg_220 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.eapi_public_get_mark(&[&__ws_arg_220]).await.unwrap_or_default();
+        let __ws_arg_221 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.eapi_public_get_mark(&[&__ws_arg_221]).await.unwrap_or_default();
         return self.parse_all_greeks(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -19841,8 +19831,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            let __ws_arg_221 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.fapi_private_get_symbol_config(&[&__ws_arg_221]).await;
+            let __ws_arg_222 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.fapi_private_get_symbol_config(&[&__ws_arg_222]).await;
         }  else if (subType.as_deref() == Some("inverse")) {
             let fetchMarginModesResponse: crate::types::MarginModes = (match self.fetch_margin_modes(Some(vec![symbol.to_string()]), Value::Dict(paramsSubType)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marginMode: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(fetchMarginModesResponse), symbol);
@@ -19853,7 +19843,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchMarginMode() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, self.safe_value(&response, Value::Int(0), &[]), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &<crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_value(&response, Value::Int(0), &[])).unwrap_or_default(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -19888,8 +19878,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_222 = self.extend(Value::Map(request), &[params]);
-        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.eapi_public_get_ticker(&[&__ws_arg_222]).await.unwrap_or_default());
+        let __ws_arg_223 = self.extend(Value::Map(request), &[params]);
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.eapi_public_get_ticker(&[&__ws_arg_223]).await.unwrap_or_default());
         //
         //     [
         //         {
@@ -19996,10 +19986,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let type_var = get_arg(optional_args, 1, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 4, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 4);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -20028,11 +20015,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut response: Option<crate::value::List> = None;
         if ((market).linear == Some(true)) {
-            let __ws_arg_223 = self.extend(&request, &[&paramsOmitted]);
-            response = self.fapi_private_get_position_margin_history(&[&__ws_arg_223]).await;
+            let __ws_arg_224 = self.extend(&request, &[&paramsOmitted]);
+            response = self.fapi_private_get_position_margin_history(&[&__ws_arg_224]).await;
         }  else if ((market).inverse == Some(true)) {
-            let __ws_arg_224 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.dapi_private_get_position_margin_history(&[&__ws_arg_224]).await;
+            let __ws_arg_225 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.dapi_private_get_position_margin_history(&[&__ws_arg_225]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarginAdjustmentHistory () is not supported for markets of type ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())]))));
         }
@@ -20186,8 +20173,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("fromAmount".to_string(), Value::from(amount));
             m
         });
-        let __ws_arg_225 = self.extend(Value::Map(request), &[params]);
-        let response: Option<crate::value::Dict> = self.sapi_post_convert_get_quote(&[&__ws_arg_225]).await;
+        let __ws_arg_226 = self.extend(Value::Map(request), &[params]);
+        let response: Option<crate::value::Dict> = self.sapi_post_convert_get_quote(&[&__ws_arg_226]).await;
         //
         //     {
         //         "quoteId":"12415572564",
@@ -20249,12 +20236,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("asset".into(), fromCode.clone());
             request.insert("targetAsset".into(), toCode.clone());
             request.insert("amount".into(), Value::from(amount));
-            let __ws_arg_226 = self.extend(&request, &[&params]);
-            response = self.sapi_post_asset_convert_transfer(&[&__ws_arg_226]).await;
+            let __ws_arg_227 = self.extend(&request, &[&params]);
+            response = self.sapi_post_asset_convert_transfer(&[&__ws_arg_227]).await;
         }  else {
             request.insert("quoteId".into(), id);
-            let __ws_arg_227 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_post_convert_accept_quote(&[&__ws_arg_227]).await;
+            let __ws_arg_228 = self.extend(Value::Map(request), &[params]);
+            response = self.sapi_post_convert_accept_quote(&[&__ws_arg_228]).await;
         }
         let fromCurrency: crate::types::Currency = self.currency(fromCode.as_str());
         let toCurrency: crate::types::Currency = self.currency(toCode.as_str());
@@ -20306,12 +20293,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("tranId".into(), id);
             request.insert("startTime".into(), Value::Int((now - msInDay)));
             request.insert("endTime".into(), Value::from(now));
-            let __ws_arg_228 = self.extend(&request, &[&params]);
-            response = self.sapi_get_asset_convert_transfer_query_by_page(&[&__ws_arg_228]).await;
+            let __ws_arg_229 = self.extend(&request, &[&params]);
+            response = self.sapi_get_asset_convert_transfer_query_by_page(&[&__ws_arg_229]).await;
         }  else {
             request.insert("orderId".into(), id);
-            let __ws_arg_229 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_get_convert_order_status(&[&__ws_arg_229]).await;
+            let __ws_arg_230 = self.extend(Value::Map(request), &[params]);
+            response = self.sapi_get_convert_order_status(&[&__ws_arg_230]).await;
         }
         if (code.as_str() == Some("BUSD")) {
             let rows: crate::value::List = self.safe_list_k_t(&response, "rows");
@@ -20359,10 +20346,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -20391,8 +20375,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             fromCurrencyKey = Some("deductedAsset".to_string());
             toCurrencyKey = Some("targetAsset".to_string());
             responseQuery = Some("rows".to_string());
-            let __ws_arg_230 = self.extend(&request, &[&paramsOmitted]);
-            response = self.sapi_get_asset_convert_transfer_query_by_page(&[&__ws_arg_230]).await;
+            let __ws_arg_231 = self.extend(&request, &[&paramsOmitted]);
+            response = self.sapi_get_asset_convert_transfer_query_by_page(&[&__ws_arg_231]).await;
         }  else {
             if ((if let Some(__r) = startTime { Some(endTimeResolved - __r) } else { None })) > Some(msInThirtyDays) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")));
@@ -20403,8 +20387,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             fromCurrencyKey = Some("fromAsset".to_string());
             toCurrencyKey = Some("toAsset".to_string());
             responseQuery = Some("list".to_string());
-            let __ws_arg_231 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_get_convert_trade_flow(&[&__ws_arg_231]).await;
+            let __ws_arg_232 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.sapi_get_convert_trade_flow(&[&__ws_arg_232]).await;
         }
         let rows: crate::value::List = self.safe_list_t(&response, responseQuery.map(Value::from).unwrap_or(Value::Null));
         return self.parse_conversions(&rows, &[code, fromCurrencyKey.map(Value::from).unwrap_or(Value::Null), toCurrencyKey.map(Value::from).unwrap_or(Value::Null), Value::from(since), Value::from(limit)]);
@@ -20516,12 +20500,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Value = Value::Null;
         if (subType.as_deref() == Some("linear")) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_232 = self.extend(&requestUntil, &[&paramsSubType]);
-            response = self.call_method(Value::Str("fapi_data_get_global_long_short_account_ratio".into()), &[&__ws_arg_232]).await;
+            let __ws_arg_233 = self.extend(&requestUntil, &[&paramsSubType]);
+            response = self.call_method(Value::Str("fapi_data_get_global_long_short_account_ratio".into()), &[&__ws_arg_233]).await;
         }  else if (subType.as_deref() == Some("inverse")) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("pair".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "pair", &[]));
-            let __ws_arg_233 = self.extend(requestUntil, &[&paramsSubType]);
-            response = self.call_method(Value::Str("dapi_data_get_global_long_short_account_ratio".into()), &[&__ws_arg_233]).await;
+            let __ws_arg_234 = self.extend(requestUntil, &[&paramsSubType]);
+            response = self.call_method(Value::Str("dapi_data_get_global_long_short_account_ratio".into()), &[&__ws_arg_234]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")));
         }
@@ -20603,8 +20587,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("linear")) {
-            let __ws_arg_234 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.fapi_public_get_symbol_adl_risk(&[&__ws_arg_234]).await;
+            let __ws_arg_235 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.fapi_public_get_symbol_adl_risk(&[&__ws_arg_235]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchADLRank() supports linear subTypes only")));
         }

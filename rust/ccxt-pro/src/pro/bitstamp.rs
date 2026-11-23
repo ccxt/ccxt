@@ -99,15 +99,15 @@ impl Bitstamp {
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_funding_rate" => { self.handle_funding_rate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subject" => { self.handle_subject(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_status" => { self.handle_subscription_status(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription_status" => { self.handle_unsubscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_my_trade" => { Value::Dict(self.parse_ws_my_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -564,9 +564,7 @@ impl Bitstamp {
     Default::default()
 }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "data": {
@@ -651,9 +649,7 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn handle_funding_rate(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_funding_rate(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "data": {
@@ -677,7 +673,7 @@ impl Bitstamp {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let data: crate::value::Dict = message.key_dict("data");
-        let fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(data), Some(&market)).into_dict();
+        let fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(data), Some(&market));
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
         client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", "fundingRate:", symbol).into())));
 }
@@ -862,10 +858,7 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "data": {
@@ -885,7 +878,7 @@ impl Bitstamp {
         //
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let data: crate::value::Dict = message.key_dict("data");
-        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&__ch.subscriptions, Value::from(channel.as_deref())) });
+        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&(client).subscriptions, Value::from(channel.as_deref())) });
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -953,8 +946,7 @@ impl Bitstamp {
     Default::default()
 }
 
-    pub fn handle_orders(&mut self, client: &Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_orders(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -988,7 +980,7 @@ impl Bitstamp {
     let m = indexmap::IndexMap::new();
     m
 }) }).as_map().cloned().unwrap_or_default();
-        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&__ch.subscriptions, Value::from(channel.as_deref())) });
+        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&(client).subscriptions, Value::from(channel.as_deref())) });
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;

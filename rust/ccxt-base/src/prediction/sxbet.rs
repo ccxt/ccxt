@@ -208,7 +208,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -278,7 +278,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "filter_raw_markets_by_fixture" => crate::Value::Arr(self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "hex_to_int" => self.hex_to_int(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -643,12 +643,9 @@ impl Sxbet {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let rest: crate::value::Dict = self.omit_t(&params, &["limit"], &[]);
-        let userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
+        let userLimit: Option<i64> = self.safe_integer_k(&params, "limit", &[]).as_i64();
         let rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::from(userLimit)]).await.to_vec();
         let mut markets: Vec<Value> = Vec::new();
         let rawMarketsLength: i64 = rawMarkets.len() as i64;
@@ -1980,10 +1977,7 @@ impl Sxbet {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         let eventId: Option<String> = self.safe_string2_opt(&params, Value::Str("eventId".into()), Value::Str("sportXeventId".into()), &[]);
         let rest: crate::value::Dict = self.omit_t(params, &["eventId", "sportXeventId"], &[]);
@@ -2458,19 +2452,16 @@ impl Sxbet {
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes: Option<Vec<String>> = outcomes;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         // copy to a plain list so the transpilers and the strict null checks see one shape
-        let outcomesList: Value = (if (outcomes.is_none()) { Value::from(vec![]) } else { Value::from(outcomes) });
+        let outcomesList: Value = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes });
         let outcomesLength: i64 = outcomesList.len() as i64;
         let mut wantedMarkets: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();

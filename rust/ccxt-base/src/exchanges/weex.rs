@@ -49,11 +49,10 @@ impl Weex {
 }
 
 impl crate::exchange::DerivedExchange for Weex {
-    fn nonce(&self) -> Value {
-        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(&self.options, "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Weex.
+        crate::Value::from(Weex::nonce(self, ))
+    }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
@@ -763,7 +762,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         let marketId: Option<String> = self.safe_string_k_opt(&contract, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]).as_str().map(str::to_owned);
@@ -774,7 +773,7 @@ impl crate::exchange::DerivedExchange for Weex {
         if (collectCycle.is_some()) {
             interval = Some(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle, &Value::Str("60".into())), Value::Str("h".into())));
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -795,9 +794,9 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("previousFundingDatetime".to_string(), Value::Null);
         m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let entry: Value = entry.into();
@@ -822,7 +821,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     Value::Null
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         // spot
@@ -889,7 +888,7 @@ impl crate::exchange::DerivedExchange for Weex {
                 rawType = Some("transfer".to_string());
             }
         }
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "billId", &[]));
@@ -912,9 +911,9 @@ impl crate::exchange::DerivedExchange for Weex {
     m
 }));
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -938,7 +937,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -992,7 +991,7 @@ impl crate::exchange::DerivedExchange for Weex {
         let networksLength: i64 = networkKeys.len() as i64;
         let emptyChains: bool = networksLength == 0; // non-functional coins
         let mut valueForEmpty: Option<bool> = (if emptyChains { Some(false) } else { None });
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency);
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -1028,11 +1027,11 @@ impl crate::exchange::DerivedExchange for Weex {
 }));
         m.insert("networks".to_string(), Value::Map(networks));
     m
-}));
+})));
 
-    Value::Null
+    None
 }
-    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
         //
         //     {
@@ -1044,7 +1043,7 @@ impl crate::exchange::DerivedExchange for Weex {
         let marketId: Option<String> = self.safe_string_k_opt(&interest, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]).as_str().map(str::to_owned);
         let timestamp: Option<i64> = self.safe_integer_k(&interest, "time", &[]).as_i64();
-        return self.safe_open_interest(Value::Map({
+        return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("openInterestAmount".to_string(), self.safe_string_k(&interest, "openInterest", &[]));
@@ -1053,9 +1052,9 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
-}), market);
+}), market));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
         //
@@ -1113,7 +1112,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_income(&self, income: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -1145,7 +1144,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         let marketId: Option<String> = self.safe_string_k_opt(&marginMode, "symbol", &[]);
         let marginType: Option<String> = self.safe_string_k_opt(&marginMode, "marginType", &[]);
@@ -1159,7 +1158,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let leverage: Value = leverage.into();
         let marketId: Option<String> = self.safe_string_k_opt(&leverage, "symbol", &[]);
         let marginType: Option<String> = self.safe_string_k_opt(&leverage, "marginType", &[]);
@@ -1171,7 +1170,7 @@ impl crate::exchange::DerivedExchange for Weex {
             longLeverage = crossLeverage;
             shortLeverage = crossLeverage;
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]));
@@ -1179,9 +1178,9 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("longLeverage".to_string(), Value::from(longLeverage));
         m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1217,7 +1216,7 @@ impl crate::exchange::DerivedExchange for Weex {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(path)).into()), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")));
             }
             self.check_required_credentials(&[]);
-            let timestamp: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
+            let timestamp: Option<String> = self.number_to_string(Value::Int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self)));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), method).into()), "/").into()), endpoint);
             if hasJsonBody {
                 payload = format!("{}{}", payload, json_stringify(&query));
@@ -1258,7 +1257,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         //
         //     {
         //         "code": -1140,
@@ -1297,13 +1296,13 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_contract_order" => self.create_contract_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "create_contract_order_request" => Value::Dict(self.create_contract_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                "create_contract_order_request" => crate::Value::Dict(self.create_contract_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_spot_order" => self.create_spot_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "create_spot_order_request" => Value::Dict(self.create_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                "create_spot_order_request" => crate::Value::Dict(self.create_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "encode_margin_mode" => crate::Value::from(self.encode_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -1345,22 +1344,22 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2564,6 +2563,9 @@ impl Weex {
     Value::Null
 }
 
+    pub fn nonce(&self) -> i64 {
+        return ((self.milliseconds()) - (self.safe_integer_k(&self.options, "timeDifference", &[Value::Int(0)]).as_i64().unwrap_or(0)));
+}
 
 /*
  * @method
@@ -3362,7 +3364,7 @@ impl Weex {
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.contract_get_capi_v3_market_open_interest(&[&__ws_arg_12]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3782,8 +3784,6 @@ impl Weex {
         }
         request.insert("newClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
-
-    Default::default()
 }
 
 /*
@@ -3962,7 +3962,6 @@ impl Weex {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")));
             }
             request.insert("clientAlgoId".into(), Value::from(clientOrderId.as_deref()));
-            let mut orderType: Option<String> = None;
             if isStopLoss {
                 let stopLossPriceType: Option<String> = self.safe_string2_opt(&params, Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
                 if (stopLossPriceType.is_some()) {
@@ -3970,9 +3969,9 @@ impl Weex {
                 }
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, stopLossPrice.map(Value::from).unwrap_or(Value::Null)))); }
                 if isMarketOrder {
-                    orderType = Some("STOP_MARKET".to_string());
+                    if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_MARKET".into())); }
                 }  else {
-                    orderType = Some("STOP".to_string());
+                    if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP".into())); }
                 }
             }  else if isTakeProfit {
                 let takeProfitPriceType: Option<String> = self.safe_string2_opt(&params, Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
@@ -3981,12 +3980,11 @@ impl Weex {
                 }
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitPrice.map(Value::from).unwrap_or(Value::Null)))); }
                 if isMarketOrder {
-                    orderType = Some("TAKE_PROFIT_MARKET".to_string());
+                    if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TAKE_PROFIT_MARKET".into())); }
                 }  else {
-                    orderType = Some("TAKE_PROFIT".to_string());
+                    if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TAKE_PROFIT".into())); }
                 }
             }
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), orderType.map(Value::from).unwrap_or(Value::Null)); }
         }  else {
             if !isMarketOrder && (timeInForce.is_none()) {
                 request.insert("timeInForce".into(), Value::Str("GTC".into()));
@@ -4011,8 +4009,6 @@ impl Weex {
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"], &[]);
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
-
-    Default::default()
 }
 
     pub fn encode_trigger_price_type(&self, triggerPriceType: Option<&str>) -> Option<String> {
@@ -5579,7 +5575,7 @@ impl Weex {
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.contract_private_get_capi_v3_account_symbol_config(&[&__ws_arg_44]).await.unwrap_or_default());
         let marginMode: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &marginMode, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &marginMode, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

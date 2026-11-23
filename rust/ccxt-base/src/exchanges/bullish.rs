@@ -748,12 +748,12 @@ impl crate::exchange::DerivedExchange for Bullish {
 
     None
 }
-    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let depositAddress: Value = depositAddress.into();
         let id: Option<String> = self.safe_string_k_opt(&depositAddress, "symbol", &[]);
         let network: Option<String> = self.safe_string_k_opt(&depositAddress, "network", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), currency);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), Value::from(code.as_deref()));
@@ -761,9 +761,9 @@ impl crate::exchange::DerivedExchange for Bullish {
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), Value::Null);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -810,13 +810,13 @@ impl crate::exchange::DerivedExchange for Bullish {
 
     None
 }
-    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "symbol", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
         let name: Option<String> = self.safe_string_k_opt(&rawCurrency, "name", &[]);
         let precision: Option<String> = self.safe_string_k_opt(&rawCurrency, "precision", &[]);
-        return self.safe_currency_structure(Value::Map({
+        return Some(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -849,11 +849,11 @@ impl crate::exchange::DerivedExchange for Bullish {
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("info".to_string(), rawCurrency);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
-    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
         //
         //     {
@@ -894,7 +894,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         //     }
         //
         let openInterest: Option<String> = self.safe_string_k_opt(&interest, "openInterest", &[]);
-        return self.safe_open_interest(Value::Map({
+        return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), interest.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
@@ -905,11 +905,11 @@ impl crate::exchange::DerivedExchange for Bullish {
         m.insert("baseVolume".to_string(), openInterest.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
-    Value::Null
+    None
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -1111,7 +1111,7 @@ impl crate::exchange::DerivedExchange for Bullish {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -1189,20 +1189,20 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "get_closest_limit" => self.get_closest_limit(args.get(0).and_then(crate::Value::as_i64)),
                 "get_timestamp" => self.get_timestamp(),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "handle_pagination_params" => Value::Dict(self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
-                "handle_since_and_until" => self.handle_since_and_until(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                "handle_pagination_params" => crate::Value::Dict(self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
+                "handle_since_and_until" => crate::Value::Dict(self.handle_since_and_until(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_token" => self.handle_token(&args[..].iter().collect::<Vec<_>>()).await,
                 "load_account" => self.load_account(&args[..].iter().collect::<Vec<_>>()).await,
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance_for_single_currency" => self.parse_balance_for_single_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2225,7 +2225,7 @@ impl Bullish {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate)]).into_dict();
+        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate)]);
         if (limit.is_some()) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit));
         }
@@ -2290,7 +2290,7 @@ impl Bullish {
                 let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since, &[&Value::from(&paramsPaginate)]);
                 return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::Dict(paramsPagination), &Value::Int(100)]).await;
             }
-            let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate)]).into_dict();
+            let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate)]);
             if (limit.is_some()) {
                 request.insert("_pageSize".into(), self.get_closest_limit(limit));
             }
@@ -2579,7 +2579,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (limit.is_some()) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit));
         }
-        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate), &Value::Str("updatedAtDatetime[gte]".into()), &Value::Str("updatedAtDatetime[lte]".into())]).into_dict();
+        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate), &Value::Str("updatedAtDatetime[gte]".into()), &Value::Str("updatedAtDatetime[lte]".into())]);
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsSinceAndUntil]);
         let response: crate::value::List = self.public_get_v1_history_markets_symbol_funding_rate(&[&__ws_arg_7]).await.unwrap_or_default();
         //
@@ -2667,7 +2667,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&params]).into_dict();
+        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&params]);
         if (limit.is_some()) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit));
         }
@@ -2744,11 +2744,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 })]);
         }
         return paramsExtended;
-
-    Default::default()
 }
 
-    pub fn handle_since_and_until(&self, since: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub fn handle_since_and_until(&self, since: Option<i64>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2785,9 +2783,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let merged: crate::value::Dict = self.extend_t(params, &[Value::Map(timeParams)]);
         let paramsResult: Value = (if sinceFromUntil { self.omit(&merged, Value::Str("until".into()), &[]) } else { Value::from(&merged) });
-        return paramsResult;
-
-    Value::Null
+        return paramsResult.into_dict();
 }
 
     pub fn get_closest_limit(&self, limit: Option<i64>) -> Value {
@@ -3583,7 +3579,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }), &[data]);
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, __ws_arg_22, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, __ws_arg_22, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3784,7 +3780,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }
-        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&paramsUntil]).into_dict();
+        let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&paramsUntil]);
         if (limit.is_some()) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit));
         }
@@ -3957,7 +3953,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_v1_markets_symbol_tick(&[&__ws_arg_30]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

@@ -286,7 +286,7 @@ impl crate::exchange::DerivedExchange for Myriad {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if (response == Value::Null) {
             return Value::Null;
@@ -355,7 +355,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "from_wei" => self.from_wei(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "get_order_response_from_params" => self.get_order_response_from_params(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "hex_to_decimal_string" => crate::Value::from(self.hex_to_decimal_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
@@ -1214,16 +1214,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes: Option<Vec<String>> = outcomes;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
         let address: Option<String> = self.safe_string2_opt(&params, Value::Str("address".into()), Value::Str("user".into()), &[&self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null)]);
@@ -1287,7 +1284,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
             let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_position(self, data.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
-            if (outcomes.is_none()) || self.in_array(crate::value::KeyRead::key_read(&&position, "outcome"), Value::from(outcomes.clone())) {
+            if (outcomes == Value::Null) || self.in_array(crate::value::KeyRead::key_read(&&position, "outcome"), outcomes.clone()) {
                 result.push(Value::Dict(position));
             }
         }
@@ -2443,10 +2440,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.privateKey == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a privateKey to sign the cancellation")));
         }
@@ -2460,7 +2454,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             networkId = self.safe_string_k_opt(&info, "networkId", &[&networkId]);
         }
         // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
-        let timestamp: Option<String> = self.safe_string_k_opt(params, "timestamp", &[&Value::from(self.number_to_string(Value::Int(self.seconds())))]);
+        let timestamp: Option<String> = self.safe_string_k_opt(&params, "timestamp", &[&Value::from(self.number_to_string(Value::Int(self.seconds())))]);
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trader".to_string(), Value::from(trader.as_deref()));
@@ -2675,10 +2669,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2960,10 +2951,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let networkId: Option<String> = self.safe_string2_opt(&params, Value::Str("network_id".into()), Value::Str("network".into()), &[&self.safe_string_k(&self.options, "defaultNetworkId", &[Value::Str("56".into())])]);
         let chains: crate::value::Dict = self.safe_dict_k_t(&self.options, "chains");
         let chainConfig: crate::value::Dict = (if let Some(Value::Dict(__m)) = chains.get(networkId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
@@ -2973,7 +2961,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() has no collateral token configured for network ").into()), networkId.as_deref().unwrap_or("null"))));
         }
         let currency: Option<String> = self.safe_string_k_opt(&params, "currency", &[&self.safe_string_k(&chainConfig, "collateralCurrency", &[Value::Str("USD1".into())])]);
-        let decimals: Option<i64> = self.safe_integer_k(params, "decimals", &[self.safe_integer_k(&chainConfig, "collateralDecimals", &[Value::Int(18)])]).as_i64();
+        let decimals: Option<i64> = self.safe_integer_k(&params, "decimals", &[self.safe_integer_k(&chainConfig, "collateralDecimals", &[Value::Int(18)])]).as_i64();
         let owner: Option<String> = self.wallet_address_from_keys();
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         let callData: String = format!("{}{}", Value::Str("0x70a08231".into()), self.pad_hex_address(owner.map(Value::from).unwrap_or(Value::Null)));
@@ -4937,7 +4925,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let tickers: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("tickers".into()))).await;
-        return self.filter_by_array(tickers, Value::Str("outcome".into()), Value::from(resolvedSymbols), &[Value::Bool(true)]);
+        return Value::Dict(self.filter_by_array_dict(tickers, Value::Str("outcome".into()), Value::from(resolvedSymbols)));
         Value::Null
         }).await?))
     }

@@ -70,7 +70,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_ws_tickers" => self.handle_ws_tickers(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_ws_tickers" => self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -108,21 +108,21 @@ impl Pacifica {
             "edit_order_ws" => crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_my_trades_unsubscription" => { self.handle_my_trades_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv_unsubscription" => { self.handle_ohlcv_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_order_book_unsubscription" => { self.handle_order_book_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_unsubscription" => { self.handle_order_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_response" => { self.handle_subscription_response(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_tickers_unsubscription" => { self.handle_tickers_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades_unsubscription" => { self.handle_trades_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ws_post" => { self.handle_ws_post(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ws_tickers" => { self.handle_ws_tickers(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_ws_tickers" => { self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "request_id" => { self.request_id(); },
@@ -321,7 +321,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -432,7 +432,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -519,7 +519,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -627,7 +627,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -710,7 +710,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -765,7 +765,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -825,7 +825,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -849,7 +849,7 @@ impl Pacifica {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -969,7 +969,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1026,7 +1026,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1090,7 +1090,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1154,7 +1154,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1177,7 +1177,7 @@ impl Pacifica {
         }).await?))
     }
 
-    pub fn handle_ws_tickers(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
+    pub fn handle_ws_tickers(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) -> Value {
         //
         // {
         //     "channel": "prices",
@@ -1220,9 +1220,7 @@ impl Pacifica {
     Value::Null
 }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // {
         //   "channel": "account_trades",
@@ -1322,7 +1320,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1382,7 +1380,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1405,9 +1403,7 @@ impl Pacifica {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // {
         //   "channel": "trades",
@@ -1576,7 +1572,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1638,7 +1634,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1664,9 +1660,7 @@ impl Pacifica {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // {
         //   "channel": "candle",
@@ -1751,7 +1745,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1812,7 +1806,7 @@ impl Pacifica {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let apiUrls: crate::value::Dict = self.safe_dict_t(&self.urls, Value::from(urlKey));
+        let apiUrls: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.urls.get(urlKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
@@ -1838,9 +1832,7 @@ impl Pacifica {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1929,7 +1921,7 @@ impl Pacifica {
             self.handle_errors(0, error.as_str(), "", postType.as_str(), Value::Dict(wsHeadersFinal), (json_stringify(&data)).as_str().unwrap_or_default(), message, Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), Value::Null);
+            }), None);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());

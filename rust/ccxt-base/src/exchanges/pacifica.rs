@@ -382,7 +382,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         if isSwap {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), quote.as_deref().unwrap_or("null"));
         }
-        let fees: crate::value::Dict = self.safe_dict_t(&self.fees, Value::from(type_var.as_str()));
+        let fees: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.fees.get(type_var.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let taker: Option<f64> = self.safe_number_k(&fees, "taker", &[]).as_f64();
         let maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let amountPrecision: Option<f64> = self.safe_number_k(&market, "lot_size", &[]).as_f64();
@@ -527,7 +527,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn parse_funding_rate(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
         //
         //      {
@@ -554,7 +554,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let currentHour: Option<i64> = self.parse_to_int((match (((match (((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(),
             (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let fundingTimestamp: Option<i64> = (if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = currentHour { Some(__l + 1) } else { None })) { Some(__l * 60) } else { None })) { Some(__l * 60) } else { None })) { Some(__l * 1000) } else { None });
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -575,11 +575,11 @@ impl crate::exchange::DerivedExchange for Pacifica {
         m.insert("previousFundingDatetime".to_string(), Value::Null);
         m.insert("interval".to_string(), Value::Str("1h".into()));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         //     {
@@ -603,7 +603,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         }  else {
             direction = Some("in".to_string());
         }
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), Value::Null);
@@ -621,9 +621,9 @@ impl crate::exchange::DerivedExchange for Pacifica {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), Some(&currencyResolved));
+}), Some(&currencyResolved)));
 
-    Value::Null
+    None
 }
     fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
@@ -659,7 +659,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
         //
         //     {
@@ -688,7 +688,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
             interestValue = crate::precise::Precise::stringMul(&openInterest, &markPrice).as_str().map(str::to_owned);
         }
         let timestamp: Option<i64> = self.safe_integer_k(&interest, "timestamp", &[]).as_i64();
-        return self.safe_open_interest(Value::Map({
+        return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(symbol.as_deref(), None, &[]));
         m.insert("openInterestAmount".to_string(), self.parse_number(openInterest.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -697,9 +697,9 @@ impl crate::exchange::DerivedExchange for Pacifica {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -748,7 +748,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn parse_income(&self, income: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -833,7 +833,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -936,20 +936,20 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_origin_and_single_address" => { let __t = self.handle_origin_and_single_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client().await,
                 "load_account_settings" => self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await,
                 "parse_account_settings" => crate::Value::Dict(self.parse_account_settings(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage_from_market" => self.parse_leverage_from_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage_from_setting" => self.parse_leverage_from_setting(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_margin_mode_from_setting" => self.parse_margin_mode_from_setting(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -3778,7 +3778,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
-        let closedOrders: crate::value::List = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("closed".into())]), &[Value::Bool(false)]).into_list();
+        let closedOrders: crate::value::List = self.filter_by_array_list(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("closed".into())]));
         return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since, limit, &[]));
         Value::Null
         }).await?))
@@ -3813,7 +3813,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
-        let closedOrders: crate::value::List = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into())]), &[Value::Bool(false)]).into_list();
+        let closedOrders: crate::value::List = self.filter_by_array_list(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into())]));
         return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since, limit, &[]));
         Value::Null
         }).await?))
@@ -3848,7 +3848,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
-        let closedOrders: crate::value::List = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into()), Value::Str("closed".into()), Value::Str("rejected".into())]), &[Value::Bool(false)]).into_list();
+        let closedOrders: crate::value::List = self.filter_by_array_list(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into()), Value::Str("closed".into()), Value::Str("rejected".into())]));
         return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since, limit, &[]));
         Value::Null
         }).await?))

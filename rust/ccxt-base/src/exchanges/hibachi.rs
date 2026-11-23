@@ -49,11 +49,10 @@ impl Hibachi {
 }
 
 impl crate::exchange::DerivedExchange for Hibachi {
-    fn nonce(&self) -> Value {
-        return Value::Int(self.milliseconds());
-
-    Value::Null
-}
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on Hibachi.
+        crate::Value::from(Hibachi::nonce(self, ))
+    }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         let prices: crate::value::Dict = self.safe_dict_k_t(&ticker, "prices");
@@ -401,7 +400,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
 
     None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         let transactionType: Option<String> = self.safe_string_k_opt(&item, "transactionType", &[]);
         let mut timestamp: Option<i64> = None;
@@ -445,7 +444,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
             }
             referenceId = self.safe_string_k_opt(&item, "transactionHash", &[]);
         }
-        return self.safe_ledger_entry(Value::Map({
+        return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
@@ -463,9 +462,9 @@ impl crate::exchange::DerivedExchange for Hibachi {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
     m
-}), currency);
+}), currency));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -553,7 +552,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -590,12 +589,12 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).cloned().unwrap_or(crate::Value::Null),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "edit_order_request" => Value::Dict(self.edit_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_text).as_deref(),
+                "edit_order_request" => crate::Value::Dict(self.edit_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_text).as_deref(),
                     &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "encode_withdraw_message" => self.encode_withdraw_message(args.get(0).and_then(crate::Value::as_f64), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -625,13 +624,13 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_account_id" => self.get_account_id(),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "hardcoded_currencies" => self.hardcoded_currencies(),
-                "nonce" => self.nonce(),
+                "nonce" => crate::Value::from(self.nonce()),
                 "order_message" => self.order_message(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(),
                     args.get(4).and_then(crate::Value::as_text).as_deref(), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_f64)),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1208,7 +1207,7 @@ impl Hibachi {
 }));
         let code: Option<String> = self.safe_currency_code(Some("USDT"), None);
         if (code.is_some()) {
-            result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("USDT".into()));
         m.insert("name".to_string(), Value::Str("USDT".into()));
@@ -1241,7 +1240,7 @@ impl Hibachi {
     m
 }));
     m
-})));
+}))));
         }
         return Value::Map(result);
 
@@ -1633,8 +1632,6 @@ impl Hibachi {
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"], &[]);
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
-
-    Default::default()
 }
 
 /*
@@ -1785,8 +1782,6 @@ impl Hibachi {
             m
         });
         return self.extend_t(Value::Map(request), &[params]);
-
-    Default::default()
 }
 
 /*
@@ -2192,6 +2187,9 @@ impl Hibachi {
         }).await?))
     }
 
+    pub fn nonce(&self) -> i64 {
+        return self.milliseconds();
+}
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
         let message: Value = message.into();
@@ -3152,7 +3150,7 @@ impl Hibachi {
         //   { "totalQuantity" : "2.3299770166" }
         //
         let timestamp: i64 = self.milliseconds();
-        return self.safe_open_interest(Value::Map({
+        return Value::Dict(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("openInterestAmount".to_string(), self.safe_string_k(&response, "totalQuantity", &[]));
@@ -3161,7 +3159,7 @@ impl Hibachi {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), Value::from(&response));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }
