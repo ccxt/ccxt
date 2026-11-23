@@ -1186,7 +1186,7 @@ class lighter(ccxt.async_support.lighter):
             'id': requestId,
         }
         rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.parse_order(rawMessage, market)
+        return self.parse_order(self.extend({}, rawMessage), market)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """

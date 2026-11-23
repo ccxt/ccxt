@@ -2096,7 +2096,8 @@ class bitget(Exchange, ImplicitAPI):
     def handle_uta_and_params(self, params: dict, methodName: Str, defaultValue: bool = False) -> list:
         uta, paramsUta = self.handle_option_and_params(params, methodName, 'uta')
         if uta is not None:
-            return [uta, paramsUta]
+            utaFlag = self.safe_bool([uta], 0)
+            return [(utaFlag is True), paramsUta]
         if self.check_required_credentials(False):
             # use the api to determine if the account is uta or not
             accountIsUTa = False
@@ -2876,7 +2877,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         marginMode = None
         productType = None
-        uta = None
+        uta = False
         paramsMarginMode = None
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'isolated')
         productType, paramsMarginMode = self.handle_product_type_and_params(market, paramsMarginMode)
@@ -4311,7 +4312,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        uta = None
+        uta = False
         uta, paramsPaginate = self.handle_uta_and_params(paramsPaginate, 'fetchTrades', False)
         isStockOrUta = (isStockSpot or (uta is True))
         if limit is not None:
@@ -4441,7 +4442,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        uta = None
+        uta = False
         paramsUTA = None
         uta, paramsUTA = self.handle_uta_and_params(params, 'fetchTradingFee', False)
         if uta is True:
@@ -4509,7 +4510,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsMarginMode = None
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchTradingFees', params)
         marketType, paramsMarginMode = self.handle_market_type_and_params('fetchTradingFees', None, paramsMarginMode)
-        uta = None
+        uta = False
         uta, paramsMarginMode = self.handle_uta_and_params(paramsMarginMode, 'fetchTradingFees', False)
         if uta is True:
             utaMargin = self.safe_bool(paramsMarginMode, 'margin', False)
@@ -4893,7 +4894,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         response = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchBalance', 'stock', False)
-        uta = None
+        uta = False
         paramsUTA = None
         uta, paramsUTA = self.handle_uta_and_params(paramsStock, 'fetchBalance', False)
         isStock = (stock is True)
@@ -6050,7 +6051,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        uta = None
+        uta = False
         paramsUTA = None
         uta, paramsUTA = self.handle_uta_and_params(params, 'createOrders', False)
         if uta is True:
@@ -6204,7 +6205,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
         productType = None
-        uta = None
+        uta = False
         productType, paramsOmitted = self.handle_product_type_and_params(market, paramsOmitted)
         uta, paramsOmitted = self.handle_uta_and_params(paramsOmitted, 'editOrder', False)
         if uta is True:
@@ -6378,7 +6379,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsMarginMode = self.omit(paramsMarginMode, ['stop', 'trigger', 'trailing'])
         if not ((self.safe_bool(market, 'spot', False)) and (trigger is True)):
             request['symbol'] = market['id']
-        uta = None
+        uta = False
         uta, paramsMarginMode = self.handle_uta_and_params(paramsMarginMode, 'cancelOrder', False)
         isStockOrUta = (isStockSpot or (uta is True))
         isPlanOrder = (trigger is True) or trailing
@@ -6554,7 +6555,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        uta = None
+        uta = False
         paramsUTA = None
         uta, paramsUTA = self.handle_uta_and_params(params, 'cancelOrders', False)
         if uta is True:
@@ -6647,7 +6648,7 @@ class bitget(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(paramsMarginMode, 'stop', 'trigger')
         paramsMarginMode = self.omit(paramsMarginMode, ['stop', 'trigger'])
         response = None
-        uta = None
+        uta = False
         uta, paramsMarginMode = self.handle_uta_and_params(paramsMarginMode, 'cancelAllOrders', False)
         if uta is True:
             if productType == 'SPOT':
@@ -6932,7 +6933,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         paramsMarginMode = None
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOpenOrders', params)
-        uta = None
+        uta = False
         uta, paramsMarginMode = self.handle_uta_and_params(paramsMarginMode, 'fetchOpenOrders', False)
         if symbol is not None:
             market = self.market(symbol)
@@ -7373,7 +7374,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        uta = None
+        uta = False
         paramsUTA = None
         uta, paramsUTA = self.handle_uta_and_params(params, 'fetchCanceledAndClosedOrders', False)
         if uta is True:
@@ -7796,7 +7797,7 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         paramsOmitted = None
         marketType, paramsOmitted = self.handle_market_type_and_params('fetchLedger', market, paramsNoSymbol)
-        uta = None
+        uta = False
         uta, paramsOmitted = self.handle_uta_and_params(paramsOmitted, 'fetchLedger', False)
         paginate = False
         paginate, paramsOmitted = self.handle_option_bool_and_params(paramsOmitted, 'fetchLedger', 'paginate', False)
@@ -8259,7 +8260,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        uta = None
+        uta = False
         paramsUTA = None
         uta, paramsUTA = self.handle_uta_and_params(params, 'fetchMyTrades', False)
         if (uta is not True) and (symbol is None):
@@ -8598,7 +8599,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {}
         response = None
         isHistory = False
-        uta = None
+        uta = False
         uta, paramsPaginate = self.handle_uta_and_params(paramsPaginate, 'fetchPositions', False)
         if uta is True:
             request['category'] = productType
@@ -8992,7 +8993,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         productType = None
-        uta = None
+        uta = False
         response = None
         result = []
         paramsProductType = None
@@ -9087,7 +9088,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        uta = None
+        uta = False
         response = None
         uta, paramsProductType = self.handle_uta_and_params(paramsProductType, 'fetchFundingRate', False)
         if uta is True:
@@ -9687,7 +9688,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'leverage': self.number_to_string(leverage),
         }
-        uta = None
+        uta = False
         response = {}
         uta, paramsProductType = self.handle_uta_and_params(paramsProductType, 'setLeverage', False)
         if uta is True:

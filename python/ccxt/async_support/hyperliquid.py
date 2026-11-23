@@ -1277,9 +1277,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         # same response as under "fetchMarkets"
         result = {}
         for i in range(0, len(response)):
-            market = response[i]
-            info = self.safe_dict(market, 'info', {})
-            ticker = self.parse_ticker(info, market)
+            info = self.safe_dict(response[i], 'info', {})
+            ticker = self.parse_ticker(info, self.extend({}, response[i]))
             symbol = self.safe_string(ticker, 'symbol')
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)

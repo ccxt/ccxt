@@ -2758,7 +2758,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -3183,7 +3183,8 @@ class mexc(Exchange, ImplicitAPI):
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                data = self.spotPrivateDeleteMarginOrder(self.extend(requestInner, query))
+                marginRows = self.spotPrivateDeleteMarginOrder(self.extend(requestInner, query))
+                return self.parse_order(self.safe_dict(marginRows, 0, {}), market)
             else:
                 data = self.spotPrivateDeleteOrder(self.extend(requestInner, query))
             #
@@ -3251,11 +3252,12 @@ class mexc(Exchange, ImplicitAPI):
             #
             if method == 'contractPrivatePostPlanorderCancel':
                 return self.safe_order({'id': id, 'symbol': self.safe_string(market, 'symbol'), 'info': response}, market)  # planorder/cancel answers without data, failures are raised by handleErrors
-            data = self.safe_value(response, 'data')
-            order = self.safe_dict(data, 0)
-            errorMsg = self.safe_string(order, 'errorMsg', '')
+            rows = self.safe_list(response, 'data', [])
+            data = self.safe_dict(rows, 0, {})
+            errorMsg = self.safe_string(data, 'errorMsg', '')
             if errorMsg != 'success':
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
+            return self.parse_order(self.safe_dict(data, 0, {}), market)
         return self.parse_order(data, market)
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:

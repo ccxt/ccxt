@@ -1514,7 +1514,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if symbol is not None:
             market = self.market(symbol)
         result = await self.request_ws('private/cancel', self.extend({'order_id': id}, paramsResolved), True)
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -1562,7 +1562,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
                 await self.load_markets()
             market = self.market(symbol)
         result = await self.request_ws('private/get_order_state', self.extend({'order_id': id}, paramsResolved), True)
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

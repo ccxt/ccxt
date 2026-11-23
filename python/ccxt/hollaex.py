@@ -1144,7 +1144,7 @@ class hollaex(Exchange, ImplicitAPI):
         #             }
         if response is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

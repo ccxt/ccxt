@@ -2227,7 +2227,7 @@ class btse(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'data', response)
         if isinstance(order, list):
             order = self.safe_dict(order, 0, {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -3349,7 +3349,7 @@ class btse(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsOrderType, 'price') if (typeUpper == 'LIMIT') else paramsOrderType
         response = await self.privateDeleteFuturesApiV3TradePositions(self.extend(request, paramsOmitted))
         order = self.safe_dict(response, 0, response)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """

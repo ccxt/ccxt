@@ -2871,7 +2871,7 @@ class deepcoin(Exchange, ImplicitAPI):
             paramsOmitted = self.omit(params, 'positionId') if (positionId is not None) else params
             response = await self.privatePostDeepcoinTradeClosePositionByIds(self.extend(request, paramsOmitted))
         data = self.safe_list(response, 'data', [])
-        return self.parse_order(data, market)
+        return self.parse_order(self.safe_dict(data, 0, {}), market)
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]

@@ -1019,7 +1019,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         splitMethod = method.split('_order')
         messageHash = self.safe_string(splitMethod, 0)
         symbol = self.safe_symbol(marketId)
-        parsed = self.parse_order(order)
+        parsed = self.parse_order(self.extend({}, order))
         orders.append(parsed)
         client.resolve(orders, messageHash)
         if messageHash is not None:

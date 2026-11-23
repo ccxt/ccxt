@@ -5596,7 +5596,7 @@ class htx(Exchange, ImplicitAPI):
             result = response
         if result is None:
             raise NullResponse(self.id + ' parseOrder() returned empty response')
-        return self.extend(self.parse_order(result, market), {
+        return self.extend(self.parse_order(self.extend({}, result), market), {
             'id': id,
             'status': 'canceled',
         })

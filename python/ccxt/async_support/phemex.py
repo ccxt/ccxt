@@ -3092,7 +3092,7 @@ class phemex(Exchange, ImplicitAPI):
                 else:
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
             order = self.safe_dict(rows, 0, {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

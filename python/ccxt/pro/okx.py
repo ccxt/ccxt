@@ -2210,7 +2210,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, '')
+            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, None)
         orders = self.parse_orders(args, None, None, None)
         first = self.safe_dict(orders, 0, {})
         client.resolve(first, messageHash)
@@ -2379,7 +2379,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, '')
+            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, None)
         orders = self.parse_orders(args, None, None, None)
         client.resolve(orders, messageHash)
 

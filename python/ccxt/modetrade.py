@@ -2207,7 +2207,7 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         orders = self.safe_dict(response, 'data', response)
-        return self.parse_order(orders, market)
+        return self.parse_order(self.extend({}, orders), market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

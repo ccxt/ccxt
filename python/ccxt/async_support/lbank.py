@@ -1910,12 +1910,6 @@ class lbank(Exchange, ImplicitAPI):
         if numOrders == 1:
             return self.parse_order(self.safe_dict(result, 0, {}))
         else:
-            # const parsedOrders = [];
-            # for (let i = 0; i < numOrders; i++) {
-            #     const parsedOrder = this.parseOrder (result[i]);
-            #     parsedOrders.push (parsedOrder);
-            # }
-            # return parsedOrders;
             raise BadRequest(self.id + ' fetchOrder() can only fetch one order at a time')
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:

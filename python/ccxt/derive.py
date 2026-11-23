@@ -3627,7 +3627,8 @@ class derive(Exchange, ImplicitAPI):
         transfers = self.safe_list(result, 'transfers', [])
         parsed = []
         for i in range(0, len(transfers)):
-            parsed.append(self.parse_transfer(self.safe_dict(transfers, i, {})))
+            transfer = self.extend(self.parse_transfer(self.safe_dict(transfers, i, {})), {})
+            parsed.append(transfer)
         sorted = self.sort_by(parsed, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 

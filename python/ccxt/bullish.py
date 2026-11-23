@@ -2363,7 +2363,7 @@ class bullish(Exchange, ImplicitAPI):
                         break
                 if networkDefinedByUser:
                     data = {}  # return an empty structure if the user-defined network was not found
-        return self.parse_deposit_address(data, currency)
+        return self.parse_deposit_address(self.extend({}, data), currency)
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')

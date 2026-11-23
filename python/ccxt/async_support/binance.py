@@ -12747,7 +12747,7 @@ class binance(Exchange, ImplicitAPI):
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: str, path: str, params: dict, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):

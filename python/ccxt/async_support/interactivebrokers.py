@@ -1966,7 +1966,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         fields, query = self.handle_option_and_params(params, 'fetchTickers', 'fields')
         fieldsString = ','.join(fields)
-        response = await self.ibkr_fetch_snapshot(symbolsNormalized, fieldsString, query)
+        readyFields = ['31', '84', '86']
+        response = await self.ibkr_fetch_snapshot(symbolsNormalized, fieldsString, readyFields, query)
         #
         #     [
         #         {
@@ -1987,7 +1988,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbolsNormalized)
 
-    async def ibkr_fetch_snapshot(self, symbols: list[str], fields: str, params: dict = {}, readyFields: Strings = None) -> list:
+    async def ibkr_fetch_snapshot(self, symbols: list[str], fields: str, readyFields: list[str], params: dict = {}) -> list:
         """
         fetches a market data snapshot, the first snapshot request only subscribes to the market data, so the request is retried until data arrives
  @ignore
@@ -1996,8 +1997,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
 
         :param str[] symbols: unified market symbols
         :param str fields: comma-separated snapshot field ids
+        :param str[] readyFields: the snapshot is ready once every item has at least one of these fields
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str[] [readyFields]: the snapshot is ready once every item has at least one of these fields, default ['31', '84', '86']
         :returns dict[]: the raw snapshot items
         """
         conids = []
@@ -2020,11 +2021,10 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 await self.sleep(retryDelay)
         return response
 
-    def ibkr_snapshot_ready(self, response: list, readyFields: Strings = None) -> bool:
+    def ibkr_snapshot_ready(self, response: list, fieldIds: list[str]) -> bool:
         numItems = len(response)
         if numItems == 0:
             return False
-        fieldIds = ['31', '84', '86'] if (readyFields is None) else readyFields
         numFields = len(fieldIds)
         for i in range(0, numItems):
             found = False
@@ -2055,7 +2055,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         fields = self.safe_string(params, 'fields', '84,85,86,88')
         query = self.omit(params, 'fields')
-        response = await self.ibkr_fetch_snapshot(symbolsNormalized, fields, query, ['84', '86'])
+        response = await self.ibkr_fetch_snapshot(symbolsNormalized, fields, ['84', '86'], query)
         #
         #     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         #
@@ -2077,7 +2077,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        response = await self.ibkr_fetch_snapshot(symbolsNormalized, '31', params, ['31'])
+        response = await self.ibkr_fetch_snapshot(symbolsNormalized, '31', ['31'], params)
         #
         #     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         #
@@ -2112,7 +2112,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        response = await self.ibkr_fetch_snapshot(symbolsNormalized, '7635', params, ['7635'])
+        response = await self.ibkr_fetch_snapshot(symbolsNormalized, '7635', ['7635'], params)
         #
         #     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         #
@@ -2139,7 +2139,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             if not market['contract']:
                 raise BadRequest(self.id + ' fetchOpenInterests() supports contract markets only, ' + market['symbol'] + ' is not a contract market')
         # 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        response = await self.ibkr_fetch_snapshot(symbolsNormalized, '31,7697,7638', params, ['7697', '7638'])
+        response = await self.ibkr_fetch_snapshot(symbolsNormalized, '31,7697,7638', ['7697', '7638'], params)
         #
         #     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         #
@@ -3773,7 +3773,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 await self.sleep(retryDelay)
         return None
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 401) and self.safe_bool(self.options, 'useGateway', False):
             # the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             self.options['gatewayAuthenticatedTimestamp'] = None

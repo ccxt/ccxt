@@ -1254,7 +1254,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.authenticate_v2()
         code = self.safe_string(paramsResolved, 'code')
-        paramsOmitted = paramsResolved
+        paramsOmitted = self.extend({}, paramsResolved)
         if self.is_native_deribit_credentials():
             paramsOmitted = self.omit(paramsResolved, 'code')
         response = None
@@ -2643,11 +2643,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         paramsResolved = self.handle_route_and_params('fetchOpenOrders', params)
+        paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchOpenOrders', 'paginate', False)
+        nativeDeribit = self.is_native_deribit_credentials()
+        if nativeDeribit and paginate:
+            raise NotSupported(self.id + ' fetchOpenOrders() does not support pagination')
         paramsPaginate = paramsResolved
-        if self.is_native_deribit_credentials():
-            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchOpenOrders', 'paginate', False)
-            if paginate:
-                raise NotSupported(self.id + ' fetchOpenOrders() does not support pagination')
+        if nativeDeribit:
             paramsPaginate = paramsFinal
         if self.markets is None:
             await self.load_markets()
@@ -2712,11 +2713,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         paramsResolved = self.handle_route_and_params('fetchMyTrades', params)
+        paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchMyTrades', 'paginate', False)
+        nativeDeribit = self.is_native_deribit_credentials()
+        if nativeDeribit and paginate:
+            raise NotSupported(self.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters')
         paramsPaginate = paramsResolved
-        if self.is_native_deribit_credentials():
-            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchMyTrades', 'paginate', False)
-            if paginate:
-                raise NotSupported(self.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters')
+        if nativeDeribit:
             paramsPaginate = paramsFinal
         if self.markets is None:
             await self.load_markets()

@@ -325,7 +325,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
             futures.append(client.reusableFuture(messageHashes[i]))
         for i in range(0, len(marketSymbols)):
             market = self.market(marketSymbols[i])
-            request, query = self.ibkr_market_data_request(market['id'], params)
+            request, query = self.ibkr_market_data_request(self.safe_string(market, 'id'), params)
             subscription = self.extend({'conid': market['id'], 'symbol': market['symbol']}, query)
             await self.ibkr_subscribe(client, messageHashes[i], request, subscription)
         ticker = await self.watch_multiple(url, messageHashes)
@@ -457,7 +457,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         # reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         future = client.reusableFuture(messageHash)
         # the last price stream, it builds the current candles
-        marketDataRequest, query = self.ibkr_market_data_request(market['id'], params)
+        marketDataRequest, query = self.ibkr_market_data_request(self.safe_string(market, 'id'), params)
         await self.ibkr_subscribe(client, messageHash, marketDataRequest, {'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe})
         # the history, it seeds the candles
         historyHash = 'smh::' + historyMarketId + '::' + timeframe
@@ -946,7 +946,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                 previous = self.safe_dict(rawOrders, orderId, {})
                 merged = self.extend(previous, rawOrder)
                 rawOrders[orderId] = merged
-            parsed = self.parse_order(merged)
+            parsed = self.parse_order(self.extend({}, merged))
             orders.append(parsed)
             orderSymbol = self.safe_string(parsed, 'symbol')
             if orderSymbol is not None:

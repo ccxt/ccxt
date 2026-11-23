@@ -2245,7 +2245,7 @@ class blofin(Exchange, ImplicitAPI):
                 return self.parse_transaction(entry, currency)
         raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
 
-    def fetch_withdrawal(self, id: Str, code: Str = None, params: dict = {}) -> Transaction:
+    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -2254,15 +2254,17 @@ class blofin(Exchange, ImplicitAPI):
         :param str id: withdrawal id
         :param str [code]: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.clientId]: look up by the client-supplied id instead, with id set to None
+        :param str [params.clientId]: look up by the client-supplied id instead, with id set to None or ''
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         clientId = self.safe_string(params, 'clientId')
-        if (id is None) and (clientId is None):
+        # an undefined or empty id looks the withdrawal up by params['clientId']
+        hasId = (id is not None) and (id != '')
+        if not hasId and (clientId is None):
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]')
         self.load_markets()
         request = {}
-        if id is not None:
+        if hasId:
             request['withdrawId'] = id
         currency = None
         if code is not None:
@@ -2276,13 +2278,13 @@ class blofin(Exchange, ImplicitAPI):
         for i in range(0, dataLength):
             entry = self.safe_dict(data, i, {})
             matches = False
-            if id is not None:
+            if hasId:
                 matches = (self.safe_string(entry, 'withdrawId') == id)
             else:
                 matches = (self.safe_string(entry, 'clientId') == clientId)
             if matches:
                 return self.parse_transaction(entry, currency)
-        reference = id if (id is not None) else clientId
+        reference = id if hasId else clientId
         raise ExchangeError(self.id + ' fetchWithdrawal() could not find withdrawal ' + reference)
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:

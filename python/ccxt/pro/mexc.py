@@ -1358,7 +1358,7 @@ class mexc(ccxt.async_support.mexc):
             if sendTime is not None:
                 parsed['lastTradeTimestamp'] = sendTime
         elif data is not None:
-            parsed = self.parse_order(data, market)
+            parsed = self.parse_order(self.extend({}, data), market)
         else:
             return
         orders = self.orders

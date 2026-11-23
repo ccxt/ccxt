@@ -877,7 +877,7 @@ class grvt(ccxt.async_support.grvt):
         #        "prev_sequence_number": "16"
         #    }
         #
-        data = self.safe_dict(message, 'feed')
+        data = self.safe_dict(message, 'feed', {})
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -888,7 +888,7 @@ class grvt(ccxt.async_support.grvt):
 
     def parse_ws_order(self, order: object, market: Market = None) -> Order:
         # same as REST api
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def handle_error_message(self, client: Client, response: dict) -> Bool:
         #

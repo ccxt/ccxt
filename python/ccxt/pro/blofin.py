@@ -562,10 +562,10 @@ class blofin(ccxt.async_support.blofin):
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
         """
         params['callerMethodName'] = 'watchOrders'
-        symbolsArray = []
         if symbol is not None:
-            symbolsArray.append(symbol)
-        return await self.watch_orders_for_symbols(symbolsArray, since, limit, params)
+            await self.load_markets()
+            return await self.watch_orders_for_symbols([self.symbol(symbol)], since, limit, params)
+        return await self.watch_orders_for_symbols([], since, limit, params)
 
     async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -647,7 +647,7 @@ class blofin(ccxt.async_support.blofin):
             client.resolve(orders, channelName)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """

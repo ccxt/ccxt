@@ -692,16 +692,16 @@ class paradex(ccxt.async_support.paradex):
         feeds = []
         for i in range(0, symbolsLength):
             feedMarket = self.market(symbolsNormalized[i])
-            feeds.append(self.get_order_book_channel(feedMarket['id'], True))
-            feeds.append(self.get_order_book_channel(feedMarket['id'], False))
+            feeds.append(self.get_order_book_channel(self.safe_string(feedMarket, 'id'), True))
+            feeds.append(self.get_order_book_channel(self.safe_string(feedMarket, 'id'), False))
         await self.wait_for_pending_unsubscribe(url, feeds)
         client = self.client(url)
         channels = []
         messageHashes = []
         for i in range(0, symbolsLength):
             market = self.market(symbolsNormalized[i])
-            deltasChannel = self.get_order_book_channel(market['id'], True)
-            snapshotChannel = self.get_order_book_channel(market['id'], False)
+            deltasChannel = self.get_order_book_channel(self.safe_string(market, 'id'), True)
+            snapshotChannel = self.get_order_book_channel(self.safe_string(market, 'id'), False)
             # one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             # and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             # the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -757,8 +757,8 @@ class paradex(ccxt.async_support.paradex):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             # the feed the market is on, a market is on one of them at a time
-            deltasChannel = self.get_order_book_channel(market['id'], True)
-            snapshotChannel = self.get_order_book_channel(market['id'], False)
+            deltasChannel = self.get_order_book_channel(self.safe_string(market, 'id'), True)
+            snapshotChannel = self.get_order_book_channel(self.safe_string(market, 'id'), False)
             channel = deltasChannel if (deltasOption is True) else snapshotChannel
             # a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             requestedHash = deltasChannel + ':requested'

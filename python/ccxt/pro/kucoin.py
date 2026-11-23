@@ -332,9 +332,11 @@ class kucoin(ccxt.async_support.kucoin):
         isFuturesMethod = market['contract']
         url = await self.negotiate(False, isFuturesMethod)
         spotMethod, paramsSpotMethod = self.handle_option_string_and_params(paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot')
-        method = '/contractMarket/ticker' if (isFuturesMethod is True) else spotMethod
         query = paramsUta if (isFuturesMethod is True) else paramsSpotMethod
-        topic = method + ':' + market['id']
+        tickerMarketId = self.safe_string(market, 'id', '')
+        topic = '/contractMarket/ticker:' + tickerMarketId
+        if isFuturesMethod is not True:
+            topic = spotMethod + ':' + tickerMarketId
         return await self.subscribe(url, messageHash, topic, query)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}):
@@ -371,9 +373,11 @@ class kucoin(ccxt.async_support.kucoin):
         else:
             url = await self.negotiate(False, isFuturesMethod)
             spotMethod, paramsSpotMethod = self.handle_option_string_and_params(paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot')
-            method = '/contractMarket/ticker' if (isFuturesMethod is True) else spotMethod
             query = paramsUta if (isFuturesMethod is True) else paramsSpotMethod
-            topic = method + ':' + market['id']
+            tickerMarketId = self.safe_string(market, 'id', '')
+            topic = '/contractMarket/ticker:' + tickerMarketId
+            if isFuturesMethod is not True:
+                topic = spotMethod + ':' + tickerMarketId
             messageHash = 'unsubscribe:' + subMessageHash
             subscription['messageHashes'] = [messageHash, topic]
             subscription['subMessageHashes'] = [subMessageHash, topic]
@@ -3258,7 +3262,7 @@ class kucoin(ccxt.async_support.kucoin):
             if client.url.find('connectId=' + type + 'Futures') >= 0:
                 type += 'Futures'
             self.options['urls'][type] = None
-        self.handle_errors(1, '', client.url, '', {}, data, message, {}, '')
+        self.handle_errors(1, '', client.url, '', {}, data, message, {}, None)
         return False
 
     def handle_message(self, client: Client, message: dict):

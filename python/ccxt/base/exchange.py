@@ -5891,7 +5891,7 @@ class BaseExchange(object):
         transfersArray = self.to_array(transfers)
         result = []
         for i in range(0, len(transfersArray)):
-            transfer = self.extend(self.parse_transfer(transfersArray[i], currency), params)
+            transfer = self.extend(self.parse_transfer(self.safe_dict(transfersArray, i, {}), currency), params)
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
@@ -7076,7 +7076,7 @@ class BaseExchange(object):
     def parse_deposit_addresses(self, addresses: list, codes: Strings = None, indexed=True, params: dict = {}):
         result = []
         for i in range(0, len(addresses)):
-            address = self.extend(self.parse_deposit_address(addresses[i]), params)
+            address = self.extend(self.parse_deposit_address(self.safe_dict(addresses, i, {})), params)
             result.append(address)
         if codes is not None:
             result = self.to_array(self.filter_by_array(result, 'currency', codes, False))
@@ -7963,7 +7963,7 @@ class BaseExchange(object):
     def parse_all_greeks_list(self, greeks: list[dict], symbols: Strings = None, params: dict = {}):
         results = []
         for i in range(0, len(greeks)):
-            results.append(self.extend(self.parse_greeks(greeks[i]), params))
+            results.append(self.extend(self.parse_greeks(self.safe_dict(greeks, i, {})), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_all_greeks_dict(self, greeks: dict, symbols: Strings = None, params: dict = {}):
@@ -7972,7 +7972,7 @@ class BaseExchange(object):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            results.append(self.extend(self.parse_greeks(greeks[marketId], market), params))
+            results.append(self.extend(self.parse_greeks(self.safe_dict(greeks, marketId, {}), market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
@@ -7985,7 +7985,7 @@ class BaseExchange(object):
             currency = self.safe_currency(currencyId)
             marketId = None if (symbolKey is None) else self.safe_string(response[i], symbolKey)
             market = self.safe_market(marketId, None, None, 'option')
-            optionStructures[market['symbol']] = self.parse_option(response[i], currency, market)
+            optionStructures[market['symbol']] = self.parse_option(self.safe_dict(response, i, {}), currency, market)
         return optionStructures
 
     def parse_margin_modes(self, response: list[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):

@@ -8167,7 +8167,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         timestamp = self.safe_integer(response, 'time')
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'list', [])
-        greeks = self.parse_greeks(data[0], market)
+        greeks = self.parse_greeks(self.safe_dict(data, 0, {}), market)
         return self.extend(greeks, {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

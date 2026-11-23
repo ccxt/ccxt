@@ -2564,7 +2564,7 @@ class digifinex(Exchange, ImplicitAPI):
         order = data if (not isMargin and (marketType == 'swap')) else self.safe_value(data, 0)
         if order is None:
             raise OrderNotFound(self.id + ' fetchOrder() order ' + idValue + ' not found')
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

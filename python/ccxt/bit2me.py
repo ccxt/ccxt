@@ -1057,7 +1057,7 @@ class bit2me(Exchange, ImplicitAPI):
         #         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> dict:
         """
@@ -1804,7 +1804,7 @@ class bit2me(Exchange, ImplicitAPI):
         fullUrl = apiUrl + url
         return {'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -2637,9 +2637,12 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         #     ]
         #
-        return self.parse_transfer(response, currency)
+        return self.extend(self.parse_transfer({}, currency), {
+            'id': self.safe_string(response, 0),
+            'info': response,
+        })
 
-    def parse_transfer(self, transfer: dict | list, currency: Currency = None) -> TransferEntry:
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #

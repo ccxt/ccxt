@@ -194,7 +194,7 @@ class gate(ccxt.async_support.gate):
         request = self.create_order_request(symbolValue, type, side, amount, price, params)
         await self.authenticate(url, messageType)
         rawOrder = await self.request_private(url, request, channel)
-        order = self.parse_order(rawOrder, market)
+        order = self.parse_order(self.extend({}, rawOrder), market)
         return order
 
     async def create_orders_ws(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
@@ -284,7 +284,7 @@ class gate(ccxt.async_support.gate):
         await self.authenticate(url, messageType)
         orderRequest = self.extend(request, {'order_id': str(id)})
         res = await self.request_private(url, self.extend(orderRequest, requestParams), channel)
-        return self.parse_order(res, market)
+        return self.parse_order(self.extend({}, res), market)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -311,7 +311,7 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         await self.authenticate(url, messageType)
         rawOrder = await self.request_private(url, extendedRequest, channel)
-        return self.parse_order(rawOrder, market)
+        return self.parse_order(self.extend({}, rawOrder), market)
 
     async def fetch_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -342,7 +342,7 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         await self.authenticate(url, messageType)
         rawOrder = await self.request_private(url, self.extend(request, requestParams), channel)
-        return self.parse_order(rawOrder, market)
+        return self.parse_order(self.extend({}, rawOrder), market)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

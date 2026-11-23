@@ -1028,8 +1028,7 @@ class backpack(Exchange, ImplicitAPI):
         if (amountString is None) or not Precise.string_gt(amountString, '0'):
             raise InvalidOrder(self.id + ' fetchStockIndicativeQuote() requires a positive base share quantity')
         request = {'symbol': market['baseId'], 'side': self.encode_order_side(side), 'quantity': self.number_to_string(amount)}
-        requestMethod = 'publicGetApiV1StockIndicativeQuote'
-        return await getattr(self, requestMethod)(self.extend(query, request))
+        return await self.publicGetApiV1StockIndicativeQuote(self.extend(query, request))
 
     def rfq_conversion_market(self, fromCode: str, toCode: str) -> MarketInterface:
         """

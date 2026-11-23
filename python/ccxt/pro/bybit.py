@@ -1957,11 +1957,6 @@ class bybit(ccxt.async_support.bybit):
         symbols = {}
         for i in range(0, len(rawOrders)):
             parsed = self.parse_order(self.safe_dict(rawOrders, i, {}))
-            # if (isSpot) {
-            #     parsed = this.parseWsSpotOrder (rawOrders[i]);
-            # } else {
-            #     parsed = this.parseOrder (rawOrders[i]);
-            # }
             symbol = self.safe_string(parsed, 'symbol')
             if symbol is None:
                 continue

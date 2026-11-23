@@ -1237,7 +1237,7 @@ class cex(ccxt.async_support.cex):
             'data': data,
         }
         response = await self.watch(url, messageHash, request, messageHash)
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1305,7 +1305,7 @@ class cex(ccxt.async_support.cex):
             'data': data,
         }
         rawOrder = await self.watch(url, messageHash, request, messageHash)
-        return self.parse_order(rawOrder, market)
+        return self.parse_order(self.extend({}, rawOrder), market)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1345,7 +1345,7 @@ class cex(ccxt.async_support.cex):
             'data': data,
         }
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1375,7 +1375,7 @@ class cex(ccxt.async_support.cex):
             'data': data,
         }
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """

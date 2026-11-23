@@ -4957,12 +4957,11 @@ class xt(Exchange, ImplicitAPI):
         :param dict breakBySymbolSide: the result of indexPositionBreakList()
         """
         breakEntry = self.safe_dict(breakBySymbolSide, self.safe_string(entry, 'symbol', '') + '_' + self.safe_string(entry, 'positionSide', ''))
-        if breakEntry is None:
-            return entry
-        return self.extend(entry, {
-            'breakPrice': self.safe_string(breakEntry, 'breakPrice'),
-            'calMarkPrice': self.safe_string(breakEntry, 'calMarkPrice'),
-        })
+        extra = {}
+        if breakEntry is not None:
+            extra['breakPrice'] = self.safe_string(breakEntry, 'breakPrice')
+            extra['calMarkPrice'] = self.safe_string(breakEntry, 'calMarkPrice')
+        return self.extend(entry, extra)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """

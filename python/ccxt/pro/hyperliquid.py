@@ -1553,7 +1553,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.reject(error, id)
             return True
         try:
-            self.handle_errors(0, '', '', '', {}, self.json(payload), payload, {}, '')
+            self.handle_errors(0, '', '', '', {}, self.json(payload), payload, {}, None)
         except Exception as e:
             client.reject(e, id)
             return True
