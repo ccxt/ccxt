@@ -1258,13 +1258,13 @@ export default class bingx extends Exchange {
         const until = this.safeInteger2 (paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
         if (until !== undefined) {
-            let endTime = until;
             if (since !== undefined) {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                endTime = Math.min (until, this.sum (since, duration * requestLimit));
+                request['endTime'] = Math.min (until, this.sum (since, duration * requestLimit));
+            } else {
+                request['endTime'] = until;
             }
-            request['endTime'] = endTime;
         } else if ((this.safeBool (market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe (timeframe) * 1000;
             request['endTime'] = this.sum (since, duration * requestLimit);
@@ -2500,12 +2500,12 @@ export default class bingx extends Exchange {
         const lastQty = this.safeString (ticker, 'lastQty');
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        let type: Str = 'swap';
+        let type: string = 'swap';
         if (lastQty === undefined) {
             type = 'spot';
         }
         if (market !== undefined) {
-            type = this.safeString (market, 'type');
+            type = this.safeString (market, 'type', type);
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, type);
         const symbol = this.safeString (marketResolved, 'symbol');

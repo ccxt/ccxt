@@ -156,13 +156,11 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTicker', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const messageHash = this.getMessageHash ('ticker', this.safeString (market, 'symbol'));
         const uuid = this.uuid ();
@@ -381,13 +379,11 @@ export default class bingx extends bingxRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = this.safeString (market, 'symbol', '');
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTrades', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const messageHash = 'trade::' + symbolValue;
         const uuid = this.uuid ();
@@ -570,13 +566,11 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOrderBook', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', '100');
@@ -924,13 +918,11 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOHLCV', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
