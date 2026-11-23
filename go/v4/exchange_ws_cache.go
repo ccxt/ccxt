@@ -71,7 +71,7 @@ func (this *BaseExchange) ApplyOrderBookSnapshot(stored any, snapshot any) bool 
 	if deltas == nil {
 		return false
 	}
-	index := ToFloat64(this.DerivedExchange.GetCacheIndex(book, deltas))
+	index := this.DerivedExchange.GetCacheIndex(book, deltas)
 	if index < 0 {
 		return false
 	}
