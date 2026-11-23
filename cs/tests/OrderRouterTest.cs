@@ -1559,12 +1559,12 @@ public class OrderRouterTest
             return Task.FromResult((IDictionary<string, object>)this.markets);
         }
 
-        public override string? amountToPrecision(object symbol, object amount)
+        public override string? amountToPrecision(string symbol, object amount)
         {
             return Convert.ToString(amount, CultureInfo.InvariantCulture);
         }
 
-        public override string? priceToPrecision(object symbol, object price)
+        public override string? priceToPrecision(string symbol, object price)
         {
             return Convert.ToString(price, CultureInfo.InvariantCulture);
         }

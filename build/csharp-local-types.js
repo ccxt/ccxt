@@ -240,6 +240,7 @@ for (const [ retypeName, retypePositions ] of Object.entries (RETYPE_CS_DIVIDE_N
 
 export const CORE_STRING_ARGS = {
     'addMargin': [ 0 ],
+    'amountToPrecision': [ 0 ],
     'borrowCrossMargin': [ 0 ],
     'borrowIsolatedMargin': [ 1 ],
     'borrowMargin': [ 0 ],
@@ -261,6 +262,7 @@ export const CORE_STRING_ARGS = {
     'commonCurrencyCode': [ 0 ],
     'convertCurrencyNetwork': [ 0 ],
     'convertToRealAmount': [ 0 ],
+    'costToPrecision': [ 0 ],
     'createAmmOrder': [ 0, 1, 2 ],
     'createConvertTrade': [ 0, 1, 2 ],
     'createDepositAddress': [ 0 ],
@@ -453,6 +455,7 @@ export const CORE_STRING_ARGS = {
     'parseWsOHLCVs': [ 2 ],
     'prepareAccountRequestWithCurrencyCode': [ 0 ],
     'prepareRequestForDepositAddress': [ 0 ],
+    'priceToPrecision': [ 0 ],
     'queryTransactionsByEventType': [ 3 ],
     'reduceMargin': [ 0 ],
     'repayCrossMargin': [ 0 ],
