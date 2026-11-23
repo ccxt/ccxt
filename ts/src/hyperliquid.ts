@@ -3461,8 +3461,7 @@ export default class hyperliquid extends Exchange {
         //         "status": "order"
         //     }
         //
-        const data = this.safeDict (response, 'order');
-        return this.parseOrder ((data as Dict), market);
+        return this.parseOrder (this.safeDict (response, 'order', {}), market);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {

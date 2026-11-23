@@ -1336,8 +1336,7 @@ export default class phemex extends phemexRest {
             }
             trades = this.safeList (ordersDict, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
-                const rawOrder = orders[i];
-                const parsedOrder = this.parseOrder (rawOrder);
+                const parsedOrder = this.parseOrder (this.safeDict (orders, i, {}));
                 parsedOrders.push (parsedOrder);
             }
         } else {

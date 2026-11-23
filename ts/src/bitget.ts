@@ -11618,7 +11618,7 @@ export default class bitget extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const order = this.safeList2 (data, 'successList', 'list', []);
-        return this.parseOrder (order[0], market);
+        return this.parseOrder (this.safeDict (order, 0, {}), market);
     }
 
     /**

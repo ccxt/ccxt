@@ -3954,8 +3954,7 @@ export default class okx extends Exchange {
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeList (response, 'data', []);
-        const order = this.safeDict (data, 0) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.safeDict (data, 0, {}), market);
     }
 
     parseIds (ids: any) {
@@ -4673,8 +4672,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const order = this.safeDict (data, 0) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.safeDict (data, 0, {}), market);
     }
 
     /**
@@ -9123,8 +9121,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const order = this.safeDict (data, 0) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.safeDict (data, 0, {}), market);
     }
 
     /**

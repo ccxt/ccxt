@@ -5230,7 +5230,7 @@ export class BaseExchange {
         let results: Order[] = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const parsed = this.parseOrder (orders[i], market); // don't inline this call
+                const parsed = this.parseOrder (this.safeDict (orders, i, {}), market); // don't inline this call
                 const order = this.extend (parsed, params);
                 results.push (order);
             }

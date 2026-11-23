@@ -5100,8 +5100,7 @@ export default class kucoin extends Exchange {
                 //    }
                 //
             }
-            response = this.safeDict (response, 'data') as Dict;
-            return this.parseOrder (response);
+            return this.parseOrder (this.safeDict (response, 'data', {}));
         } else {
             request['orderId'] = id;
             if (trigger) {
@@ -5130,8 +5129,7 @@ export default class kucoin extends Exchange {
                 //        }
                 //    }
                 //
-                response = this.safeDict (response, 'data', {});
-                return this.parseOrder (response);
+                return this.parseOrder (this.safeDict (response, 'data', {}));
             } else {
                 response = await this.privateDeleteOrdersOrderId (this.extend (request, paramsOmitted));
                 //
