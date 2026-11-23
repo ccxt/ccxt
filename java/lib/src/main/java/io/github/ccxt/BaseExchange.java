@@ -1200,7 +1200,7 @@ public class BaseExchange {
         return io.github.ccxt.base.Functions.toArray(a);
     }
 
-    public Object arrayConcat(Object a, Object b) {
+    public java.util.List<Object> arrayConcat(Object a, Object b) {
         return io.github.ccxt.base.Functions.arrayConcat(a, b);
     }
 

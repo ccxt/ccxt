@@ -6103,7 +6103,7 @@ function javaListLocalsSelfTest (): string[] {
         "    fbl (r: any) { let o = this.filterBySinceLimit (r, 1, 2); if (o.length > 1) { o = this.sortBy (o, 'x'); } return o[0]; }",
     ], checks: [
         [ /List<Object> a = /, true, "'a' ([] + arrayConcat) must print List<Object>" ],
-        [ /a = \(java\.util\.List<Object>\) this\.arrayConcat\(/, true, "'a' arrayConcat write needs a checkcast" ],
+        [ /a = (\(java\.util\.List<Object>\) )?this\.arrayConcat\(/, true, "'a' arrayConcat write must stay a List write" ],
         [ /List<Object> b = (\(java\.util\.List<Object>\) )?this\.safeList\(/, true, "'b' (safeList + safeList write) must print List<Object>" ],
         [ /List<Object> c = /, true, "'c' (Object.keys) must print List<Object>" ],
         [ [ /Helpers\.getArrayLength\((a|b)\)/, /Helpers\.GetValue\((a|b), / ], false, "'a'/'b' length/get must go native" ],

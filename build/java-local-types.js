@@ -62,6 +62,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseMarketLeverageTiers', 'parseEmulatedLeverageTiers',
     // parseMarkets (: Market[]): base and the xt / bitvavo overrides return their own List `result`
     'parseMarkets',
+    // arraysConcat (: any[]): base only, returns its own List `result`
+    'arraysConcat',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
@@ -5014,7 +5016,7 @@ const JAVA_COLLECTION_CALL_TYPES = {
     'sortBy2': { type: JAVA_ARRAY_TYPE, cast: () => false },
     'filterBy': { type: JAVA_ARRAY_TYPE, cast: () => false },
     'toArray': { type: JAVA_ARRAY_TYPE, cast: () => false },
-    'arrayConcat': { type: JAVA_ARRAY_TYPE, cast: () => true },
+    'arrayConcat': { type: JAVA_ARRAY_TYPE, cast: () => false },
 };
 
 // the helper DEFINITIONS the resolved signature must live in, so a same-named method

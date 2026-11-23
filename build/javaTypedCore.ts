@@ -184,6 +184,8 @@ const TYPED_BASE_READERS: Record<string, string> = {
     safeNumber: 'Double', decode: 'String', parseToInt: 'Long',
     // generated base `List<Object> parseMarkets(..)` / `Map<String, Object> parseCurrencies(..)`
     parseMarkets: 'List<Object>', parseCurrencies: 'Map<String, Object>',
+    // BaseExchange.java `List<Object> arrayConcat(Object, Object)`; generated base `List<Object> arraysConcat(..)`
+    arrayConcat: 'List<Object>', arraysConcat: 'List<Object>',
 };
 // BaseExchange.java `java.util.Map<String, Object> extend(Object aa, Object bb)`: only the two-argument
 // overload is typed (`Object extend(Object... objs)` is not)
