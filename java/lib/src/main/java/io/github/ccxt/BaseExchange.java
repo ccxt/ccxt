@@ -4186,11 +4186,14 @@ public class BaseExchange {
         return Encode.binaryToBase58(buff2);
     }
 
-    public Object toFixed(Object number, Object decimals) {
+    public String toFixed(Object number, Object decimals) {
+        // JS Number.prototype.toFixed: the exact binary value, half-up, zero-padded
         double num = ((Number) number).doubleValue();
         int dec = ((Number) decimals).intValue();
-        double factor = Math.pow(10, dec);
-        return Math.round(num * factor) / factor;
+        if (Double.isNaN(num) || Double.isInfinite(num)) {
+            return String.valueOf(num);
+        }
+        return new java.math.BigDecimal(num).setScale(dec, java.math.RoundingMode.HALF_UP).toPlainString();
     }
 
     public static Object getProperty(Object obj, Object property, Object defaultValue) {
