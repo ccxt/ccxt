@@ -98,8 +98,7 @@ const TAG_ACCESS = [
 const BUILDERS = new Set(['account', 'safe_ledger_entry', 'deposit_withdraw_fee']);
 
 // Copy-on-write of a proven tag-free source keeps the result tag-free.
-const EXTENDERS = new Set(['extend', 'omit', 'keysort', 'extend_t', 'safe_open_interest',
-    'keysort_t']);
+const EXTENDERS = new Set(['extend', 'omit', 'keysort', 'extend_t', 'safe_open_interest']);
 
 // Parser methods whose return value is a fresh plain dict; the trait shims for
 // these forward to a per-exchange `*Core` impl, so the body is not always in the
