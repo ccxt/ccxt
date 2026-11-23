@@ -3399,7 +3399,7 @@ func (this *Bullish) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(response, params))}
 	return nil
 }
-func (this *Bullish) ParseAccount(account any) map[string]any {
+func (this *Bullish) ParseAccount(account map[string]any) map[string]any {
 	return map[string]any{
 		"id":   this.SafeString(account, "tradingAccountId"),
 		"type": nil,

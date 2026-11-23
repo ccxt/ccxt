@@ -1241,7 +1241,7 @@ func (this *Cex) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(arrays, params))}
 	return nil
 }
-func (this *Cex) ParseAccount(account any) map[string]any {
+func (this *Cex) ParseAccount(account map[string]any) map[string]any {
 	return map[string]any{
 		"id":   nil,
 		"type": nil,

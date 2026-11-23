@@ -844,7 +844,7 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 	_ = timeframe
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -891,11 +891,9 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 		}
 		var options, _ = this.Options["watchOHLCV"].(map[string]any)
 		var duration int64 = this.ParseTimeframe(timeframe)
-		var historyLimit any
-		if limit == nil {
-			historyLimit = 100
-		} else {
-			historyLimit = limit
+		var historyLimit int64 = 100
+		if limit != nil {
+			historyLimit = this.ParseToInt(limit)
 		}
 		var historyRequest map[string]any = map[string]any{
 			"exchange":   this.SafeString(options, "exchange", "SMART"),
@@ -923,7 +921,7 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 		panic(r4.Err)
 	}
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r4.Value)
-	var resultLimit *int64 = ccxt.Int64PtrTyped(limit)
+	var resultLimit *int64 = limit
 	if this.NewUpdates {
 		resultLimit = ccxt.ToGetsLimit(ohlcv).GetLimit(unifiedSymbol, limit)
 	}
@@ -1088,29 +1086,29 @@ func (this *Interactivebrokers) HandleOHLCV(client ccxt.ClientInterface, message
  * @param {int} limit the number of bars
  * @returns {string} the period, e.g. '2h'
  */
-func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit any) string {
-	var total any = ccxt.Multiply(duration, limit)
-	var minutes int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 59)), 60))
+func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit int64) string {
+	var total int64 = duration * limit
+	var minutes int64 = this.ParseToInt(float64(total+59) / 60)
 	if minutes <= 30 {
 		return *this.NumberToString(max(minutes, 1)) + "min"
 	}
-	var hours int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 3599)), 3600))
+	var hours int64 = this.ParseToInt(float64(total+3599) / 3600)
 	if hours <= 8 {
 		return *this.NumberToString(hours) + "h"
 	}
-	var days int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 86399)), 86400))
+	var days int64 = this.ParseToInt(float64(total+86399) / 86400)
 	if days <= 1000 {
 		return *this.NumberToString(days) + "d"
 	}
-	var weeks int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 604799)), 604800))
+	var weeks int64 = this.ParseToInt(float64(total+604799) / 604800)
 	if weeks <= 792 {
 		return *this.NumberToString(weeks) + "w"
 	}
-	var months int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 2591999)), 2592000))
+	var months int64 = this.ParseToInt(float64(total+2591999) / 2592000)
 	if months <= 182 {
 		return *this.NumberToString(months) + "m"
 	}
-	var years int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 31535999)), 31536000))
+	var years int64 = this.ParseToInt(float64(total+31535999) / 31536000)
 	return *this.NumberToString(min(years, 15)) + "y"
 }
 
@@ -1636,9 +1634,9 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes102815 := r1.Value
+	retRes103115 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes102815.(type) {
+	switch resolvedBox := retRes103115.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1844,9 +1842,9 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes115615 := r1.Value
+	retRes115915 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes115615.(type) {
+	switch resolvedBox := retRes115915.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:

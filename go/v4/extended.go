@@ -2238,7 +2238,7 @@ func (this *Extended) fetchAccountsBody(ch chan AsyncResult[[]Account], optional
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(data))}
 	return nil
 }
-func (this *Extended) ParseAccount(account any) map[string]any {
+func (this *Extended) ParseAccount(account map[string]any) map[string]any {
 	var accountIndex *int64 = this.SafeInteger(account, "accountIndex")
 	var typeVar *string = nil
 	if accountIndex != nil {

@@ -985,7 +985,7 @@ func (this *Coinbase) fetchPortfoliosBody(ch chan AsyncResult[[]Account], option
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
 	return nil
 }
-func (this *Coinbase) ParseAccount(account any) map[string]any {
+func (this *Coinbase) ParseAccount(account map[string]any) map[string]any {
 	//
 	// fetchAccountsV2
 	//
@@ -1043,7 +1043,7 @@ func (this *Coinbase) ParseAccount(account any) map[string]any {
 	//
 	var active *bool = this.SafeBool(account, "active")
 	var currencyIdV3 *string = this.SafeString(account, "currency")
-	var currency map[string]any = SafeMapTyped(account, "currency")
+	var currency, _ = account["currency"].(map[string]any)
 	var currencyId *string = this.SafeString(currency, "code", currencyIdV3)
 	var typeV3 *string = this.SafeString(account, "name")
 	var typeV2 *string = this.SafeString(account, "type")

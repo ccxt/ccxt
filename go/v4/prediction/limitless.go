@@ -2521,7 +2521,7 @@ func (this *Limitless) ApplyScale(amount any, optionalArgs ...any) *string {
 		return ccxt.Precise.StringDiv(amount, scale)
 	}
 }
-func (this *Limitless) ParseAccount(account any) map[string]any {
+func (this *Limitless) ParseAccount(account map[string]any) map[string]any {
 	var accountId *string = this.SafeString(account, "id")
 	return map[string]any{
 		"id":   accountId,

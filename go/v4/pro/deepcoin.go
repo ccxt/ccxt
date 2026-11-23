@@ -100,9 +100,8 @@ func (this *Deepcoin) Ping(client ccxt.ClientInterface) any {
 	}
 	return "ping"
 }
-func (this *Deepcoin) HandlePong(client ccxt.ClientInterface, message string) any {
+func (this *Deepcoin) HandlePong(client ccxt.ClientInterface, message string) {
 	client.SetLastPong(this.Milliseconds())
-	return message
 }
 func (this *Deepcoin) RequestId() int64 {
 	var newValue int64 = this.NextRequestId("lastRequestId")

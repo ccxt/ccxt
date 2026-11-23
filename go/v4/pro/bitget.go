@@ -3716,9 +3716,8 @@ func (this *Bitget) HandleMessage(client ccxt.ClientInterface, message map[strin
 func (this *Bitget) Ping(client ccxt.ClientInterface) any {
 	return "ping"
 }
-func (this *Bitget) HandlePong(client ccxt.ClientInterface, message any) any {
+func (this *Bitget) HandlePong(client ccxt.ClientInterface, message any) {
 	client.SetLastPong(this.Milliseconds())
-	return message
 }
 func (this *Bitget) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//

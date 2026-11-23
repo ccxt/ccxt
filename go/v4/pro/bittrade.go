@@ -690,7 +690,7 @@ func (this *Bittrade) HandleOrderBookSubscription(client ccxt.ClientInterface, m
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 }
-func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) any {
+func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "id": 1583414227,
@@ -701,7 +701,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 	//
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
-		return message
+		return
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	var subscription map[string]any
@@ -712,17 +712,16 @@ func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 		var method *string = this.SafeString(subscription, "method")
 		if method != nil && *method == "handleOrderBookSnapshot" {
 			this.HandleOrderBookSnapshot(client, message, subscription)
-			return nil
+			return
 		} else if method != nil && *method == "handleOrderBookSubscription" {
 			this.HandleOrderBookSubscription(client, message, subscription)
-			return nil
+			return
 		}
 		// clean up
 		if client.SubscriptionHas(id) {
 			client.SubscriptionDel(id)
 		}
 	}
-	return message
 }
 func (this *Bittrade) HandleSystemStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//

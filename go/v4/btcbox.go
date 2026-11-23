@@ -1203,12 +1203,12 @@ func (this *Btcbox) HandleErrors(code int64, reason string, url string, method s
 	this.ThrowExactlyMatchedException(this.Exceptions, codeError, feedback)
 	panic(ExchangeError(feedback))
 }
-func (this *Btcbox) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Btcbox) RequestAsync(path string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.requestBody(ch, path, optionalArgs...)
 	return ch
 }
-func (this *Btcbox) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
+func (this *Btcbox) requestBody(ch chan AsyncResult[any], path string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})

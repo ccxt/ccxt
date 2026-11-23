@@ -1376,8 +1376,8 @@ func (this *Interactivebrokers) IbkrGatewayScheduleRegain() any {
 		return false
 	}
 	var lostTimestamp *int64 = this.SafeInteger(this.Options, "gatewaySessionLostTimestamp", this.Milliseconds())
-	var wait any = ((*lostTimestamp + regainDelay) - this.Milliseconds())
-	if wait.(int64) <= 0 {
+	var wait int64 = (*lostTimestamp + regainDelay) - this.Milliseconds()
+	if wait <= 0 {
 		wait = regainDelay
 	}
 
@@ -3775,13 +3775,13 @@ func (this *Interactivebrokers) fetchAccountsBody(ch chan AsyncResult[[]Account]
 	}
 	var accounts []any = []any{}
 	for i := 0; i < GetArrayLength(portfolioAccounts); i++ {
-		accounts = append(accounts, this.ParseAccount(GetValue(portfolioAccounts, i)))
+		accounts = append(accounts, this.ParseAccount(this.Extend(map[string]any{}, GetValue(portfolioAccounts, i))))
 	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(accounts)}
 	return nil
 }
-func (this *Interactivebrokers) ParseAccount(account any) map[string]any {
+func (this *Interactivebrokers) ParseAccount(account map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "U3449298",
@@ -5802,14 +5802,14 @@ func (this *Interactivebrokers) IbkrCheckOauthCredentials() bool {
  * @param {string} path the endpoint path
  * @returns {boolean} true if the request is sent to the client portal gateway
  */
-func (this *Interactivebrokers) IbkrIsGatewayRequest(path any) bool {
+func (this *Interactivebrokers) IbkrIsGatewayRequest(path string) bool {
 	// with the client portal gateway signIn () never sets a live session token, so besides options.useGateway
 	// the requests are routed to the gateway when there is no live session token and oauth is not configured
 	// (e.g. public calls like fetchOpenInterests made before any private call)
 	var useGatewayOption *bool = this.SafeBool(this.Options, "useGateway", false)
 	var hasLiveSessionToken bool = (this.SafeString(this.Options, "liveSessionToken") != nil)
 	var oauthConfigured bool = (this.SafeString(this.Options, "encryptionPemPath") != nil) && (this.SafeString(this.Options, "dhParamPemPath") != nil)
-	var isLiveSessionTokenRequest bool = EndsWith(path, "v1/api/oauth/live_session_token")
+	var isLiveSessionTokenRequest bool = strings.HasSuffix(path, "v1/api/oauth/live_session_token")
 	return (useGatewayOption != nil && *useGatewayOption) || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest)
 }
 func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[string]any {
@@ -5916,16 +5916,16 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
  * @param {string} path the endpoint path
  * @returns {boolean} true for the session/authentication endpoints
  */
-func (this *Interactivebrokers) IbkrIsAuthRequest(path any) bool {
+func (this *Interactivebrokers) IbkrIsAuthRequest(path string) bool {
 	var authPaths []string = []string{"v1/api/oauth/live_session_token", "v1/api/oauth/request_token", "v1/api/oauth/access_token", "v1/api/iserver/auth/status", "v1/api/iserver/auth/ssodh/init", "v1/api/iserver/accounts", "v1/api/tickle", "v1/api/logout"}
 	return this.InArray(path, authPaths)
 }
-func (this *Interactivebrokers) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Interactivebrokers) RequestAsync(path string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.requestBody(ch, path, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
+func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false
@@ -5955,7 +5955,7 @@ func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path any, 
 		// done here instead of sign (), which cannot change the instance in the statically typed ports
 		this.SetValidateServerSsl(false)
 	}
-	var isAccountsPath bool = (IsEqual(path, "iserver/accounts")) || (IsEqual(path, "v1/api/iserver/accounts"))
+	var isAccountsPath bool = (path == "iserver/accounts") || (path == "v1/api/iserver/accounts")
 	var options, _ = this.Options["queryAccountsFirst"].(map[string]any)
 	var retries int64 = *this.SafeInteger(options, "retries", 3)
 	var retryDelay *int64 = this.SafeInteger(options, "retryDelay", 1000)

@@ -3040,7 +3040,7 @@ func (this *Lighter) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts, paramsAccountIndex))}
 	return nil
 }
-func (this *Lighter) ParseAccount(account any) map[string]any {
+func (this *Lighter) ParseAccount(account map[string]any) map[string]any {
 	//
 	//     {
 	//         "code": "0",

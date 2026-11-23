@@ -1369,7 +1369,7 @@ func (this *BaseExchange) ParseTransfer(transfer map[string]any, optionalArgs ..
 	_ = currency
 	panic(NotSupported(this.Id + " parseTransfer() is not supported yet"))
 }
-func (this *BaseExchange) ParseAccount(account any) map[string]any {
+func (this *BaseExchange) ParseAccount(account map[string]any) map[string]any {
 	panic(NotSupported(this.Id + " parseAccount() is not supported yet"))
 }
 func (this *BaseExchange) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
@@ -5121,12 +5121,12 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 
 	return nil
 }
-func (this *BaseExchange) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *BaseExchange) RequestAsync(path string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.requestBody(ch, path, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
+func (this *BaseExchange) requestBody(ch chan AsyncResult[any], path string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})

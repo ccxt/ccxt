@@ -7672,7 +7672,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 				panic(r2.Err)
 			}
 			response = r2.Value
-			var results map[string]any = SafeMapTyped(response, "data")
+			var results, _ = response["data"].(map[string]any)
 			assets = this.SafeListSlice(results, "assets", []any{})
 		}
 

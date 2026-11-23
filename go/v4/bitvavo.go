@@ -1622,7 +1622,7 @@ func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts))}
 	return nil
 }
-func (this *Bitvavo) ParseAccount(account any) map[string]any {
+func (this *Bitvavo) ParseAccount(account map[string]any) map[string]any {
 	return map[string]any{
 		"id":   this.SafeString(account, "id"),
 		"type": this.SafeString(account, "type"),

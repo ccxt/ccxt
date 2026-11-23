@@ -1856,7 +1856,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleTrades(client ccxt.ClientInterface, message map[string]any) map[string]any {
+func (this *Coinbaseinternational) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel", "")
 	var data, _ = params["data"].([]any)
@@ -1879,7 +1879,6 @@ func (this *Coinbaseinternational) HandleTrades(client ccxt.ClientInterface, mes
 	}
 	this.Trades[*symbol] = tradesArray
 	client.Resolve(tradesArray, channel)
-	return message
 }
 
 /**
@@ -2109,18 +2108,18 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
+		var deltas130412 []any
+		deltas130412, _ = data["asks"].([]any)
+		if deltas130412 == nil {
+			deltas130412 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetAsks(), deltas130412)
 		var deltas130512 []any
-		deltas130512, _ = data["asks"].([]any)
+		deltas130512, _ = data["bids"].([]any)
 		if deltas130512 == nil {
 			deltas130512 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetAsks(), deltas130512)
-		var deltas130612 []any
-		deltas130612, _ = data["bids"].([]any)
-		if deltas130612 == nil {
-			deltas130612 = []any{}
-		}
-		this.HandleDeltas(orderbook.GetBids(), deltas130612)
+		this.HandleDeltas(orderbook.GetBids(), deltas130512)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2152,13 +2151,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var ternaryStr132822 string = "public/unsubscribe"
+	var ternaryStr132722 string = "public/unsubscribe"
 	if isPrivate {
-		ternaryStr132822 = "private/unsubscribe"
+		ternaryStr132722 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method":  ternaryStr132822,
+		"method":  ternaryStr132722,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},

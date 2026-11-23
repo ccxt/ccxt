@@ -3700,9 +3700,8 @@ func (this *Okx) Ping(client ccxt.ClientInterface) any {
 	// Instead, it requires a custom text-based ping-pong mechanism.
 	return "ping"
 }
-func (this *Okx) HandlePong(client ccxt.ClientInterface, message any) any {
+func (this *Okx) HandlePong(client ccxt.ClientInterface, message any) {
 	client.SetLastPong(this.Milliseconds())
-	return message
 }
 func (this *Okx) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	//

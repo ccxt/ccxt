@@ -8795,7 +8795,8 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	//         ]
 	//     }
 	//
-	var positions []any = SafeListTyped(response, "data")
+	var positions []any
+	positions, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
 		positionsDict642855, _ := positions[i].(map[string]any)

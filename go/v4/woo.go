@@ -3587,7 +3587,7 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(rows, params))}
 	return nil
 }
-func (this *Woo) ParseAccount(account any) map[string]any {
+func (this *Woo) ParseAccount(account map[string]any) map[string]any {
 	//
 	//     {
 	//         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",

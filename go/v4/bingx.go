@@ -7910,7 +7910,7 @@ func (this *Bingx) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	//    {
 	//        "code":0,

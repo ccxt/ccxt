@@ -1166,7 +1166,7 @@ func (this *Deribit) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(result))}
 	return nil
 }
-func (this *Deribit) ParseAccount(account any) map[string]any {
+func (this *Deribit) ParseAccount(account map[string]any) map[string]any {
 	//
 	//      {
 	//          "username": "someusername_1",

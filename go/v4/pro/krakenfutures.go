@@ -2297,7 +2297,7 @@ func (this *Krakenfutures) HandleMessage(client ccxt.ClientInterface, message ma
 		}
 	}
 }
-func (this *Krakenfutures) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) map[string]any {
+func (this *Krakenfutures) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -2331,7 +2331,6 @@ func (this *Krakenfutures) HandleAuthenticate(client ccxt.ClientInterface, messa
 			client.SubscriptionDel(messageHash)
 		}
 	}
-	return message
 }
 
 func NewKrakenfutures(userConfig map[string]any) *Krakenfutures {

@@ -2616,7 +2616,7 @@ func (this *Krakenfutures) ParseOrderType(orderType any) *string {
 	}
 	return this.SafeString(typesMap, orderType, orderType)
 }
-func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method string, optionalArgs ...any) {
+func (this *Krakenfutures) VerifyOrderActionSuccess(status *string, method string, optionalArgs ...any) {
 	omit := GetArg(optionalArgs, 0, []any{})
 	_ = omit
 	var errors map[string]any = map[string]any{
@@ -2641,8 +2641,10 @@ func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method string, o
 		"filled":                     OrderNotFound,
 		"notFound":                   OrderNotFound,
 	}
-	if (InOp(errors, status)) && !this.InArray(status, omit) {
-		ThrowDynamicException(GetValue(errors, status), Add(this.Id+": "+method+" failed due to ", status))
+	if status != nil {
+		if _, ok := errors[*status]; ok && !this.InArray(status, omit) {
+			ThrowDynamicException(errors[*status], this.Id+": "+method+" failed due to "+*status)
+		}
 	}
 }
 func (this *Krakenfutures) ParseOrderStatus(status any) *string {
@@ -3158,7 +3160,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	if triggerPrice == nil {
 		triggerPrice = this.SafeString(priceTriggerOptions, "triggerPrice")
 	}
-	var literal247631 map[string]any = map[string]any{
+	var literal247831 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       this.SafeStringN(details, []any{"clientOrderId", "clientId", "cliOrdId"}),
@@ -3186,15 +3188,15 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              trades,
 	}
 	if price != nil {
-		literal247631["price"] = *price
+		literal247831["price"] = *price
 	}
 	if cost != nil {
-		literal247631["cost"] = *cost
+		literal247831["cost"] = *cost
 	}
 	if average != nil {
-		literal247631["average"] = *average
+		literal247831["average"] = *average
 	}
-	return this.SafeOrder(literal247631)
+	return this.SafeOrder(literal247831)
 }
 
 /**
@@ -4393,7 +4395,7 @@ func (this *Krakenfutures) ParsePosition(position map[string]any, optionalArgs .
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var literal344934 map[string]any = map[string]any{
+	var literal345134 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
 		"symbol":                      marketResolved["symbol"],
@@ -4420,9 +4422,9 @@ func (this *Krakenfutures) ParsePosition(position map[string]any, optionalArgs .
 		"percentage":                  nil,
 	}
 	if datetime != nil {
-		literal344934["datetime"] = *datetime
+		literal345134["datetime"] = *datetime
 	}
-	return this.SafePosition(literal344934)
+	return this.SafePosition(literal345134)
 }
 
 /**

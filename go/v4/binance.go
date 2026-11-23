@@ -17784,12 +17784,12 @@ func (this *Binance) CalculateRateLimiterCost(api []string, method string, path 
 	}
 	return this.SafeNumber(config, "cost", 1)
 }
-func (this *Binance) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Binance) RequestAsync(path string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.requestBody(ch, path, optionalArgs...)
 	return ch
 }
-func (this *Binance) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
+func (this *Binance) requestBody(ch chan AsyncResult[any], path string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// generate the client order ids once, so a retry inside fetch2 signs the same ids

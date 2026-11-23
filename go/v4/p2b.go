@@ -1169,7 +1169,7 @@ func (this *P2b) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -1243,7 +1243,7 @@ func (this *P2b) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil

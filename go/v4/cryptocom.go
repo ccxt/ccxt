@@ -4045,7 +4045,7 @@ func (this *Cryptocom) fetchAccountsBody(ch chan AsyncResult[[]Account], optiona
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts, params))}
 	return nil
 }
-func (this *Cryptocom) ParseAccount(account any) map[string]any {
+func (this *Cryptocom) ParseAccount(account map[string]any) map[string]any {
 	//
 	//     {
 	//         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",

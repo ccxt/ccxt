@@ -476,7 +476,7 @@ func (this *Apex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
 }
-func (this *Apex) ParseAccount(account any) map[string]any {
+func (this *Apex) ParseAccount(account map[string]any) map[string]any {
 	var accountId *string = this.SafeString(account, "id", "0")
 	return map[string]any{
 		"id":   accountId,

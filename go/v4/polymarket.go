@@ -1761,7 +1761,7 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar *string, side *string, amount *string, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

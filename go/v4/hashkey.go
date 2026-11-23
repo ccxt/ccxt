@@ -2849,7 +2849,7 @@ func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(response, params))}
 	return nil
 }
-func (this *Hashkey) ParseAccount(account any) map[string]any {
+func (this *Hashkey) ParseAccount(account map[string]any) map[string]any {
 	var accountLabel *string = this.SafeString(account, "accountLabel")
 	var label string = ""
 	if (accountLabel != nil && *accountLabel == "Main Trading Account") || (accountLabel != nil && *accountLabel == "Main Future Account") {
@@ -3552,7 +3552,8 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		}
 		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + marketTypeValue + " type of markets"))
 	}
-	var result []any = SafeListTyped(response, "result")
+	var result []any
+	result, _ = response["result"].([]any)
 	var responseOrders []any = []any{}
 	for i := 0; i < len(result); i++ {
 		var responseEntry, _ = result[i].(map[string]any)

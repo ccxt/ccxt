@@ -986,7 +986,7 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan AsyncResult[[]Account], 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts, params))}
 	return nil
 }
-func (this *Coinbaseexchange) ParseAccount(account any) map[string]any {
+func (this *Coinbaseexchange) ParseAccount(account map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
@@ -3208,12 +3208,12 @@ func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string
 	}
 	return nil
 }
-func (this *Coinbaseexchange) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Coinbaseexchange) RequestAsync(path string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.requestBody(ch, path, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) requestBody(ch chan AsyncResult[any], path string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})

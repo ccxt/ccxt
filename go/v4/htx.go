@@ -4607,7 +4607,7 @@ func (this *Htx) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(data))}
 	return nil
 }
-func (this *Htx) ParseAccount(account any) map[string]any {
+func (this *Htx) ParseAccount(account map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": 5202591,
