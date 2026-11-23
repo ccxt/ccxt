@@ -2981,7 +2981,7 @@ class htx extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_list($data[$i], 'data', array());
             for ($j = 0; $j < count($trades); $j++) {
-                $trade = $this->parse_trade($trades[$j], $market);
+                $trade = $this->parse_trade($this->safe_dict($trades, $j, array()), $market);
                 $result[] = $trade;
             }
         }
@@ -5008,7 +5008,11 @@ class htx extends Exchange {
             if ($feeCurrencyId !== null) {
                 $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             } else {
-                $feeCurrency = ($side === 'sell') ? $marketResolved['quote'] : $marketResolved['base'];
+                if ($side === 'sell') {
+                    $feeCurrency = $this->safe_string($marketResolved, 'quote');
+                } else {
+                    $feeCurrency = $this->safe_string($marketResolved, 'base');
+                }
             }
             $fee = array(
                 'cost' => $feeCost,
@@ -5269,7 +5273,10 @@ class htx extends Exchange {
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
-        $orderType = ($postOnly) ? 'post_only' : $type;
+        $orderType = $type;
+        if ($postOnly) {
+            $orderType = 'post_only';
+        }
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('createOrder', $market, $paramsPostOnly);
         $query = $paramsSubType;
         $isLinear = ($subType === 'linear');
@@ -6456,7 +6463,7 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
+        $parsed = $this->parse_deposit_addresses($data, array( $this->safe_string($currency, 'code', '') ), false);
         return $this->index_by($parsed, 'network');
     }
 
@@ -6504,7 +6511,7 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $allAddresses = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
+        $allAddresses = $this->parse_deposit_addresses($data, array( $this->safe_string($currency, 'code', '') ), false);
         $addresses = array();
         for ($i = 0; $i < count($allAddresses); $i++) {
             $address = $allAddresses[$i];
@@ -8449,8 +8456,7 @@ class htx extends Exchange {
         }
         $data = $this->safe_value($response, 'data');
         if ($this->safe_bool($market, 'linear', false)) {
-            $linearPosition = $this->safe_dict($data, 0, array());
-            return $this->parse_position($linearPosition, $market);
+            return $this->parse_position($this->safe_dict($data, 0, array()), $market);
         }
         $account = null;
         if (($marginModeOption === null) || ($marginModeOption === 'cross')) {

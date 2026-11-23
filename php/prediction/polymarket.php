@@ -2796,8 +2796,7 @@ class polymarket extends Exchange {
          */
         $result = array();
         for ($i = 0; $i < count($rawEvents); $i++) {
-            $rawEvent = $rawEvents[$i];
-            $result[] = $this->parse_event($rawEvent);
+            $result[] = $this->parse_event($rawEvents[$i]);
         }
         return $result;
     }

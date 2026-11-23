@@ -373,8 +373,7 @@ class p2b extends \ccxt\async\p2b {
             $this->trades[$symbol] = $tradesArray;
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $item = $trades[$i];
-            $trade = $this->parse_trade($item, $market);
+            $trade = $this->parse_trade($this->safe_dict($trades, $i, array()), $market);
             $tradesArray->append($trade);
         }
         $messageHash = 'deals::' . $symbol;

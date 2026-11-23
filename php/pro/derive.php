@@ -572,7 +572,7 @@ class derive extends \ccxt\async\derive {
             $tradesArray = new ArrayCache($limit);
         }
         for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_trade($data[$i]);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()));
             $tradesArray->append($trade);
         }
         $this->trades[$symbol] = $tradesArray;
@@ -866,7 +866,7 @@ class derive extends \ccxt\async\derive {
         $topic = $this->safe_string($params, 'channel');
         $rawTrades = $this->safe_list($params, 'data', array());
         for ($i = 0; $i < count($rawTrades); $i++) {
-            $trade = $this->parse_trade($rawTrades[$i]);
+            $trade = $this->parse_trade($this->safe_dict($rawTrades, $i, array()));
             $myTrades->append($trade);
             $client->resolve($myTrades, $topic);
             if ($topic !== null) {

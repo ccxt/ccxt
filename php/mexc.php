@@ -2145,7 +2145,7 @@ class mexc extends Exchange {
             $ticker = $this->safe_dict($response, 'data', array());
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker($this->extend(array(), $ticker), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {

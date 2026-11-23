@@ -784,7 +784,7 @@ class extended extends \ccxt\async\extended {
         }
         $subscription['nonce'] = $nonce;
         for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_trade($data[$i], $market);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()), $market);
             $stored->append($trade);
         }
         $client->resolve($stored, $messageHash);

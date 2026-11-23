@@ -364,7 +364,7 @@ class htx extends \ccxt\async\htx {
             $this->trades[$symbol] = $tradesCache;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_trade($data[$i], $market);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()), $market);
             $tradesCache->append($trade);
         }
         $client->resolve($tradesCache, $ch);
@@ -1652,7 +1652,7 @@ class htx extends \ccxt\async\htx {
         $side = null;
         if ($type !== null) {
             $typeParts = explode('-', $type);
-            $side = $typeParts[0];
+            $side = $this->safe_string($typeParts, 0);
             $type = $this->safe_string($typeParts, 1);
         }
         $aggressor = $this->safe_bool($trade, 'aggressor');
@@ -2834,8 +2834,7 @@ class htx extends \ccxt\async\htx {
                 $marketId = $this->safe_string($message, 'symbol');
                 $market = $this->market($marketId);
                 for ($i = 0; $i < count($rawTrades); $i++) {
-                    $trade = $rawTrades[$i];
-                    $parsedTrade = $this->parse_trade($trade, $market);
+                    $parsedTrade = $this->parse_trade($this->safe_dict($rawTrades, $i, array()), $market);
                     // add extra params (side, type, ...) coming from the order
                     $parsedTrade = $this->extend($parsedTrade, $extendParams);
                     $cachedTrades->append($parsedTrade);

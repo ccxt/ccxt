@@ -212,7 +212,7 @@ class bittrade extends \ccxt\async\bittrade {
             $this->trades[$symbol] = $tradesCache;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_trade($data[$i], $market);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()), $market);
             $tradesCache->append($trade);
         }
         $client->resolve($tradesCache, $ch);

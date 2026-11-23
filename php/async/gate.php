@@ -3131,7 +3131,7 @@ class gate extends Exchange {
         if ($ticker === null) {
             throw new NullResponse($this->id . ' fetchTicker() returned empty response');
         }
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker($this->extend(array(), $ticker), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {

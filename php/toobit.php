@@ -798,11 +798,11 @@ class toobit extends Exchange {
         /**
          * retrieves data on $all markets for toobit
          *
-         * @see https://api-docs.toobit.com/api/spot-$market-data.html#exchange-information
-         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#exchange-information
+         * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+         * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $cachedInfo = $this->safe_dict($this->options, 'exchangeInfo');
         $response = $cachedInfo;
@@ -944,8 +944,7 @@ class toobit extends Exchange {
         $all = $this->array_concat($symbols, $contracts);
         $result = array();
         for ($i = 0; $i < count($all); $i++) {
-            $market = $this->safe_dict($all, $i, array());
-            $parsed = $this->parse_market($market);
+            $parsed = $this->parse_market($this->safe_dict($all, $i, array()));
             if ($parsed !== null) {
                 $result[] = $parsed;
             }

@@ -386,8 +386,7 @@ class gemini extends \ccxt\async\gemini {
         $changesLength = count($changes);
         // reverse order of array to store candles in ascending order
         for ($i = 0; $i < $changesLength; $i++) {
-            $parsed = $this->parse_ohlcv($this->safe_value($changes, $changesLength - $i - 1), $market);
-            $stored->append($parsed);
+            $stored->append($this->parse_ohlcv($this->safe_value($changes, $changesLength - $i - 1), $market));
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
         $client->resolve($stored, $messageHash);

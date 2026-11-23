@@ -668,7 +668,7 @@ class bybit extends \ccxt\async\bybit {
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $tickerInput = $this->extend($rawTicker, $data);
         }
-        $parsed = $this->parse_ticker($tickerInput);
+        $parsed = $this->parse_ticker($this->extend(array(), $tickerInput));
         if ($updateType === 'snapshot') {
             $symbol = $this->safe_string($parsed, 'symbol');
         }
@@ -1415,7 +1415,7 @@ class bybit extends \ccxt\async\bybit {
             $marketType = 'contract';
         }
         if ($market !== null) {
-            $marketType = $this->safe_string($market, 'type');
+            $marketType = $this->safe_string($market, 'type', $marketType);
         }
         $marketId = $this->safe_string($trade, 's');
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);

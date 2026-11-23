@@ -199,7 +199,7 @@ class mexc extends \ccxt\async\mexc {
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
         } elseif ($rawTicker !== null) {
-            $ticker = $this->parse_ticker($rawTicker, $market);
+            $ticker = $this->parse_ticker($this->extend(array(), $rawTicker), $market);
         } else {
             return;
         }
@@ -361,7 +361,7 @@ class mexc extends \ccxt\async\mexc {
             if ($isSpot === true) {
                 $ticker = $this->parse_ws_ticker($entry, $market);
             } else {
-                $ticker = $this->parse_ticker($entry);
+                $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()));
             }
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
@@ -1167,7 +1167,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->safe_bool($market, 'spot', false)) {
                 $parsedTrade = $this->parse_ws_trade($trades[$j], $market);
             } else {
-                $parsedTrade = $this->parse_trade($trades[$j], $market);
+                $parsedTrade = $this->parse_trade($this->safe_dict($trades, $j, array()), $market);
             }
             $stored->append($parsedTrade);
         }
@@ -1263,7 +1263,7 @@ class mexc extends \ccxt\async\mexc {
         if ($this->safe_bool($market, 'spot', false)) {
             $trade = $this->parse_ws_trade($data, $market);
         } elseif ($data !== null) {
-            $trade = $this->parse_trade($data, $market);
+            $trade = $this->parse_trade($this->extend(array(), $data), $market);
         } else {
             return;
         }
@@ -1797,7 +1797,6 @@ class mexc extends \ccxt\async\mexc {
         }
         $market = $this->market($symbol);
         $messageHash = 'unsubscribe:fundingRate:' . $market['symbol'];
-        $url = null;
         $channel = 'unsub.funding.rate';
         $requestParams = array(
             'symbol' => $market['id'],

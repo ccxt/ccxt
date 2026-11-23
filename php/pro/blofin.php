@@ -205,7 +205,7 @@ class blofin extends \ccxt\async\blofin {
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
-        return $this->parse_trade($trade, $market);
+        return $this->parse_trade($this->extend(array(), $trade), $market);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -373,7 +373,7 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_ticker($this->safe_dict($data, $i, array()));
+            $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->tickers[$symbol] = $ticker;
             if ($channelName !== null) {
@@ -381,10 +381,6 @@ class blofin extends \ccxt\async\blofin {
                 $client->resolve($this->tickers[$symbol], $messageHash);
             }
         }
-    }
-
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
-        return $this->parse_ticker($ticker, $market);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {

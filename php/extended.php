@@ -559,7 +559,10 @@ class extended extends Exchange {
         $maxCost = $this->safe_number($tradingConfig, 'maxLimitOrderValue');
         $created = $this->safe_integer($market, 'createdAt');
         $category = $this->safe_string_lower($market, 'category');
-        $takerFees = ($category === 'rwa') ? $this->safe_dict($this->fees, 'rwa', array()) : $this->fees;
+        $takerFees = $this->fees;
+        if ($category === 'rwa') {
+            $takerFees = $this->safe_dict($this->fees, 'rwa', array());
+        }
         $settleId = null;
         $settle = null;
         $symbol = $base . '/' . $quote;
@@ -2527,10 +2530,8 @@ class extended extends Exchange {
         $syntheticResolution = $this->safe_integer($params, 'syntheticResolution');
         $collateralResolution = $this->safe_integer($params, 'collateralResolution');
         $quoteAmount = Precise::string_mul($amountString, $priceString);
-        $baseRoundUp = $isBuy;
-        $quoteRoundUp = $isBuy;
-        $baseAmount = $this->get_extended_stark_amount($amountString, $syntheticResolution, $baseRoundUp);
-        $collateralAmount = $this->get_extended_stark_amount($quoteAmount, $collateralResolution, $quoteRoundUp);
+        $baseAmount = $this->get_extended_stark_amount($amountString, $syntheticResolution, $isBuy);
+        $collateralAmount = $this->get_extended_stark_amount($quoteAmount, $collateralResolution, $isBuy);
         if ($isBuy) {
             $collateralAmount = Precise::string_neg($collateralAmount);
         } else {

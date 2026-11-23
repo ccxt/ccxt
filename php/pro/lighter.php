@@ -324,7 +324,7 @@ class lighter extends \ccxt\async\lighter {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
-                $ticker = $this->parse_ticker($data[$marketId], $market);
+                $ticker = $this->parse_ticker($this->safe_dict($data, $marketId, array()), $market);
                 $this->tickers[$symbol] = $ticker;
                 $client->resolve($ticker, $this->get_message_hash('ticker', $symbol));
                 $client->resolve($ticker, $this->get_message_hash('ticker'));
@@ -1284,7 +1284,7 @@ class lighter extends \ccxt\async\lighter {
     }
 
     public function request_id(string $url): int {
-        $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         $options[$url] = $newValue;

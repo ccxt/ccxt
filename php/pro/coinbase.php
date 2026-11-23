@@ -917,8 +917,7 @@ class coinbase extends \ccxt\async\coinbase {
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             $tradesLength = count($currentTrades);
             for ($j = 0; $j < $tradesLength; $j++) {
-                $item = $currentTrades[$tradesLength - $j - 1];
-                $tradesArray->append($this->parse_trade($item));
+                $tradesArray->append($this->parse_trade($this->safe_dict($currentTrades, $tradesLength - $j - 1, array())));
             }
         }
         $client->resolve($tradesArray, $messageHash);

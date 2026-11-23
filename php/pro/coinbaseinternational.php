@@ -1285,7 +1285,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $tradesArray = $this->trades[$symbol];
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $trade = $this->parse_trade($data[$i], $market);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()), $market);
             $tradesArray->append($trade);
         }
         $this->trades[$symbol] = $tradesArray;

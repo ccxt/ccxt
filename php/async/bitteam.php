@@ -1523,8 +1523,7 @@ class bitteam extends Exchange {
             $rawTickers = $response;
         }
         for ($i = 0; $i < count($rawTickers); $i++) {
-            $rawTicker = $rawTickers[$i];
-            $ticker = $this->parse_ticker($rawTicker);
+            $ticker = $this->parse_ticker($this->safe_dict($rawTickers, $i, array()));
             $tickers[] = $ticker;
         }
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);

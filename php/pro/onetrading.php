@@ -796,7 +796,7 @@ class onetrading extends \ccxt\async\onetrading {
             $client->resolve($this->orders, 'orders:' . $symbol);
             $rawTrades = $this->safe_list($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
-                $trade = $this->parse_trade($rawTrades[$ii]);
+                $trade = $this->parse_trade($this->safe_dict($rawTrades, $ii, array()));
                 $symbol = $this->safe_string($trade, 'symbol', $symbol);
                 $this->myTrades->append($trade);
                 $client->resolve($this->myTrades, 'myTrades:' . $symbol);

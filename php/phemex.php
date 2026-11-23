@@ -5516,7 +5516,7 @@ class phemex extends Exchange {
 
     public function fetch_positions_adl_rank(?array $symbols = null, $params = array()): array {
         /**
-         * fetches the auto deleveraging $rank and risk percentage for a list of $symbols
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
          *
          * @see https://phemex-docs.github.io/#query-account-positions
          * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -5719,8 +5719,7 @@ class phemex extends Exchange {
         $ranks = $this->safe_list($data, 'positions', array());
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $ranks[$i];
-            $result[] = $this->parse_adl_rank($rank);
+            $result[] = $this->parse_adl_rank($ranks[$i]);
         }
         return $this->filter_by_array_adl_ranks($result, 'symbol', $symbolsNormalized, false);
     }

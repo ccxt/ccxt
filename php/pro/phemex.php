@@ -516,8 +516,7 @@ class phemex extends \ccxt\async\phemex {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             for ($i = 0; $i < count($ohlcvs); $i++) {
-                $candle = $ohlcvs[$i];
-                $stored->append($candle);
+                $stored->append($ohlcvs[$i]);
             }
             $client->resolve($stored, $messageHash);
         }
@@ -1379,8 +1378,7 @@ class phemex extends \ccxt\async\phemex {
             }
             $trades = $this->safe_list($ordersDict, 'fills', array());
             for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
-                $parsedOrder = $this->parse_order($rawOrder);
+                $parsedOrder = $this->parse_order($this->safe_dict($orders, $i, array()));
                 $parsedOrders[] = $parsedOrder;
             }
         } else {

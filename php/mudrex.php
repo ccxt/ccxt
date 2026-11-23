@@ -402,7 +402,7 @@ class mudrex extends Exchange {
             if ($symbols !== null && !$this->in_array($symbol, $symbols)) {
                 continue;
             }
-            $resultTickers[$symbol] = $this->parse_ticker($t, $m);
+            $resultTickers[$symbol] = $this->parse_ticker($this->safe_dict($rows, $i, array()), $m);
         }
         return $this->filter_by_array_tickers($resultTickers, 'symbol', $symbols);
     }

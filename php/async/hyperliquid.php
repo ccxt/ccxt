@@ -806,7 +806,7 @@ class hyperliquid extends Exchange {
         return $this->parse_markets($result);
     }
 
-    public function calculate_price_precision(float $price, int $amountPrecision, int $maxDecimals): float {
+    public function calculate_price_precision(float $price, int $amountPrecision, int $maxDecimals): int {
         /**
          * Helper function to calculate the Hyperliquid DECIMAL_PLACES $price precision
          * @param {float} $price the $price to use in the calculation
@@ -2594,9 +2594,8 @@ class hyperliquid extends Exchange {
                 $orderReq[] = $mainOrderObj;
             }
         }
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'createOrder', 'vaultAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params($params2, 'createOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
@@ -2828,9 +2827,8 @@ class hyperliquid extends Exchange {
             // "f" must be omitted when false, actions hashed with "f": false are rejected
             $cancelAction['f'] = true;
         }
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params_2($params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
         $request['signature'] = $signature;
@@ -2957,9 +2955,8 @@ class hyperliquid extends Exchange {
             'type' => 'scheduleCancel',
             'time' => $nonce . $this->parse_to_int($timeout),
         );
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params_2($params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
         $request['signature'] = $signature;
@@ -3090,9 +3087,8 @@ class hyperliquid extends Exchange {
             'type' => 'batchModify',
             'modifies' => $modifies,
         );
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'editOrder', 'vaultAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params($params2, 'editOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($modifyAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $modifyAction,
@@ -3603,8 +3599,7 @@ class hyperliquid extends Exchange {
         //         "status": "order"
         //     }
         //
-        $data = $this->safe_dict($response, 'order');
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->safe_dict($response, 'order', array()), $market);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -4304,9 +4299,8 @@ class hyperliquid extends Exchange {
             'isCross' => $isCross,
             'leverage' => $leverage,
         );
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params_2($params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -4360,9 +4354,8 @@ class hyperliquid extends Exchange {
             'isCross' => $isCross,
             'leverage' => $leverage,
         );
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'setLeverage', 'vaultAddress', 'subAccountAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params_2($params2, 'setLeverage', 'vaultAddress', 'subAccountAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -5089,9 +5082,8 @@ class hyperliquid extends Exchange {
         // ]
         //
         $records = $this->extract_type_from_delta($depositLedger);
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         if ($vaultAddress === null) {
             $filtered = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
             return $this->parse_transactions($filtered, null, $since, $limit);
@@ -5159,9 +5151,8 @@ class hyperliquid extends Exchange {
         // ]
         //
         $records = $this->extract_type_from_delta($withdrawalLedger);
-        $vaultAddress = null;
-        list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
-        $vaultAddress = $this->format_vault_address($vaultAddress);
+        list($vaultAddressOption) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
         if ($vaultAddress === null) {
             $filtered = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
             return $this->parse_transactions($filtered, null, $since, $limit);

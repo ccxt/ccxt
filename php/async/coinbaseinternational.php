@@ -927,7 +927,14 @@ class coinbaseinternational extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         $isArray = (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)));
         if ($isArray) {
-            return $ohlcv;
+            return array(
+                $this->safe_integer($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
         }
         return array(
             $this->parse8601($this->safe_string_2($ohlcv, 'start', 'time')),

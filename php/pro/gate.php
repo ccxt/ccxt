@@ -1328,7 +1328,7 @@ class gate extends \ccxt\async\gate {
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
-            $timeframe = $marketIds[$symbol];
+            $timeframe = $this->safe_string($marketIds, $symbol);
             $interval = $this->find_timeframe($timeframe);
             $hash = 'candles' . ':' . $interval . ':' . $symbol;
             $symbolOhlcv = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $interval);
@@ -1362,7 +1362,7 @@ class gate extends \ccxt\async\gate {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $marketId = $this->safe_string($market, 'id');
+            $marketId = $this->safe_string($market, 'id', '');
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType);

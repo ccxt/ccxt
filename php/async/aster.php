@@ -1682,7 +1682,7 @@ class aster extends Exchange {
         //        "askQty": "0.32399"            // only in SPOT
         //    }
         //
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {

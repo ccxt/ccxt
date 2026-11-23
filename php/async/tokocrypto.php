@@ -1416,7 +1416,7 @@ class tokocrypto extends Exchange {
             $firstTicker = $this->safe_dict($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {

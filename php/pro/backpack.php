@@ -1835,14 +1835,14 @@ class backpack extends \ccxt\async\backpack {
         $markPrice = $this->safe_string($position, 'M');
         $netQuantity = $this->safe_number($position, 'q');
         $hedged = false;
-        $side = 'long';
+        $side = null;
         if ($netQuantity !== null) {
+            $side = 'long';
             if (0 > $netQuantity) {
                 $side = 'short';
             }
         } else {
             $hedged = null;
-            $side = null;
         }
         $microseconds = $this->safe_integer($position, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);

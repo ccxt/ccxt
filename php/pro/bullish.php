@@ -620,7 +620,7 @@ class bullish extends \ccxt\async\bullish {
             $trades = $this->myTrades;
             $symbols = array();
             for ($i = 0; $i < count($rawTrades); $i++) {
-                $parsedTrade = $this->parse_trade($rawTrades[$i]);
+                $parsedTrade = $this->parse_trade($this->safe_dict($rawTrades, $i, array()));
                 $trades->append($parsedTrade);
                 $symbol = $this->safe_string($parsedTrade, 'symbol');
                 if ($symbol !== null) {

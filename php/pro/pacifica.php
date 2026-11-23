@@ -850,17 +850,13 @@ class pacifica extends \ccxt\async\pacifica {
             $marketId = $this->safe_string($info, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_string($market, 'symbol', '');
-            $ticker = $this->parse_ws_ticker($info, $market);
+            $ticker = $this->parse_ticker($info, $market);
             $this->tickers[$symbol] = $ticker;
             $parsedTickers[] = $ticker;
         }
         $tickers = $this->index_by($parsedTickers, 'symbol');
         $client->resolve($tickers, 'tickers');
         return true;
-    }
-
-    public function parse_ws_ticker(array $rawTicker, ?array $market = null): array {
-        return $this->parse_ticker($rawTicker, $market);
     }
 
     public function handle_my_trades(Client $client, array $message) {

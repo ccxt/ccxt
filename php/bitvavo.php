@@ -725,7 +725,7 @@ class bitvavo extends Exchange {
         //         "timestamp":1590381666900
         //     }
         //
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {

@@ -3337,10 +3337,14 @@ class bybit extends Exchange {
         }
         $category = $this->safe_string($trade, 'category');
         if ($category !== null) {
-            $marketType = ($category === 'spot') ? 'spot' : 'contract';
+            if ($category === 'spot') {
+                $marketType = 'spot';
+            } else {
+                $marketType = 'contract';
+            }
         }
         if ($market !== null) {
-            $marketType = $this->safe_string($market, 'type');
+            $marketType = $this->safe_string($market, 'type', $marketType);
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_string($marketResolved, 'symbol');
@@ -6071,7 +6075,7 @@ class bybit extends Exchange {
         $chains = $this->safe_list($result, 'chains', array());
         $coin = $this->safe_string($result, 'coin');
         $currencyFromResponse = $this->currency($coin);
-        $parsed = $this->parse_deposit_addresses($chains, array( $currencyFromResponse['code'] ), false, array(
+        $parsed = $this->parse_deposit_addresses($chains, array( $this->safe_string($currencyFromResponse, 'code', '') ), false, array(
             'currency' => $currencyFromResponse['code'],
         ));
         return $this->index_by($parsed, 'network');
@@ -6771,8 +6775,7 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $positions = $this->safe_list_2($result, 'list', 'dataList', array());
         $timestamp = $this->safe_integer($response, 'time');
-        $first = $this->safe_dict($positions, 0, array());
-        $position = $this->parse_position($first, $market);
+        $position = $this->parse_position($this->safe_dict($positions, 0, array()), $market);
         $position['timestamp'] = $timestamp;
         $position['datetime'] = $this->iso8601($timestamp);
         return $position;
@@ -8150,7 +8153,7 @@ class bybit extends Exchange {
         $marketId = $this->safe_string($fee, 'symbol');
         $defaultType = 'contract';
         if ($market !== null) {
-            $defaultType = $this->safe_string($market, 'type');
+            $defaultType = $this->safe_string($market, 'type', 'contract');
         }
         $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         return array(
@@ -9169,7 +9172,7 @@ class bybit extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
         $code = 'USDT';
         if ($this->safe_bool($marketResolved, 'inverse', false)) {
-            $code = $marketResolved['quote'];
+            $code = $this->safe_string($marketResolved, 'quote', 'USDT');
         }
         $timestamp = $this->safe_integer($income, 'execTime');
         return array(

@@ -1122,7 +1122,7 @@ class bithumb extends Exchange {
                     if ($symbol === null) {
                         continue;
                     }
-                    $result[$symbol] = $this->parse_ticker($entry, $market);
+                    $result[$symbol] = $this->parse_ticker($this->safe_dict($tickers, $j, array()), $market);
                 }
             }
         } else {
@@ -1278,7 +1278,7 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
         }
-        return $this->parse_ticker($data, $market);
+        return $this->parse_ticker($this->extend(array(), $data), $market);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {

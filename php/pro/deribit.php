@@ -485,8 +485,7 @@ class deribit extends \ccxt\async\deribit {
         }
         $stored = $this->trades[$symbol];
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = $trades[$i];
-            $parsed = $this->parse_trade($trade, $market);
+            $parsed = $this->parse_trade($this->safe_dict($trades, $i, array()), $market);
             $stored->append($parsed);
         }
         $this->trades[$symbol] = $stored;

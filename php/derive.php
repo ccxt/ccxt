@@ -1550,7 +1550,7 @@ class derive extends Exchange {
                 // skip maker trades
                 continue;
             }
-            $parsed = $this->parse_trade($rawTrade, $market);
+            $parsed = $this->parse_trade($this->safe_dict($tradesArray, $i, array()), $market);
             $trade = $this->extend($parsed, $params);
             $result[] = $trade;
         }

@@ -171,13 +171,11 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $url = null;
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchTicker', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchTicker', $market, $paramsMarketType, 'linear');
+        $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
-        } else {
-            $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         $messageHash = $this->get_message_hash('ticker', $this->safe_string($market, 'symbol'));
         $uuid = $this->uuid();
@@ -404,13 +402,11 @@ class bingx extends \ccxt\async\bingx {
         }
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
-        $url = null;
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchTrades', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchTrades', $market, $paramsMarketType, 'linear');
+        $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
-        } else {
-            $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         $messageHash = 'trade::' . $symbolValue;
         $uuid = $this->uuid();
@@ -600,13 +596,11 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $url = null;
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrderBook', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchOrderBook', $market, $paramsMarketType, 'linear');
+        $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
-        } else {
-            $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $depth = $this->safe_string($options, 'depth', '100');
@@ -961,13 +955,11 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $url = null;
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchOHLCV', $market, $paramsMarketType, 'linear');
+        $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         if ($marketType === 'swap') {
             $url = $this->safe_string($this->urls['api']['ws'], $subType);
-        } else {
-            $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         if ($url === null) {
             throw new BadRequest($this->id . ' watchOHLCV is not supported for ' . $marketType . ' markets.');

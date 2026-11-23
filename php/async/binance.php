@@ -4809,7 +4809,7 @@ class binance extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchTicker() returned empty response');
         }
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function check_no_stock_symbols(array $symbols, string $methodName) {
@@ -5057,7 +5057,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $marketId = $this->safe_string($this->safe_dict($response, $i), 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, 'spot');
-            $parsedTicker = $this->parse_ticker($this->safe_value($response, $i));
+            $parsedTicker = $this->parse_ticker($this->safe_dict($response, $i, array()));
             $parsedTicker['symbol'] = $tickerMarket['symbol'];
             $results[] = $parsedTicker;
         }
@@ -5104,7 +5104,7 @@ class binance extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchMarkPrice() returned empty response');
         }
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function fetch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {

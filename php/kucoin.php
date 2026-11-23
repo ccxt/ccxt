@@ -2348,11 +2348,10 @@ class kucoin extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $entry = $currency;
-        $id = $this->safe_string($entry, 'currency');
+        $id = $this->safe_string($currency, 'currency');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $chains = $this->safe_list_2($entry, 'chains', 'items', array());
+        $chains = $this->safe_list_2($currency, 'chains', 'items', array());
         $chainsLength = count($chains);
         for ($j = 0; $j < $chainsLength; $j++) {
             $chain = $this->safe_dict($chains, $j);
@@ -2383,16 +2382,16 @@ class kucoin extends Exchange {
             }
         }
         // kucoin has determined 'fiat' currencies with below logic
-        $rawPrecision = $this->safe_string($entry, 'precision');
+        $rawPrecision = $this->safe_string($currency, 'precision');
         $precision = $this->parse_number($this->parse_precision($rawPrecision));
         $isFiat = $chainsLength === 0;
         return $this->safe_currency_structure(array(
             'id' => $id,
-            'name' => $this->safe_string($entry, 'fullName'),
+            'name' => $this->safe_string($currency, 'fullName'),
             'code' => $code,
             'type' => $isFiat ? 'fiat' : 'crypto',
             'precision' => $precision,
-            'info' => $entry,
+            'info' => $currency,
             'networks' => $networks,
             'deposit' => null,
             'withdraw' => null,
@@ -3808,7 +3807,7 @@ class kucoin extends Exchange {
             $this->set_deposit_addresses_version($version);
         }
         $chains = $this->safe_list($response, 'data', array());
-        $parsed = $this->parse_deposit_addresses($chains, array( $currency['code'] ), false, array(
+        $parsed = $this->parse_deposit_addresses($chains, array( $this->safe_string($currency, 'code', '') ), false, array(
             'currency' => $currency['code'],
         ));
         return $this->index_by($parsed, 'network');
@@ -5080,8 +5079,7 @@ class kucoin extends Exchange {
                 //    }
                 //
             }
-            $response = $this->safe_dict($response, 'data');
-            return $this->parse_order($response);
+            return $this->parse_order($this->safe_dict($response, 'data', array()));
         } else {
             $request['orderId'] = $id;
             if ($trigger) {
@@ -5110,8 +5108,7 @@ class kucoin extends Exchange {
                 //        }
                 //    }
                 //
-                $response = $this->safe_dict($response, 'data', array());
-                return $this->parse_order($response);
+                return $this->parse_order($this->safe_dict($response, 'data', array()));
             } else {
                 $response = $this->privateDeleteOrdersOrderId($this->extend($request, $paramsOmitted));
                 //

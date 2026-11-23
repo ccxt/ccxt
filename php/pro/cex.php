@@ -1016,9 +1016,8 @@ class cex extends \ccxt\async\cex {
         }
         $myOrders = $this->orders;
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $rawOrder = $rawOrders[$i];
             $market = $this->safe_market($symbol);
-            $order = $this->parse_order($rawOrder, $market);
+            $order = $this->parse_order($this->safe_dict($rawOrders, $i, array()), $market);
             $order['status'] = 'open';
             $myOrders->append($order);
         }

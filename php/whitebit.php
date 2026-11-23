@@ -1496,7 +1496,7 @@ class whitebit extends Exchange {
                     if ($orderId === $id) {
                         $marketId = $this->safe_string($order, 'market');
                         $marketNew = $this->safe_market($marketId, null, '_');
-                        return $this->parse_order($order, $marketNew);
+                        return $this->parse_order($this->safe_dict($orders, $i, array()), $marketNew);
                     }
                 }
             } catch (Exception $error) {
@@ -1520,7 +1520,7 @@ class whitebit extends Exchange {
                         $order = $marketOrders[$j];
                         $orderId = $this->safe_string($order, 'id', '');
                         if ($orderId === $id) {
-                            return $this->parse_order($order, $marketNew);
+                            return $this->parse_order($this->safe_dict($marketOrders, $j, array()), $marketNew);
                         }
                     }
                 }
@@ -1640,7 +1640,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $ticker = $this->parse_ticker($this->safe_value($response, $marketId), $market);
+            $ticker = $this->parse_ticker($this->safe_dict($response, $marketId, array()), $market);
             $symbol = $this->safe_string($ticker, 'symbol');
             $result[$symbol] = $ticker;
         }

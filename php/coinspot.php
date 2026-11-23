@@ -457,9 +457,9 @@ class coinspot extends Exchange {
          *
          * @see https://www.coinspot.com.au/api#latestprices
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -490,8 +490,7 @@ class coinspot extends Exchange {
             $market = $this->safe_market($id);
             if ($this->safe_bool($market, 'spot', false)) {
                 $symbol = $this->safe_string($market, 'symbol', '');
-                $ticker = $prices[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
+                $result[$symbol] = $this->parse_ticker($this->safe_dict($prices, $id, array()), $market);
             }
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);

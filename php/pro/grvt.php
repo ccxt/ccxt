@@ -410,7 +410,7 @@ class grvt extends \ccxt\async\grvt {
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         // same as REST api
-        return $this->parse_trade($trade, $market);
+        return $this->parse_trade($this->extend(array(), $trade), $market);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

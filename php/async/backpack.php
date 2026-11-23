@@ -628,7 +628,9 @@ class backpack extends Exchange {
         $deposit = null;
         $withdraw = null;
         if ($this->is_empty($parsedNetworks)) { // if networks are not provided
-            $active = ($stock) ? null : false;
+            if (!$stock) {
+                $active = false;
+            }
             $deposit = false;
             $withdraw = false;
         }
@@ -933,7 +935,11 @@ class backpack extends Exchange {
                 if ($sessionsLength > 0) {
                     $amountPrecision = $this->parse_number($stepSize);
                     $minQuantity = $this->parse_number($minimum);
-                    $maxQuantity = ($unbounded) ? null : $this->parse_number($maximum);
+                    if ($unbounded) {
+                        $maxQuantity = null;
+                    } else {
+                        $maxQuantity = $this->parse_number($maximum);
+                    }
                 }
             }
         } elseif ($typeOfMarket === 'swap') {
@@ -943,7 +949,7 @@ class backpack extends Exchange {
             $settleId = $this->safe_string($market, 'quoteSymbol');
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $quote; // settle is the quote currency
-            $contractSize = 1;
+            $contractSize = $this->parse_number('1');
         } else {
             return null;
         }
@@ -1395,11 +1401,10 @@ class backpack extends Exchange {
          */
         $result = array();
         for ($i = 0; $i < count($entries); $i++) {
-            $entry = $entries[$i];
-            $symbol = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_string($entries[$i], 'symbol');
             $market = $this->safe_dict($this->markets, $symbol);
             if ($this->safe_bool($market, 'stock', false)) {
-                $result[] = $entry;
+                $result[] = $entries[$i];
             }
         }
         return $result;
@@ -1976,7 +1981,7 @@ class backpack extends Exchange {
          * @param {string} [$params->sortDirection] Asc or Desc
          * @param {boolean} [$params->deferredSettlement] selects deferred or immediate RFQ settlement records
          * @param {string} [$params->fillType] User or CollateralConversion for RFQs, additional exchange-specific types for venue fills
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=$trade-structure $trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2017,10 +2022,9 @@ class backpack extends Exchange {
             }
             $filtered = array();
             for ($i = 0; $i < count($rfqTrades); $i++) {
-                $trade = $rfqTrades[$i];
-                $timestamp = $this->safe_integer($trade, 'timestamp');
+                $timestamp = $this->safe_integer($rfqTrades[$i], 'timestamp');
                 if (($until === null) || (($timestamp !== null) && ($timestamp <= $until))) {
-                    $filtered[] = $trade;
+                    $filtered[] = $rfqTrades[$i];
                 }
             }
             $sorted = $this->sort_by($filtered, 'timestamp');
@@ -3403,14 +3407,14 @@ class backpack extends Exchange {
         $entryPrice = $this->safe_number($position, 'entryPrice');
         $markPrice = $this->safe_number($position, 'markPrice');
         $netCost = $this->safe_string($position, 'netCost');
-        $hedged = false;
-        $side = 'long';
-        if (Precise::string_lt($netCost, '0')) {
-            $side = 'short';
-        }
-        if ($netCost === null) {
-            $hedged = null;
-            $side = null;
+        $hedged = null;
+        $side = null;
+        if ($netCost !== null) {
+            $hedged = false;
+            $side = 'long';
+            if (Precise::string_lt($netCost, '0')) {
+                $side = 'short';
+            }
         }
         $unrealizedPnl = $this->safe_number($position, 'pnlUnrealized');
         $realizedPnl = $this->safe_number($position, 'pnlRealized');

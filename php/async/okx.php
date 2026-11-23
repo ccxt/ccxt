@@ -2003,8 +2003,7 @@ class okx extends Exchange {
             $optionsUnderlying = $this->safe_list($this->options, 'defaultUnderlying', array( 'BTC-USD', 'ETH-USD' ));
             $promises = array();
             for ($i = 0; $i < count($optionsUnderlying); $i++) {
-                $underlying = $optionsUnderlying[$i];
-                $request['uly'] = $underlying;
+                $request['uly'] = $this->safe_string($optionsUnderlying, $i);
                 $promises[] = $this->publicGetPublicInstruments($this->extend($request, $params));
             }
             $promisesResult = Async\await(Promise\all($promises));
@@ -4007,17 +4006,17 @@ class okx extends Exchange {
 
     private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * cancels an open $order
+         * cancels an open order
          *
-         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-$order
-         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
          *
-         * @param {string} $id $order $id
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if $trigger orders
-         * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing $order
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing order
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
@@ -4049,8 +4048,7 @@ class okx extends Exchange {
         $response = Async\await($this->privatePostTradeCancelOrder($this->extend($request, $query)));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         $data = $this->safe_list($response, 'data', array());
-        $order = $this->safe_dict($data, 0);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->safe_dict($data, 0, array()), $market);
     }
 
     public function parse_ids(mixed $ids) {
@@ -4632,16 +4630,16 @@ class okx extends Exchange {
 
     private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * fetch an $order by the $id
+         * fetch an order by the $id
          *
-         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-get-$order-details
-         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-get-algo-$order-details
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-details
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-details
          *
-         * @param {string} $id the $order $id
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra and exchange specific parameters
          * @param {boolean} [$params->trigger] true if fetching $trigger orders
-         * @return ~@link https://docs.ccxt.com/?$id=$order-structure an $order structure~
+         * @return ~@link https://docs.ccxt.com/?$id=order-structure an order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
@@ -4779,8 +4777,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $order = $this->safe_dict($data, 0);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -5793,7 +5790,7 @@ class okx extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         $filtered = $this->filter_by($data, 'selected', true);
-        $parsed = $this->parse_deposit_addresses($filtered, array( $currency['code'] ), false);
+        $parsed = $this->parse_deposit_addresses($filtered, array( $this->safe_string($currency, 'code', '') ), false);
         return $this->index_by($parsed, 'network');
     }
 
@@ -9353,18 +9350,18 @@ class okx extends Exchange {
         /**
          * closes open positions for a $market
          *
-         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-close-positions
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] 'buy' or 'sell', leave as null in net mode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientOrderId] a unique identifier for the $order
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
          * @param {string} [$params->code] *required in the case of closing cross MARGIN position for Single-$currency margin* margin $currency
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market $order-> false or true, the default is false
-         * @param {string} [$params->tag] $order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+         * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market order. false or true, the default is false
+         * @param {string} [$params->tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
          * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
          */
         if ($this->markets === null) {
@@ -9413,8 +9410,7 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        $order = $this->safe_dict($data, 0);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_option(string $symbol, $params = array()): PromiseInterface {

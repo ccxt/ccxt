@@ -9199,8 +9199,7 @@ class bitget extends Exchange {
             //
             $result = $this->safe_list($response, 'data', array());
         }
-        $first = $this->safe_dict($result, 0, array());
-        return $this->parse_position($first, $market);
+        return $this->parse_position($this->safe_dict($result, 0, array()), $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -11883,7 +11882,7 @@ class bitget extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $order = $this->safe_list_2($data, 'successList', 'list', array());
-        return $this->parse_order($order[0], $market);
+        return $this->parse_order($this->safe_dict($order, 0, array()), $market);
     }
 
     public function close_all_positions($params = array()): PromiseInterface {

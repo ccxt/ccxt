@@ -310,8 +310,7 @@ class limitless extends Exchange {
         $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
         for ($i = 0; $i < count($eventKeys); $i++) {
             $eventKey = $eventKeys[$i];
-            $g = $eventGroups[$eventKey];
-            $eventsDict[$eventKey] = $this->parse_event($g);
+            $eventsDict[$eventKey] = $this->parse_event($this->safe_dict($eventGroups, $eventKey, array()));
         }
         $this->events = $eventsDict;
         $marketsLength = count($markets);
@@ -432,8 +431,7 @@ class limitless extends Exchange {
         $tokenEntries = is_array($tokens) ? array_keys($tokens) : array();
         for ($i = 0; $i < count($tokenEntries); $i++) {
             $outcomeLabel = $tokenEntries[$i];
-            $tokenData = $tokens[$outcomeLabel];
-            $tokenId = $tokenData;
+            $tokenId = $this->safe_string($tokens, $outcomeLabel);
             $outcomeHandle = $this->slug_to_outcome_symbol($groupId, $slug, $outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1054,10 +1052,8 @@ class limitless extends Exchange {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             $rawBids = $this->safe_list($book, 'bids', array());
             $rawAsks = $this->safe_list($book, 'asks', array());
-            $rawBidsLength = count($rawBids);
-            $rawAsksLength = count($rawAsks);
-            $yesBestBid = ($rawBidsLength > 0) ? $rawBids[0] : null;
-            $yesBestAsk = ($rawAsksLength > 0) ? $rawAsks[0] : null;
+            $yesBestBid = $this->safe_dict($rawBids, 0);
+            $yesBestAsk = $this->safe_dict($rawAsks, 0);
             $yesBidPrice = $this->safe_string($yesBestBid, 'price');
             $yesBidSize = $this->safe_string($yesBestBid, 'size');
             $yesAskPrice = $this->safe_string($yesBestAsk, 'price');
@@ -2186,7 +2182,10 @@ class limitless extends Exchange {
                     throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
-                    $costRequest = ($cost !== null) ? $cost : $quoteAmount;
+                    $costRequest = $quoteAmount;
+                    if ($cost !== null) {
+                        $costRequest = $cost;
+                    }
                     $makerAmount = $this->cost_to_prediction_precision($outcome, $costRequest);
                 }
             } else {
@@ -2304,10 +2303,8 @@ class limitless extends Exchange {
         $payload = '02' . $this->rlp_encode_list($fields);
         $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
         $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
-        $rHex = $this->safe_string($signature, 'r');
-        $sHex = $this->safe_string($signature, 's');
-        $rHex = $this->pad_hex_to_even($rHex);
-        $sHex = $this->pad_hex_to_even($sHex);
+        $rHex = $this->pad_hex_to_even($this->safe_string($signature, 'r'));
+        $sHex = $this->pad_hex_to_even($this->safe_string($signature, 's'));
         $yParity = $this->safe_integer($signature, 'v');
         $signedFields = array();
         for ($i = 0; $i < count($fields); $i++) {

@@ -679,8 +679,7 @@ class binance extends \ccxt\async\binance {
         $optionsType = $this->safe_dict($this->options, $type, array());
         $listenKey = $this->safe_string($optionsType, 'listenKey');
         $url = $this->get_private_ws_url($type, $listenKey);
-        $message = null;
-        $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $message, array( $type )));
+        $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, null, array( $type )));
         if ($this->newUpdates) {
             return $newLiquidations;
         }
@@ -1673,7 +1672,7 @@ class binance extends \ccxt\async\binance {
         $executionType = $this->safe_string($trade, 'x');
         $isTradeExecution = ($executionType === 'TRADE');
         if (!$isTradeExecution) {
-            return $this->parse_trade($trade, $market);
+            return $this->parse_trade($this->extend(array(), $trade), $market);
         }
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
@@ -3860,8 +3859,7 @@ class binance extends \ccxt\async\binance {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':balance';
-        $message = null;
-        return Async\await($this->watch($url, $messageHash, $message, $type));
+        return Async\await($this->watch($url, $messageHash, null, $type));
     }
 
     public function handle_balance(Client $client, array $message) {
@@ -4791,8 +4789,7 @@ class binance extends \ccxt\async\binance {
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $isPortfolioMargin);
         $this->set_positions_cache($client, $type, null, $isPortfolioMargin);
-        $message = null;
-        $orders = Async\await($this->watch($url, $messageHash, $message, $type));
+        $orders = Async\await($this->watch($url, $messageHash, null, $type));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);
@@ -5911,8 +5908,7 @@ class binance extends \ccxt\async\binance {
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $isPortfolioMargin);
         $this->set_positions_cache($client, $type, null, $isPortfolioMargin);
-        $message = null;
-        $trades = Async\await($this->watch($url, $messageHash, $message, $type));
+        $trades = Async\await($this->watch($url, $messageHash, null, $type));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbolResolved, $limit);

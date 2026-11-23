@@ -2775,7 +2775,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $results = array();
         if ((gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders)))) {
             for ($i = 0; $i < count($orders); $i++) {
-                $parsed = $this->parse_order($orders[$i], $market); // don't inline this call
+                $parsed = $this->parse_order($this->safe_dict($orders, $i, array()), $market); // don't inline this call
                 $order = $this->extend($parsed, $params);
                 $results[] = $order;
             }
@@ -3511,7 +3511,14 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $this->safe_number($ohlcv, 5), // volume
             );
         }
-        return $ohlcv;
+        return array(
+            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
+        );
     }
 
     public function safe_network(array $network) {
@@ -5410,9 +5417,10 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         $market = $this->market($symbol);
         $marketSymbol = $this->safe_string($market, 'symbol', '');
-        $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $precision = $this->safe_dict($market, 'precision', array());
+        $result = $this->decimal_to_precision($price, ROUND, $precision['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            $pricePrecision = $this->number_to_string($market['precision']['price']);
+            $pricePrecision = $this->number_to_string($precision['price']);
             if ($pricePrecision === null) {
                 throw new BadSymbol($this->id . ' priceToPrecision() market ' . $marketSymbol . ' has no price precision');
             }
@@ -5427,9 +5435,10 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         $market = $this->market($symbol);
         $marketSymbol = $this->safe_string($market, 'symbol', '');
-        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $precision = $this->safe_dict($market, 'precision', array());
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $precision['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            $amountPrecision = $this->number_to_string($market['precision']['amount']);
+            $amountPrecision = $this->number_to_string($precision['amount']);
             if ($amountPrecision === null) {
                 throw new BadSymbol($this->id . ' amountToPrecision() market ' . $marketSymbol . ' has no amount precision');
             }
@@ -5443,7 +5452,8 @@ class BaseExchange extends \ccxt\BaseExchange {
             return null;
         }
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $precision = $this->safe_dict($market, 'precision', array());
+        return $this->decimal_to_precision($fee, ROUND, $precision['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currency_to_precision(?string $code, mixed $fee, ?string $networkCode = null) {
@@ -5684,19 +5694,24 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function parse_tickers_list(array $tickers, ?array $symbols = null, $params = array()) {
         $results = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $results[] = $this->extend($this->parse_ticker($tickers[$i]), $params);
+        $tickersArray = $this->to_array($tickers);
+        for ($i = 0; $i < count($tickersArray); $i++) {
+            $ticker = $this->extend($this->parse_ticker($this->safe_dict($tickersArray, $i, array())), $params);
+            $results[] = $ticker;
         }
         return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
     }
 
     public function parse_tickers_dict(array $tickers, ?array $symbols = null, $params = array()) {
         $results = array();
-        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
+        $tickersDict = $this->extend(array(), $tickers);
+        $marketIds = is_array($tickersDict) ? array_keys($tickersDict) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $results[] = $this->extend($this->parse_ticker($tickers[$marketId], $market), $params);
+            $rawTicker = $this->safe_dict($tickersDict, $marketId, array());
+            $ticker = $this->extend($this->parse_ticker($rawTicker, $market), $params);
+            $results[] = $ticker;
         }
         return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
     }

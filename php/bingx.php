@@ -1251,13 +1251,13 @@ class bingx extends Exchange {
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'endTime');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
         if ($until !== null) {
-            $endTime = $until;
             if ($since !== null) {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $endTime = min($until, $this->sum($since, $duration * $requestLimit));
+                $request['endTime'] = min($until, $this->sum($since, $duration * $requestLimit));
+            } else {
+                $request['endTime'] = $until;
             }
-            $request['endTime'] = $endTime;
         } elseif (($this->safe_bool($market, 'inverse', false)) && ($since !== null)) {
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $request['endTime'] = $this->sum($since, $duration * $requestLimit);
@@ -2238,7 +2238,7 @@ class bingx extends Exchange {
         $rowMarket = ($symbolsLength === 1) ? $market : null;
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $results[] = $this->parse_ticker($rows[$i], $rowMarket);
+            $results[] = $this->parse_ticker($this->safe_dict($rows, $i, array()), $rowMarket);
         }
         return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
@@ -2364,7 +2364,7 @@ class bingx extends Exchange {
             // }
             //
         }
-        return $this->parse_ticker($response['data'], $market);
+        return $this->parse_ticker($this->safe_dict($response, 'data', array()), $market);
     }
 
     public function fetch_mark_prices(?array $symbols = null, $params = array()): array {
@@ -2487,7 +2487,7 @@ class bingx extends Exchange {
             $type = 'spot';
         }
         if ($market !== null) {
-            $type = $this->safe_string($market, 'type');
+            $type = $this->safe_string($market, 'type', $type);
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $type);
         $symbol = $this->safe_string($marketResolved, 'symbol');
@@ -5604,7 +5604,7 @@ class bingx extends Exchange {
         //     }
         //
         $data = $this->safe_list($this->safe_dict($response, 'data'), 'data', array());
-        $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
+        $parsed = $this->parse_deposit_addresses($data, array( $this->safe_string($currency, 'code', '') ), false);
         return $this->index_by($parsed, 'network');
     }
 

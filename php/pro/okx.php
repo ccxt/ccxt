@@ -116,7 +116,7 @@ class okx extends \ccxt\async\okx {
 
     public function get_url(string $channel, string $access = 'public'): string {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        $isSandbox = $this->options['sandboxMode'];
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         $sandboxSuffix = '';
         if ($isSandbox === true) {
             $sandboxSuffix = '?brokerId=9999';
@@ -375,7 +375,7 @@ class okx extends \ccxt\async\okx {
         $data = $this->safe_list($message, 'data', array());
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_trade($data[$i]);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()));
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
                 $stored = new ArrayCache($tradesLimit);
@@ -990,8 +990,7 @@ class okx extends \ccxt\async\okx {
         //
         $rawLiquidations = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($rawLiquidations); $i++) {
-            $rawLiquidation = $rawLiquidations[$i];
-            $liquidation = $this->parse_ws_liquidation($rawLiquidation);
+            $liquidation = $this->parse_ws_liquidation($rawLiquidations[$i]);
             $symbol = $this->safe_string($liquidation, 'symbol', '');
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);

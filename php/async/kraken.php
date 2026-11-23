@@ -1192,13 +1192,13 @@ class kraken extends Exchange {
 
     private function do_fetch_ticker(string $symbol, $params = array()) {
         /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.kraken.com/api-reference/market-data/get-$ticker-information
+         * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1209,8 +1209,7 @@ class kraken extends Exchange {
         );
         $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
         $tickerResult = $this->safe_dict($response, 'result', array());
-        $ticker = $this->safe_value($tickerResult, $market['id']);
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker($this->safe_dict($tickerResult, $market['id'], array()), $market);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1327,9 +1326,7 @@ class kraken extends Exchange {
         //
         $id = $this->safe_string($item, 'id');
         $direction = null;
-        $account = null;
         $referenceId = $this->safe_string($item, 'refid');
-        $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $currencyId = $this->safe_string($item, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -1346,9 +1343,9 @@ class kraken extends Exchange {
             'info' => $item,
             'id' => $id,
             'direction' => $direction,
-            'account' => $account,
+            'account' => null,
             'referenceId' => $referenceId,
-            'referenceAccount' => $referenceAccount,
+            'referenceAccount' => null,
             'type' => $type,
             'currency' => $code,
             'amount' => $this->parse_number($amount),
@@ -3962,7 +3959,7 @@ class kraken extends Exchange {
                 $numErrors = count($errors);
                 if ($numErrors > 0) {
                     for ($i = 0; $i < $numErrors; $i++) {
-                        $error = $errors[$i];
+                        $error = $this->safe_string($errors, $i);
                         $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
                         $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                     }

@@ -1549,10 +1549,9 @@ class nado extends Exchange {
             $submissionIdx = $this->safe_string($event, 'submission_idx');
             $tx = array();
             for ($j = 0; $j < count($txs); $j++) {
-                $rawTx = $txs[$j];
-                $txSubmissionIdx = $this->safe_string($rawTx, 'submission_idx');
+                $txSubmissionIdx = $this->safe_string($txs[$j], 'submission_idx');
                 if ($txSubmissionIdx === $submissionIdx) {
-                    $tx = $rawTx;
+                    $tx = $txs[$j];
                     break;
                 }
             }
@@ -1627,10 +1626,9 @@ class nado extends Exchange {
             $productId = $this->safe_string($position, 'product_id');
             $product = array();
             for ($j = 0; $j < count($products); $j++) {
-                $rawProduct = $products[$j];
-                $rawProductId = $this->safe_string($rawProduct, 'product_id');
+                $rawProductId = $this->safe_string($products[$j], 'product_id');
                 if ($rawProductId === $productId) {
-                    $product = $rawProduct;
+                    $product = $products[$j];
                     break;
                 }
             }
