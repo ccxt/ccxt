@@ -4773,7 +4773,7 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchTicker() returned empty response');
         }
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     checkNoStockSymbols (symbols: string[], methodName: string) {
@@ -5009,7 +5009,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (this.safeDict (response, i), 'symbol');
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, 'spot');
-            const parsedTicker = this.parseTicker (this.safeValue (response, i));
+            const parsedTicker = this.parseTicker (this.safeDict (response, i, {}));
             parsedTicker['symbol'] = tickerMarket['symbol'];
             results.push (parsedTicker);
         }
@@ -5052,7 +5052,7 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchMarkPrice() returned empty response');
         }
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     /**

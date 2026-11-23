@@ -1389,7 +1389,7 @@ export default class tokocrypto extends Exchange {
             const firstTicker: Dict = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     /**

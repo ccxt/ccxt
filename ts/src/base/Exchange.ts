@@ -8143,19 +8143,24 @@ export class BaseExchange {
 
     parseTickersList (tickers: Dict[], symbols: Strings = undefined, params: Dict = {}): Tickers {
         const results: Ticker[] = [];
-        for (let i = 0; i < tickers.length; i++) {
-            results.push (this.extend (this.parseTicker (tickers[i]), params));
+        const tickersArray = this.toArray (tickers);
+        for (let i = 0; i < tickersArray.length; i++) {
+            const ticker = this.extend (this.parseTicker (this.safeDict (tickersArray, i, {})), params);
+            results.push (ticker);
         }
         return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
     }
 
     parseTickersDict (tickers: Dict, symbols: Strings = undefined, params: Dict = {}): Tickers {
         const results: Ticker[] = [];
-        const marketIds = Object.keys (tickers);
+        const tickersDict: Dict = this.extend ({}, tickers);
+        const marketIds = Object.keys (tickersDict);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            results.push (this.extend (this.parseTicker (tickers[marketId], market), params));
+            const rawTicker: Dict = this.safeDict (tickersDict, marketId, {});
+            const ticker = this.extend (this.parseTicker (rawTicker, market), params);
+            results.push (ticker);
         }
         return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
     }

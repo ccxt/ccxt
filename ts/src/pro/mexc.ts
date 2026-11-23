@@ -191,7 +191,7 @@ export default class mexc extends mexcRest {
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
         } else if (rawTicker !== undefined) {
-            ticker = this.parseTicker (rawTicker, market);
+            ticker = this.parseTicker (this.extend ({}, rawTicker), market);
         } else {
             return;
         }
@@ -350,7 +350,7 @@ export default class mexc extends mexcRest {
             if (isSpot === true) {
                 ticker = this.parseWsTicker (entry, market);
             } else {
-                ticker = this.parseTicker (entry);
+                ticker = this.parseTicker (this.safeDict (data, i, {}));
             }
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {

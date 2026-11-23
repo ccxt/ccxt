@@ -1101,7 +1101,7 @@ export default class bithumb extends Exchange {
                     if (symbol === undefined) {
                         continue;
                     }
-                    result[symbol] = this.parseTicker (entry, market);
+                    result[symbol] = this.parseTicker (this.safeDict (tickers, j, {}), market);
                 }
             }
         } else {
@@ -1253,7 +1253,7 @@ export default class bithumb extends Exchange {
             //
             data = this.safeDict (response, 'data', {});
         }
-        return this.parseTicker (data, market);
+        return this.parseTicker (this.extend ({}, data), market);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {

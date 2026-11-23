@@ -336,7 +336,7 @@ export default class blofin extends blofinRest {
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseWsTicker (this.safeDict (data, i, {}));
+            const ticker = this.parseTicker (this.safeDict (data, i, {}));
             const symbol = this.safeString (ticker, 'symbol', '');
             this.tickers[(symbol as string)] = ticker;
             if (channelName !== undefined) {
@@ -344,10 +344,6 @@ export default class blofin extends blofinRest {
                 client.resolve (this.tickers[(symbol as string)], messageHash);
             }
         }
-    }
-
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
-        return this.parseTicker (ticker, market);
     }
 
     /**

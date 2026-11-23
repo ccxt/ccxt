@@ -2253,7 +2253,7 @@ export default class bingx extends Exchange {
         const rowMarket = (symbolsLength === 1) ? market : undefined;
         const results = [];
         for (let i = 0; i < rows.length; i++) {
-            results.push (this.parseTicker (rows[i], rowMarket));
+            results.push (this.parseTicker (this.safeDict (rows, i, {}), rowMarket));
         }
         return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
@@ -2381,7 +2381,7 @@ export default class bingx extends Exchange {
             // }
             //
         }
-        return this.parseTicker (response['data'], market);
+        return this.parseTicker (this.safeDict (response, 'data', {}), market);
     }
 
     /**

@@ -628,7 +628,7 @@ export default class bybit extends bybitRest {
             const rawTicker = this.safeDict (ticker, 'info', {});
             tickerInput = this.extend (rawTicker, data);
         }
-        const parsed = this.parseTicker (tickerInput);
+        const parsed = this.parseTicker (this.extend ({}, tickerInput));
         if (updateType === 'snapshot') {
             symbol = this.safeString (parsed, 'symbol');
         }

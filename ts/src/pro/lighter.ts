@@ -296,7 +296,7 @@ export default class lighter extends lighterRest {
                 const marketId = marketIds[i];
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
-                const ticker = this.parseTicker (data[marketId], market);
+                const ticker = this.parseTicker (this.safeDict (data, marketId, {}), market);
                 this.tickers[symbol] = ticker;
                 client.resolve (ticker, this.getMessageHash ('ticker', symbol));
                 client.resolve (ticker, this.getMessageHash ('ticker'));

@@ -1649,7 +1649,7 @@ export default class aster extends Exchange {
         //        "askQty": "0.32399"            // only in SPOT
         //    }
         //
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     /**

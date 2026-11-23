@@ -2153,7 +2153,7 @@ export default class mexc extends Exchange {
             ticker = this.safeDict (response, 'data', {});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return this.parseTicker ((ticker as Dict), market);
+        return this.parseTicker (this.extend ({}, ticker), market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {

@@ -1647,7 +1647,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (this.safeValue (response, marketId), market);
+            const ticker = this.parseTicker (this.safeDict (response, marketId, {}), market);
             const symbol: Str = this.safeString (ticker, 'symbol');
             result[(symbol as string)] = ticker;
         }

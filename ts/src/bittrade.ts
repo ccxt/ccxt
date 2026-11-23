@@ -853,7 +853,7 @@ export default class bittrade extends Exchange {
             const marketId = this.safeString (tickers[i], 'symbol');
             const market = this.safeMarket (marketId);
             const symbol: string = this.safeString (market, 'symbol', '');
-            const ticker = this.parseTicker (tickers[i], market);
+            const ticker = this.parseTicker (this.safeDict (tickers, i, {}), market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;

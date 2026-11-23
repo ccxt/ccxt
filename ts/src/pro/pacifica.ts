@@ -796,17 +796,13 @@ export default class pacifica extends pacificaRest {
             const marketId = this.safeString (info, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol: string = this.safeString (market, 'symbol', '');
-            const ticker = this.parseWsTicker (info, market);
+            const ticker = this.parseTicker (info, market);
             this.tickers[symbol] = ticker;
             parsedTickers.push (ticker);
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');
         client.resolve (tickers, 'tickers');
         return true;
-    }
-
-    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
-        return this.parseTicker (rawTicker, market);
     }
 
     handleMyTrades (client: Client, message: Dict) {

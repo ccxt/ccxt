@@ -407,7 +407,7 @@ export default class mudrex extends Exchange {
             if (symbols !== undefined && !this.inArray (symbol, symbols)) {
                 continue;
             }
-            resultTickers[symbol] = this.parseTicker (t, m);
+            resultTickers[symbol] = this.parseTicker (this.safeDict (rows, i, {}), m);
         }
         return this.filterByArrayTickers (resultTickers, 'symbol', symbols);
     }

@@ -731,7 +731,7 @@ export default class bitvavo extends Exchange {
         //         "timestamp":1590381666900
         //     }
         //
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
