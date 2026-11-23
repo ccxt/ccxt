@@ -17733,7 +17733,8 @@ const JAVA_VENUE_PARAM_TYPES = {
     // a venue-only `Int` parameter: every caller hands a Long (declared Long local, safeInteger/safeTimestamp, null)
     'Int': 'Long',
     // a venue-only read-only `any` parameter: every caller hands an identifier already declared Map
-    'any': 'java.util.Map<String, Object>',
+    'any': 'java.util.Map<String, Object>',    // a venue-only `number` / `Num` amount: every caller hands its own never-written Double parameter (or its negation)
+    'number': 'Double', 'Num': 'Double',
 };
 const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/;
 const JAVA_LIB_SOURCE_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
@@ -17747,6 +17748,7 @@ function javaVenueNameIndex () {
     const declared = new Map ();
     const referenced = new Set ();
     const literals = new Set ();
+    const keyLiterals = new Map ();
     const files = new Set ();
     const visitDir = (dir) => {
         if (!fs.existsSync (dir)) {
@@ -17765,7 +17767,7 @@ function javaVenueNameIndex () {
                 continue;
             }
             files.add (path.resolve (full));
-            javaVenueIndexSource (ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true), declared, referenced, literals);
+            javaVenueIndexSource (ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true), declared, referenced, literals, keyLiterals);
         }
     };
     visitDir (JAVA_FRESH_MAP_TS_ROOT);
@@ -17776,7 +17778,7 @@ function javaVenueNameIndex () {
     } catch (e) {
         java = undefined;
     }
-    javaVenueNameIndexCache = { declared, referenced, literals, java, files };
+    javaVenueNameIndexCache = { declared, referenced, literals, java, files, keyLiterals };
     return javaVenueNameIndexCache;
 }
 
@@ -17786,7 +17788,7 @@ function javaVenueIndexFile (file) {
     const key = path.resolve (file.fileName);
     if (!index.files.has (key)) {
         index.files.add (key);
-        javaVenueIndexSource (file, index.declared, index.referenced, index.literals);
+        javaVenueIndexSource (file, index.declared, index.referenced, index.literals, index.keyLiterals);
     }
     return index;
 }
@@ -17818,7 +17820,24 @@ function javaVenueLeafOwnName (file, name) {
     return !javaVenueImportedFilesCache.has (path.resolve (file.fileName));
 }
 
-function javaVenueIndexSource (sf, declared, referenced, literals) {
+// this file declares the name once and no ts/src file importing it (its pro subclass) declares or calls it
+function javaVenueOwnNameNotRedeclared (file, name) {
+    const declares = (text) => (text ?? '').split ('\n').filter ((l) => new RegExp ('^ {4}(?:override )?(?:async )?' + name + ' ?[(<]').test (l)).length;
+    if (declares (file.text) !== 1) {
+        return false;
+    }
+    const own = path.resolve (file.fileName);
+    for (const full of javaVenueNameIndex ().files) {
+        const text = readTsIndexSource (full) ?? '';
+        const imports = [ ...text.matchAll (/\bfrom\s+'(\.{1,2}\/[^']+)'/g) ].some ((m) => path.resolve (path.dirname (full), m[1].replace (/\.js$/, '.ts')) === own);
+        if (imports && (declares (text) !== 0 || text.includes ('.' + name + ' ('))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function javaVenueIndexSource (sf, declared, referenced, literals, keyLiterals = new Map ()) {
     const visit = (n) => {
         if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
             declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
@@ -17831,6 +17850,11 @@ function javaVenueIndexSource (sf, declared, referenced, literals) {
         }
         if (ts.isStringLiteralLike (n)) {
             literals.add (n.text);
+            // [ all, option-key ] counts: the first argument of a this.handle*AndParams call only names an options key
+            const counts = keyLiterals.get (n.text) ?? [ 0, 0 ];
+            const call = n.parent;
+            const optionKey = ts.isCallExpression (call) && call.arguments[0] === n && isThisCall (call) && /^handle\w*AndParams$/.test (call.expression.name.text);
+            keyLiterals.set (n.text, [ counts[0] + 1, counts[1] + (optionKey ? 1 : 0) ]);
         }
         n.forEachChild (visit);
     };
@@ -17877,6 +17901,9 @@ function javaArgumentTypeAgrees (printer, arg, target) {
     if (target === 'Long') {
         return javaLongArgumentIsTyped (printer, bare);
     }
+    if (target === 'Double') {
+        return javaDoubleParamArgument (printer, bare);
+    }
     if (ts.isArrayLiteralExpression (bare)) {
         return !bare.elements.some ((e) => ts.isSpreadElement (e));
     }
@@ -17886,6 +17913,17 @@ function javaArgumentTypeAgrees (printer, arg, target) {
     return ts.isCallExpression (bare) && ts.isPropertyAccessExpression (bare.expression)
         && bare.expression.expression.kind === ts.SyntaxKind.ThisKeyword
         && JAVA_SAFE_LIST_NAMES.has (bare.expression.name.text) && safeListDefaultIsList (printer, bare, bare.expression.name.text);
+}
+
+// a Double slot takes the caller's own never-written parameter the printer declares Double, or its negation
+function javaDoubleParamArgument (printer, arg) {
+    const operand = ts.isPrefixUnaryExpression (arg) && arg.operator === ts.SyntaxKind.MinusToken ? unwrapParens (arg.operand) : arg;
+    if (!ts.isIdentifier (operand)) {
+        return false;
+    }
+    const declaration = printer.javaDeclarationOfIdentifier (operand);
+    return declaration !== undefined && ts.isParameterDeclaration (declaration) && declaration.initializer === undefined
+        && printer.javaNativeParameterType (declaration) === 'Double' && !printer.javaParameterIsWritten (declaration);
 }
 
 // a Long slot takes `undefined` (prints null) or a base safeInteger/safeTimestamp call (hand-written `Long` returns)
@@ -17981,8 +18019,11 @@ function javaVenueParamType (printer, node) {
     try {
         const name = method.name.text;
         const index = method.parameters.indexOf (node);
-        const { declared, referenced, literals, java } = javaVenueIndexFile (file);
-        const unique = (declared.get (name) === 1 || (node.type.getText () === 'Market[]' && javaVenueLeafOwnName (file, name))) && !referenced.has (name) && !literals.has (name)
+        const { declared, referenced, literals, java, keyLiterals } = javaVenueIndexFile (file);
+        // a Double amount: same-named methods of unrelated leaf venues; the name only appears as an options key
+        const doubleLeaf = target === 'Double' && javaVenueOwnNameNotRedeclared (file, name)
+            && (!literals.has (name) || keyLiterals.get (name)?.[0] === keyLiterals.get (name)?.[1]);
+        const unique = (declared.get (name) === 1 || doubleLeaf || (node.type.getText () === 'Market[]' && javaVenueLeafOwnName (file, name))) && !referenced.has (name) && (doubleLeaf || !literals.has (name))
             && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
         const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
             && printer.javaIsPrintedMethod (method);
@@ -18027,7 +18068,8 @@ export function installJavaParamTypes (transpiler) {
     const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
         return upstreamTyped (arg, type) || javaSlotArgumentDeclared (printer, arg, type)
-            || (type === 'Long' && javaVenueLongSlotCall (printer, arg));
+            || (type === 'Long' && javaVenueLongSlotCall (printer, arg))
+            || (type === 'Double' && ts.isPrefixUnaryExpression (unwrapParens (arg) ?? {}) && javaDoubleParamArgument (printer, unwrapParens (arg)));
     };
 }
 
