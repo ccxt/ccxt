@@ -18098,6 +18098,7 @@ function dictionaryParameterType (csharp, declaration) {
 export const CORE_LIST_ARGS = {
     'cancelOrders': { 0: 'IList<object>' },
     'cancelOrdersRequest': { 0: 'IList<object>' },
+    'cancelOrdersWithClientOrderIds': { 0: 'IList<object>' },
     'cancelOrdersWs': { 0: 'IList<object>' },
     'cancelUtaOrders': { 0: 'IList<object>' },
     'checkNoStockSymbols': { 0: 'IList<object>' },
@@ -18110,8 +18111,10 @@ export const CORE_LIST_ARGS = {
     'fetchAccountPositions': { 0: 'IList<object>' },
     'fetchAllGreeks': { 0: 'IList<object>' },  // FetchAllGreeks
     'fetchBidsAsks': { 0: 'IList<object>' },  // FetchBidsAsks
+    'fetchBorrowRateHistories': { 0: 'IList<object>' },  // FetchBorrowRateHistories
     'fetchContractTickers': { 0: 'IList<object>' },  // FetchContractTickers
     'fetchFundingIntervals': { 0: 'IList<object>' },  // FetchFundingIntervals
+    'fetchFundingLimits': { 0: 'IList<object>' },  // FetchFundingLimits
     'fetchFundingRates': { 0: 'IList<object>' },  // FetchFundingRates
     'fetchLastPrices': { 0: 'IList<object>' },  // FetchLastPrices
     'fetchLeverageTiers': { 0: 'IList<object>' },  // FetchLeverageTiers
