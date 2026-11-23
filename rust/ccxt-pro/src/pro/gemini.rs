@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription" => self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -93,16 +93,16 @@ impl Gemini {
             "handle_bids_asks_for_multidata" => { self.handle_bids_asks_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_heartbeat" => { self.handle_heartbeat(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_l2_updates" => { self.handle_l2_updates(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_l2_updates" => { self.handle_l2_updates(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_for_multidata" => { self.handle_order_book_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription" => { self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades_for_multidata" => { self.handle_trades_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "helper_for_watch_multiple_construct" => crate::exchange_stubs::enqueue_spawn("helper_for_watch_multiple_construct", args.iter().copied().cloned().collect::<Vec<_>>()),
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -351,9 +351,8 @@ impl Gemini {
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
-    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+    pub fn handle_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "type": "l2_updates",
@@ -391,7 +390,7 @@ impl Gemini {
         //         ]
         //     }
         //
-        let marketId: Option<String> = self.safe_string_lower_k_opt(message, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_lower_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut trades: Option<crate::value::List> = (match __pro_message.get("trades").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (trades.is_some()) {
@@ -933,7 +932,7 @@ impl Gemini {
         client.resolve(__resolved_orderbook, messageHash.as_str());
 }
 
-    pub fn handle_l2_updates(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_l2_updates(&mut self, client: &Value, message: &Value) {
         //
         //     {
         //         "type": "l2_updates",
@@ -972,7 +971,7 @@ impl Gemini {
         //     }
         //
         self.handle_order_book(client.clone(), message.clone());
-        self.handle_trades(client, message);
+        self.handle_trades(client, message.as_map().unwrap_or(&Default::default()));
 }
 
 /*
@@ -1191,7 +1190,7 @@ impl Gemini {
         self.handle_order(client, message);
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1231,7 +1230,7 @@ impl Gemini {
         //
         let reason: Option<String> = (match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (reason.as_deref() == Some("error")) {
-            self.handle_error(&client, &message);
+            self.handle_error(&client.as_value(), &message);
         }
         let methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1243,12 +1242,12 @@ impl Gemini {
         });
         let type_var: String = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if type_var.contains("candles") {
-            self.handle_ohlcv(client.clone(), message.clone());
+            self.handle_ohlcv(client.as_value(), message.clone());
             return;
         }
         let method: Option<String> = self.safe_value(&methods, Value::from(type_var.as_str()), &[]).as_str().map(str::to_owned);
         if (method.is_some()) {
-            self.dispatch_ws_handler(&method, &[&client, &message]);
+            self.dispatch_ws_handler(&method, &[&client.as_value(), &message]);
         }
         // handle multimarketdata
         if (type_var == "update") {
@@ -1283,15 +1282,15 @@ impl Gemini {
             }
             let lengthBa: i64 = bidaskItems.len() as i64;
             if lengthBa > 0 {
-                self.handle_bids_asks_for_multidata(&client, Value::from(bidaskItems), Value::from(ts), Value::from(eventId));
+                self.handle_bids_asks_for_multidata(&client.as_value(), Value::from(bidaskItems), Value::from(ts), Value::from(eventId));
             }
             let lengthOb: i64 = orderBookItems.len() as i64;
             if lengthOb > 0 {
-                self.handle_order_book_for_multidata(&client, Value::from(orderBookItems), Value::from(ts), Value::from(eventId));
+                self.handle_order_book_for_multidata(&client.as_value(), Value::from(orderBookItems), Value::from(ts), Value::from(eventId));
             }
             let lengthTrades: i64 = collectedEventsOfTrades.len() as i64;
             if lengthTrades > 0 {
-                self.handle_trades_for_multidata(&client, Value::from(collectedEventsOfTrades), Value::from(ts));
+                self.handle_trades_for_multidata(&client.as_value(), Value::from(collectedEventsOfTrades), Value::from(ts));
             }
         }
 }

@@ -203,11 +203,11 @@ impl crate::exchange::DerivedExchange for Backpack {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         let rfq: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "rfq");
         if (rfq.is_some()) {
-            let mut parsed: Option<crate::value::Dict> = <Self as crate::exchange::DerivedExchange>::parse_order(self, &rfq, market);
+            let mut parsed: Option<crate::value::Dict> = <Self as crate::exchange::DerivedExchange>::parse_order(self, rfq.as_ref(), market);
             if let Some(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), order.clone()); }
             return parsed;
         }
@@ -361,7 +361,7 @@ impl crate::exchange::DerivedExchange for Backpack {
 
     None
 }
-    fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+    fn parse_market(&self, market: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let market: Value = market.into();
         //
         //     [
@@ -489,7 +489,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
-            return Value::Null;
+            return None;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let filters: crate::value::Dict = self.safe_dict_k_t(&market, "filters");
@@ -562,12 +562,12 @@ impl crate::exchange::DerivedExchange for Backpack {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), quote.as_deref().unwrap_or("null")); // settle is the quote currency
             contractSize = Some(1_f64);
         }  else {
-            return Value::Null;
+            return None;
         }
         let orderBookState: Option<String> = self.safe_string_k_opt(&market, "orderBookState", &[]);
         // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
         let active: Value = (if (rfq && (orderBookState.is_none())) { (Value::Bool((id.is_some()) || (self.safe_string_k(&security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
-        return self.safe_market_structure(&[Value::Map({
+        return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -633,9 +633,9 @@ impl crate::exchange::DerivedExchange for Backpack {
         m.insert("created".to_string(), Value::from(self.parse8601(self.safe_string_k(&market, "createdAt", &[]))));
         m.insert("info".to_string(), market);
     m
-})]);
+})]));
 
-    Value::Null
+    None
 }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         return Some(std::sync::Arc::new(vec![Value::from(self.parse8601(self.safe_string_k(&ohlcv, "start", &[]))), self.safe_number_k(&ohlcv, "open", &[]), self.safe_number_k(&ohlcv, "high", &[]), self.safe_number_k(&ohlcv, "low", &[]), self.safe_number_k(&ohlcv, "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]));
@@ -680,7 +680,7 @@ impl crate::exchange::DerivedExchange for Backpack {
 
     None
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         //
         // fetchPositions
@@ -809,7 +809,7 @@ impl crate::exchange::DerivedExchange for Backpack {
 
     None
 }
-    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let depositAddress: Value = depositAddress.into();
         //
         //     {
@@ -1296,7 +1296,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2440,7 +2440,7 @@ impl Backpack {
         m.insert("security".to_string(), security.clone().map_or(Value::Null, Value::Dict));
     m
 })]);
-            let market: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, (if (security.is_none()) { rawMarket } else { __ws_arg_0 }));
+            let market: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, (if (security.is_none()) { rawMarket } else { __ws_arg_0 })).map_or(Value::Null, Value::Dict);
             if (market != Value::Null) {
                 let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
                 if (marketId.is_none()) || (matches!(marketId.as_deref(), Some(__k) if marketIds.contains_key(__k))) {
@@ -2458,7 +2458,7 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (securities.len() as i64) } {
-                let mut security: Option<crate::value::Dict> = securities.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                let mut security: Option<crate::value::Dict> = (match securities.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
                 let assetId: Option<String> = self.safe_string_k_opt(&security, "asset", &[]);
                 if (assetId.is_none()) {
                     continue;
@@ -2474,7 +2474,7 @@ impl Backpack {
                             m.insert("rwaMarketType".to_string(), Value::Str("STOCK".into()));
                             m.insert("security".to_string(), security.map_or(Value::Null, Value::Dict));
                         m
-                    }));
+                    })).map_or(Value::Null, Value::Dict);
                     if (market != Value::Null) {
                         marketIds.insert(marketId, Value::Bool(true));
                         markets.push(market);
@@ -3286,10 +3286,7 @@ impl Backpack {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3302,7 +3299,7 @@ impl Backpack {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_api_v1_mark_prices(&[&__ws_arg_7]).await.unwrap_or_default());
         let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
@@ -3327,10 +3324,7 @@ impl Backpack {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3343,7 +3337,7 @@ impl Backpack {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_api_v1_open_interest(&[&__ws_arg_8]).await.unwrap_or_default());
         let interest: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, Some(&market)).map_or(Value::Null, Value::Dict);
@@ -3372,10 +3366,7 @@ impl Backpack {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
@@ -3391,7 +3382,7 @@ impl Backpack {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); // api maximum 1000
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.public_get_api_v1_funding_rates(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     [
@@ -3403,12 +3394,12 @@ impl Backpack {
         //     ]
         //
         let mut rates: Vec<Value> = Vec::new();
-        let rawRates: crate::value::List = self.to_array_t(&response);
+        let rawRates: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(&response));
         {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (rawRates.len() as i64) } {
-            let rate: crate::value::Dict = self.safe_dict_t(&rawRates, Value::Int(i));
+            let rate: crate::value::Dict = rawRates.get(i as usize).cloned().unwrap_or_default();
             let datetime: Option<String> = self.safe_string_k_opt(&rate, "intervalEndTimestamp", &[]);
             let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
             rates.push(Value::Map({
@@ -3955,7 +3946,7 @@ impl Backpack {
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_get_wapi_v1_capital_deposit_address(&[&__ws_arg_18]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4032,7 +4023,7 @@ impl Backpack {
         }
         let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&Value::Dict(orderParams)]);
         let response: crate::value::Dict = self.private_post_api_v1_order(&[&Value::Dict(orderRequest)]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4156,7 +4147,7 @@ impl Backpack {
         let query: crate::value::Dict = self.omit_t(&paramsResolved, Value::Str("clientOrderId".into()), &[]);
         let __ws_arg_19 = self.extend(query, &[Value::Map(request)]);
         let response: crate::value::Dict = self.private_post_api_v1_rfq(&[&__ws_arg_19]).await.unwrap_or_default();
-        let mut order: Option<crate::value::Dict> = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        let mut order: Option<crate::value::Dict> = <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
         if let Some(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), Value::from(type_var)); }
         return order;
 
@@ -4195,7 +4186,7 @@ impl Backpack {
         });
         let __ws_arg_20 = self.extend(query, &[Value::Map(request)]);
         let response: crate::value::Dict = self.private_post_api_v1_rfq_accept(&[&__ws_arg_20]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
 
     Default::default()
 }
@@ -4494,10 +4485,10 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_16: bool = true;
                 while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (rfqResponse.len() as i64) } {
-                let order: Value = <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&rfqResponse, Value::Int(i), &[Value::Map({
+                let order: Value = <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&rfqResponse, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Some(&market)).map_or(Value::Null, Value::Dict);
+})])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
                 if (self.safe_string_k(&order, "id", &[]).as_str() == id.as_str()) {
                     return order;
                 }
@@ -4513,7 +4504,7 @@ impl Backpack {
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.private_get_api_v1_order(&[&__ws_arg_24]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4574,10 +4565,10 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (response.len() as i64) } {
-            let order: Value = <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let order: Value = <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Some(&market)).map_or(Value::Null, Value::Dict);
+})])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
             if (self.safe_string_k(&order, "id", &[]).as_str() == id.as_str()) {
                 return order;
             }
@@ -4640,7 +4631,7 @@ impl Backpack {
             }
             let __ws_arg_27 = self.extend(self.omit(&query, Value::Str("clientOrderId".into()), &[]), &[Value::Map(rfqRequest)]);
             let rfqResponse: crate::value::Dict = self.private_post_api_v1_rfq_cancel(&[&__ws_arg_27]).await.unwrap_or_default();
-            return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rfqResponse, Some(&market));
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&rfqResponse), Some(&market));
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4650,7 +4641,7 @@ impl Backpack {
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.private_delete_api_v1_order(&[&__ws_arg_28]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
         None
         }).await?))
     }
@@ -4856,10 +4847,7 @@ impl Backpack {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4875,7 +4863,7 @@ impl Backpack {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.private_get_wapi_v1_history_funding(&[&__ws_arg_32]).await.unwrap_or_default();
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
@@ -4901,7 +4889,7 @@ impl Backpack {
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < paramsLength } {
             let order: crate::value::Dict = self.safe_dict_t(&params, Value::Int(i));
-            let sortedOrder: crate::value::Dict = self.keysort(Value::Dict(order), &[]).into_dict();
+            let sortedOrder: crate::value::Dict = self.keysort_t(Value::Dict(order), &[]);
             let orderQuery: String = self.urlencode(&sortedOrder, &[]);
             payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", Value::from(instruction)).into()), "&").into()), orderQuery).into()), "&"));
             if (i == ((paramsLength - 1))) {

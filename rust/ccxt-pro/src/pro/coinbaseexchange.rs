@@ -688,10 +688,7 @@ impl Coinbaseexchange {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let symbolsLength: i64 = symbols.len() as i64;
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")));
@@ -718,7 +715,7 @@ impl Coinbaseexchange {
                 m.insert("channels".to_string(), Value::from(vec![Value::from(name.as_str())]));
             m
         });
-        let request: crate::value::Dict = self.extend_t(Value::Map(subscribe), &[params]);
+        let request: crate::value::Dict = self.extend_t(Value::Map(subscribe), &[&params]);
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), Value::from(name));
@@ -751,10 +748,7 @@ impl Coinbaseexchange {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let name: String = "level2".to_string();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -769,7 +763,7 @@ impl Coinbaseexchange {
                 m.insert("channels".to_string(), Value::from(vec![Value::from(name)]));
             m
         });
-        let request: crate::value::Dict = self.extend_t(Value::Map(subscribe), &[params]);
+        let request: crate::value::Dict = self.extend_t(Value::Map(subscribe), &[&params]);
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));

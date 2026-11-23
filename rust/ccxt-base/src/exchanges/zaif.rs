@@ -136,7 +136,7 @@ impl crate::exchange::DerivedExchange for Zaif {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         //     {
@@ -196,7 +196,7 @@ impl crate::exchange::DerivedExchange for Zaif {
 
     None
 }
-    fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+    fn parse_market(&self, market: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let market: Value = market.into();
         let id: Option<String> = self.safe_string_k_opt(&market, "currency_pair", &[]);
         let name: Option<String> = self.safe_string_k_opt(&market, "name", &[]);
@@ -209,10 +209,10 @@ impl crate::exchange::DerivedExchange for Zaif {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
-            return Value::Null;
+            return None;
         }
         let symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        return self.safe_market_structure(&[Value::Map({
+        return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -274,9 +274,9 @@ impl crate::exchange::DerivedExchange for Zaif {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market);
     m
-})]);
+})]));
 
-    Value::Null
+    None
 }
     fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let mut response: Value = response.map_or(Value::Null, Value::from);
@@ -475,7 +475,7 @@ impl crate::exchange_generated::ExchangeBase for Zaif {
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -987,10 +987,7 @@ impl Zaif {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1000,7 +997,7 @@ impl Zaif {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_depth_pair(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]));
         Value::Null
@@ -1024,10 +1021,7 @@ impl Zaif {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1037,7 +1031,7 @@ impl Zaif {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let ticker: crate::value::Dict = self.public_get_ticker_pair(&[&__ws_arg_1]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -1065,10 +1059,7 @@ impl Zaif {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1078,7 +1069,7 @@ impl Zaif {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.public_get_trades_pair(&[&__ws_arg_2]).await.unwrap_or_default();
         //
         //      [
@@ -1131,10 +1122,7 @@ impl Zaif {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1150,7 +1138,7 @@ impl Zaif {
                 m.insert("price".to_string(), Value::from(price));
             m
         });
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_trade(&[&__ws_arg_3]).await.unwrap_or_default();
         let data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let m = indexmap::IndexMap::new();
@@ -1184,16 +1172,13 @@ impl Zaif {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_cancel_order(&[&__ws_arg_4]).await.unwrap_or_default();
         //
         //    {
@@ -1210,7 +1195,7 @@ impl Zaif {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1236,10 +1221,7 @@ impl Zaif {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1252,7 +1234,7 @@ impl Zaif {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("currency_pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_active_orders(&[&__ws_arg_5]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return Value::Arr(self.parse_orders(Value::Arr(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into()))), market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -1280,10 +1262,7 @@ impl Zaif {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1302,7 +1281,7 @@ impl Zaif {
         if (limit.is_some()) {
             request.insert("count".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000)));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_trade_history(&[&__ws_arg_6]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return Value::Arr(self.parse_orders(Value::Arr(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into()))), market.as_ref(), &[&Value::from(since), &Value::from(limit)]));

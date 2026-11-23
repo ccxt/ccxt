@@ -279,8 +279,8 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "filter_raw_markets_by_fixture" => crate::Value::Arr(self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "hex_to_int" => self.hex_to_int(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "load_sx_obv3_metadata" => self.load_sx_obv3_metadata().await,
                 "matches_event_query" => self.matches_event_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
@@ -1062,16 +1062,13 @@ impl Sxbet {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         let __ws_arg_4 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sportXeventId".to_string(), id.clone());
     m
-}), &[params]);
+}), &[&params]);
         rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_4, &Value::Null]).await;
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = self.filter_raw_markets_by_fixture(&rawMarkets, id.as_str().unwrap_or_default());
@@ -1859,10 +1856,7 @@ impl Sxbet {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1873,7 +1867,7 @@ impl Sxbet {
 })]));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_private_delete_orders_v3(&[&__ws_arg_7]).await.unwrap_or_default();
         let orders: crate::value::List = self.parse_sxbet_cancel_response(&response);
         let mut first: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
@@ -1900,10 +1894,7 @@ impl Sxbet {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         let idsLength: i64 = ids.len() as i64;
         if (idsLength == 0) {
@@ -2083,10 +2074,7 @@ impl Sxbet {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2100,7 +2088,7 @@ impl Sxbet {
         if (limit.is_some()) {
             request.insert("perPage".into(), self.clamp_sxbet_per_page(limit));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_private_get_orders_v3(&[&__ws_arg_11]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rawOrders: crate::value::List = self.safe_list_k_t(&data, "orders");
@@ -2156,10 +2144,7 @@ impl Sxbet {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires an id argument")));
@@ -2174,7 +2159,7 @@ impl Sxbet {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_private_get_orders_v3_order_id(&[&__ws_arg_12]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let row: crate::value::Dict = self.safe_dict_k_or(&data, "order", Value::from(&data));
@@ -2203,10 +2188,7 @@ impl Sxbet {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (outcome == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped")));
         }
@@ -2220,7 +2202,7 @@ impl Sxbet {
         if (limit.is_some()) {
             request.insert("perPage".into(), self.clamp_sxbet_per_page(limit));
         }
-        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_public_get_trades_v3_public(&[&__ws_arg_13]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
@@ -2261,10 +2243,7 @@ impl Sxbet {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.check_required_credentials(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2283,7 +2262,7 @@ impl Sxbet {
             // size would truncate the page before the filter and under-fill the result
             request.insert("perPage".into(), self.clamp_sxbet_per_page(limit));
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_private_get_fills_v3(&[&__ws_arg_14]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rawFills: crate::value::List = self.safe_list_k_t(&data, "fills");
@@ -2593,10 +2572,7 @@ impl Sxbet {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.check_required_credentials(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2618,7 +2594,7 @@ impl Sxbet {
             // per side) - a server-side page size would under-fill the filtered result
             request.insert("perPage".into(), self.clamp_sxbet_per_page(limit));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_private_get_trades_v3(&[&__ws_arg_16]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
@@ -3066,10 +3042,7 @@ impl Sxbet {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let marketHash: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[]);
@@ -3080,7 +3053,7 @@ impl Sxbet {
                 m.insert("marketHash".to_string(), marketHash.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[&__ws_arg_18]).await.unwrap_or_default();
         let snapshot: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(&snapshot, isOutcomeOne);
@@ -3292,8 +3265,8 @@ impl Sxbet {
     Value::Null
 }
 
-    pub fn handle_text_message(&mut self, mut client: Value, mut message: Value) {
-        let lines: Vec<Value> = Value::Array(if let Some(__s) = message.as_str() { __s.split("\n").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+    pub fn handle_text_message(&mut self, mut client: Value, message: &str) {
+        let lines: Vec<Value> = Value::Array(if let Some(__s) = Some(message) { __s.split("\n").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let linesLength: i64 = lines.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -3308,10 +3281,10 @@ impl Sxbet {
         }
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        self.handle_centrifugo_frame(client, message);
+        self.handle_centrifugo_frame(client.as_value(), message);
 }
 
     pub fn handle_centrifugo_frame(&mut self, mut client: Value, msg: impl Into<crate::Value>) {

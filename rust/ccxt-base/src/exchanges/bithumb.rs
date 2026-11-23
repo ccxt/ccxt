@@ -317,7 +317,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         //
@@ -591,7 +591,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 
     None
 }
-    fn parse_deposit_address(&self, response: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_deposit_address(&self, response: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let response: Value = response.into();
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
@@ -3033,7 +3033,7 @@ impl Bithumb {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() did not return an order id")));
         }
-        let __ws_arg_22 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_22 = <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_22, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
@@ -3148,7 +3148,7 @@ impl Bithumb {
         request.insert("side".into(), sideRequest.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsGeneration]);
         let response: crate::value::Dict = self.private_post_v1_twap(&[&__ws_arg_24]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3319,7 +3319,7 @@ impl Bithumb {
             m
         });
         let parsedOrder: crate::value::Dict = self.extend_t(data, &[Value::Map(orderData)]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &parsedOrder, market.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&parsedOrder), market.as_ref());
         None
         }).await?))
     }
@@ -3700,7 +3700,7 @@ impl Bithumb {
             let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsSide]);
             response = self.private_post_trade_cancel(&[&__ws_arg_34]).await;
         }
-        let __ws_arg_35 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
+        let __ws_arg_35 = <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_35, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -3784,10 +3784,7 @@ impl Bithumb {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
@@ -3795,7 +3792,7 @@ impl Bithumb {
         });
         let __ws_arg_37 = self.safe_string_k(&order, "id", &[Value::Str("".into())]);
         let __ws_arg_38 = self.safe_string_k(order, "symbol", &[]);
-        let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_39 = self.extend(Value::Map(request), &[&params]);
         return crate::types::IntoRaw::into_raw(self.cancel_order((__ws_arg_37).as_str().unwrap_or_default(), (__ws_arg_38).as_str(), __ws_arg_39).await);
         Value::Null
         }).await?))
@@ -4261,7 +4258,7 @@ impl Bithumb {
         request.insert("net_type".into(), self.network_code_to_id(network.as_deref(), code.as_text().as_deref()));
         let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_v1_deposits_generate_coin_address(&[&__ws_arg_49]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4311,7 +4308,7 @@ impl Bithumb {
         request.insert("net_type".into(), self.network_code_to_id(network.as_deref(), code.as_text().as_deref()));
         let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_get_v1_deposits_coin_address(&[&__ws_arg_50]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

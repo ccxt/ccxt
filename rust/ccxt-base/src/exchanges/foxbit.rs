@@ -129,7 +129,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         let mut symbol: Option<String> = self.safe_string_k_opt(&order, "market_symbol", &[]);
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
@@ -195,7 +195,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
 
     None
 }
-    fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+    fn parse_market(&self, market: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let market: Value = market.into();
         let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let baseAssets: crate::value::Dict = self.safe_dict_k_t(&market, "base");
@@ -205,11 +205,11 @@ impl crate::exchange::DerivedExchange for Foxbit {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
-            return Value::Null;
+            return None;
         }
         let symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let fees: crate::value::Dict = self.safe_dict_k_t(&market, "default_fees");
-        return self.safe_market_structure(&[Value::Map({
+        return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -275,16 +275,16 @@ impl crate::exchange::DerivedExchange for Foxbit {
 }));
         m.insert("info".to_string(), market);
     m
-})]);
+})]));
 
-    Value::Null
+    None
 }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         return Some(std::sync::Arc::new(vec![self.safe_integer(&ohlcv, Value::Int(0), &[]), self.safe_number(&ohlcv, Value::Int(1), &[]), self.safe_number(&ohlcv, Value::Int(2), &[]), self.safe_number(&ohlcv, Value::Int(3), &[]), self.safe_number(&ohlcv, Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(6), &[])]));
 
     None
 }
-    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let depositAddress: Value = depositAddress.into();
         let network: crate::value::Dict = self.safe_dict_k_t(&depositAddress, "network");
         let networkId: Option<String> = self.safe_string_k_opt(&network, "code", &[]);
@@ -302,7 +302,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
 
     None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_ledger_entry(&self, item: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
@@ -682,7 +682,7 @@ impl crate::exchange_generated::ExchangeBase for Foxbit {
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1393,10 +1393,7 @@ impl Foxbit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1406,7 +1403,7 @@ impl Foxbit {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_public_get_markets_market_ticker24hr(&[&__ws_arg_0]).await.unwrap_or_default();
         //  {
         //    "data": [
@@ -1566,10 +1563,7 @@ impl Foxbit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1581,7 +1575,7 @@ impl Foxbit {
                 m.insert("depth".to_string(), (if (limit.is_none()) { Value::from(defaultLimit) } else { Value::from(limit) }));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_public_get_markets_market_orderbook(&[&__ws_arg_1]).await.unwrap_or_default();
         //  {
         //    "sequence_id": 1234567890,
@@ -1633,10 +1627,7 @@ impl Foxbit {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 1, Value::Null);
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1661,7 +1652,7 @@ impl Foxbit {
         //         "created_at": "2024-01-01T00:00:00Z"
         //     }
         // ]
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_public_get_markets_market_trades_history(&[&__ws_arg_2]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return Value::Arr(self.parse_trades(&data, Some(&market), &[&Value::from(since), &limit]));
@@ -1691,10 +1682,7 @@ impl Foxbit {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1715,7 +1703,7 @@ impl Foxbit {
                 request.insert("limit".into(), Value::Int(500));
             }
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.v3_public_get_markets_market_candlesticks(&[&__ws_arg_3]).await.unwrap_or_default();
         return Value::Arr(self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[interval.map(Value::from).unwrap_or(Value::Null), Value::from(since), limit]));
         Value::Null
@@ -1977,7 +1965,7 @@ impl Foxbit {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["timeInForce", "postOnly", "triggerPrice", "clientOrderId"], &[]);
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.v3_private_post_orders(&[&__ws_arg_5]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
         None
         }).await?))
     }
@@ -1998,10 +1986,7 @@ impl Foxbit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2065,7 +2050,7 @@ impl Foxbit {
                 m.insert("data".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_6 = self.extend(Value::Map(createOrdersRequest), &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(createOrdersRequest), &[&params]);
         let response: crate::value::Dict = self.v3_private_post_orders_batch(&[&__ws_arg_6]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2106,10 +2091,7 @@ impl Foxbit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2119,7 +2101,7 @@ impl Foxbit {
                 m.insert("type".to_string(), Value::Str("ID".into()));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_put_orders_cancel(&[&__ws_arg_7]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2131,7 +2113,7 @@ impl Foxbit {
         // }
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let result: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), None);
         None
         }).await?))
     }
@@ -2152,10 +2134,7 @@ impl Foxbit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2169,7 +2148,7 @@ impl Foxbit {
             request.insert("type".into(), Value::Str("MARKET".into()));
             request.insert("market_symbol".into(), Value::from((market).id.as_deref()));
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_put_orders_cancel(&[&__ws_arg_8]).await.unwrap_or_default();
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2198,10 +2177,7 @@ impl Foxbit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2210,9 +2186,9 @@ impl Foxbit {
                 m.insert("id".to_string(), id);
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_get_orders_by_order_id_id(&[&__ws_arg_9]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), None);
         None
         }).await?))
     }
@@ -2239,10 +2215,7 @@ impl Foxbit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2264,7 +2237,7 @@ impl Foxbit {
                 request.insert("page_size".into(), Value::Int(100));
             }
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_get_orders(&[&__ws_arg_10]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2315,10 +2288,7 @@ impl Foxbit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument")));
         }
@@ -2340,7 +2310,7 @@ impl Foxbit {
                 request.insert("page_size".into(), Value::Int(100));
             }
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_get_trades(&[&__ws_arg_11]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2400,7 +2370,7 @@ impl Foxbit {
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmited]);
         let response: crate::value::Dict = self.v3_private_get_deposits_address(&[&__ws_arg_12]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2425,10 +2395,7 @@ impl Foxbit {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2449,7 +2416,7 @@ impl Foxbit {
         if (since.is_some()) {
             request.insert("start_time".into(), self.iso8601(&Value::from(since)));
         }
-        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_get_deposits(&[&__ws_arg_13]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2493,10 +2460,7 @@ impl Foxbit {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2517,7 +2481,7 @@ impl Foxbit {
         if (since.is_some()) {
             request.insert("start_time".into(), self.iso8601(&Value::from(since)));
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_get_withdrawals(&[&__ws_arg_14]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2669,10 +2633,7 @@ impl Foxbit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         self.check_required_argument(Value::Str("editOrder".into()), &symbol, Value::Str("symbol".into()), &[]);
         let typeValue: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "INSTANT") {
@@ -2715,7 +2676,7 @@ impl Foxbit {
                 m.insert("create".to_string(), Value::Map(createRequest));
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_post_orders_cancel_replace(&[&__ws_arg_15]).await.unwrap_or_default();
         // {
         //     "cancel": {
@@ -2727,7 +2688,7 @@ impl Foxbit {
         //     }
         // }
         let created: crate::value::Dict = self.safe_dict_k_t(&response, "create");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &created, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&created), Some(&market));
         None
         }).await?))
     }
@@ -2808,10 +2769,7 @@ impl Foxbit {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2833,7 +2791,7 @@ impl Foxbit {
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         request.insert("symbol".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v3_private_get_accounts_symbol_transactions(&[&__ws_arg_17]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_ledger(&data, Some(&currency), &[&Value::from(since), &limit]);

@@ -114,7 +114,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         //    {
@@ -206,7 +206,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_market(&self, asset: impl Into<crate::Value>) -> Value {
+    fn parse_market(&self, asset: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let asset: Value = asset.into();
         //
         //     {
@@ -244,7 +244,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
             quote = Some("USD".to_string());
         }
         if (base.is_none()) || (quote.is_none()) {
-            return Value::Null;
+            return None;
         }
         let symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let status: Option<String> = self.safe_string_k_opt(&asset, "status", &[]);
@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
             minCost = self.safe_number_k(&self.options, "minCostUSD", &[self.parse_number(Value::Str("10".into()), &[])]).as_f64();
         }
-        return self.safe_market_structure(&[Value::Map({
+        return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -320,9 +320,9 @@ impl crate::exchange::DerivedExchange for Alpaca {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), asset);
     m
-})]);
+})]));
 
-    Value::Null
+    None
 }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         //
@@ -420,7 +420,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let depositAddress: Value = depositAddress.into();
         //
         //     {
@@ -674,7 +674,7 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1655,17 +1655,14 @@ impl Alpaca {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_class".to_string(), Value::Str("crypto".into()));
                 m.insert("status".to_string(), Value::Str("active".into()));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let assets: crate::value::List = self.trader_private_get_v2_assets(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Arr(self.parse_markets(&assets));
         Value::Null
@@ -1789,10 +1786,7 @@ impl Alpaca {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1805,7 +1799,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_orderbooks(&[&__ws_arg_3]).await.unwrap_or_default();
         //
         //   {
@@ -2217,10 +2211,7 @@ impl Alpaca {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2229,7 +2220,7 @@ impl Alpaca {
                 m.insert("cost".to_string(), Value::from(cost));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(req), &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(req), &[&params]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), 0.0, None, __ws_arg_8).await);
         Value::Null
         }).await?))
@@ -2253,10 +2244,7 @@ impl Alpaca {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2265,7 +2253,7 @@ impl Alpaca {
                 m.insert("cost".to_string(), Value::from(cost));
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(req), &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(req), &[&params]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", 0.0, None, __ws_arg_9).await);
         Value::Null
         }).await?))
@@ -2289,10 +2277,7 @@ impl Alpaca {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2301,7 +2286,7 @@ impl Alpaca {
                 m.insert("cost".to_string(), Value::from(cost));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(req), &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(req), &[&params]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost, None, __ws_arg_10).await);
         Value::Null
         }).await?))
@@ -2383,7 +2368,7 @@ impl Alpaca {
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);
         let order: crate::value::Dict = self.trader_private_post_v2_orders(&[&__ws_arg_11]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market));
         None
         }).await?))
     }
@@ -2406,18 +2391,15 @@ impl Alpaca {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.trader_private_delete_v2_orders_order_id(&[&__ws_arg_12]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), None);
         None
         }).await?))
     }
@@ -2469,10 +2451,7 @@ impl Alpaca {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2481,11 +2460,11 @@ impl Alpaca {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
         let order: crate::value::Dict = self.trader_private_get_v2_orders_order_id(&[&__ws_arg_13]).await.unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market));
         None
         }).await?))
     }
@@ -2574,16 +2553,13 @@ impl Alpaca {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("open".into()));
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
         return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_15).await);
         Value::Null
         }).await?))
@@ -2611,16 +2587,13 @@ impl Alpaca {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("closed".into()));
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&params]);
         return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_16).await);
         Value::Null
         }).await?))
@@ -2690,7 +2663,7 @@ impl Alpaca {
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, &["clientOrderId"], &[])]);
         let response: crate::value::Dict = self.trader_private_patch_v2_orders_order_id(&[&__ws_arg_17]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), market.as_ref());
         None
         }).await?))
     }
@@ -2810,10 +2783,7 @@ impl Alpaca {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2823,9 +2793,9 @@ impl Alpaca {
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.trader_private_get_v2_wallets(&[&__ws_arg_19]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

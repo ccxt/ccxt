@@ -68,8 +68,8 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "describe_data" => self.describe_data(),
                 "fetch_open_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_open_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_error" => self.handle_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_error" => self.handle_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_notification" => self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ohlcv" => self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order" => self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -119,17 +119,17 @@ impl Hitbtc {
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_notification" => { self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_helper" => { self.handle_order_helper(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_helper" => { self.handle_order_helper(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_request" => { self.handle_order_request(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ohlcv" => { Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -1519,7 +1519,7 @@ impl Hitbtc {
         }
         let mut dataDict: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "params");
         if (dataDict.is_some()) {
-            self.handle_order_helper(client, &message, dataDict.map_or(Value::Null, Value::Dict));
+            self.handle_order_helper(client, message.as_map().unwrap_or(&Default::default()), dataDict.map_or(Value::Null, Value::Dict));
         }  else {
             let data: crate::value::List = __pro_message.key_list("params");
             {
@@ -1527,7 +1527,7 @@ impl Hitbtc {
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
                 let order: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-                self.handle_order_helper(client, &message, order);
+                self.handle_order_helper(client, message.as_map().unwrap_or(&Default::default()), order);
             }
             }
         }
@@ -1536,9 +1536,7 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn handle_order_helper(&self, client: &Value, message: &Value, mut order: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_helper(&self, client: &Value, message: &indexmap::IndexMap<String, Value>, mut order: Value) {
         if (self.orders.is_none()) {
             return;
         }
@@ -2069,10 +2067,10 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if self.handle_error(&client, &message).as_bool() == Some(true) {
+        if self.handle_error(&client.as_value(), message.as_map().unwrap_or(&Default::default())).as_bool() == Some(true) {
             return;
         }
         let mut channel: Option<String> = self.safe_string2_opt(&message, Value::Str("ch".into()), Value::Str("method".into()), &[]);
@@ -2104,21 +2102,21 @@ impl Hitbtc {
             });
             let method: Option<String> = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
-                self.dispatch_ws_handler(&method, &[&client, &message]);
+                self.dispatch_ws_handler(&method, &[&client.as_value(), &message]);
             }
         }  else {
             let result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
             let resultChannel: Option<String> = self.safe_string_k_opt(&result, "ch", &[]);
             if (resultChannel.is_some()) {
-                self.handle_un_subscription(&client, message.clone());
+                self.handle_un_subscription(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
                 return;
             }
             let clientOrderId: Option<String> = self.safe_string_k_opt(&result, "client_order_id", &[]);
             if (clientOrderId.is_some()) {
-                self.handle_order_request(&client, message.clone());
+                self.handle_order_request(&client.as_value(), message.clone());
             }
             if ((match &(result) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && !(matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
-                self.handle_authenticate(&client, message.clone());
+                self.handle_authenticate(&client.as_value(), message.clone());
             }
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
@@ -2126,16 +2124,14 @@ impl Hitbtc {
                 let rows: crate::value::List = __pro_message.key_list("result");
                 let arrayLength: i64 = rows.len() as i64;
                 if (arrayLength == 0) || (first.contains_key("client_order_id")) {
-                    self.handle_order_request(&client, message);
+                    self.handle_order_request(&client.as_value(), message);
                 }
             }
         }
 }
 
-    pub fn handle_un_subscription(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_un_subscription(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
         //
@@ -2203,10 +2199,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn handle_error(&self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //    {
         //        jsonrpc: '2.0',

@@ -759,8 +759,7 @@ impl Hyperliquid {
  * @param {object} [question] linked question object from outcomeMeta
  * @returns {string} the parent market outcome
  */
-    pub fn build_outcome_parent_symbol(&self, desc: impl Into<crate::Value>, outcomeId: &str, optional_args: &[&Value]) -> Option<String> {
-        let desc: Value = desc.into();
+    pub fn build_outcome_parent_symbol(&self, desc: &indexmap::IndexMap<String, Value>, outcomeId: &str, optional_args: &[&Value]) -> Option<String> {
         let name = get_arg(optional_args, 0, Value::Str("".into()));
         let mut question = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -805,7 +804,7 @@ impl Hyperliquid {
                 }
                 let thresholdsRaw: String = self.safe_string_k(&questionDesc, "priceThresholds", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let indexStr: Option<String> = self.safe_string_k_opt(&desc, "index", &[]);
-                let rawDescription: Option<String> = self.safe_string_lower_k_opt(desc, "description", &[Value::Str("".into())]);
+                let rawDescription: Option<String> = self.safe_string_lower_k_opt(&desc, "description", &[Value::Str("".into())]);
                 let nameLower: Option<String> = name.as_str().map(str::to_lowercase);
                 if ((questionUnderlying.is_some()) && (questionUnderlying.as_deref() != Some(""))) && (thresholdsRaw != "") && (indexStr.is_some()) {
                     let thresholdParts: Vec<Value> = Value::Array(thresholdsRaw.split(",").map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -889,10 +888,7 @@ impl Hyperliquid {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         //
         // outcomeMeta response:
         //
@@ -926,7 +922,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("outcomeMeta".into()));
             m
-        }), &[params]);
+        }), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_0]).await;
         let outcomesList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "outcomes"));
         let questionsList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "questions"));
@@ -1117,7 +1113,7 @@ impl Hyperliquid {
 }));
     m
 })]);
-        let marketRow: Value = self.safe_market_structure(&[Value::Map({
+        let marketRow: Value = Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), outcomeKey.clone());
         m.insert("market".to_string(), parentSymbol.clone());
@@ -1190,7 +1186,7 @@ impl Hyperliquid {
 })]));
         m.insert("created".to_string(), Value::Null);
     m
-})]);
+})]));
         return self.omit(marketRow, Value::Str("symbol".into()), &[]);
 
     Value::Null
@@ -1251,10 +1247,7 @@ impl Hyperliquid {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
@@ -1265,7 +1258,7 @@ impl Hyperliquid {
                 m.insert("coin".to_string(), coin.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: Value = self.public_post_info(&[&__ws_arg_1]).await;
         //
         //     {
@@ -1304,10 +1297,7 @@ impl Hyperliquid {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcomes = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let mut requestedOutcomeSymbols: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -1334,7 +1324,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("allMids".into()));
             m
-        }), &[params]);
+        }), &[&params]);
         let allMids: crate::value::Dict = Self::info_dict(self.public_post_info(&[&__ws_arg_2]).await);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
@@ -1487,10 +1477,7 @@ impl Hyperliquid {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
@@ -1500,7 +1487,7 @@ impl Hyperliquid {
                 m.insert("coin".to_string(), self.safe_string_k(&info, "coinName", &[]));
             m
         });
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_3]).await;
         //
         //     {
@@ -2551,10 +2538,7 @@ impl Hyperliquid {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
@@ -2565,7 +2549,7 @@ impl Hyperliquid {
             m
         });
         // recentTrades returns the coin's most recent public trades (newest first)
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: Value = self.public_post_info(&[&__ws_arg_11]).await;
         let trades: crate::value::List = Self::info_list(response);
         return Value::Arr(self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
@@ -2674,7 +2658,7 @@ impl Hyperliquid {
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
         // disagree with a previously warmed cache within the same session)
         let marketsDict: crate::types::Markets = (match self.load_markets(false, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let marketValues: crate::value::List = self.to_array_t(crate::types::IntoRaw::into_raw(marketsDict));
+        let marketValues: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(crate::types::IntoRaw::into_raw(marketsDict)));
         // Group markets by parentSymbol
         let mut groupMap: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2697,7 +2681,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_26: bool = true;
             while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (marketValues.len() as i64) } {
-            let mkt: crate::value::Dict = self.safe_dict_t(&marketValues, Value::Int(i));
+            let mkt: crate::value::Dict = marketValues.get(i as usize).cloned().unwrap_or_default();
             if !matches!(self.safe_bool_k(&mkt, "prediction", &[Value::Bool(false)]), Value::Bool(true)) {
                 continue;
             }

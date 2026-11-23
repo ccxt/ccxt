@@ -226,7 +226,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // createOrder - spot
@@ -350,7 +350,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+    fn parse_market(&self, market: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let market: Value = market.into();
         let id: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let lowercaseId: Option<String> = self.safe_string_lower_k_opt(&market, "symbol", &[]);
@@ -384,7 +384,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
-            return Value::Null;
+            return None;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         if (settle.is_some()) {
@@ -411,7 +411,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             minCost = self.safe_number_k(&market, "minOrderMoney", &[]).as_f64();
         }
         let isSpot: bool = type_var == "spot";
-        return self.safe_market_structure(&[Value::Map({
+        return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(id));
         m.insert("lowercaseId".to_string(), lowercaseId.map(Value::from).unwrap_or(Value::Null));
@@ -474,9 +474,9 @@ impl crate::exchange::DerivedExchange for Bitrue {
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market);
     m
-})]);
+})]));
 
-    Value::Null
+    None
 }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         //
@@ -566,12 +566,12 @@ impl crate::exchange::DerivedExchange for Bitrue {
             m
         });
         let timestamp: Option<i64> = self.safe_integer_k(&response, "updateTime", &[]).as_i64();
-        let balances: crate::value::List = self.safe_list2_t(response, Value::Str("balances".into()), Value::Str("account".into()));
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list2_t(response, Value::Str("balances".into()), Value::Str("account".into())));
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string2_opt(&balance, Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -588,7 +588,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
         //
         //     fetchTransfers
@@ -1151,7 +1151,7 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2542,10 +2542,7 @@ impl Bitrue {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2579,7 +2576,7 @@ impl Bitrue {
             if (limit.is_some()) {
                 request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             response = self.spot_v1_public_get_depth(&[&__ws_arg_2]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrderBook only support spot & swap markets")));
@@ -2636,10 +2633,7 @@ impl Bitrue {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2669,7 +2663,7 @@ impl Bitrue {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            let __ws_arg_5 = self.extend(request, &[params]);
+            let __ws_arg_5 = self.extend(request, &[&params]);
             response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), &[&__ws_arg_5]).await;
             data = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -2777,20 +2771,17 @@ impl Bitrue {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let first: Option<String> = self.safe_string_opt(&symbolsNormalized, Value::Int(0), &[]);
         let mut market: crate::types::Market = (match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
@@ -2813,7 +2804,7 @@ impl Bitrue {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            let __ws_arg_11 = self.extend(request, &[params]);
+            let __ws_arg_11 = self.extend(request, &[&params]);
             response = self.spot_v1_public_get_ticker_book_ticker(&[&__ws_arg_11]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchBidsAsks only support spot & swap markets")));
@@ -2995,10 +2986,7 @@ impl Bitrue {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3013,7 +3001,7 @@ impl Bitrue {
             if (limit.is_some()) {
                 request.insert("limit".into(), Value::from(limit)); // default 100, max 1000
             }
-            let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
             response = self.spot_v1_public_get_trades(&[&__ws_arg_14]).await.unwrap_or_default();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades only support spot markets")));
@@ -3219,7 +3207,7 @@ impl Bitrue {
     let m = indexmap::IndexMap::new();
     m
 }), &[&data]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_18, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_18).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3294,7 +3282,7 @@ impl Bitrue {
     let m = indexmap::IndexMap::new();
     m
 }), &[&data]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_22, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_22).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3319,10 +3307,7 @@ impl Bitrue {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchClosedOrders() requires a symbol argument")));
         }
@@ -3344,7 +3329,7 @@ impl Bitrue {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit)); // default 100, max 1000
         }
-        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.spot_v1_private_get_all_orders(&[&__ws_arg_23]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -3372,10 +3357,7 @@ impl Bitrue {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
         }
@@ -3401,7 +3383,7 @@ impl Bitrue {
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
             response = self.spot_v1_private_get_open_orders(&[&__ws_arg_26]).await;
             data = response;
         }  else {
@@ -3482,7 +3464,7 @@ impl Bitrue {
     let m = indexmap::IndexMap::new();
     m
 }), &[&data]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_30, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_30).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3505,10 +3487,7 @@ impl Bitrue {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3525,7 +3504,7 @@ impl Bitrue {
                 let __ws_arg_31 = self.extend(&request, &[&params]);
                 response = self.fapi_v2_private_post_all_open_orders(&[&__ws_arg_31]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
+                let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
                 response = self.dapi_v2_private_post_all_open_orders(&[&__ws_arg_32]).await;
             }
             data = self.safe_list_k_t(&response, "data");
@@ -3558,10 +3537,7 @@ impl Bitrue {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3595,7 +3571,7 @@ impl Bitrue {
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
             response = self.spot_v2_private_get_my_trades(&[&__ws_arg_35]).await;
             data = response;
         }  else {
@@ -3626,10 +3602,7 @@ impl Bitrue {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDeposits() requires a code argument")));
         }
@@ -3649,7 +3622,7 @@ impl Bitrue {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_v1_private_get_deposit_history(&[&__ws_arg_36]).await.unwrap_or_default();
         //
         //     {
@@ -3713,10 +3686,7 @@ impl Bitrue {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchWithdrawals() requires a code argument")));
         }
@@ -3736,7 +3706,7 @@ impl Bitrue {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_v1_private_get_withdraw_history(&[&__ws_arg_37]).await.unwrap_or_default();
         //
         //    {
@@ -3989,10 +3959,7 @@ impl Bitrue {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4007,7 +3974,7 @@ impl Bitrue {
                 m.insert("transferType".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", fromId.as_deref().unwrap_or("null"), "_to_").into()), toId.as_deref().unwrap_or("null")).into()));
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_40 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.fapi_v2_private_post_futures_transfer(&[&__ws_arg_40]).await.unwrap_or_default();
         //
         //     {
@@ -4017,7 +3984,7 @@ impl Bitrue {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4033,7 +4000,7 @@ impl Bitrue {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Value> {
+    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
         let __args: Vec<Value> = vec![Value::from(leverage), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
         let leverage = __it.next().unwrap_or_default();
@@ -4041,10 +4008,7 @@ impl Bitrue {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
@@ -4072,7 +4036,7 @@ impl Bitrue {
             let __ws_arg_41 = self.extend(&request, &[&params]);
             response = self.fapi_v2_private_post_level_edit(&[&__ws_arg_41]).await;
         }  else if ((market).inverse == Some(true)) {
-            let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_42 = self.extend(Value::Map(request), &[&params]);
             response = self.dapi_v2_private_post_level_edit(&[&__ws_arg_42]).await;
         }
         return response;
@@ -4100,10 +4064,7 @@ impl Bitrue {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4122,7 +4083,7 @@ impl Bitrue {
             let __ws_arg_43 = self.extend(&request, &[&params]);
             response = self.fapi_v2_private_post_position_margin(&[&__ws_arg_43]).await;
         }  else if ((market).inverse == Some(true)) {
-            let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&params]);
             response = self.dapi_v2_private_post_position_margin(&[&__ws_arg_44]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);

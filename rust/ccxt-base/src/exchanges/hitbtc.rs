@@ -211,7 +211,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // limit
@@ -339,7 +339,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         //
         //     [
@@ -481,7 +481,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -754,7 +754,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_leverage(&self, leverage: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let leverage: Value = leverage.into();
         let marketId: Option<String> = self.safe_string_k_opt(&leverage, "symbol", &[]);
         let leverageValue: Option<i64> = self.safe_integer_k(&leverage, "leverage", &[]).as_i64();
@@ -2635,10 +2635,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2648,7 +2645,7 @@ impl Hitbtc {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_ticker_symbol(&[&__ws_arg_2]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -2665,20 +2662,17 @@ impl Hitbtc {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2688,7 +2682,7 @@ impl Hitbtc {
             let delimited: String = marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",");
             request.insert("symbols".into(), Value::from(delimited));
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_ticker(&[&__ws_arg_3]).await.unwrap_or_default();
         //
         //     {
@@ -2747,10 +2741,7 @@ impl Hitbtc {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2772,7 +2763,7 @@ impl Hitbtc {
             let responseInner: crate::value::List = self.public_get_public_trades_symbol(&[&__ws_arg_4]).await.unwrap_or_default();
             return Value::Arr(self.parse_trades(&responseInner, market.as_ref(), &[]));
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_trades(&[&__ws_arg_5]).await.unwrap_or_default();
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -3033,10 +3024,7 @@ impl Hitbtc {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3051,7 +3039,7 @@ impl Hitbtc {
         if (limit.is_some()) {
             request.insert("depth".into(), Value::from(limit));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_orderbook(&[&__ws_arg_11]).await.unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -3092,10 +3080,7 @@ impl Hitbtc {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3108,7 +3093,7 @@ impl Hitbtc {
         if (limit.is_some()) {
             request.insert("depth".into(), Value::from(limit));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_orderbook_symbol(&[&__ws_arg_12]).await.unwrap_or_default();
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "timestamp", &[]));
         return Value::Dict(self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
@@ -3160,10 +3145,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3178,7 +3160,7 @@ impl Hitbtc {
             let __ws_arg_13 = self.extend(&request, &[&params]);
             response = self.private_get_spot_fee_symbol(&[&__ws_arg_13]).await;
         }  else if (Some((market).market_type.as_str()) == Some("swap")) {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_futures_fee_symbol(&[&__ws_arg_14]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTradingFee() not support this market type")));
@@ -3510,10 +3492,10 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrder() not support this market type")));
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&response, Value::Int(0), &[Value::Map({
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), market.as_ref()).map_or(Value::Null, Value::Dict);
+})])).as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3723,7 +3705,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOpenOrder() not support this market type")));
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3857,7 +3839,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelOrder() not support this market type")));
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -3920,7 +3902,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " editOrder() not support this market type")));
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -3983,7 +3965,7 @@ impl Hitbtc {
             let __ws_arg_53 = self.extend(request, &[&paramsValue]);
             response = self.private_post_spot_order(&[&__ws_arg_53]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -4143,10 +4125,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         // account can be "spot", "wallet", or "derivatives"
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4169,12 +4148,12 @@ impl Hitbtc {
                 m.insert("destination".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_54 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_54 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_wallet_transfer(&[&__ws_arg_54]).await.unwrap_or_default();
-        let __ws_arg_55 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Value::Map({
+        let __ws_arg_55 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}), Some(&currency)).map_or(Value::Null, Value::Dict);
+})).as_ref(), Some(&currency)).map_or(Value::Null, Value::Dict);
         let __ws_arg_56 = self.safe_string(&response, Value::Int(0), &[]);
         return self.extend(__ws_arg_55, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4582,10 +4561,10 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (response.len() as i64) } {
-            let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None).unwrap_or_default();
+})])).as_ref(), None).unwrap_or_default();
             result.push(Value::Dict(position));
         }
         }
@@ -4648,7 +4627,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPosition() not support this market type")));
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4665,16 +4644,13 @@ impl Hitbtc {
  * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interests(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OpenInterests> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4682,13 +4658,13 @@ impl Hitbtc {
             let m = indexmap::IndexMap::new();
             m
         });
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut marketIds: Option<crate::value::List> = None;
         if (symbolsNormalized.is_some()) {
             marketIds = self.market_ids(symbolsNormalized.as_deref());
             request.insert("symbols".into(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
-        let __ws_arg_67 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_67 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_futures_info(&[&__ws_arg_67]).await.unwrap_or_default();
         //
         //     {
@@ -4740,10 +4716,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4756,7 +4729,7 @@ impl Hitbtc {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_68 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_68 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_futures_info_symbol(&[&__ws_arg_68]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -4779,10 +4752,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4795,7 +4765,7 @@ impl Hitbtc {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_69 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_69 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_futures_info_symbol(&[&__ws_arg_69]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -4993,7 +4963,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLeverage() not support this market type")));
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5009,7 +4979,7 @@ impl Hitbtc {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Value> {
+    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
         let __args: Vec<Value> = vec![Value::from(leverage), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
         let leverage = __it.next().unwrap_or_default();
@@ -5017,10 +4987,7 @@ impl Hitbtc {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
@@ -5051,7 +5018,7 @@ impl Hitbtc {
                 m.insert("margin_balance".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
-        let __ws_arg_77 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_77 = self.extend(Value::Map(request), &[&params]);
         return self.private_put_futures_account_isolated_symbol(&[&__ws_arg_77]).await;
         Value::Null
         }).await?))
@@ -5126,7 +5093,7 @@ impl Hitbtc {
         });
         let __ws_arg_78 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let response: crate::value::Dict = self.private_delete_futures_position_margin_mode_symbol(&[&__ws_arg_78]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

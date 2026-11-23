@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "get_ws_url" => self.get_ws_url(),
                 "handle_binary_message" => { self.handle_binary_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trade" => self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate_ws" => Value::Dict(self.parse_funding_rate_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -81,7 +81,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_balance" => Value::Dict(self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "resubscribe_order_book" => self.resubscribe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "sbe_read_flags" => Value::Arr(self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
@@ -151,7 +151,7 @@ impl Paradex {
             "handle_book_side_deltas" => { self.handle_book_side_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -174,7 +174,7 @@ impl Paradex {
             "parse_sbe_trade" => { self.parse_sbe_trade(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_balance" => { Value::Dict(self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "parse_ws_liquidation" => { Value::Dict(self.parse_ws_liquidation(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_liquidation" => { Value::Dict(self.parse_ws_liquidation(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "request_id" => { self.request_id(); },
             "resubscribe_order_book" => crate::exchange_stubs::enqueue_spawn("resubscribe_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
             "sbe_read_flags" => { Value::Arr(self.sbe_read_flags(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null))); },
@@ -1077,8 +1077,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_ws_liquidation(&self, liquidation: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let liquidation: Value = liquidation.into();
+    pub fn parse_ws_liquidation(&self, liquidation: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //     {
         //         "id": "1718179273230201709233240002",
@@ -1097,12 +1096,12 @@ if _try_result.is_err() {
         let price: Option<String> = self.safe_string_k_opt(&liquidation, "price", &[]);
         return self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), liquidation.clone());
+        m.insert("info".to_string(), Value::Dict(liquidation.clone()));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("contracts".to_string(), self.parse_number(Value::from(contracts.as_deref()), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("price".to_string(), self.parse_number(Value::from(price.as_deref()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower_k(liquidation, "side", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(&liquidation, "side", &[]));
         m.insert("baseValue".to_string(), self.parse_number(Value::from(contracts.as_deref()), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2438,12 +2437,12 @@ if _try_result.is_err() {
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
-        let cached: crate::value::List = self.filter_by_symbol_since_limit(&self.positions, symbol.as_deref(), None, None, &[Value::Bool(true)]);
+        let cached: Vec<crate::value::Dict> = crate::value::dict_rows(self.filter_by_symbol_since_limit(&self.positions, symbol.as_deref(), None, None, &[Value::Bool(true)]));
         {
                         let mut i: i64 = 0;
             let mut __for_first_27: bool = true;
             while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (cached.len() as i64) } {
-            let previous: crate::value::Dict = self.safe_dict_t(&cached, Value::Int(i));
+            let previous: crate::value::Dict = cached.get(i as usize).cloned().unwrap_or_default();
             let previousSide: Option<String> = self.safe_string_k_opt(&previous, "side", &[]);
             let previousContracts: Option<String> = self.safe_string_k_opt(&previous, "contracts", &[]);
             let isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);
@@ -3000,10 +2999,9 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, values: impl Into<crate::Value>) -> Option<String> {
-        let values: Value = values.into();
+    pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, values: &indexmap::IndexMap<String, Value>) -> Option<String> {
         let value: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), offset, Value::Int(1)));
-        return self.safe_string_opt(values, Value::from(self.number_to_string(Value::from(value))), &[]);
+        return self.safe_string_opt(&values, Value::from(self.number_to_string(Value::from(value))), &[]);
 }
 
     pub fn sbe_read_string(&self, mut frameHex: Value, mut offset: Value, mut length: Value) -> Option<String> {
@@ -3693,8 +3691,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.handle_stream_message(client, parsedMessage);
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        self.handle_stream_message(&client, message);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+        self.handle_stream_message(&client.as_value(), message);
 }
 
     pub fn handle_stream_message(&mut self, client: &Value, message: impl Into<crate::Value>) {

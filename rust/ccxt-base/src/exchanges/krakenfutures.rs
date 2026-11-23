@@ -300,7 +300,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
         //
         // LIMIT
@@ -930,7 +930,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         // cross
         //    {
@@ -1126,7 +1126,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_ledger_entry(&self, item: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let item: Value = item.into();
         //
         //    {
@@ -1199,7 +1199,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
         //
         // transfer
@@ -1263,7 +1263,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_leverage(&self, leverage: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let leverage: Value = leverage.into();
         let marketId: Option<String> = self.safe_string_k_opt(&leverage, "symbol", &[]);
         let leverageValue: Option<i64> = self.safe_integer_k(&leverage, "maxLeverage", &[]).as_i64();
@@ -1426,8 +1426,8 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         if (code == 429) {
             panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
         }
-        let errors: crate::value::List = self.safe_list_k_t(&response, "errors");
-        let firstError: crate::value::Dict = self.safe_dict_t(&errors, Value::Int(0));
+        let errors: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "errors"));
+        let firstError: crate::value::Dict = errors.get(0).cloned().unwrap_or_default();
         let firtErrorMessage: Option<String> = self.safe_string_k_opt(&firstError, "message", &[]);
         let message: Option<String> = self.safe_string_k_opt(response, "error", &[&firtErrorMessage]);
         if (message.is_none()) {
@@ -2444,10 +2444,7 @@ impl Krakenfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2457,7 +2454,7 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_get_orderbook", &[&__ws_arg_0]).await;
         //
         //    {
@@ -2512,10 +2509,7 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let request: indexmap::IndexMap<String, Value> = ({
@@ -2523,7 +2517,7 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_tickers_symbol(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //    {
@@ -2684,7 +2678,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (feeSchedules.len() as i64) } {
-            let mut schedule: Option<crate::value::Dict> = feeSchedules.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut schedule: Option<crate::value::Dict> = (match feeSchedules.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let uid: Option<String> = self.safe_string_k_opt(&schedule, "uid", &[]);
             if (uid.is_some()) {
                 schedulesByUid.insert(uid.as_deref().unwrap_or("null").to_string(), schedule.map_or(Value::Null, Value::Dict));
@@ -3207,8 +3201,8 @@ impl Krakenfutures {
         //
         let sendStatus: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "sendStatus");
         let status: Option<String> = self.safe_string_k_opt(&sendStatus, "status", &[]);
-        self.verify_order_action_success(status.map(Value::from).unwrap_or(Value::Null), "createOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &sendStatus, Some(&market));
+        self.verify_order_action_success(status.as_deref(), "createOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, sendStatus.as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3229,10 +3223,7 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3263,7 +3254,7 @@ impl Krakenfutures {
                 m.insert("batchOrder".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_batchorder(&[&__ws_arg_5]).await.unwrap_or_default();
         //
         // {
@@ -3311,10 +3302,7 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3329,12 +3317,12 @@ impl Krakenfutures {
         if (price.is_some()) {
             request.insert("limitPrice".into(), Value::from(price));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_editorder(&[&__ws_arg_6]).await.unwrap_or_default();
         let editStatus: crate::value::Dict = self.safe_dict_k_t(&response, "editStatus");
         let status: Option<String> = self.safe_string_k_opt(&editStatus, "status", &[]);
-        self.verify_order_action_success(status.map(Value::from).unwrap_or(Value::Null), "editOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
-        let mut order: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_order(self, &editStatus, None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        self.verify_order_action_success(status.as_deref(), "editOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
+        let mut order: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&editStatus), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         order.insert("info".into(), Value::Dict(response));
         return Value::Map(order);
         Value::Null
@@ -3359,10 +3347,7 @@ impl Krakenfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3371,17 +3356,17 @@ impl Krakenfutures {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_cancelorder(&[&__ws_arg_7]).await.unwrap_or_default();
         let cancelStatus: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "cancelStatus");
         let status: Option<String> = self.safe_string_k_opt(&cancelStatus, "status", &[]);
-        self.verify_order_action_success(status.map(Value::from).unwrap_or(Value::Null), "cancelOrder", &[]);
+        self.verify_order_action_success(status.as_deref(), "cancelOrder", &[]);
         let mut order: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
         if (cancelStatus.is_some()) {
-            order = <Self as crate::exchange::DerivedExchange>::parse_order(self, &cancelStatus, None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+            order = <Self as crate::exchange::DerivedExchange>::parse_order(self, cancelStatus.as_ref(), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         }
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3413,10 +3398,7 @@ impl Krakenfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3455,7 +3437,7 @@ impl Krakenfutures {
                 m.insert("batchOrder".to_string(), Value::from(orders));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_batchorder(&[&__ws_arg_8]).await.unwrap_or_default();
         // {
         //     "result": "success",
@@ -3508,10 +3490,7 @@ impl Krakenfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3519,7 +3498,7 @@ impl Krakenfutures {
         if (symbol != Value::Null) {
             request.insert("symbol".into(), self.market_id(symbol.as_str()));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_cancelallorders(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //    {
@@ -3585,10 +3564,7 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3597,7 +3573,7 @@ impl Krakenfutures {
                 m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { (Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))) } else { Value::Int(0) }));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_cancelallordersafter(&[&__ws_arg_10]).await.unwrap_or_default();
         return Value::Dict(response);
         Value::Null
@@ -3698,10 +3674,7 @@ impl Krakenfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3710,7 +3683,7 @@ impl Krakenfutures {
                 m.insert("orderIds".to_string(), Value::from(vec![id.clone()]));
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let orders: Vec<crate::types::Order> = (match self.fetch_orders(None, None, None, __ws_arg_11).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
         if (order.is_none()) {
@@ -3907,11 +3880,11 @@ impl Krakenfutures {
         return self.safe_string_opt(&typesMap, &orderType, &[&orderType]);
 }
 
-    pub fn verify_order_action_success(&self, status: impl Into<crate::Value>, method: &str, optional_args: &[&Value]) {
+    pub fn verify_order_action_success(&self, status: Option<&str>, method: &str, optional_args: &[&Value]) {
         let status: Value = status.into();
         let method: Value = method.into();
         let omit = get_arg(optional_args, 0, Value::from(vec![]));
-        let errors: Value = Value::Map({
+        let errors: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("invalidOrderType".to_string(), Value::Str("InvalidOrder".into()));
                 m.insert("invalidSide".to_string(), Value::Str("InvalidOrder".into()));
@@ -3935,9 +3908,11 @@ impl Krakenfutures {
                 m.insert("notFound".to_string(), Value::Str("OrderNotFound".into()));
             m
         });
-        if (matches!((&errors, &status), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && !self.in_array(status.clone(), omit) {
-            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&((if let (Some(__m), Some(__k)) = (errors.as_map(), status.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))), &crate::runtime::stringify_param(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str(format!("{}{}", self.id, ": ").into()), method).into()), " failed due to ").into()), status).into())))));
+        if (status != Value::Null) {
+            if (matches!(&status, Value::Str(__k) if errors.contains_key(__k.as_ref()))) && !self.in_array(status.clone(), omit) {
+                panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(errors.get(status.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null))), &crate::runtime::stringify_param(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, ": ").into()),
+                    method).into()), " failed due to ").into()), status).into())))));
+            }
         }
 }
 
@@ -4475,10 +4450,7 @@ impl Krakenfutures {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
@@ -4494,7 +4466,7 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), self.safe_string_upper_k(&market, "id", &[]));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_historicalfundingrates(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //    {
@@ -4852,10 +4824,7 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4880,7 +4849,7 @@ impl Krakenfutures {
             request.insert("fromAccount".into(), self.parse_kraken_account_name(fromAccount.as_str().unwrap_or_default()));
             request.insert("toAccount".into(), self.parse_kraken_account_name(toAccount.as_str().unwrap_or_default()));
             request.insert("unit".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_transfer(&[&__ws_arg_21]).await;
         }
         //
@@ -4889,7 +4858,7 @@ impl Krakenfutures {
         //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
-        let transfer: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency)).unwrap_or_default();
+        let transfer: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, response.as_ref(), Some(&currency)).unwrap_or_default();
         return self.extend(transfer, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));
@@ -4911,7 +4880,7 @@ impl Krakenfutures {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Value> {
+    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
         let __args: Vec<Value> = vec![Value::from(leverage), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
         let leverage = __it.next().unwrap_or_default();
@@ -4919,10 +4888,7 @@ impl Krakenfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
@@ -4939,7 +4905,7 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), marketIdUpper.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
         return self.private_put_leveragepreferences(&[&__ws_arg_22]).await;
         Value::Null
         }).await?))
@@ -5003,10 +4969,7 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchLeverage() requires a symbol argument")));
         }
@@ -5023,7 +4986,7 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), marketIdUpper.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_leveragepreferences(&[&__ws_arg_23]).await.unwrap_or_default();
         //
         //     {
@@ -5034,7 +4997,7 @@ impl Krakenfutures {
         //
         let leveragePreferences: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "leveragePreferences"));
         let data: crate::value::Dict = leveragePreferences.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

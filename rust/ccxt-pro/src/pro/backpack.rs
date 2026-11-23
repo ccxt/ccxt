@@ -61,10 +61,10 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
         Box::pin(async move {
             match method {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).and_then(crate::Value::as_array).cloned().unwrap_or_default()))),
-                "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_stock_ticker" => self.handle_stock_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_stock_ticker" => self.handle_stock_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -115,19 +115,19 @@ impl Backpack {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_stock_ticker" => { self.handle_stock_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_stock_ticker" => { self.handle_stock_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscriptions" => crate::exchange_stubs::enqueue_spawn("handle_unsubscriptions", args.iter().copied().cloned().collect::<Vec<_>>()),
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ohlcv" => { Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -710,10 +710,8 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, message: &Value) {
+    pub fn handle_ticker(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         data: {
@@ -837,10 +835,8 @@ impl Backpack {
  * @param {object} message stream envelope
  * @returns {boolean} whether a subscription was updated
  */
-    pub fn handle_stock_ticker(&mut self, client: &Value, message: &Value) -> Value {
+    pub fn handle_stock_ticker(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         let data: crate::value::Dict = message.key_dict("data");
         let stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let __ws_arg_1 = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
@@ -946,10 +942,8 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         data: {
@@ -1224,9 +1218,7 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ohlcv(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         data: {
@@ -1442,9 +1434,7 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         data: {
@@ -1931,9 +1921,7 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         data: {
@@ -2116,9 +2104,7 @@ impl Backpack {
  * @param {object} message stream envelope
  * @returns {boolean} whether a balance was updated
  */
-    pub fn handle_balance(&mut self, client: &Value, mut message: Value) -> Value {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
         let data: crate::value::Dict = message.key_dict("data");
         let assetId: Option<String> = self.safe_string_k_opt(&data, "a", &[]);
         if (assetId.is_none()) {
@@ -2365,9 +2351,7 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_positions(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         data: {
@@ -2487,40 +2471,38 @@ impl Backpack {
     Default::default()
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (self.handle_error_message(&client, &message).as_bool() != Some(true)) {
+        if (self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())).as_bool() != Some(true)) {
             return;
         }
         let data: crate::value::Dict = __pro_message.key_dict("data");
         let event: Option<String> = self.safe_string_k_opt(&data, "e", &[]);
         if (event.as_deref() == Some("stockPrice")) || (event.as_deref() == Some("stockIndicativeQuote")) {
-            self.handle_stock_ticker(&client, &message);
+            self.handle_stock_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("balanceUpdate")) {
-            self.handle_balance(&client, message.clone());
+            self.handle_balance(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("rfqAccepted")) || (event.as_deref() == Some("rfqCandidate")) || (event.as_deref() == Some("rfqAcceptedBinding")) || (event.as_deref() == Some("rfqFilled")) || (event.as_deref() == Some("rfqCancelled")) || (event.as_deref() == Some("quoteAccepted")) || (event.as_deref() == Some("quoteCancelled")) {
-            self.handle_order(&client, &message);
+            self.handle_order(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("ticker")) || (event.as_deref() == Some("externalTicker")) {
-            self.handle_ticker(&client, &message);
+            self.handle_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("bookTicker")) {
-            self.handle_bid_ask(&client, message.clone());
+            self.handle_bid_ask(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("kline")) {
-            self.handle_ohlcv(client.clone(), &message);
+            self.handle_ohlcv(client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("trade")) {
-            self.handle_trades(&client, &message);
+            self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("depth")) {
-            self.handle_order_book(client.clone(), message.clone());
+            self.handle_order_book(client.as_value(), message.clone());
         }  else if (event.as_deref() == Some("orderAccepted")) || (event.as_deref() == Some("orderUpdate")) || (event.as_deref() == Some("orderFill")) || (event.as_deref() == Some("orderCancelled")) || (event.as_deref() == Some("orderExpired")) || (event.as_deref() == Some("orderModified")) || (event.as_deref() == Some("triggerPlaced")) || (event.as_deref() == Some("triggerFailed")) {
-            self.handle_order(&client, &message);
+            self.handle_order(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("positionAdjusted")) || (event.as_deref() == Some("positionOpened")) || (event.as_deref() == Some("positionClosed")) || (event.as_deref() == Some("positionUpdated")) {
-            self.handle_positions(&client, message);
+            self.handle_positions(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
         //
         //     {
         //         id: null,

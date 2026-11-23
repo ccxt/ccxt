@@ -203,7 +203,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // createOrder
@@ -1053,12 +1053,12 @@ impl Bitbns {
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let rawMarkets: crate::value::List = self.to_array_t(&response);
+        let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(&response));
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawMarkets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
+            let market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);
@@ -1166,10 +1166,7 @@ impl Bitbns {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1182,7 +1179,7 @@ impl Bitbns {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit)); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.www_get_order_fetch_orderbook(&[&__ws_arg_0]).await.unwrap_or_default();
         //
         //     {
@@ -1357,7 +1354,7 @@ impl Bitbns {
     let m = indexmap::IndexMap::new();
     m
 }) } else { response.map_or(Value::Null, Value::Dict) });
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsed, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(parsed).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -1412,7 +1409,7 @@ impl Bitbns {
     let m = indexmap::IndexMap::new();
     m
 }) } else { response.map_or(Value::Null, Value::Dict) });
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsed, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(parsed).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -1485,7 +1482,7 @@ impl Bitbns {
         //
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&first), Some(&market));
         None
         }).await?))
     }
@@ -1584,10 +1581,7 @@ impl Bitbns {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument")));
         }
@@ -1604,7 +1598,7 @@ impl Bitbns {
         if (since.is_some()) {
             request.insert("since".into(), self.iso8601(&Value::from(since)));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v1_post_list_executed_orders_symbol(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         //     {
@@ -1672,10 +1666,7 @@ impl Bitbns {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTrades() requires a symbol argument")));
         }
@@ -1689,7 +1680,7 @@ impl Bitbns {
                 m.insert("market".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.www_get_exchange_data_tradedetails(&[&__ws_arg_7]).await.unwrap_or_default();
         return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -1715,10 +1706,7 @@ impl Bitbns {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDeposits() requires a currency code argument")));
         }
@@ -1732,7 +1720,7 @@ impl Bitbns {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v1_post_deposit_history_symbol(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     {
@@ -1782,10 +1770,7 @@ impl Bitbns {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchWithdrawals() requires a currency code argument")));
         }
@@ -1799,7 +1784,7 @@ impl Bitbns {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v1_post_withdraw_history_symbol(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     ...
@@ -1852,10 +1837,7 @@ impl Bitbns {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1865,7 +1847,7 @@ impl Bitbns {
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v1_post_get_coin_address_symbol(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {

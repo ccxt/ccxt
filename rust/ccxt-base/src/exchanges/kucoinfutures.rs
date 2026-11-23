@@ -129,23 +129,20 @@ impl Kucoinfutures {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let extendedRequest: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols, Value::Dict(extendedRequest)).await);
+        let extendedRequest: crate::value::Dict = self.extend_t(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), Value::Dict(extendedRequest)).await);
         Value::Null
         }).await?))
     }
@@ -171,10 +168,7 @@ impl Kucoinfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -194,7 +188,7 @@ impl Kucoinfutures {
             response = self.parent.call_method_o("futures_private_post_transfer_out", &[&__ws_arg_0]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
             request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.as_str()).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
             response = self.parent.call_method_o("futures_private_post_transfer_in", &[&__ws_arg_1]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports transfers between future/swap, spot and funding accounts")));

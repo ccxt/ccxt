@@ -231,7 +231,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // createOrder
@@ -367,7 +367,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     None
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         //
         //     {
@@ -486,7 +486,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     None
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
         //
         //     {
@@ -2857,10 +2857,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2870,7 +2867,7 @@ impl Deribit {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_create_deposit_address(&[&__ws_arg_2]).await.unwrap_or_default();
         //
         //     {
@@ -2916,10 +2913,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2929,7 +2923,7 @@ impl Deribit {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_get_current_deposit_address(&[&__ws_arg_3]).await.unwrap_or_default();
         //
         //     {
@@ -2981,10 +2975,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2994,7 +2985,7 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_4]).await;
         //
         //     {
@@ -3513,10 +3504,7 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3529,7 +3517,7 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("depth".into(), Value::from(limit));
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_get_order_book(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
@@ -3635,10 +3623,7 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3651,7 +3636,7 @@ impl Deribit {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_get_order_state(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
@@ -3682,7 +3667,7 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), market.as_ref());
         None
         }).await?))
     }
@@ -3870,7 +3855,7 @@ impl Deribit {
                 m.insert("trades".to_string(), __ws_arg_15);
             m
         })]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market));
         None
         }).await?))
     }
@@ -3935,7 +3920,7 @@ impl Deribit {
                 m.insert("trades".to_string(), __ws_arg_18);
             m
         })]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), None);
         None
         }).await?))
     }
@@ -3958,10 +3943,7 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3970,10 +3952,10 @@ impl Deribit {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_cancel(&[&__ws_arg_19]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), None);
         None
         }).await?))
     }
@@ -3995,10 +3977,7 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4013,7 +3992,7 @@ impl Deribit {
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_cancel_all_by_instrument(&[&__ws_arg_21]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
@@ -4156,10 +4135,7 @@ impl Deribit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4168,7 +4144,7 @@ impl Deribit {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_get_user_trades_by_order(&[&__ws_arg_26]).await.unwrap_or_default();
         //
         //     {
@@ -4481,10 +4457,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4494,7 +4467,7 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_get_position(&[&__ws_arg_33]).await.unwrap_or_default();
         //
         //     {
@@ -4523,7 +4496,7 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &result, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, Some(&result), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4810,7 +4783,7 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &result, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&result), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4949,10 +4922,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4965,7 +4935,7 @@ impl Deribit {
                 m.insert("end_timestamp".to_string(), Value::from(time));
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_40 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_get_funding_rate_value(&[&__ws_arg_40]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -5212,10 +5182,7 @@ impl Deribit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyLiquidations() requires a symbol argument")));
         }
@@ -5238,7 +5205,7 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_43 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_get_settlement_history_by_instrument(&[&__ws_arg_43]).await.unwrap_or_default();
         //
         //     {
@@ -5288,10 +5255,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5301,7 +5265,7 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_44 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_44]).await;
         //
         //     {
@@ -5372,10 +5336,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5385,7 +5346,7 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_45 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_45]).await.unwrap_or_default();
         //
         //     {
@@ -5442,10 +5403,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5456,7 +5414,7 @@ impl Deribit {
                 m.insert("kind".to_string(), Value::Str("option".into()));
             m
         });
-        let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_46 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[&__ws_arg_46]).await.unwrap_or_default();
         //
         //     {
@@ -5568,10 +5526,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5584,7 +5539,7 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_47 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_47]).await.unwrap_or_default();
         //
         //     {

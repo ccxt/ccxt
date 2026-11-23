@@ -224,7 +224,7 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         //     {
@@ -337,7 +337,7 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         //
         //     {
@@ -453,7 +453,7 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transfer: Value = transfer.into();
         //
         //     {
@@ -2439,7 +2439,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.deep_extend(response, &[order]), Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.deep_extend(response, &[order])).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -2532,7 +2532,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
         None
         }).await?))
     }
@@ -2702,13 +2702,13 @@ if _try_result.is_err() {
         //
         let spotMarkets: crate::value::List = self.safe_list_k_t(&response, "spot_order_book_details");
         let swapMarkets: crate::value::List = self.safe_list_k_t(&response, "order_book_details");
-        let markets: crate::value::List = self.array_concat_t(&spotMarkets, &swapMarkets);
+        let markets: Vec<crate::value::Dict> = crate::value::dict_rows(self.array_concat_t(&spotMarkets, &swapMarkets));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
+            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "market_id", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&market, "market_type", &[]);
             if (type_var.as_deref() == Some("perp")) {
@@ -2873,10 +2873,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrderBook() requires a symbol argument")));
         }
@@ -2893,7 +2890,7 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(250)));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_order_book_orders(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
@@ -2947,10 +2944,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTicker() requires a symbol argument")));
         }
@@ -2963,7 +2957,7 @@ if _try_result.is_err() {
                 m.insert("market_id".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_order_book_details(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
@@ -3922,7 +3916,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4300,10 +4294,7 @@ if _try_result.is_err() {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4317,7 +4308,7 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(100)));
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_recent_trades(&[&__ws_arg_30]).await.unwrap_or_default();
         //
         //     {
@@ -4476,7 +4467,7 @@ if _try_result.is_err() {
  * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Value> {
+    pub async fn set_leverage(&mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
         let __args: Vec<Value> = vec![Value::from(leverage), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
         let leverage = __it.next().unwrap_or_default();
@@ -4514,7 +4505,7 @@ if _try_result.is_err() {
  * @param {int} [params.leverage] required leverage
  * @returns {object} response from the exchange
  */
-    pub async fn set_margin_mode(&mut self, marginMode: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Value> {
+    pub async fn set_margin_mode(&mut self, marginMode: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
         let __args: Vec<Value> = vec![Value::from(marginMode), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
         let marginMode = __it.next().unwrap_or_default();
@@ -4673,7 +4664,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
         None
         }).await?))
     }
@@ -4841,16 +4832,13 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("direction".to_string(), Value::Int(1));
             m
         });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
         return crate::types::IntoRaw::into_raw(self.set_margin(symbol.as_str().unwrap_or_default(), amount, __ws_arg_36).await);
         Value::Null
         }).await?))
@@ -4873,16 +4861,13 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("direction".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
         return crate::types::IntoRaw::into_raw(self.set_margin(symbol.as_str().unwrap_or_default(), amount, __ws_arg_37).await);
         Value::Null
         }).await?))

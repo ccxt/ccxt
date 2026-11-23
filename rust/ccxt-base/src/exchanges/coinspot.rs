@@ -178,13 +178,13 @@ impl crate::exchange::DerivedExchange for Coinspot {
         });
         let balances: Value = self.safe_value2(&response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
         if (matches!(&balances, Value::Arr(_))) {
-            let rows: crate::value::List = self.safe_list2_t(&response, Value::Str("balance".into()), Value::Str("balances".into()));
+            let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list2_t(&response, Value::Str("balance".into()), Value::Str("balances".into())));
             let numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1: bool = true;
                 while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < numRows } {
-                let currencies: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+                let currencies: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
                 let currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
@@ -854,7 +854,7 @@ impl Coinspot {
 }));
         m.insert("markets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("BTC/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+        m.insert("BTC/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btc".into()));
         m.insert("symbol".to_string(), Value::Str("BTC/AUD".into()));
@@ -865,8 +865,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("BTC/USDT".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("BTC/USDT".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btc".into()));
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -877,8 +877,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("USDT/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("USDT/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("usdt".into()));
         m.insert("symbol".to_string(), Value::Str("USDT/AUD".into()));
@@ -889,8 +889,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("ETH/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("ETH/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("eth".into()));
         m.insert("symbol".to_string(), Value::Str("ETH/AUD".into()));
@@ -901,8 +901,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("ADA/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("ADA/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("ada".into()));
         m.insert("symbol".to_string(), Value::Str("ADA/AUD".into()));
@@ -913,8 +913,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("SOL/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("SOL/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("sol".into()));
         m.insert("symbol".to_string(), Value::Str("SOL/AUD".into()));
@@ -925,8 +925,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("XRP/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("XRP/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("xrp".into()));
         m.insert("symbol".to_string(), Value::Str("XRP/AUD".into()));
@@ -937,8 +937,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("DOGE/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("DOGE/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("doge".into()));
         m.insert("symbol".to_string(), Value::Str("DOGE/AUD".into()));
@@ -949,8 +949,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("LTC/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("LTC/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("ltc".into()));
         m.insert("symbol".to_string(), Value::Str("LTC/AUD".into()));
@@ -961,8 +961,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("XLM/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("XLM/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("xlm".into()));
         m.insert("symbol".to_string(), Value::Str("XLM/AUD".into()));
@@ -973,8 +973,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("TRX/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("TRX/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("trx".into()));
         m.insert("symbol".to_string(), Value::Str("TRX/AUD".into()));
@@ -985,8 +985,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("EOS/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("EOS/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("eos".into()));
         m.insert("symbol".to_string(), Value::Str("EOS/AUD".into()));
@@ -997,8 +997,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("A/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("A/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("eos".into()));
         m.insert("symbol".to_string(), Value::Str("A/AUD".into()));
@@ -1009,8 +1009,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("NEO/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("NEO/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("neo".into()));
         m.insert("symbol".to_string(), Value::Str("NEO/AUD".into()));
@@ -1021,8 +1021,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("POWR/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("POWR/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("powr".into()));
         m.insert("symbol".to_string(), Value::Str("POWR/AUD".into()));
@@ -1033,8 +1033,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("GAS/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("GAS/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gas".into()));
         m.insert("symbol".to_string(), Value::Str("GAS/AUD".into()));
@@ -1045,8 +1045,8 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
-        m.insert("RHOC/AUD".to_string(), self.safe_market_structure(&[Value::Map({
+})])));
+        m.insert("RHOC/AUD".to_string(), Value::Dict(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("rhoc".into()));
         m.insert("symbol".to_string(), Value::Str("RHOC/AUD".into()));
@@ -1057,7 +1057,7 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
     m
-})]));
+})])));
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
@@ -1189,10 +1189,7 @@ impl Coinspot {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1202,7 +1199,7 @@ impl Coinspot {
                 m.insert("cointype".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let orderbook: crate::value::Dict = self.private_post_orders(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]));
         Value::Null
@@ -1343,10 +1340,7 @@ impl Coinspot {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1356,7 +1350,7 @@ impl Coinspot {
                 m.insert("cointype".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_orders_history(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //     {
@@ -1392,10 +1386,7 @@ impl Coinspot {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1410,7 +1401,7 @@ impl Coinspot {
         if (since.is_some()) {
             request.insert("startdate".into(), self.yyyymmdd(Value::from(since), &[]));
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_ro_my_transactions(&[&__ws_arg_2]).await.unwrap_or_default();
         //  {
         //      "status": "ok",
@@ -1484,10 +1475,7 @@ impl Coinspot {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1509,7 +1497,7 @@ impl Coinspot {
             let __ws_arg_3 = self.extend(&request, &[&params]);
             response = self.private_post_my_buy(&[&__ws_arg_3]).await;
         }  else if (sideUpper == "SELL") {
-            let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_my_sell(&[&__ws_arg_4]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder only support buy/sell side")));

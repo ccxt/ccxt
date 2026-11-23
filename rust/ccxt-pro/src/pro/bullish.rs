@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
     {
         Box::pin(async move {
             match method {
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -88,15 +88,15 @@ impl Bullish {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "request_id" => { self.request_id(); },
             "separate_bids_or_asks" => { Value::Arr(self.separate_bids_or_asks(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
@@ -345,9 +345,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "type": "snapshot",
@@ -435,9 +433,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_ticker(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "type": "update",
@@ -671,9 +667,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_orders(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         // snapshot
         //     {
         //         "type": "snapshot",
@@ -821,9 +815,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_my_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         // snapshot
         //     {
@@ -1138,9 +1130,7 @@ impl Bullish {
         client.resolve(Value::from(&self.positions), "positions");
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "data": {
@@ -1166,7 +1156,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         let dataType: Option<String> = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -1174,29 +1164,29 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (result.is_some()) {
             let response: Option<String> = self.safe_string_k_opt(&result, "message", &[]);
             if (response.as_deref() == Some("Keep alive pong")) {
-                self.handle_pong(client.clone(), message.clone());
+                self.handle_pong(client.as_value(), message.clone());
             }
         }  else if (dataType.is_some()) {
             if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
-                self.handle_trades(&client, &message);
+                self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }
             if (dataType.as_deref() == Some("V1TATickerResponse")) {
-                self.handle_ticker(&client, &message);
+                self.handle_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }
             if (dataType.as_deref() == Some("V1TALevel2")) {
-                self.handle_order_book(client.clone(), &message);
+                self.handle_order_book(client.as_value(), &message);
             }
             if (dataType.as_deref() == Some("V1TAOrder")) {
-                self.handle_orders(&client, message.clone());
+                self.handle_orders(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }
             if (dataType.as_deref() == Some("V1TATrade")) {
-                self.handle_my_trades(&client, message.clone());
+                self.handle_my_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }
             if (dataType.as_deref() == Some("V1TAAssetAccount")) {
-                self.handle_balance(&client, message.clone());
+                self.handle_balance(&client.as_value(), message.clone());
             }
             if (dataType.as_deref() == Some("V1TAErrorResponse")) {
-                self.handle_error_message(&client, &message);
+                self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }
         }
 }

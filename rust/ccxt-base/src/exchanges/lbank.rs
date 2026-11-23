@@ -228,7 +228,7 @@ impl crate::exchange::DerivedExchange for Lbank {
 
     None
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // fetchOrderSupplement (private)
@@ -2522,10 +2522,7 @@ impl Lbank {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         // endpoint doesnt work
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2550,7 +2547,7 @@ impl Lbank {
                 m.insert("size".to_string(), Value::from(parsedLimit));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_public_get_kline(&[&__ws_arg_8]).await.unwrap_or_default();
         let ohlcvs: crate::value::List = self.safe_list_k_t(&response, "data");
         return Value::Arr(self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]));
@@ -2601,26 +2598,23 @@ impl Lbank {
  * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
     pub async fn fetch_funding_rates(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::FundingRates> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("productGroup".to_string(), Value::Str("SwapU".into()));
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[&__ws_arg_9]).await.unwrap_or_default();
         // {
         //     "data": [
@@ -2796,10 +2790,7 @@ impl Lbank {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2807,7 +2798,7 @@ impl Lbank {
             let m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_private_post_supplement_customer_trade_fee(&[&__ws_arg_11]).await.unwrap_or_default();
         let fees: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -3083,7 +3074,7 @@ impl Lbank {
         //      }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), None).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -3132,10 +3123,10 @@ impl Lbank {
         let result: crate::value::List = self.safe_list_k_t(&response, "data");
         let numOrders: i64 = result.len() as i64;
         if (numOrders == 1) {
-            return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&result, Value::Int(0), &[Value::Map({
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&result, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None).map_or(Value::Null, Value::Dict);
+})])).as_ref(), None).map_or(Value::Null, Value::Dict);
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrder() can only fetch one order at a time")));
         }
@@ -3233,10 +3224,7 @@ impl Lbank {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         // default query is for canceled and completely filled orders
         // does not return open orders unless specified explicitly
         if (symbol == Value::Null) {
@@ -3254,7 +3242,7 @@ impl Lbank {
                 m.insert("page_length".to_string(), Value::from(limitResolved));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_private_post_supplement_orders_info_history(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //      {
@@ -3310,10 +3298,7 @@ impl Lbank {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
         }
@@ -3329,7 +3314,7 @@ impl Lbank {
                 m.insert("page_length".to_string(), Value::from(limitResolved));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_private_post_supplement_orders_info_no_deal(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //      {
@@ -3418,7 +3403,7 @@ impl Lbank {
         //      "ts":1648501286196
         //  }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), None);
         None
         }).await?))
     }
@@ -3439,10 +3424,7 @@ impl Lbank {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument")));
         }
@@ -3455,7 +3437,7 @@ impl Lbank {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_private_post_supplement_cancel_order_by_symbol(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         //      {
@@ -3762,10 +3744,7 @@ impl Lbank {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3781,7 +3760,7 @@ impl Lbank {
         if (since.is_some()) {
             request.insert("startTime".into(), Value::from(since));
         }
-        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_private_post_supplement_deposit_history(&[&__ws_arg_24]).await.unwrap_or_default();
         //
         //      {
@@ -3833,10 +3812,7 @@ impl Lbank {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3852,7 +3828,7 @@ impl Lbank {
         if (since.is_some()) {
             request.insert("startTime".into(), Value::from(since));
         }
-        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.spot_private_post_supplement_withdraws(&[&__ws_arg_25]).await.unwrap_or_default();
         //
         //      {

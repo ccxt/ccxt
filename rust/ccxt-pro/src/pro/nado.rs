@@ -70,9 +70,9 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ws_all_bids_asks" => crate::Value::Dict(self.parse_ws_all_bids_asks(args.get(0).unwrap_or(&crate::Value::Null))),
+                "parse_ws_all_bids_asks" => crate::Value::Dict(self.parse_ws_all_bids_asks(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -137,7 +137,7 @@ impl Nado {
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_execute_response" => { self.handle_execute_response(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -146,7 +146,7 @@ impl Nado {
             "handle_position" => { self.handle_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription" => { self.handle_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_unsubscription" => { self.handle_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_unsubscription" => { self.handle_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription_cache" => { self.handle_unsubscription_cache(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_my_trade" => { Value::Dict(self.parse_ws_my_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -624,10 +624,7 @@ impl Nado {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", timeframe).into()), ":").into()), (market).symbol);
@@ -636,7 +633,7 @@ impl Nado {
                 m.insert("granularity".to_string(), self.safe_integer(&self.timeframes, &timeframe, &[Value::Int(self.parse_timeframe(&timeframe))]));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let result: Value = self.watch_public(Some("latest_candlestick"), Some(&market), messageHash.as_str(), &[__ws_arg_0]).await;
         let mut stored: Value = get_value(&result, &Value::Int(2));
         let mut limitResolved: Option<i64> = limit;
@@ -1432,10 +1429,7 @@ impl Nado {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1444,7 +1438,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Int(__ws_arg_9));
             m
-        }), &[params]);
+        }), &[&params]);
         let requestIdString: Option<String> = self.safe_string_k_opt(&paramsExtended, "id", &[]);
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
@@ -1500,10 +1494,7 @@ impl Nado {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1513,7 +1504,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Int(__ws_arg_11));
             m
-        }), &[params]);
+        }), &[&params]);
         let requestIdString: Option<String> = self.safe_string_k_opt(&paramsExtended, "id", &[]);
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
@@ -2485,9 +2476,7 @@ impl Nado {
         client.resolve(tickers, "ticker");
 }
 
-    pub fn parse_ws_all_bids_asks(&self, message: &Value) -> crate::value::Dict {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn parse_ws_all_bids_asks(&self, message: &indexmap::IndexMap<String, Value>) -> crate::value::Dict {
         //
         //     {
         //         "type": "all_bbo",
@@ -2534,7 +2523,7 @@ impl Nado {
 }
 
     pub fn handle_all_bids_asks(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let tickers: crate::value::Dict = self.parse_ws_all_bids_asks(message);
+        let tickers: crate::value::Dict = self.parse_ws_all_bids_asks(message.as_map().unwrap_or(&Default::default()));
         let symbols: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2677,10 +2666,8 @@ impl Nado {
         }
 }
 
-    pub fn handle_unsubscription(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_unsubscription(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         let id: String = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let unsubscription: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::Str(format!("{}{}", "unsubscription:", id).into()));
         if (unsubscription.is_some()) {
@@ -2843,11 +2830,10 @@ impl Nado {
     Value::Null
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (self.handle_error_message(&client, &message).as_bool() == Some(true)) {
+        if (self.handle_error_message(&client.as_value(), &message).as_bool() == Some(true)) {
             return;
         }
         let id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -2857,31 +2843,31 @@ impl Nado {
         if (method.as_deref() == Some("pong")) {
             // pong replies carry both 'id' and 'result' so they must be routed
             // before the subscription-ack branch below swallows them
-            self.handle_pong(client.clone(), message.clone());
+            self.handle_pong(client.as_value(), message.clone());
             return;
         }
         let requestType: Option<String> = (match __pro_message.get("request_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (requestType.is_some()) {
             // v2 gateway execute responses carry 'request_type' and the echoed request id
-            self.handle_execute_response(&client, message.clone());
+            self.handle_execute_response(&client.as_value(), message.clone());
             return;
         }
         if (id.is_some()) && hasResult {
-            let authentication: Option<String> = self.safe_string_opt(&__ch.subscriptions, Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into()), &[]);
+            let authentication: Option<String> = self.safe_string_opt(&(client).subscriptions, Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into()), &[]);
             if (authentication.is_some()) {
-                self.handle_authentication(&client, message.clone());
+                self.handle_authentication(&client.as_value(), message.clone());
                 return;
             }
-            let subscription: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::Str(format!("{}{}", "subscription:", id.as_deref().unwrap_or("null")).into()));
+            let subscription: Option<crate::value::Dict> = self.safe_dict_o(&(client).subscriptions, Value::Str(format!("{}{}", "subscription:", id.as_deref().unwrap_or("null")).into()));
             if (subscription.is_some()) {
-                self.handle_subscription(&client, message.clone());
+                self.handle_subscription(&client.as_value(), message.clone());
                 return;
             }
             if (result.is_none()) {
-                self.handle_unsubscription(&client, message.clone());
+                self.handle_unsubscription(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
                 return;
             }
-            self.handle_subscription(&client, message.clone());
+            self.handle_subscription(&client.as_value(), message.clone());
             return;
         }
         let type_var: Option<String> = (match __pro_message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -2899,7 +2885,7 @@ impl Nado {
         });
         let handler: Option<String> = self.safe_value(&methods, type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (handler.is_some()) {
-            self.dispatch_ws_handler(&handler, &[&client, &message]);
+            self.dispatch_ws_handler(&handler, &[&client.as_value(), &message]);
         }
 }
 }

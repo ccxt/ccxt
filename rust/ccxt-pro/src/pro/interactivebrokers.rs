@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
             match method {
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "ibkr_cancel_history" => self.ibkr_cancel_history(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "ibkr_connect" => self.ibkr_connect().await,
                 "ibkr_keep_alive_session" => self.ibkr_keep_alive_session(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
@@ -103,12 +103,12 @@ impl Interactivebrokers {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_session_status" => { self.handle_session_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "ibkr_cancel_history" => crate::exchange_stubs::enqueue_spawn("ibkr_cancel_history", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_connect" => crate::exchange_stubs::enqueue_spawn("ibkr_connect", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -118,7 +118,7 @@ impl Interactivebrokers {
             "ibkr_un_watch_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_un_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_unsubscribe" => crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_unsubscribe_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "ibkr_update_ohlc_vs" => { self.ibkr_update_ohlc_vs(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "ibkr_update_ohlc_vs" => { self.ibkr_update_ohlc_vs(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "ibkr_watch_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "un_watch_balance" => crate::exchange_stubs::enqueue_spawn("un_watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -839,7 +839,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), bidAsk.clone()); }
             client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask::", symbol).into())));
         }
-        self.ibkr_update_ohlc_vs(client, symbol.as_str().unwrap_or_default(), message);
+        self.ibkr_update_ohlc_vs(client, symbol.as_str().unwrap_or_default(), message.as_map().unwrap_or(&Default::default()));
 }
 
 /*
@@ -903,7 +903,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOHLCV");
             let duration: i64 = self.parse_timeframe(&timeframe);
-            let historyLimit: i64 = limit.unwrap_or(100);
+            let mut historyLimit: Option<i64> = Some(100);
+            if (limit.is_some()) {
+                historyLimit = self.parse_to_int(&Value::from(limit));
+            }
             let historyRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("exchange".to_string(), self.safe_string_k(&options, "exchange", &[Value::Str("SMART".into())]));
@@ -977,10 +980,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "serverId": "smh265598",
@@ -1147,9 +1148,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} symbol unified market symbol
  * @param {object} delta the raw smd message
  */
-    pub fn ibkr_update_ohlc_vs(&self, client: &Value, symbol: &str, mut delta: Value) {
-        let __delta_empty = indexmap::IndexMap::new();
-        let delta = delta.as_map().unwrap_or(&__delta_empty);
+    pub fn ibkr_update_ohlc_vs(&self, client: &Value, symbol: &str, delta: &indexmap::IndexMap<String, Value>) {
         let lastString: Option<String> = self.parent.ibkr_parse_value(((match delta.get("31") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })).as_str());
         if (lastString.is_none()) {
             return;
@@ -1567,10 +1566,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_orders(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "topic": "sor",
@@ -1747,10 +1744,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_my_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "topic": "str",
@@ -2035,7 +2030,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn handle_text_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_text_message(&self, mut client: Value, message: &str) {
         // plain text frames carry no data, but like every message they prove the connection is alive
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
@@ -2062,13 +2057,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (topic.starts_with("smd+")) {
             self.handle_ticker(&client, message.clone());
         }  else if (topic.starts_with("smh+")) {
-            self.handle_ohlcv(client.clone(), message.clone());
+            self.handle_ohlcv(client.clone(), message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.starts_with("sbd+")) {
             self.handle_order_book(client.clone(), &message);
         }  else if (topic == "sor") {
-            self.handle_orders(&client, message.clone());
+            self.handle_orders(&client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic == "str") {
-            self.handle_my_trades(&client, message.clone());
+            self.handle_my_trades(&client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.starts_with("sld+")) {
             self.handle_balance(&client, message.clone());
         }  else if (topic == "sts") {
