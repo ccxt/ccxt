@@ -674,7 +674,7 @@ class extended(ccxt.async_support.extended):
             return
         subscription['nonce'] = nonce
         for i in range(0, len(data)):
-            trade = self.parse_trade(data[i], market)
+            trade = self.parse_trade(self.safe_dict(data, i, {}), market)
             stored.append(trade)
         client.resolve(stored, messageHash)
 

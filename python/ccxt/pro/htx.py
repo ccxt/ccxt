@@ -329,7 +329,7 @@ class htx(ccxt.async_support.htx):
             tradesCache = ArrayCache(limit)
             self.trades[symbol] = tradesCache
         for i in range(0, len(data)):
-            trade = self.parse_trade(data[i], market)
+            trade = self.parse_trade(self.safe_dict(data, i, {}), market)
             tradesCache.append(trade)
         client.resolve(tradesCache, ch)
         return message
@@ -1494,7 +1494,7 @@ class htx(ccxt.async_support.htx):
         side = None
         if type is not None:
             typeParts = type.split('-')
-            side = typeParts[0]
+            side = self.safe_string(typeParts, 0)
             type = self.safe_string(typeParts, 1)
         aggressor = self.safe_bool(trade, 'aggressor')
         takerOrMaker = None
@@ -2548,8 +2548,7 @@ class htx(ccxt.async_support.htx):
                 marketId = self.safe_string(message, 'symbol')
                 market = self.market(marketId)
                 for i in range(0, len(rawTrades)):
-                    trade = rawTrades[i]
-                    parsedTrade = self.parse_trade(trade, market)
+                    parsedTrade = self.parse_trade(self.safe_dict(rawTrades, i, {}), market)
                     # add extra params (side, type, ...) coming from the order
                     parsedTrade = self.extend(parsedTrade, extendParams)
                     cachedTrades.append(parsedTrade)

@@ -320,8 +320,7 @@ class p2b(ccxt.async_support.p2b):
             tradesArray = ArrayCache(tradesLimit)
             self.trades[symbol] = tradesArray
         for i in range(0, len(trades)):
-            item = trades[i]
-            trade = self.parse_trade(item, market)
+            trade = self.parse_trade(self.safe_dict(trades, i, {}), market)
             tradesArray.append(trade)
         messageHash = 'deals::' + symbol
         client.resolve(tradesArray, messageHash)

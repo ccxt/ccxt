@@ -362,7 +362,7 @@ class grvt(ccxt.async_support.grvt):
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         # same as REST api
-        return self.parse_trade(trade, market)
+        return self.parse_trade(self.extend({}, trade), market)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """

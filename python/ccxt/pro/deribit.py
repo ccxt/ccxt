@@ -430,8 +430,7 @@ class deribit(ccxt.async_support.deribit):
             self.trades[symbol] = ArrayCache(limit)
         stored = self.trades[symbol]
         for i in range(0, len(trades)):
-            trade = trades[i]
-            parsed = self.parse_trade(trade, market)
+            parsed = self.parse_trade(self.safe_dict(trades, i, {}), market)
             stored.append(parsed)
         self.trades[symbol] = stored
         interval = self.safe_string(parts, 2, '')

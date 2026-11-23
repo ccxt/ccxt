@@ -2480,8 +2480,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         result = []
         for i in range(0, len(rawEvents)):
-            rawEvent = rawEvents[i]
-            result.append(self.parse_event(rawEvent))
+            result.append(self.parse_event(rawEvents[i]))
         return result
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):

@@ -1427,8 +1427,7 @@ class bitteam(Exchange, ImplicitAPI):
         if isinstance(response, list):
             rawTickers = response
         for i in range(0, len(rawTickers)):
-            rawTicker = rawTickers[i]
-            ticker = self.parse_ticker(rawTicker)
+            ticker = self.parse_ticker(self.safe_dict(rawTickers, i, {}))
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 

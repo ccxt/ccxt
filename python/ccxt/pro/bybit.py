@@ -602,7 +602,7 @@ class bybit(ccxt.async_support.bybit):
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
             tickerInput = self.extend(rawTicker, data)
-        parsed = self.parse_ticker(tickerInput)
+        parsed = self.parse_ticker(self.extend({}, tickerInput))
         if updateType == 'snapshot':
             symbol = self.safe_string(parsed, 'symbol')
         if symbol is None:
@@ -1230,7 +1230,7 @@ class bybit(ccxt.async_support.bybit):
         if isContract:
             marketType = 'contract'
         if market is not None:
-            marketType = self.safe_string(market, 'type')
+            marketType = self.safe_string(market, 'type', marketType)
         marketId = self.safe_string(trade, 's')
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = self.safe_string(marketResolved, 'symbol', '')

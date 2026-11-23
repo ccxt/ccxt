@@ -1136,7 +1136,7 @@ class gate(ccxt.async_support.gate):
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]
-            timeframe = marketIds[symbol]
+            timeframe = self.safe_string(marketIds, symbol)
             interval = self.find_timeframe(timeframe)
             hash = 'candles' + ':' + interval + ':' + symbol
             symbolOhlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), interval)
@@ -1163,7 +1163,7 @@ class gate(ccxt.async_support.gate):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            marketId = self.safe_string(market, 'id')
+            marketId = self.safe_string(market, 'id', '')
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchMyTrades', market, paramsMarketType)
         messageType = self.get_supported_mapping(type, {

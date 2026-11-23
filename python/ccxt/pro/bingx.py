@@ -154,13 +154,11 @@ class bingx(ccxt.async_support.bingx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        url = None
         marketType, paramsMarketType = self.handle_market_type_and_params('watchTicker', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchTicker', market, paramsMarketType, 'linear')
+        url = self.safe_string(self.urls['api']['ws'], marketType)
         if marketType == 'swap':
             url = self.safe_string(self.urls['api']['ws'], subType)
-        else:
-            url = self.safe_string(self.urls['api']['ws'], marketType)
         messageHash = self.get_message_hash('ticker', self.safe_string(market, 'symbol'))
         uuid = self.uuid()
         request = {
@@ -363,13 +361,11 @@ class bingx(ccxt.async_support.bingx):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
-        url = None
         marketType, paramsMarketType = self.handle_market_type_and_params('watchTrades', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchTrades', market, paramsMarketType, 'linear')
+        url = self.safe_string(self.urls['api']['ws'], marketType)
         if marketType == 'swap':
             url = self.safe_string(self.urls['api']['ws'], subType)
-        else:
-            url = self.safe_string(self.urls['api']['ws'], marketType)
         messageHash = 'trade::' + symbolValue
         uuid = self.uuid()
         request = {
@@ -539,13 +535,11 @@ class bingx(ccxt.async_support.bingx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        url = None
         marketType, paramsMarketType = self.handle_market_type_and_params('watchOrderBook', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchOrderBook', market, paramsMarketType, 'linear')
+        url = self.safe_string(self.urls['api']['ws'], marketType)
         if marketType == 'swap':
             url = self.safe_string(self.urls['api']['ws'], subType)
-        else:
-            url = self.safe_string(self.urls['api']['ws'], marketType)
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', '100')
         subscriptionHash = self.safe_string(market, 'id', '') + '@depth' + depth
@@ -870,13 +864,11 @@ class bingx(ccxt.async_support.bingx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        url = None
         marketType, paramsMarketType = self.handle_market_type_and_params('watchOHLCV', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchOHLCV', market, paramsMarketType, 'linear')
+        url = self.safe_string(self.urls['api']['ws'], marketType)
         if marketType == 'swap':
             url = self.safe_string(self.urls['api']['ws'], subType)
-        else:
-            url = self.safe_string(self.urls['api']['ws'], marketType)
         if url is None:
             raise BadRequest(self.id + ' watchOHLCV is not supported for ' + marketType + ' markets.')
         options = self.safe_dict(self.options, marketType, {})

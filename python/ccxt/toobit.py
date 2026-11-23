@@ -950,8 +950,7 @@ class toobit(Exchange, ImplicitAPI):
         all = self.array_concat(symbols, contracts)
         result = []
         for i in range(0, len(all)):
-            market = self.safe_dict(all, i, {})
-            parsed = self.parse_market(market)
+            parsed = self.parse_market(self.safe_dict(all, i, {}))
             if parsed is not None:
                 result.append(parsed)
         return result

@@ -733,7 +733,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "timestamp":1590381666900
         #     }
         #
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #

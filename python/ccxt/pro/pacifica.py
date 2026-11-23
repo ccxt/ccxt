@@ -733,15 +733,12 @@ class pacifica(ccxt.async_support.pacifica):
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId)
             symbol = self.safe_string(market, 'symbol', '')
-            ticker = self.parse_ws_ticker(info, market)
+            ticker = self.parse_ticker(info, market)
             self.tickers[symbol] = ticker
             parsedTickers.append(ticker)
         tickers = self.index_by(parsedTickers, 'symbol')
         client.resolve(tickers, 'tickers')
         return True
-
-    def parse_ws_ticker(self, rawTicker: dict, market: Market = None) -> Ticker:
-        return self.parse_ticker(rawTicker, market)
 
     def handle_my_trades(self, client: Client, message: dict):
         #

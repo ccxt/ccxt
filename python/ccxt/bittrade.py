@@ -827,7 +827,7 @@ class bittrade(Exchange, ImplicitAPI):
             marketId = self.safe_string(tickers[i], 'symbol')
             market = self.safe_market(marketId)
             symbol = self.safe_string(market, 'symbol', '')
-            ticker = self.parse_ticker(tickers[i], market)
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
@@ -1003,7 +1003,7 @@ class bittrade(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
-                trade = self.parse_trade(trades[j], market)
+                trade = self.parse_trade(self.safe_dict(trades, j, {}), market)
                 result.append(trade)
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, self.safe_string(market, 'symbol'), since, limit)

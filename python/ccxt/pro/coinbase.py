@@ -772,8 +772,7 @@ class coinbase(ccxt.async_support.coinbase):
             # coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             tradesLength = len(currentTrades)
             for j in range(0, tradesLength):
-                item = currentTrades[tradesLength - j - 1]
-                tradesArray.append(self.parse_trade(item))
+                tradesArray.append(self.parse_trade(self.safe_dict(currentTrades, tradesLength - j - 1, {})))
         client.resolve(tradesArray, messageHash)
         self.try_resolve_usdc(client, messageHash, tradesArray)
 

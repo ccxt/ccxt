@@ -385,7 +385,7 @@ class mudrex(Exchange, ImplicitAPI):
             symbol = self.safe_string(m, 'symbol', '')
             if symbols is not None and not self.in_array(symbol, symbols):
                 continue
-            resultTickers[symbol] = self.parse_ticker(t, m)
+            resultTickers[symbol] = self.parse_ticker(self.safe_dict(rows, i, {}), m)
         return self.filter_by_array_tickers(resultTickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:

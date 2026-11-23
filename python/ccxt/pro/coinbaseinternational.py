@@ -1041,7 +1041,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         tradesArray = self.trades[symbol]
         dataLength = len(data)
         for i in range(0, dataLength):
-            trade = self.parse_trade(data[i], market)
+            trade = self.parse_trade(self.safe_dict(data, i, {}), market)
             tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, channel)

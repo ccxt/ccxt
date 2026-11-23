@@ -904,9 +904,8 @@ class cex(ccxt.async_support.cex):
             self.orders = ArrayCacheBySymbolById(limit)
         myOrders = self.orders
         for i in range(0, len(rawOrders)):
-            rawOrder = rawOrders[i]
             market = self.safe_market(symbol)
-            order = self.parse_order(rawOrder, market)
+            order = self.parse_order(self.safe_dict(rawOrders, i, {}), market)
             order['status'] = 'open'
             myOrders.append(order)
         messageHash = 'orders:' + symbol

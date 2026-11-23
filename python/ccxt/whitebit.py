@@ -1458,7 +1458,7 @@ class whitebit(Exchange, ImplicitAPI):
                     if orderId == id:
                         marketId = self.safe_string(order, 'market')
                         marketNew = self.safe_market(marketId, None, '_')
-                        return self.parse_order(order, marketNew)
+                        return self.parse_order(self.safe_dict(orders, i, {}), marketNew)
             except Exception as error:
                 if not (isinstance(error, OrderNotFound)):
                     raise error
@@ -1477,7 +1477,7 @@ class whitebit(Exchange, ImplicitAPI):
                         order = marketOrders[j]
                         orderId = self.safe_string(order, 'id', '')
                         if orderId == id:
-                            return self.parse_order(order, marketNew)
+                            return self.parse_order(self.safe_dict(marketOrders, j, {}), marketNew)
             except Exception as error:
                 if not (isinstance(error, OrderNotFound)):
                     raise error
@@ -1583,7 +1583,7 @@ class whitebit(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            ticker = self.parse_ticker(self.safe_value(response, marketId), market)
+            ticker = self.parse_ticker(self.safe_dict(response, marketId, {}), market)
             symbol = self.safe_string(ticker, 'symbol')
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)

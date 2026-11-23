@@ -1151,8 +1151,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         response = await self.publicGetTicker(self.extend(request, params))
         tickerResult = self.safe_dict(response, 'result', {})
-        ticker = self.safe_value(tickerResult, market['id'])
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(self.safe_dict(tickerResult, market['id'], {}), market)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1256,9 +1255,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         id = self.safe_string(item, 'id')
         direction = None
-        account = None
         referenceId = self.safe_string(item, 'refid')
-        referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         currencyId = self.safe_string(item, 'asset')
         code = self.safe_currency_code(currencyId, currency)
@@ -1274,9 +1271,9 @@ class kraken(Exchange, ImplicitAPI):
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': None,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': None,
             'type': type,
             'currency': code,
             'amount': self.parse_number(amount),
@@ -3550,7 +3547,7 @@ class kraken(Exchange, ImplicitAPI):
                 numErrors = len(errors)
                 if numErrors > 0:
                     for i in range(0, numErrors):
-                        error = errors[i]
+                        error = self.safe_string(errors, i)
                         self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
                         self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                     raise ExchangeError(message)

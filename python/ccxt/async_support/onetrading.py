@@ -945,7 +945,7 @@ class onetrading(Exchange, ImplicitAPI):
         result = {}
         rawTickers = self.to_array(response)
         for i in range(0, len(rawTickers)):
-            ticker = self.parse_ticker(rawTickers[i])
+            ticker = self.parse_ticker(self.safe_dict(rawTickers, i, {}))
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker

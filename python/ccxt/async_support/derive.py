@@ -1506,7 +1506,7 @@ class derive(Exchange, ImplicitAPI):
             if isFetchTrades and (liquidityRole == 'maker'):
                 # skip maker trades
                 continue
-            parsed = self.parse_trade(rawTrade, market)
+            parsed = self.parse_trade(self.safe_dict(tradesArray, i, {}), market)
             trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')

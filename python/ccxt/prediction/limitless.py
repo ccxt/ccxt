@@ -291,8 +291,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         eventKeys = list(eventGroups.keys())
         for i in range(0, len(eventKeys)):
             eventKey = eventKeys[i]
-            g = eventGroups[eventKey]
-            eventsDict[eventKey] = self.parse_event(g)
+            eventsDict[eventKey] = self.parse_event(self.safe_dict(eventGroups, eventKey, {}))
         self.events = eventsDict
         marketsLength = len(markets)
         if marketsLength > maxMarkets:
@@ -410,8 +409,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         tokenEntries = list(tokens.keys())
         for i in range(0, len(tokenEntries)):
             outcomeLabel = tokenEntries[i]
-            tokenData = tokens[outcomeLabel]
-            tokenId = tokenData
+            tokenId = self.safe_string(tokens, outcomeLabel)
             outcomeHandle = self.slug_to_outcome_symbol(groupId, slug, outcomeLabel)
             # winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             # limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1008,10 +1006,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             # the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             rawBids = self.safe_list(book, 'bids', [])
             rawAsks = self.safe_list(book, 'asks', [])
-            rawBidsLength = len(rawBids)
-            rawAsksLength = len(rawAsks)
-            yesBestBid = rawBids[0] if (rawBidsLength > 0) else None
-            yesBestAsk = rawAsks[0] if (rawAsksLength > 0) else None
+            yesBestBid = self.safe_dict(rawBids, 0)
+            yesBestAsk = self.safe_dict(rawAsks, 0)
             yesBidPrice = self.safe_string(yesBestBid, 'price')
             yesBidSize = self.safe_string(yesBestBid, 'size')
             yesAskPrice = self.safe_string(yesBestAsk, 'price')
@@ -2007,7 +2003,9 @@ class limitless(PredictionExchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
-                    costRequest = cost if (cost is not None) else quoteAmount
+                    costRequest = quoteAmount
+                    if cost is not None:
+                        costRequest = cost
                     makerAmount = self.cost_to_prediction_precision(outcome, costRequest)
             else:
                 makerAmount = self.cost_to_prediction_precision(outcome, amount)
@@ -2112,10 +2110,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         payload = '02' + self.rlp_encode_list(fields)
         hashHex = self.hash(self.base16_to_binary(payload), 'keccak', 'hex')
         signature = self.ecdsa(hashHex, self.remove0x_prefix(privateKey), 'secp256k1', None)
-        rHex = self.safe_string(signature, 'r')
-        sHex = self.safe_string(signature, 's')
-        rHex = self.pad_hex_to_even(rHex)
-        sHex = self.pad_hex_to_even(sHex)
+        rHex = self.pad_hex_to_even(self.safe_string(signature, 'r'))
+        sHex = self.pad_hex_to_even(self.safe_string(signature, 's'))
         yParity = self.safe_integer(signature, 'v')
         signedFields = []
         for i in range(0, len(fields)):

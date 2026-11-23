@@ -1624,7 +1624,7 @@ class aster(Exchange, ImplicitAPI):
         #        "askQty": "0.32399"            // only in SPOT
         #    }
         #
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

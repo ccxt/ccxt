@@ -747,7 +747,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(data)
         return self.parse_markets(result)
 
-    def calculate_price_precision(self, price: float, amountPrecision: int, maxDecimals: int) -> float:
+    def calculate_price_precision(self, price: float, amountPrecision: int, maxDecimals: int) -> int:
         """
         Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
         :param float price: the price to use in the calculation
@@ -2330,9 +2330,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                     orderReq.append(orderObj)
             else:
                 orderReq.append(mainOrderObj)
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params(params2, 'createOrder', 'vaultAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params(params2, 'createOrder', 'vaultAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         orderAction = {
             'type': 'order',
             'orders': orderReq,
@@ -2533,9 +2532,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if fast:
             # "f" must be omitted when false, actions hashed with "f": false are rejected
             cancelAction['f'] = True
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params_2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request['action'] = cancelAction
         request['signature'] = signature
@@ -2643,9 +2641,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'scheduleCancel',
             'time': nonce + self.parse_to_int(timeout),
         }
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params_2(params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request['action'] = cancelAction
         request['signature'] = signature
@@ -2760,9 +2757,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'batchModify',
             'modifies': modifies,
         }
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params(params2, 'editOrder', 'vaultAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params(params2, 'editOrder', 'vaultAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(modifyAction, nonce, vaultAddress)
         request = {
             'action': modifyAction,
@@ -3193,8 +3189,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         "status": "order"
         #     }
         #
-        data = self.safe_dict(response, 'order')
-        return self.parse_order(data, market)
+        return self.parse_order(self.safe_dict(response, 'order', {}), market)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -3823,9 +3818,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isCross': isCross,
             'leverage': leverage,
         }
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params_2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -3871,9 +3865,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isCross': isCross,
             'leverage': leverage,
         }
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'setLeverage', 'vaultAddress', 'subAccountAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params_2(params2, 'setLeverage', 'vaultAddress', 'subAccountAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -4528,9 +4521,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         # ]
         #
         records = self.extract_type_from_delta(depositLedger)
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         if vaultAddress is None:
             filtered = self.filter_by_array(records, 'type', ['deposit'], False)
             return self.parse_transactions(filtered, None, since, limit)
@@ -4586,9 +4578,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         # ]
         #
         records = self.extract_type_from_delta(withdrawalLedger)
-        vaultAddress = None
-        vaultAddress, params2 = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')
-        vaultAddress = self.format_vault_address(vaultAddress)
+        vaultAddressOption = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')[0]
+        vaultAddress = self.format_vault_address(vaultAddressOption)
         if vaultAddress is None:
             filtered = self.filter_by_array(records, 'type', ['withdraw'], False)
             return self.parse_transactions(filtered, None, since, limit)

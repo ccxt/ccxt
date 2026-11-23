@@ -1367,7 +1367,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if isinstance(response, list):
             firstTicker = self.safe_dict(response, 0, {})
             return self.parse_ticker(firstTicker, market)
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

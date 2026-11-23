@@ -192,7 +192,7 @@ class bittrade(ccxt.async_support.bittrade):
             tradesCache = ArrayCache(limit)
             self.trades[symbol] = tradesCache
         for i in range(0, len(data)):
-            trade = self.parse_trade(data[i], market)
+            trade = self.parse_trade(self.safe_dict(data, i, {}), market)
             tradesCache.append(trade)
         client.resolve(tradesCache, ch)
         return message

@@ -624,7 +624,8 @@ class backpack(Exchange, ImplicitAPI):
         deposit = None
         withdraw = None
         if self.is_empty(parsedNetworks):  # if networks are not provided
-            active = None if (stock) else False
+            if not stock:
+                active = False
             deposit = False
             withdraw = False
         return self.safe_currency_structure({
@@ -900,7 +901,10 @@ class backpack(Exchange, ImplicitAPI):
                 if sessionsLength > 0:
                     amountPrecision = self.parse_number(stepSize)
                     minQuantity = self.parse_number(minimum)
-                    maxQuantity = None if (unbounded) else self.parse_number(maximum)
+                    if unbounded:
+                        maxQuantity = None
+                    else:
+                        maxQuantity = self.parse_number(maximum)
         elif typeOfMarket == 'swap':
             type = 'swap'
             linear = True
@@ -908,7 +912,7 @@ class backpack(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'quoteSymbol')
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + quote  # settle is the quote currency
-            contractSize = 1
+            contractSize = self.parse_number('1')
         else:
             return None
         orderBookState = self.safe_string(market, 'orderBookState')
@@ -1285,11 +1289,10 @@ class backpack(Exchange, ImplicitAPI):
         """
         result = []
         for i in range(0, len(entries)):
-            entry = entries[i]
-            symbol = self.safe_string(entry, 'symbol')
+            symbol = self.safe_string(entries[i], 'symbol')
             market = self.safe_dict(self.markets, symbol)
             if self.safe_bool(market, 'stock', False):
-                result.append(entry)
+                result.append(entries[i])
         return result
 
     def parse_market_type(self, type: Str) -> Str:
@@ -1807,10 +1810,9 @@ class backpack(Exchange, ImplicitAPI):
                 rfqTrades = self.filter_stock_structures(rfqTrades)
             filtered = []
             for i in range(0, len(rfqTrades)):
-                trade = rfqTrades[i]
-                timestamp = self.safe_integer(trade, 'timestamp')
+                timestamp = self.safe_integer(rfqTrades[i], 'timestamp')
                 if (until is None) or ((timestamp is not None) and (timestamp <= until)):
-                    filtered.append(trade)
+                    filtered.append(rfqTrades[i])
             sorted = self.sort_by(filtered, 'timestamp')
             return self.filter_by_since_limit(sorted, since, limit)
         if since is not None:
@@ -2979,13 +2981,13 @@ class backpack(Exchange, ImplicitAPI):
         entryPrice = self.safe_number(position, 'entryPrice')
         markPrice = self.safe_number(position, 'markPrice')
         netCost = self.safe_string(position, 'netCost')
-        hedged = False
-        side = 'long'
-        if Precise.string_lt(netCost, '0'):
-            side = 'short'
-        if netCost is None:
-            hedged = None
-            side = None
+        hedged = None
+        side = None
+        if netCost is not None:
+            hedged = False
+            side = 'long'
+            if Precise.string_lt(netCost, '0'):
+                side = 'short'
         unrealizedPnl = self.safe_number(position, 'pnlUnrealized')
         realizedPnl = self.safe_number(position, 'pnlRealized')
         liquidationPrice = self.safe_number(position, 'estLiquidationPrice')

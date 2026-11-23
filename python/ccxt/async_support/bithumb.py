@@ -1059,7 +1059,7 @@ class bithumb(Exchange, ImplicitAPI):
                     symbol = self.safe_symbol(marketId, market)
                     if symbol is None:
                         continue
-                    result[symbol] = self.parse_ticker(entry, market)
+                    result[symbol] = self.parse_ticker(self.safe_dict(tickers, j, {}), market)
         else:
             quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
             quotes = list(quoteCurrencies.keys())
@@ -1197,7 +1197,7 @@ class bithumb(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_dict(response, 'data', {})
-        return self.parse_ticker(data, market)
+        return self.parse_ticker(self.extend({}, data), market)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #

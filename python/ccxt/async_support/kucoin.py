@@ -2325,11 +2325,10 @@ class kucoin(Exchange, ImplicitAPI):
         return self.parse_currencies(filteredCurrencies)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        entry = currency
-        id = self.safe_string(entry, 'currency')
+        id = self.safe_string(currency, 'currency')
         code = self.safe_currency_code(id)
         networks = {}
-        chains = self.safe_list_2(entry, 'chains', 'items', [])
+        chains = self.safe_list_2(currency, 'chains', 'items', [])
         chainsLength = len(chains)
         for j in range(0, chainsLength):
             chain = self.safe_dict(chains, j)
@@ -2358,16 +2357,16 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                 }
         # kucoin has determined 'fiat' currencies with below logic
-        rawPrecision = self.safe_string(entry, 'precision')
+        rawPrecision = self.safe_string(currency, 'precision')
         precision = self.parse_number(self.parse_precision(rawPrecision))
         isFiat = chainsLength == 0
         return self.safe_currency_structure({
             'id': id,
-            'name': self.safe_string(entry, 'fullName'),
+            'name': self.safe_string(currency, 'fullName'),
             'code': code,
             'type': 'fiat' if isFiat else 'crypto',
             'precision': precision,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': None,
             'withdraw': None,
@@ -3702,7 +3701,7 @@ class kucoin(Exchange, ImplicitAPI):
             #
             self.set_deposit_addresses_version(version)
         chains = self.safe_list(response, 'data', [])
-        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
+        parsed = self.parse_deposit_addresses(chains, [self.safe_string(currency, 'code', '')], False, {
             'currency': currency['code'],
         })
         return self.index_by(parsed, 'network')
@@ -4844,8 +4843,7 @@ class kucoin(Exchange, ImplicitAPI):
                 #        }
                 #    }
                 #
-            response = self.safe_dict(response, 'data')
-            return self.parse_order(response)
+            return self.parse_order(self.safe_dict(response, 'data', {}))
         else:
             request['orderId'] = id
             if trigger:
@@ -4873,8 +4871,7 @@ class kucoin(Exchange, ImplicitAPI):
                 #        }
                 #    }
                 #
-                response = self.safe_dict(response, 'data', {})
-                return self.parse_order(response)
+                return self.parse_order(self.safe_dict(response, 'data', {}))
             else:
                 response = await self.privateDeleteOrdersOrderId(self.extend(request, paramsOmitted))
                 #

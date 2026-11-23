@@ -4654,7 +4654,7 @@ class binance(Exchange, ImplicitAPI):
                     response = self.publicGetTicker24hr(self.extend(request, paramsOmitted))
         if response is None:
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     def check_no_stock_symbols(self, symbols: list[str], methodName: str):
         # a nil slice runs zero iterations, so the absent case needs no early return
@@ -4867,7 +4867,7 @@ class binance(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             marketId = self.safe_string(self.safe_dict(response, i), 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, 'spot')
-            parsedTicker = self.parse_ticker(self.safe_value(response, i))
+            parsedTicker = self.parse_ticker(self.safe_dict(response, i, {}))
             parsedTicker['symbol'] = tickerMarket['symbol']
             results.append(parsedTicker)
         return self.filter_by_array_tickers(results, 'symbol', symbols)
@@ -4905,7 +4905,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchMarkPrice() does not support ' + type + ' markets yet')
         if response is None:
             raise NullResponse(self.id + ' fetchMarkPrice() returned empty response')
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     def fetch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

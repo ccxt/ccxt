@@ -2921,7 +2921,7 @@ class gate(Exchange, ImplicitAPI):
             ticker = self.safe_dict(response, 0)
         if ticker is None:
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(self.extend({}, ticker), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #

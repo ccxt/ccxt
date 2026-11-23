@@ -562,7 +562,9 @@ class extended(Exchange, ImplicitAPI):
         maxCost = self.safe_number(tradingConfig, 'maxLimitOrderValue')
         created = self.safe_integer(market, 'createdAt')
         category = self.safe_string_lower(market, 'category')
-        takerFees = self.safe_dict(self.fees, 'rwa', {}) if (category == 'rwa') else self.fees
+        takerFees = self.fees
+        if category == 'rwa':
+            takerFees = self.safe_dict(self.fees, 'rwa', {})
         settleId = None
         settle = None
         symbol = base + '/' + quote
@@ -2406,10 +2408,8 @@ class extended(Exchange, ImplicitAPI):
         syntheticResolution = self.safe_integer(params, 'syntheticResolution')
         collateralResolution = self.safe_integer(params, 'collateralResolution')
         quoteAmount = Precise.string_mul(amountString, priceString)
-        baseRoundUp = isBuy
-        quoteRoundUp = isBuy
-        baseAmount = self.get_extended_stark_amount(amountString, syntheticResolution, baseRoundUp)
-        collateralAmount = self.get_extended_stark_amount(quoteAmount, collateralResolution, quoteRoundUp)
+        baseAmount = self.get_extended_stark_amount(amountString, syntheticResolution, isBuy)
+        collateralAmount = self.get_extended_stark_amount(quoteAmount, collateralResolution, isBuy)
         if isBuy:
             collateralAmount = Precise.string_neg(collateralAmount)
         else:

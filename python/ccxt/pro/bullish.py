@@ -544,7 +544,7 @@ class bullish(ccxt.async_support.bullish):
             trades = self.myTrades
             symbols = {}
             for i in range(0, len(rawTrades)):
-                parsedTrade = self.parse_trade(rawTrades[i])
+                parsedTrade = self.parse_trade(self.safe_dict(rawTrades, i, {}))
                 trades.append(parsedTrade)
                 symbol = self.safe_string(parsedTrade, 'symbol')
                 if symbol is not None:

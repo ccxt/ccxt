@@ -1063,7 +1063,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         symbols = {}
         for i in range(0, len(args)):
             rawTrade = args[i]
-            trade = self.parse_trade(rawTrade)
+            trade = self.parse_trade(self.safe_dict(args, i, {}))
             tradeTimestamp = self.safe_integer(trade, 'timestamp')
             if (threshold is not None) and (tradeTimestamp is not None) and (tradeTimestamp < threshold):
                 continue

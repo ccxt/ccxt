@@ -2099,7 +2099,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             ticker = self.safe_dict(response, 'data', {})
         # when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(self.extend({}, ticker), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'symbol')

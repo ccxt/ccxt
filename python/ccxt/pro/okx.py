@@ -113,7 +113,7 @@ class okx(ccxt.async_support.okx):
 
     def get_url(self, channel: str, access: str = 'public') -> str:
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        isSandbox = self.options['sandboxMode']
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         sandboxSuffix = ''
         if isSandbox is True:
             sandboxSuffix = '?brokerId=9999'
@@ -323,7 +323,7 @@ class okx(ccxt.async_support.okx):
         data = self.safe_list(message, 'data', [])
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         for i in range(0, len(data)):
-            trade = self.parse_trade(data[i])
+            trade = self.parse_trade(self.safe_dict(data, i, {}))
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
                 stored = ArrayCache(tradesLimit)
@@ -836,8 +836,7 @@ class okx(ccxt.async_support.okx):
         #
         rawLiquidations = self.safe_list(message, 'data', [])
         for i in range(0, len(rawLiquidations)):
-            rawLiquidation = rawLiquidations[i]
-            liquidation = self.parse_ws_liquidation(rawLiquidation)
+            liquidation = self.parse_ws_liquidation(rawLiquidations[i])
             symbol = self.safe_string(liquidation, 'symbol', '')
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)

@@ -731,7 +731,7 @@ class onetrading(ccxt.async_support.onetrading):
             client.resolve(self.orders, 'orders:' + symbol)
             rawTrades = self.safe_list(rawOrders[i], 'trades', [])
             for ii in range(0, len(rawTrades)):
-                trade = self.parse_trade(rawTrades[ii])
+                trade = self.parse_trade(self.safe_dict(rawTrades, ii, {}))
                 symbol = self.safe_string(trade, 'symbol', symbol)
                 self.myTrades.append(trade)
                 client.resolve(self.myTrades, 'myTrades:' + symbol)

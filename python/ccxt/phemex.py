@@ -5407,8 +5407,7 @@ class phemex(Exchange, ImplicitAPI):
         ranks = self.safe_list(data, 'positions', [])
         result = []
         for i in range(0, len(ranks)):
-            rank = ranks[i]
-            result.append(self.parse_adl_rank(rank))
+            result.append(self.parse_adl_rank(ranks[i]))
         return self.filter_by_array_adl_ranks(result, 'symbol', symbolsNormalized, False)
 
     def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:

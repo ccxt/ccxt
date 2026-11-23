@@ -2882,7 +2882,7 @@ class htx(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
-                trade = self.parse_trade(trades[j], market)
+                trade = self.parse_trade(self.safe_dict(trades, j, {}), market)
                 result.append(trade)
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, self.safe_string(market, 'symbol'), since, limit)
@@ -4745,7 +4745,10 @@ class htx(Exchange, ImplicitAPI):
             if feeCurrencyId is not None:
                 feeCurrency = self.safe_currency_code(feeCurrencyId)
             else:
-                feeCurrency = marketResolved['quote'] if (side == 'sell') else marketResolved['base']
+                if side == 'sell':
+                    feeCurrency = self.safe_string(marketResolved, 'quote')
+                else:
+                    feeCurrency = self.safe_string(marketResolved, 'base')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -4975,7 +4978,9 @@ class htx(Exchange, ImplicitAPI):
             'volume': self.amount_to_precision(symbol, amount),
         }
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 'post_only', params)
-        orderType = 'post_only' if (postOnly) else type
+        orderType = type
+        if postOnly:
+            orderType = 'post_only'
         subType, paramsSubType = self.handle_sub_type_and_params('createOrder', market, paramsPostOnly)
         query = paramsSubType
         isLinear = (subType == 'linear')
@@ -6044,7 +6049,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        parsed = self.parse_deposit_addresses(data, [currency['code']], False)
+        parsed = self.parse_deposit_addresses(data, [self.safe_string(currency, 'code', '')], False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
@@ -6088,7 +6093,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        allAddresses = self.parse_deposit_addresses(data, [currency['code']], False)
+        allAddresses = self.parse_deposit_addresses(data, [self.safe_string(currency, 'code', '')], False)
         addresses = []
         for i in range(0, len(allAddresses)):
             address = allAddresses[i]
@@ -7888,8 +7893,7 @@ class htx(Exchange, ImplicitAPI):
             #
         data = self.safe_value(response, 'data')
         if self.safe_bool(market, 'linear', False):
-            linearPosition = self.safe_dict(data, 0, {})
-            return self.parse_position(linearPosition, market)
+            return self.parse_position(self.safe_dict(data, 0, {}), market)
         account = None
         if (marginModeOption is None) or (marginModeOption == 'cross'):
             account = data

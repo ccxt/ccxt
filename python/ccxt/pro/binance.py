@@ -613,8 +613,7 @@ class binance(ccxt.async_support.binance):
         optionsType = self.safe_dict(self.options, type, {})
         listenKey = self.safe_string(optionsType, 'listenKey')
         url = self.get_private_ws_url(type, listenKey)
-        message = None
-        newLiquidations = await self.watch_multiple(url, messageHashes, message, [type])
+        newLiquidations = await self.watch_multiple(url, messageHashes, None, [type])
         if self.newUpdates:
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbolsNormalized, since, limit)
@@ -1475,7 +1474,7 @@ class binance(ccxt.async_support.binance):
         executionType = self.safe_string(trade, 'x')
         isTradeExecution = (executionType == 'TRADE')
         if not isTradeExecution:
-            return self.parse_trade(trade, market)
+            return self.parse_trade(self.extend({}, trade), market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_string_2(trade, 'L', 'p')
@@ -3337,8 +3336,7 @@ class binance(ccxt.async_support.binance):
         if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
-        message = None
-        return await self.watch(url, messageHash, message, type)
+        return await self.watch(url, messageHash, None, type)
 
     def handle_balance(self, client: Client, message: dict):
         #
@@ -4156,8 +4154,7 @@ class binance(ccxt.async_support.binance):
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
-        message = None
-        orders = await self.watch(url, messageHash, message, type)
+        orders = await self.watch(url, messageHash, None, type)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)
@@ -5171,8 +5168,7 @@ class binance(ccxt.async_support.binance):
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
-        message = None
-        trades = await self.watch(url, messageHash, message, type)
+        trades = await self.watch(url, messageHash, None, type)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolResolved, limit)

@@ -480,8 +480,7 @@ class phemex(ccxt.async_support.phemex):
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             for i in range(0, len(ohlcvs)):
-                candle = ohlcvs[i]
-                stored.append(candle)
+                stored.append(ohlcvs[i])
             client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1242,8 +1241,7 @@ class phemex(ccxt.async_support.phemex):
                 return
             trades = self.safe_list(ordersDict, 'fills', [])
             for i in range(0, len(orders)):
-                rawOrder = orders[i]
-                parsedOrder = self.parse_order(rawOrder)
+                parsedOrder = self.parse_order(self.safe_dict(orders, i, {}))
                 parsedOrders.append(parsedOrder)
         else:
             updates = self.safe_list(message, 'orders_p', [])

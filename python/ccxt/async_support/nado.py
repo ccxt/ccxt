@@ -1498,10 +1498,9 @@ class nado(Exchange, ImplicitAPI):
             submissionIdx = self.safe_string(event, 'submission_idx')
             tx = {}
             for j in range(0, len(txs)):
-                rawTx = txs[j]
-                txSubmissionIdx = self.safe_string(rawTx, 'submission_idx')
+                txSubmissionIdx = self.safe_string(txs[j], 'submission_idx')
                 if txSubmissionIdx == submissionIdx:
-                    tx = rawTx
+                    tx = txs[j]
                     break
             transaction = self.extend({}, tx)
             transaction = self.extend(transaction, event)
@@ -1570,10 +1569,9 @@ class nado(Exchange, ImplicitAPI):
             productId = self.safe_string(position, 'product_id')
             product = {}
             for j in range(0, len(products)):
-                rawProduct = products[j]
-                rawProductId = self.safe_string(rawProduct, 'product_id')
+                rawProductId = self.safe_string(products[j], 'product_id')
                 if rawProductId == productId:
-                    product = rawProduct
+                    product = products[j]
                     break
             result.append(self.parse_position(self.extend({'product': product}, position)))
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)

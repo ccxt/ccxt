@@ -1557,13 +1557,13 @@ class backpack(ccxt.async_support.backpack):
         markPrice = self.safe_string(position, 'M')
         netQuantity = self.safe_number(position, 'q')
         hedged = False
-        side = 'long'
+        side = None
         if netQuantity is not None:
+            side = 'long'
             if 0 > netQuantity:
                 side = 'short'
         else:
             hedged = None
-            side = None
         microseconds = self.safe_integer(position, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         maintenanceMarginPercentage = self.safe_number(position, 'm')

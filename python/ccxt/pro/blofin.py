@@ -174,7 +174,7 @@ class blofin(ccxt.async_support.blofin):
                 client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
-        return self.parse_trade(trade, market)
+        return self.parse_trade(self.extend({}, trade), market)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -312,15 +312,12 @@ class blofin(ccxt.async_support.blofin):
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
         for i in range(0, len(data)):
-            ticker = self.parse_ws_ticker(self.safe_dict(data, i, {}))
+            ticker = self.parse_ticker(self.safe_dict(data, i, {}))
             symbol = self.safe_string(ticker, 'symbol', '')
             self.tickers[symbol] = ticker
             if channelName is not None:
                 messageHash = channelName + ':' + symbol
                 client.resolve(self.tickers[symbol], messageHash)
-
-    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
-        return self.parse_ticker(ticker, market)
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

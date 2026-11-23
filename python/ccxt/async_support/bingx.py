@@ -1241,12 +1241,12 @@ class bingx(Exchange, ImplicitAPI):
         until = self.safe_integer_2(paramsPaginate, 'until', 'endTime')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
         if until is not None:
-            endTime = until
             if since is not None:
                 # the exchange aligns the window to endTime, so keep it within limit candles of since
                 duration = self.parse_timeframe(timeframe) * 1000
-                endTime = min(until, self.sum(since, duration * requestLimit))
-            request['endTime'] = endTime
+                request['endTime'] = min(until, self.sum(since, duration * requestLimit))
+            else:
+                request['endTime'] = until
         elif (self.safe_bool(market, 'inverse', False)) and (since is not None):
             duration = self.parse_timeframe(timeframe) * 1000
             request['endTime'] = self.sum(since, duration * requestLimit)
@@ -2164,7 +2164,7 @@ class bingx(Exchange, ImplicitAPI):
         rowMarket = market if (symbolsLength == 1) else None
         results = []
         for i in range(0, len(rows)):
-            results.append(self.parse_ticker(rows[i], rowMarket))
+            results.append(self.parse_ticker(self.safe_dict(rows, i, {}), rowMarket))
         return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -2282,7 +2282,7 @@ class bingx(Exchange, ImplicitAPI):
             #     }
             # }
             #
-        return self.parse_ticker(response['data'], market)
+        return self.parse_ticker(self.safe_dict(response, 'data', {}), market)
 
     async def fetch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -2399,7 +2399,7 @@ class bingx(Exchange, ImplicitAPI):
         if lastQty is None:
             type = 'spot'
         if market is not None:
-            type = self.safe_string(market, 'type')
+            type = self.safe_string(market, 'type', type)
         marketResolved = self.safe_market(marketId, market, None, type)
         symbol = self.safe_string(marketResolved, 'symbol')
         open = self.safe_string(ticker, 'openPrice')
@@ -5337,7 +5337,7 @@ class bingx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(self.safe_dict(response, 'data'), 'data', [])
-        parsed = self.parse_deposit_addresses(data, [currency['code']], False)
+        parsed = self.parse_deposit_addresses(data, [self.safe_string(currency, 'code', '')], False)
         return self.index_by(parsed, 'network')
 
     async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:

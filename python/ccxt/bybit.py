@@ -3238,9 +3238,12 @@ class bybit(Exchange, ImplicitAPI):
             marketType = 'contract'
         category = self.safe_string(trade, 'category')
         if category is not None:
-            marketType = 'spot' if (category == 'spot') else 'contract'
+            if category == 'spot':
+                marketType = 'spot'
+            else:
+                marketType = 'contract'
         if market is not None:
-            marketType = self.safe_string(market, 'type')
+            marketType = self.safe_string(market, 'type', marketType)
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = self.safe_string(marketResolved, 'symbol')
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -5738,7 +5741,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         chains = self.safe_list(result, 'chains', [])
         coin = self.safe_string(result, 'coin')
         currencyFromResponse = self.currency(coin)
-        parsed = self.parse_deposit_addresses(chains, [currencyFromResponse['code']], False, {
+        parsed = self.parse_deposit_addresses(chains, [self.safe_string(currencyFromResponse, 'code', '')], False, {
             'currency': currencyFromResponse['code'],
         })
         return self.index_by(parsed, 'network')
@@ -6398,8 +6401,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         positions = self.safe_list_2(result, 'list', 'dataList', [])
         timestamp = self.safe_integer(response, 'time')
-        first = self.safe_dict(positions, 0, {})
-        position = self.parse_position(first, market)
+        position = self.parse_position(self.safe_dict(positions, 0, {}), market)
         position['timestamp'] = timestamp
         position['datetime'] = self.iso8601(timestamp)
         return position
@@ -7671,7 +7673,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         marketId = self.safe_string(fee, 'symbol')
         defaultType = 'contract'
         if market is not None:
-            defaultType = self.safe_string(market, 'type')
+            defaultType = self.safe_string(market, 'type', 'contract')
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         return {
             'info': fee,
@@ -8621,7 +8623,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         marketResolved = self.safe_market(marketId, market, None, 'contract')
         code = 'USDT'
         if self.safe_bool(marketResolved, 'inverse', False):
-            code = marketResolved['quote']
+            code = self.safe_string(marketResolved, 'quote', 'USDT')
         timestamp = self.safe_integer(income, 'execTime')
         return {
             'info': income,

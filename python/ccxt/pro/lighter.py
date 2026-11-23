@@ -281,7 +281,7 @@ class lighter(ccxt.async_support.lighter):
                 marketId = marketIds[i]
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
-                ticker = self.parse_ticker(data[marketId], market)
+                ticker = self.parse_ticker(self.safe_dict(data, marketId, {}), market)
                 self.tickers[symbol] = ticker
                 client.resolve(ticker, self.get_message_hash('ticker', symbol))
                 client.resolve(ticker, self.get_message_hash('ticker'))
@@ -1102,7 +1102,7 @@ class lighter(ccxt.async_support.lighter):
         return await self.unsubscribe(messageHash, self.extend(request, paramsAccountIndex))
 
     def request_id(self, url: str) -> int:
-        options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         options[url] = newValue

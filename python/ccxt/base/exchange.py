@@ -4765,7 +4765,7 @@ class BaseExchange(object):
         results = []
         if isinstance(orders, list):
             for i in range(0, len(orders)):
-                parsed = self.parse_order(orders[i], market)  # don't inline this call
+                parsed = self.parse_order(self.safe_dict(orders, i, {}), market)  # don't inline this call
                 order = self.extend(parsed, params)
                 results.append(order)
         else:
@@ -5361,7 +5361,14 @@ class BaseExchange(object):
                 self.safe_number(ohlcv, 4),  # close
                 self.safe_number(ohlcv, 5),  # volume
             ]
-        return ohlcv
+        return [
+            self.safe_integer(ohlcv, 'timestamp'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
 
     def safe_network(self, network: dict):
         withdrawEnabled = self.safe_bool(network, 'withdraw')
@@ -6830,9 +6837,10 @@ class BaseExchange(object):
             return None
         market = self.market(symbol)
         marketSymbol = self.safe_string(market, 'symbol', '')
-        result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        precision = self.safe_dict(market, 'precision', {})
+        result = self.decimal_to_precision(price, ROUND, precision['price'], self.precisionMode, self.paddingMode)
         if result == '0':
-            pricePrecision = self.number_to_string(market['precision']['price'])
+            pricePrecision = self.number_to_string(precision['price'])
             if pricePrecision is None:
                 raise BadSymbol(self.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision')
             raise InvalidOrder(self.id + ' price of ' + marketSymbol + ' must be greater than minimum price precision of ' + pricePrecision)
@@ -6843,9 +6851,10 @@ class BaseExchange(object):
             return None
         market = self.market(symbol)
         marketSymbol = self.safe_string(market, 'symbol', '')
-        result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        precision = self.safe_dict(market, 'precision', {})
+        result = self.decimal_to_precision(amount, TRUNCATE, precision['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
-            amountPrecision = self.number_to_string(market['precision']['amount'])
+            amountPrecision = self.number_to_string(precision['amount'])
             if amountPrecision is None:
                 raise BadSymbol(self.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision')
             raise InvalidOrder(self.id + ' amount of ' + marketSymbol + ' must be greater than minimum amount precision of ' + amountPrecision)
@@ -6855,7 +6864,8 @@ class BaseExchange(object):
         if fee is None:
             return None
         market = self.market(symbol)
-        return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        precision = self.safe_dict(market, 'precision', {})
+        return self.decimal_to_precision(fee, ROUND, precision['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, code: Str, fee: object, networkCode: Str = None):
         if code is None:
@@ -7045,17 +7055,22 @@ class BaseExchange(object):
 
     def parse_tickers_list(self, tickers: list[dict], symbols: Strings = None, params: dict = {}):
         results = []
-        for i in range(0, len(tickers)):
-            results.append(self.extend(self.parse_ticker(tickers[i]), params))
+        tickersArray = self.to_array(tickers)
+        for i in range(0, len(tickersArray)):
+            ticker = self.extend(self.parse_ticker(self.safe_dict(tickersArray, i, {})), params)
+            results.append(ticker)
         return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
 
     def parse_tickers_dict(self, tickers: dict, symbols: Strings = None, params: dict = {}):
         results = []
-        marketIds = list(tickers.keys())
+        tickersDict = self.extend({}, tickers)
+        marketIds = list(tickersDict.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
+            rawTicker = self.safe_dict(tickersDict, marketId, {})
+            ticker = self.extend(self.parse_ticker(rawTicker, market), params)
+            results.append(ticker)
         return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
 
     def parse_deposit_addresses(self, addresses: list, codes: Strings = None, indexed=True, params: dict = {}):

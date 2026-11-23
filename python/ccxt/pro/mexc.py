@@ -191,7 +191,7 @@ class mexc(ccxt.async_support.mexc):
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
         elif rawTicker is not None:
-            ticker = self.parse_ticker(rawTicker, market)
+            ticker = self.parse_ticker(self.extend({}, rawTicker), market)
         else:
             return
         self.tickers[symbol] = ticker
@@ -341,7 +341,7 @@ class mexc(ccxt.async_support.mexc):
             if isSpot is True:
                 ticker = self.parse_ws_ticker(entry, market)
             else:
-                ticker = self.parse_ticker(entry)
+                ticker = self.parse_ticker(self.safe_dict(data, i, {}))
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 self.tickers[symbol] = ticker
@@ -1056,7 +1056,7 @@ class mexc(ccxt.async_support.mexc):
             if self.safe_bool(market, 'spot', False):
                 parsedTrade = self.parse_ws_trade(trades[j], market)
             else:
-                parsedTrade = self.parse_trade(trades[j], market)
+                parsedTrade = self.parse_trade(self.safe_dict(trades, j, {}), market)
             stored.append(parsedTrade)
         client.resolve(stored, messageHash)
 
@@ -1140,7 +1140,7 @@ class mexc(ccxt.async_support.mexc):
         if self.safe_bool(market, 'spot', False):
             trade = self.parse_ws_trade(data, market)
         elif data is not None:
-            trade = self.parse_trade(data, market)
+            trade = self.parse_trade(self.extend({}, data), market)
         else:
             return
         trades = self.myTrades
@@ -1628,7 +1628,6 @@ class mexc(ccxt.async_support.mexc):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'unsubscribe:fundingRate:' + market['symbol']
-        url = None
         channel = 'unsub.funding.rate'
         requestParams = {
             'symbol': market['id'],

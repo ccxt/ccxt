@@ -1966,8 +1966,7 @@ class okx(Exchange, ImplicitAPI):
             optionsUnderlying = self.safe_list(self.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD'])
             promises = []
             for i in range(0, len(optionsUnderlying)):
-                underlying = optionsUnderlying[i]
-                request['uly'] = underlying
+                request['uly'] = self.safe_string(optionsUnderlying, i)
                 promises.append(self.publicGetPublicInstruments(self.extend(request, params)))
             promisesResult = promises
             markets = []
@@ -3761,8 +3760,7 @@ class okx(Exchange, ImplicitAPI):
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         # {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         data = self.safe_list(response, 'data', [])
-        order = self.safe_dict(data, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.safe_dict(data, 0, {}), market)
 
     def parse_ids(self, ids: object):
         """
@@ -4435,8 +4433,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        order = self.safe_dict(data, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.safe_dict(data, 0, {}), market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -5372,7 +5369,7 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         filtered = self.filter_by(data, 'selected', True)
-        parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
+        parsed = self.parse_deposit_addresses(filtered, [self.safe_string(currency, 'code', '')], False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
@@ -8561,8 +8558,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        order = self.safe_dict(data, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.safe_dict(data, 0, {}), market)
 
     def fetch_option(self, symbol: str, params: dict = {}) -> Option:
         """

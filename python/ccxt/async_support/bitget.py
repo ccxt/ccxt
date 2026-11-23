@@ -8555,8 +8555,7 @@ class bitget(Exchange, ImplicitAPI):
             #     }
             #
             result = self.safe_list(response, 'data', [])
-        first = self.safe_dict(result, 0, {})
-        return self.parse_position(first, market)
+        return self.parse_position(self.safe_dict(result, 0, {}), market)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -10982,7 +10981,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         data = self.safe_dict(response, 'data', {})
         order = self.safe_list_2(data, 'successList', 'list', [])
-        return self.parse_order(order[0], market)
+        return self.parse_order(self.safe_dict(order, 0, {}), market)
 
     async def close_all_positions(self, params: dict = {}) -> list[Position]:
         """

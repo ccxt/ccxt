@@ -344,8 +344,7 @@ class gemini(ccxt.async_support.gemini):
         changesLength = len(changes)
         # reverse order of array to store candles in ascending order
         for i in range(0, changesLength):
-            parsed = self.parse_ohlcv(self.safe_value(changes, changesLength - i - 1), market)
-            stored.append(parsed)
+            stored.append(self.parse_ohlcv(self.safe_value(changes, changesLength - i - 1), market))
         messageHash = 'ohlcv:' + symbol + ':' + timeframeId
         client.resolve(stored, messageHash)
         return message
