@@ -90,7 +90,7 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'candles:' + symbolValue;
         const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
-        const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.watchPublic (messageHash, method, reqParams, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -372,7 +372,7 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'trades' + ':' + symbolValue;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
+        const trades: ArrayCache = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -447,7 +447,7 @@ export default class whitebit extends whitebitRest {
         const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
-        const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
+        const trades: ArrayCache = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -580,7 +580,7 @@ export default class whitebit extends whitebitRest {
         const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
-        const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
+        const trades: ArrayCacheBySymbolById = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);

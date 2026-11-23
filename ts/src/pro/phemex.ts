@@ -958,7 +958,7 @@ export default class phemex extends phemexRest {
                 messageHash = 'trades:' + type;
             }
         }
-        const trades = await this.subscribePrivate (type, messageHash, paramsType);
+        const trades: ArrayCacheBySymbolById = await this.subscribePrivate (type, messageHash, paramsType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1133,7 +1133,7 @@ export default class phemex extends phemexRest {
                 messageHash = 'orders:' + type;
             }
         }
-        const orders = await this.subscribePrivate (type, messageHash, paramsType);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (type, messageHash, paramsType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

@@ -579,7 +579,7 @@ export default class paradex extends paradexRest {
         }
         const url = this.getWsUrl ();
         // handleTrade resolves the channel of each market
-        const trades = await this.subscribeChannels (url, channels, channels, params);
+        const trades: ArrayCache = await this.subscribeChannels (url, channels, channels, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -650,7 +650,7 @@ export default class paradex extends paradexRest {
         const channel = 'trades.' + marketId;
         const messageHash = 'liquidations:' + market['symbol'];
         const url = this.getWsUrl ();
-        const liquidations = await this.subscribeChannels (url, [ messageHash ], [ channel ], params);
+        const liquidations: ArrayCache = await this.subscribeChannels (url, [ messageHash ], [ channel ], params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = liquidations.getLimit (market['symbol'], limit);

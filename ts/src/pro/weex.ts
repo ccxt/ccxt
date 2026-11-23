@@ -430,7 +430,7 @@ export default class weex extends weexRest {
             messageHashes.push (messageHash);
             channels.push (channelName);
         }
-        const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
+        const trades: ArrayCache = await this.subscribePublic (messageHashes, channels, isContract, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -1147,7 +1147,7 @@ export default class weex extends weexRest {
             messageHash += '::' + symbolResolved;
         }
         const channel = 'fill';
-        const trades = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        const trades: ArrayCacheBySymbolById = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1359,7 +1359,7 @@ export default class weex extends weexRest {
             messageHash += '::' + symbolResolved;
         }
         const channel = 'orders';
-        const orders = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

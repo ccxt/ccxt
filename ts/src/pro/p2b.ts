@@ -110,7 +110,7 @@ export default class p2b extends p2bRest {
             channel,
         ];
         const messageHash = 'kline::' + market['symbol'];
-        const ohlcv = await this.subscribe ('kline.subscribe', messageHash, request, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe ('kline.subscribe', messageHash, request, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
