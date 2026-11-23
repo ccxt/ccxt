@@ -591,11 +591,11 @@ class blofin extends blofin$1["default"] {
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray = [];
         if (symbol !== undefined) {
-            symbolsArray.push(symbol);
+            await this.loadMarkets();
+            return await this.watchOrdersForSymbols([this.symbol(symbol)], since, limit, params);
         }
-        return await this.watchOrdersForSymbols(symbolsArray, since, limit, params);
+        return await this.watchOrdersForSymbols([], since, limit, params);
     }
     /**
      * @method
@@ -691,7 +691,7 @@ class blofin extends blofin$1["default"] {
         }
     }
     parseWsOrder(order, market = undefined) {
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

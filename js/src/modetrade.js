@@ -2320,7 +2320,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const orders = this.safeDict(response, 'data', response);
-        return this.parseOrder(orders, market);
+        return this.parseOrder(this.extend({}, orders), market);
     }
     /**
      * @method

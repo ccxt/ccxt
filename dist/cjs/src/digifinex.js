@@ -2752,7 +2752,7 @@ class digifinex extends digifinex$1["default"] {
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

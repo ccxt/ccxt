@@ -2444,7 +2444,7 @@ class bullish extends bullish$1["default"] {
                 }
             }
         }
-        return this.parseDepositAddress(data, currency);
+        return this.parseDepositAddress(this.extend({}, data), currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         const id = this.safeString(depositAddress, 'symbol');

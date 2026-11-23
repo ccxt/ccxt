@@ -3290,7 +3290,7 @@ class phemex extends phemex$1["default"] {
             }
             order = this.safeDict(rows, 0, {});
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

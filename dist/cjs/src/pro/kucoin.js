@@ -358,9 +358,12 @@ class kucoin extends kucoin$1["default"] {
         const isFuturesMethod = market['contract'];
         const url = await this.negotiate(false, isFuturesMethod);
         const [spotMethod, paramsSpotMethod] = this.handleOptionStringAndParams(paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-        const method = (isFuturesMethod === true) ? '/contractMarket/ticker' : spotMethod;
         const query = (isFuturesMethod === true) ? paramsUta : paramsSpotMethod;
-        const topic = method + ':' + market['id'];
+        const tickerMarketId = this.safeString(market, 'id', '');
+        let topic = '/contractMarket/ticker:' + tickerMarketId;
+        if (isFuturesMethod !== true) {
+            topic = spotMethod + ':' + tickerMarketId;
+        }
         return await this.subscribe(url, messageHash, topic, query);
     }
     /**
@@ -399,9 +402,12 @@ class kucoin extends kucoin$1["default"] {
         else {
             const url = await this.negotiate(false, isFuturesMethod);
             const [spotMethod, paramsSpotMethod] = this.handleOptionStringAndParams(paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-            const method = (isFuturesMethod === true) ? '/contractMarket/ticker' : spotMethod;
             const query = (isFuturesMethod === true) ? paramsUta : paramsSpotMethod;
-            const topic = method + ':' + market['id'];
+            const tickerMarketId = this.safeString(market, 'id', '');
+            let topic = '/contractMarket/ticker:' + tickerMarketId;
+            if (isFuturesMethod !== true) {
+                topic = spotMethod + ':' + tickerMarketId;
+            }
             const messageHash = 'unsubscribe:' + subMessageHash;
             subscription['messageHashes'] = [messageHash, topic];
             subscription['subMessageHashes'] = [subMessageHash, topic];
@@ -3508,7 +3514,7 @@ class kucoin extends kucoin$1["default"] {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors(1, '', client.url, '', {}, data, message, {}, '');
+        this.handleErrors(1, '', client.url, '', {}, data, message, {}, undefined);
         return false;
     }
     handleMessage(client, message) {

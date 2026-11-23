@@ -367,7 +367,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market(marketSymbols[i]);
-            const [request, query] = this.ibkrMarketDataRequest(market['id'], params);
+            const [request, query] = this.ibkrMarketDataRequest(this.safeString(market, 'id'), params);
             const subscription = this.extend({ 'conid': market['id'], 'symbol': market['symbol'] }, query);
             await this.ibkrSubscribe(client, messageHashes[i], request, subscription);
         }
@@ -507,7 +507,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         const future = client.reusableFuture(messageHash);
         // the last price stream, it builds the current candles
-        const [marketDataRequest, query] = this.ibkrMarketDataRequest(market['id'], params);
+        const [marketDataRequest, query] = this.ibkrMarketDataRequest(this.safeString(market, 'id'), params);
         await this.ibkrSubscribe(client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
         // the history, it seeds the candles
         const historyHash = 'smh::' + historyMarketId + '::' + timeframe;
@@ -1058,7 +1058,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 merged = this.extend(previous, rawOrder);
                 rawOrders[orderId] = merged;
             }
-            const parsed = this.parseOrder(merged);
+            const parsed = this.parseOrder(this.extend({}, merged));
             orders.append(parsed);
             const orderSymbol = this.safeString(parsed, 'symbol');
             if (orderSymbol !== undefined) {

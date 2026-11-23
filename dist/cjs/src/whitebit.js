@@ -3124,7 +3124,9 @@ class whitebit extends whitebit$1["default"] {
         //
         //    []
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer({}, currency), {
+            'info': response,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //

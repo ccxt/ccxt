@@ -8690,7 +8690,7 @@ class bybit extends bybit$1["default"] {
         const timestamp = this.safeInteger(response, 'time');
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'list', []);
-        const greeks = this.parseGreeks(data[0], market);
+        const greeks = this.parseGreeks(this.safeDict(data, 0, {}), market);
         return this.extend(greeks, {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

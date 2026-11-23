@@ -449,7 +449,7 @@ export declare class BaseExchange {
     hasUnsafeInteger(value: any): boolean;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): Dict;
-    handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
+    handleRestResponse(response: any, url: any, method?: string, requestHeaders?: NullableDict, requestBody?: any): any;
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
     loadMarketsHelper(reload?: boolean, params?: Dict): Promise<Dictionary<Market>>;

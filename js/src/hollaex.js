@@ -1163,7 +1163,7 @@ export default class hollaex extends Exchange {
         if (response === undefined) {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method

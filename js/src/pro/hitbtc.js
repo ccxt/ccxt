@@ -1072,7 +1072,7 @@ export default class hitbtc extends hitbtcRest {
         const splitMethod = method.split('_order');
         const messageHash = this.safeString(splitMethod, 0);
         const symbol = this.safeSymbol(marketId);
-        const parsed = this.parseOrder(order);
+        const parsed = this.parseOrder(this.extend({}, order));
         orders.append(parsed);
         client.resolve(orders, messageHash);
         if (messageHash !== undefined) {

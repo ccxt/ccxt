@@ -1162,7 +1162,7 @@ class hollaex extends hollaex$1["default"] {
         if (response === undefined) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method

@@ -1327,9 +1327,8 @@ export default class hyperliquid extends Exchange {
         // same response as under "fetchMarkets"
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const info = this.safeDict(market, 'info', {});
-            const ticker = this.parseTicker(info, market);
+            const info = this.safeDict(response[i], 'info', {});
+            const ticker = this.parseTicker(info, this.extend({}, response[i]));
             const symbol = this.safeString(ticker, 'symbol');
             result[symbol] = ticker;
         }

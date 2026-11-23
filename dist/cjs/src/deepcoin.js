@@ -3062,7 +3062,7 @@ class deepcoin extends deepcoin$1["default"] {
             response = await this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, paramsOmitted));
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

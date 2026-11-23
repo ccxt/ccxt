@@ -5955,7 +5955,7 @@ export class BaseExchange {
         const transfersArray = this.toArray(transfers);
         let result = [];
         for (let i = 0; i < transfersArray.length; i++) {
-            const transfer = this.extend(this.parseTransfer(transfersArray[i], currency), params);
+            const transfer = this.extend(this.parseTransfer(this.safeDict(transfersArray, i, {}), currency), params);
             result.push(transfer);
         }
         result = this.sortBy(result, 'timestamp');
@@ -7363,7 +7363,7 @@ export class BaseExchange {
     parseDepositAddresses(addresses, codes = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
-            const address = this.extend(this.parseDepositAddress(addresses[i]), params);
+            const address = this.extend(this.parseDepositAddress(this.safeDict(addresses, i, {})), params);
             result.push(address);
         }
         if (codes !== undefined) {
@@ -8434,7 +8434,7 @@ export class BaseExchange {
     parseAllGreeksList(greeks, symbols = undefined, params = {}) {
         const results = [];
         for (let i = 0; i < greeks.length; i++) {
-            results.push(this.extend(this.parseGreeks(greeks[i]), params));
+            results.push(this.extend(this.parseGreeks(this.safeDict(greeks, i, {})), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -8444,7 +8444,7 @@ export class BaseExchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            results.push(this.extend(this.parseGreeks(greeks[marketId], market), params));
+            results.push(this.extend(this.parseGreeks(this.safeDict(greeks, marketId, {}), market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -8458,7 +8458,7 @@ export class BaseExchange {
             const currency = this.safeCurrency(currencyId);
             const marketId = (symbolKey === undefined) ? undefined : this.safeString(response[i], symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, 'option');
-            optionStructures[market['symbol']] = this.parseOption(response[i], currency, market);
+            optionStructures[market['symbol']] = this.parseOption(this.safeDict(response, i, {}), currency, market);
         }
         return optionStructures;
     }

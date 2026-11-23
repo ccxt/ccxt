@@ -2753,7 +2753,7 @@ export default class digifinex extends Exchange {
         if (order === undefined) {
             throw new OrderNotFound(this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

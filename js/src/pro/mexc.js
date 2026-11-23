@@ -1437,7 +1437,7 @@ export default class mexc extends mexcRest {
             }
         }
         else if (data !== undefined) {
-            parsed = this.parseOrder(data, market);
+            parsed = this.parseOrder(this.extend({}, data), market);
         }
         else {
             return;

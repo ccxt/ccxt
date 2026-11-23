@@ -246,12 +246,12 @@ export default class interactivebrokers extends Exchange {
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    ibkrFetchSnapshot(symbols: string[], fields: string, params?: Dict, readyFields?: Strings): Promise<List>;
-    ibkrSnapshotReady(response: List, readyFields?: Strings): boolean;
+    ibkrFetchSnapshot(symbols: string[], fields: string, readyFields: string[], params?: Dict): Promise<List>;
+    ibkrSnapshotReady(response: List, fieldIds: string[]): boolean;
     /**
      * @method
      * @name interactivebrokers#fetchBidsAsks
@@ -666,5 +666,5 @@ export default class interactivebrokers extends Exchange {
      */
     ibkrIsAuthRequest(path: string): boolean;
     request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

@@ -1308,7 +1308,7 @@ export default class cex extends cexRest {
             'data': data,
         };
         const response = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -1380,7 +1380,7 @@ export default class cex extends cexRest {
             'data': data,
         };
         const rawOrder = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend({}, rawOrder), market);
     }
     /**
      * @method
@@ -1423,7 +1423,7 @@ export default class cex extends cexRest {
             'data': data,
         };
         const response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -1455,7 +1455,7 @@ export default class cex extends cexRest {
             'data': data,
         };
         const response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method

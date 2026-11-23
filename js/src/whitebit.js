@@ -3125,7 +3125,9 @@ export default class whitebit extends Exchange {
         //
         //    []
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer({}, currency), {
+            'info': response,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //

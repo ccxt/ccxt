@@ -1063,7 +1063,7 @@ class bit2me extends bit2me$1["default"] {
         //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @ignore

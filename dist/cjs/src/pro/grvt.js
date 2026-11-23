@@ -919,7 +919,7 @@ class grvt extends grvt$1["default"] {
         //        "prev_sequence_number": "16"
         //    }
         //
-        const data = this.safeDict(message, 'feed');
+        const data = this.safeDict(message, 'feed', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -931,7 +931,7 @@ class grvt extends grvt$1["default"] {
     }
     parseWsOrder(order, market = undefined) {
         // same as REST api
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     handleErrorMessage(client, response) {
         //

@@ -2158,7 +2158,8 @@ export default class interactivebrokers extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const [fields, query] = this.handleOptionAndParams(params, 'fetchTickers', 'fields');
         const fieldsString = fields.join(',');
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, query);
+        const readyFields = ['31', '84', '86'];
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, query);
         //
         //     [
         //         {
@@ -2187,11 +2188,11 @@ export default class interactivebrokers extends Exchange {
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    async ibkrFetchSnapshot(symbols, fields, params = {}, readyFields = undefined) {
+    async ibkrFetchSnapshot(symbols, fields, readyFields, params = {}) {
         const conids = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
@@ -2216,12 +2217,11 @@ export default class interactivebrokers extends Exchange {
         }
         return response;
     }
-    ibkrSnapshotReady(response, readyFields = undefined) {
+    ibkrSnapshotReady(response, fieldIds) {
         const numItems = response.length;
         if (numItems === 0) {
             return false;
         }
-        const fieldIds = (readyFields === undefined) ? ['31', '84', '86'] : readyFields;
         const numFields = fieldIds.length;
         for (let i = 0; i < numItems; i++) {
             let found = false;
@@ -2258,7 +2258,7 @@ export default class interactivebrokers extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const fields = this.safeString(params, 'fields', '84,85,86,88');
         const query = this.omit(params, 'fields');
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, query, ['84', '86']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, ['84', '86'], query);
         //
         //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2282,7 +2282,7 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31', params, ['31']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31', ['31'], params);
         //
         //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2319,7 +2319,7 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '7635', params, ['7635']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '7635', ['7635'], params);
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2350,7 +2350,7 @@ export default class interactivebrokers extends Exchange {
             }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31,7697,7638', params, ['7697', '7638']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31,7697,7638', ['7697', '7638'], params);
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //

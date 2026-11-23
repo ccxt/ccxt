@@ -2349,7 +2349,7 @@ class btse extends btse$1["default"] {
         if (Array.isArray(order)) {
             order = this.safeDict(order, 0, {});
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -3538,7 +3538,7 @@ class btse extends btse$1["default"] {
         const paramsOmitted = (typeUpper === 'LIMIT') ? this.omit(paramsOrderType, 'price') : paramsOrderType;
         const response = await this.privateDeleteFuturesApiV3TradePositions(this.extend(request, paramsOmitted));
         const order = this.safeDict(response, 0, response);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

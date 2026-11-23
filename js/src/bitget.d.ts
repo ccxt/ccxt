@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, OpenInterest } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, OpenInterest } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -21,7 +21,7 @@ export default class bitget extends Exchange {
      */
     enableDemoTrading(enabled: boolean): void;
     handleProductTypeAndParams(market?: Market, params?: Dict): [Str, Dict];
-    handleUTAAndParams(params: Dict, methodName: Str, defaultValue?: boolean): Promise<[Bool, Dict]>;
+    handleUTAAndParams(params: Dict, methodName: Str, defaultValue?: boolean): Promise<[boolean, Dict]>;
     /**
      * @method
      * @name bitget#fetchTime

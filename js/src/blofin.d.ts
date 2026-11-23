@@ -316,10 +316,10 @@ export default class blofin extends Exchange {
      * @param {string} id withdrawal id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchWithdrawal(id: Str, code?: Str, params?: Dict): Promise<Transaction>;
+    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#withdraw

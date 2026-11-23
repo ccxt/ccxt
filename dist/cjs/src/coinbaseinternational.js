@@ -1293,7 +1293,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         await this.authenticateV2();
         const code = this.safeString(paramsResolved, 'code');
-        let paramsOmitted = paramsResolved;
+        let paramsOmitted = this.extend({}, paramsResolved);
         if (this.isNativeDeribitCredentials()) {
             paramsOmitted = this.omit(paramsResolved, 'code');
         }
@@ -2760,12 +2760,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const paramsResolved = this.handleRouteAndParams('fetchOpenOrders', params);
+        const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchOpenOrders', 'paginate', false);
+        const nativeDeribit = this.isNativeDeribitCredentials();
+        if (nativeDeribit && paginate) {
+            throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support pagination');
+        }
         let paramsPaginate = paramsResolved;
-        if (this.isNativeDeribitCredentials()) {
-            const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchOpenOrders', 'paginate', false);
-            if (paginate) {
-                throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support pagination');
-            }
+        if (nativeDeribit) {
             paramsPaginate = paramsFinal;
         }
         if (this.markets === undefined) {
@@ -2834,12 +2835,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const paramsResolved = this.handleRouteAndParams('fetchMyTrades', params);
+        const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchMyTrades', 'paginate', false);
+        const nativeDeribit = this.isNativeDeribitCredentials();
+        if (nativeDeribit && paginate) {
+            throw new errors.NotSupported(this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
+        }
         let paramsPaginate = paramsResolved;
-        if (this.isNativeDeribitCredentials()) {
-            const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchMyTrades', 'paginate', false);
-            if (paginate) {
-                throw new errors.NotSupported(this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
-            }
+        if (nativeDeribit) {
             paramsPaginate = paramsFinal;
         }
         if (this.markets === undefined) {

@@ -2898,7 +2898,7 @@ class mexc extends mexc$1["default"] {
             //         }
             //     }
             //
-            data = this.safeValue(response, 'data');
+            data = this.safeDict(response, 'data', {});
         }
         return this.parseOrder(data, market);
     }
@@ -3370,7 +3370,8 @@ class mexc extends mexc$1["default"] {
                 if (marginMode !== 'isolated') {
                     throw new errors.BadRequest(this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                data = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
+                const marginRows = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
+                return this.parseOrder(this.safeDict(marginRows, 0, {}), market);
             }
             else {
                 data = await this.spotPrivateDeleteOrder(this.extend(requestInner, query));
@@ -3447,12 +3448,13 @@ class mexc extends mexc$1["default"] {
             if (method === 'contractPrivatePostPlanorderCancel') {
                 return this.safeOrder({ 'id': id, 'symbol': this.safeString(market, 'symbol'), 'info': response }, market); // planorder/cancel answers without data, failures are raised by handleErrors
             }
-            data = this.safeValue(response, 'data');
-            const order = this.safeDict(data, 0);
-            const errorMsg = this.safeString(order, 'errorMsg', '');
+            const rows = this.safeList(response, 'data', []);
+            data = this.safeDict(rows, 0, {});
+            const errorMsg = this.safeString(data, 'errorMsg', '');
             if (errorMsg !== 'success') {
                 throw new errors.InvalidOrder(this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
+            return this.parseOrder(this.safeDict(data, 0, {}), market);
         }
         return this.parseOrder(data, market);
     }

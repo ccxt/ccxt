@@ -2798,7 +2798,10 @@ class hitbtc extends hitbtc$1["default"] {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer({}, currency), {
+            'id': this.safeString(response, 0),
+            'info': response,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //

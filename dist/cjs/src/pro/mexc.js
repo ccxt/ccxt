@@ -1436,7 +1436,7 @@ class mexc extends mexc$1["default"] {
             }
         }
         else if (data !== undefined) {
-            parsed = this.parseOrder(data, market);
+            parsed = this.parseOrder(this.extend({}, data), market);
         }
         else {
             return;

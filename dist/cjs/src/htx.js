@@ -6121,7 +6121,7 @@ class htx extends htx$1["default"] {
         if (result === undefined) {
             throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
-        return this.extend(this.parseOrder(result, market), {
+        return this.extend(this.parseOrder(this.extend({}, result), market), {
             'id': id,
             'status': 'canceled',
         });

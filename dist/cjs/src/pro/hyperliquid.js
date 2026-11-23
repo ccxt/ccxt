@@ -1658,7 +1658,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             return true;
         }
         try {
-            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, '');
+            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, undefined);
         }
         catch (e) {
             client.reject(e, id);
