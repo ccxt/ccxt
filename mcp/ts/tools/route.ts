@@ -215,7 +215,7 @@ function resolveAccounts (ctx: ServerContext, venues: string[], requested: strin
     const byVenue: Record<string, AccountConfig> = {};
     if (requested !== undefined) {
         for (const name of requested) {
-            const account = ctx.config.accounts[name];
+            const account = Object.prototype.hasOwnProperty.call (ctx.config.accounts, name) ? ctx.config.accounts[name] : undefined;
             if (account === undefined) {
                 return routeError ('UNKNOWN_ACCOUNT', 'no configured account named ' + JSON.stringify (name), 'list configured accounts with list_accounts');
             }

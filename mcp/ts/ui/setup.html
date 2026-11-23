@@ -128,6 +128,14 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
                 <span class="name">Exchange</span>
                 <select id="exchange" autocomplete="off"></select>
             </label>
+            <label class="field" id="variant-row" hidden>
+                <span class="name">Which account there?</span>
+                <select id="variant" autocomplete="off">
+                    <option value="">Trading (spot and futures)</option>
+                    <option value="1">Prediction markets</option>
+                </select>
+                <span class="help">This exchange keeps the two separate. Add each one as its own account.</span>
+            </label>
             <label class="field">
                 <span class="name">Name for this account</span>
                 <input id="account" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40">
@@ -157,7 +165,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             <h2 id="s4"><span class="n">4</span>Where does this key work?</h2>
             <p class="hint">Keys are made for one environment. Pick the one you created this key in.</p>
             <div class="options" role="radiogroup" aria-labelledby="s4">
-                <label class="option"><input type="radio" name="environment" value="sandbox"><span><span class="t">Testnet</span><span class="badge good">Practice money</span><span class="d" data-note="sandbox">A separate practice copy of the exchange. Nothing here is real &mdash; the best place to start.</span></span></label>
+                <label class="option"><input type="radio" name="environment" value="sandbox"><span><span class="t" data-title="sandbox">Testnet</span><span class="badge good">Practice money</span><span class="d" data-note="sandbox">A separate practice copy of the exchange. Nothing here is real &mdash; the best place to start.</span></span></label>
                 <label class="option"><input type="radio" name="environment" value="demo"><span><span class="t">Demo trading</span><span class="badge good">Practice money</span><span class="d" data-note="demo">The exchange&rsquo;s demo mode, with a key created in its demo portal.</span></span></label>
                 <label class="option"><input type="radio" name="environment" value="live"><span><span class="t">Live</span><span class="badge real">Real money</span><span class="d" data-note="live">Your real account.</span></span></label>
             </div>
@@ -192,8 +200,9 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         <span class="disc" aria-hidden="true">&#10003;</span>
         <h1 tabindex="-1" id="done-title">Saved &mdash; return to the chat</h1>
         <p class="summary" id="done-summary"></p>
-        <p>Your assistant can use this account right away. Tell it you are done. You can close this tab.</p>
-        <p id="done-restart" hidden>Tools for newly enabled features appear after the assistant app is restarted.</p>
+        <p id="done-ready">Your assistant can use this account right away. Tell it you are done. You can close this tab.</p>
+        <p id="done-streams" hidden></p>
+        <p id="done-restart" hidden></p>
     </div>
 
     <div id="gone-view" class="final" hidden>
@@ -216,7 +225,10 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     var fieldsBox = $('fields');
     var statusBox = $('status');
     var tradingBox = $('trading');
+    var variantSelect = $('variant');
     var state = { 'info': undefined, 'nameEdited': false, 'testedOk': '', 'busy': false, 'over': false };
+    // names the settings file cannot hold as an account (the server refuses them too)
+    var RESERVED_NAMES = [ '__proto__', 'constructor', 'prototype' ];
 
     function el (tag, className, text) {
         var node = document.createElement (tag);
@@ -241,7 +253,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
 
     // what a successful test vouches for: the same exchange, keys and environment
     function fingerprint () {
-        return JSON.stringify ([ exchangeSelect.value, credentials (), environment () ]);
+        return JSON.stringify ([ exchangeSelect.value, variantSelect.value, credentials (), environment () ]);
     }
 
     function clearStatus () {
@@ -270,8 +282,10 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
 
     function setBusy (busy, label) {
         state.busy = busy;
-        $('save').disabled = busy;
-        $('test').disabled = busy;
+        // an exchange this page cannot set up has nothing to test or save
+        var blocked = !!(state.info && state.info.configFileOnly);
+        $('save').disabled = busy || blocked;
+        $('test').disabled = busy || blocked;
         $('save').textContent = (busy && label === 'save') ? 'Saving…' : 'Save account';
         $('test').textContent = (busy && label === 'test') ? 'Testing…' : 'Test connection';
     }
@@ -312,9 +326,11 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
 
     function renderFields (info) {
         fieldsBox.textContent = '';
-        $('fields-hint').textContent = info.fields.length
-            ? 'Copy each value from the exchange and paste it here. They are hidden as you type.'
-            : 'This exchange does not need a key for the features offered here.';
+        // no box to show is never "no key needed": it means the exchange takes its keys in a
+        // way this page cannot ask for, and saving would produce an account that cannot work
+        $('fields-hint').textContent = info.configFileOnly
+            ? info.name + (info.prediction ? ' prediction markets' : '') + ' cannot be set up from this page: it takes its keys in a way this form cannot collect. Add the account by hand to the settings file instead (' + boot.configPath + ') and restart the assistant app — ask the assistant for the exact format. Do not paste keys into the chat.'
+            : 'Copy each value from the exchange and paste it here. They are hidden as you type.';
         info.fields.forEach (function (field) {
             var label = el ('label', 'field');
             label.appendChild (el ('span', 'name', field.label));
@@ -341,8 +357,14 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             label.appendChild (row);
             fieldsBox.appendChild (label);
         });
+        if (info.walletKey) {
+            // the checklist in step 2 is about exchange-issued API keys; a wallet key has no
+            // "withdrawals off" switch, so the advice that replaces it is said here
+            fieldsBox.appendChild (el ('p', 'fineprint', info.name + ' signs with a wallet key, not an ordinary API key. A wallet’s main private key can move everything in it: if ' + info.name + ' offers a separate API or agent wallet, create one and use its key here, never your main wallet’s.'));
+        }
     }
 
+    var TITLES = { 'sandbox': 'Testnet', 'demo': 'Demo trading', 'live': 'Live' };
     var NOTES = {
         'sandbox': 'A separate practice copy of the exchange. Nothing here is real — the best place to start.',
         'demo': 'The exchange’s demo mode, with a key created in its demo portal.',
@@ -358,9 +380,25 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             // an environment that is not offered is never swapped for another one silently —
             // the choice between practice and real money is always the user's own click
             if (!offered && radio.checked) { radio.checked = false; }
-            document.querySelector ('[data-note="' + radio.value + '"]').textContent = offered ? NOTES[radio.value] : ('Not offered by ' + info.name + '.');
+            var note = offered ? NOTES[radio.value] : ('Not offered by ' + info.name + '.');
+            // where the exchange's practice mode IS its demo trading (no separate testnet),
+            // the option is named the way the exchange names it — a user holding a demo key
+            // must not read "Demo trading: not offered"
+            if (info && info.sandboxIsDemo && radio.value === 'sandbox') {
+                note = info.name + ' has no separate testnet: this is its demo (simulated) trading mode. Use a key created for demo trading on ' + info.name + '. Nothing here is real.';
+            }
+            if (info && info.sandboxIsDemo && radio.value === 'demo' && !offered) {
+                note = 'On ' + info.name + ' this is the option above.';
+            }
+            document.querySelector ('[data-note="' + radio.value + '"]').textContent = note;
         }
+        document.querySelector ('[data-title="sandbox"]').textContent = environmentName ('sandbox');
+        setBusy (state.busy);
         syncPermissions ();
+    }
+
+    function environmentName (value) {
+        return (value === 'sandbox' && state.info && state.info.sandboxIsDemo) ? 'Demo trading' : TITLES[value];
     }
 
     function syncPermissions () {
@@ -374,6 +412,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
 
     function loadExchange () {
         var id = exchangeSelect.value;
+        var variant = variantSelect.value;
         state.info = undefined;
         state.testedOk = '';
         clearStatus ();
@@ -383,12 +422,14 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             $('fields-hint').textContent = 'Choose an exchange first — the boxes it needs will appear here.';
             $('s2-title').textContent = 'Create an API key on the exchange';
             $('site').hidden = true;
+            $('variant-row').hidden = true;
             renderEnvironments (undefined);
             return;
         }
-        request ('GET', '/credentials?exchange=' + encodeURIComponent (id)).then (function (info) {
-            if (!info.ok || exchangeSelect.value !== id) { return; }
+        request ('GET', '/credentials?exchange=' + encodeURIComponent (id) + (variant ? '&prediction=1' : '')).then (function (info) {
+            if (!info.ok || exchangeSelect.value !== id || variantSelect.value !== variant) { return; }
             state.info = info;
+            $('variant-row').hidden = !info.predictionVariant;
             $('s2-title').textContent = 'Create an API key on ' + info.name;
             if (info.website) {
                 $('site-link').href = info.website;
@@ -411,6 +452,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             'environment': environment (),
             'trading': tradingBox.checked,
         };
+        if (variantSelect.value) { data.prediction = true; }
         if (live && tradingBox.checked) {
             data.maxOrderValue = Number ($('cap').value);
             data.liveConfirmed = $('live-confirm').checked;
@@ -422,12 +464,14 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     // the box that needs attention
     function problem (data, forSave) {
         if (!data.exchange || !state.info) { exchangeSelect.focus (); return 'Choose your exchange first.'; }
+        if (state.info.configFileOnly) { exchangeSelect.focus (); return state.info.name + ' cannot be set up from this page — see step 3.'; }
         var inputs = fieldsBox.querySelectorAll ('input[data-field]');
         for (var i = 0; i < inputs.length; i++) {
             if (!inputs[i].value.trim ()) { inputs[i].focus (); return 'Fill in every box in step 3.'; }
         }
         if (!data.environment) { return 'Choose where this key works in step 4.'; }
         if (!forSave) { return ''; }
+        if (RESERVED_NAMES.indexOf (data.name) !== -1) { accountInput.focus (); accountInput.select (); return '“' + data.name + '” cannot be used as an account name. Choose a different one.'; }
         if (!/^[a-zA-Z0-9_-]{1,40}$/.test (data.name)) { accountInput.focus (); return 'Give the account a short name: letters, digits, “-” and “_” only.'; }
         if (data.environment === 'live' && data.trading) {
             if (!(data.maxOrderValue > 0) || !isFinite (data.maxOrderValue)) { $('cap').focus (); return 'Enter the largest single order in USD (a number above 0).'; }
@@ -457,7 +501,9 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         var tested = fingerprint ();
         setBusy (true, 'test');
         showStatus ('warn', 'Checking the keys with the exchange…');
-        return request ('POST', '/test', { 'exchange': data.exchange, 'credentials': data.credentials, 'environment': data.environment }).then (function (result) {
+        var body = { 'exchange': data.exchange, 'credentials': data.credentials, 'environment': data.environment };
+        if (data.prediction) { body.prediction = true; }
+        return request ('POST', '/test', body).then (function (result) {
             setBusy (false);
             if (result.ok) { state.testedOk = tested; }
             return result;
@@ -473,10 +519,20 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         request ('POST', '/save', data).then (function (result) {
             setBusy (false);
             if (result.ok) {
-                var where = { 'sandbox': 'Testnet', 'demo': 'Demo trading', 'live': 'Live' }[result.environment];
+                var where = environmentName (result.environment);
                 var may = (result.trading === 'live') ? 'can place orders with real money' : (result.trading ? 'can place practice orders' : 'view only');
                 $('done-summary').textContent = 'Account “' + result.account + '” on ' + (state.info ? state.info.name : result.exchange) + ' · ' + where + ' · ' + may;
-                $('done-restart').hidden = !(result.restartForTools && result.trading);
+                if (result.restartForTools) {
+                    // the running assistant cannot be given the tools for this account
+                    $('done-ready').textContent = 'The account is saved. Restart the assistant app once so the tools for it appear, then tell the assistant you are done. You can close this tab.';
+                } else if (result.toolsAdded) {
+                    $('done-restart').textContent = 'The tools for this account were just added to the assistant. If it says it cannot see them, restart the assistant app once.';
+                    $('done-restart').hidden = false;
+                }
+                if (result.stoppedStreams > 0) {
+                    $('done-streams').textContent = (result.stoppedStreams === 1 ? 'One live data stream' : result.stoppedStreams + ' live data streams') + ' still running on this account’s previous keys ' + (result.stoppedStreams === 1 ? 'was' : 'were') + ' stopped. Ask the assistant to start ' + (result.stoppedStreams === 1 ? 'it' : 'them') + ' again if you still need ' + (result.stoppedStreams === 1 ? 'it' : 'them') + '.';
+                    $('done-streams').hidden = false;
+                }
                 finish ('done-view', 'done-title');
                 return;
             }
@@ -513,7 +569,10 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         if (state.busy) { return; }
         runTest ().then (function (result) {
             if (result === undefined) { return; }
-            if (result.ok) {
+            if (result.ok && result.tested === false) {
+                // not a pass: this exchange has nothing the keys could be tried against
+                showStatus ('warn', 'The keys could not be tested.', 'This exchange offers no balance check to try them on. You can still save the account; a mistyped key will only show when the assistant first uses it.');
+            } else if (result.ok) {
                 showStatus ('good', 'The keys work.', 'The exchange accepted them. Save the account to finish.');
             } else {
                 showStatus ('bad', 'The connection test failed.', explain (result) + ' (' + (result.error || 'no details') + ')');
@@ -549,7 +608,8 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     if (preset) { preset.checked = true; }
     $('config-path').textContent = boot.configPath;
     accountInput.addEventListener ('input', function () { state.nameEdited = accountInput.value !== ''; });
-    exchangeSelect.addEventListener ('change', loadExchange);
+    exchangeSelect.addEventListener ('change', function () { variantSelect.value = ''; loadExchange (); });
+    variantSelect.addEventListener ('change', loadExchange);
     tradingBox.addEventListener ('change', syncPermissions);
     var radios = document.querySelectorAll ('input[name="environment"]');
     for (var i = 0; i < radios.length; i++) { radios[i].addEventListener ('change', syncPermissions); }

@@ -22,15 +22,23 @@ const CONFIG_HINT = 'The user must edit the ccxt-mcp config file to change this.
 
 const TIER_HINT = 'Tell the user to enable this in the ccxt-mcp config file — e.g. add "trading": true (sandbox/demo) to the account, or "trading": "live" with a "maxOrderValue" — then restart the server. Call get_safety_status for the exact config path and current tiers. No tool can enable it from the conversation.';
 
+// Order placement is the one tier the setup form can switch on (the user saves the account
+// again with "Allow placing orders" ticked), so its hint leads with the form. Funds and raw
+// write endpoints are deliberately file-only and keep the wording above.
+const TRADING_MESSAGE = 'Only the user can change this — in the setup form (setup_account) or in the ccxt-mcp config file. It cannot be enabled from the conversation.';
+
+const TRADING_HINT = 'Call setup_account and have the user save this account again under the same name with "Allow placing orders" on (the form asks before replacing it; live trading additionally needs a per-order USD cap; no restart needed). Alternative: the user edits the ccxt-mcp config file — "trading": true (sandbox/demo) on the account, or "trading": "live" with a "maxOrderValue" — then restarts the server. Call get_safety_status for the config path and current tiers. You cannot enable it yourself.';
+
 export function requireTier (account: AccountConfig, tier: 'trading' | 'funds'): void {
     const flag = account[tier] ?? false;
+    const viaForm = (tier === 'trading');
     if (flag === false) {
-        throw new SafetyError ('TIER_DISABLED', capitalized (tier) + ' is not enabled for account ' + JSON.stringify (account.name) + '. ' + CONFIG_HINT, TIER_HINT);
+        throw new SafetyError ('TIER_DISABLED', capitalized (tier) + ' is not enabled for account ' + JSON.stringify (account.name) + '. ' + (viaForm ? TRADING_MESSAGE : CONFIG_HINT), viaForm ? TRADING_HINT : TIER_HINT);
     }
     const environment = accountEnvironment (account);
     if (flag === true && environment === 'live') {
         // config.ts already downgrades this combination, but the execution point re-checks
-        throw new SafetyError ('TIER_DISABLED', capitalized (tier) + ' on account ' + JSON.stringify (account.name) + ' is enabled for sandbox/demo only, and this account is live. ' + CONFIG_HINT, 'set "' + tier + '": "live" in the config file to allow live ' + tier);
+        throw new SafetyError ('TIER_DISABLED', capitalized (tier) + ' on account ' + JSON.stringify (account.name) + ' is enabled for sandbox/demo only, and this account is live. ' + (viaForm ? TRADING_MESSAGE : CONFIG_HINT), viaForm ? TRADING_HINT : ('set "' + tier + '": "live" in the config file to allow live ' + tier));
     }
 }
 
@@ -187,7 +195,7 @@ export class Safety {
                 throw new SafetyError ('UNVALUABLE_ORDER', 'a maxOrderValue cap is set on account ' + JSON.stringify (account.name) + ' but the order value could not be determined (' + (valuation.note ?? 'no reference price') + ')', 'provide an explicit limit price, or the user can set "maxOrderValue": null to opt out of the cap');
             }
             if (valuation.value > cap) {
-                throw new SafetyError ('ORDER_VALUE_CAP', 'order value ≈ ' + valuation.value.toFixed (2) + ' ' + valuation.currency + ' exceeds the maxOrderValue cap of ' + cap + ' on account ' + JSON.stringify (account.name), 'reduce the amount, or the user can raise the cap in the config file');
+                throw new SafetyError ('ORDER_VALUE_CAP', 'order value ≈ ' + valuation.value.toFixed (2) + ' ' + valuation.currency + ' exceeds the maxOrderValue cap of ' + cap + ' on account ' + JSON.stringify (account.name), 'reduce the amount, or the user can raise the cap — by saving the account again from the setup form (setup_account) or in the config file');
             }
         }
 

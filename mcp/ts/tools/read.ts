@@ -131,7 +131,7 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         const accounts = Object.values (ctx.config.accounts).map ((account) => accountSummary (account as any));
         return ok (accounts, {
             'count': accounts.length,
-            'notice': (accounts.length === 0) ? 'no accounts configured — add one to the ccxt-mcp config file (see get_safety_status for the path)' : undefined,
+            'notice': (accounts.length === 0) ? 'no accounts configured — call setup_account to open the local setup form where the user adds one (alternative: the user adds it to the ccxt-mcp config file and restarts the server; get_safety_status shows the path)' : undefined,
         });
     }));
 

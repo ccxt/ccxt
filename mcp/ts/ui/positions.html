@@ -41,6 +41,11 @@ td.c-size, td.c-pnl, td.c-lev { white-space: normal; }
 .c-lev .name { margin-left: auto; }
 .hero .value.up { color: var(--up); }
 .hero .value.down { color: var(--down); }
+/* PnL in several settle currencies: one total per currency, side by side — they are never
+   added up, so none of them is "the" figure and each is set smaller than a single total */
+.hero .value.multi { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 18px; line-height: 1.3; }
+.hero .value.multi .up { color: var(--up); }
+.hero .value.multi .down { color: var(--down); }
 /* entry → mark → liquidation of the inspected row, on one price scale: a ring where the
    position was opened, a dot where the market is, a bar where it would be liquidated */
 .scale { flex: 0 0 100%; }
@@ -636,19 +641,51 @@ td.c-size, td.c-pnl, td.c-lev { white-space: normal; }
         return { node: node, kinds: points.map (function (point) { return point[0]; }) };
     }
 
-    // the unrealized PnL of every row adds up only when all of them are in one currency
-    function totalPnl () {
-        var unit;
-        var sum = 0;
-        for (var i = 0; i < rows.length; i++) {
-            var row = rows[i];
-            if (row.unrealizedPnl === undefined || !row.unit || (unit !== undefined && unit !== row.unit)) {
-                return null;
-            }
-            unit = row.unit;
-            sum += row.unrealizedPnl;
+    // A row key that is not unique hands focus (and the readout) to the first row sharing it
+    // when the board is rebuilt, so a repeated key gets its ordinal. Rows are normalized in
+    // order, index 0 first: that is where the count starts over.
+    var seenKeys = {};
+    function uniqueKey (base, index) {
+        if (index === 0) {
+            seenKeys = {};
         }
-        return (rows.length && app.isNumber (sum)) ? { value: sum, unit: unit } : null;
+        var count = seenKeys['k' + base] = (seenKeys['k' + base] || 0) + 1;
+        return (count === 1) ? base : base + '#' + count;
+    }
+
+    // Unrealized PnL adds up only within one currency (150 USDT and −0.02 BTC are not 149.98
+    // of anything): one total per settle currency, in order of first appearance. The server
+    // sends them (pnlTotals, from the market's settle currency); a payload without them is
+    // totalled here the same way from the symbols. A currency in which a position reports
+    // no PnL has no `value` — a partial sum would read as the total.
+    function pnlTotals () {
+        if (Array.isArray (data.pnlTotals)) {
+            return data.pnlTotals.filter (function (entry) { return entry && typeof entry === 'object'; }).map (function (entry) {
+                return { unit: text (entry.currency), value: number (entry.unrealizedPnl), count: number (entry.positions) || 0 };
+            });
+        }
+        var groups = [];
+        var byUnit = {};
+        rows.forEach (function (row) {
+            var key = 'u' + (row.unit || '');
+            if (!byUnit[key]) {
+                byUnit[key] = { unit: row.unit, sum: 0, silent: !row.unit, count: 0 };
+                groups.push (byUnit[key]);
+            }
+            byUnit[key].count++;
+            if (row.unrealizedPnl === undefined) {
+                byUnit[key].silent = true;
+            } else {
+                byUnit[key].sum += row.unrealizedPnl;
+            }
+        });
+        return groups.map (function (group) {
+            return { unit: group.unit, value: group.silent ? undefined : number (group.sum), count: group.count };
+        });
+    }
+
+    function deltaParts (value) {
+        return { direction: (value > 0) ? 'up' : ((value < 0) ? 'down' : ''), arrow: (value > 0) ? '▲ ' : ((value < 0) ? '▼ ' : '') };
     }
 
     var view = {
@@ -710,14 +747,17 @@ td.c-size, td.c-pnl, td.c-lev { white-space: normal; }
             row.quote = codes[2];
             row.unit = codes[3] || codes[2];
             row.inverse = !!codes[3] && codes[3] === codes[1];
-            row.key = row.symbol + '|' + (row.side || '');
+            // one symbol can hold two positions on the same side (isolated next to cross)
+            row.key = uniqueKey (row.symbol + '|' + (row.side || '') + '|' + (row.marginMode || ''), index);
             return row;
         },
         caption: function () {
             return 'Open positions of account ' + (text (data.account) || '') + ' on ' + (text (data.exchangeName) || text (data.exchange) || 'the exchange') + '.';
         },
         header: function () {
-            var total = totalPnl ();
+            var totals = pnlTotals ();
+            var known = totals.filter (function (total) { return total.unit && total.value !== undefined; });
+            var silent = totals.filter (function (total) { return !total.unit || total.value === undefined; }).map (function (total) { return total.unit || 'other'; });
             var newest;
             rows.forEach (function (row) {
                 if (row.timestamp !== undefined && (newest === undefined || row.timestamp > newest)) {
@@ -725,16 +765,37 @@ td.c-size, td.c-pnl, td.c-lev { white-space: normal; }
                 }
             });
             nodes.hero.hidden = !rows.length;
-            if (total) {
-                setDelta (nodes.figure, total.value, signed (total.value) + ' ' + total.unit, 'value');
+            nodes.figure.textContent = '';
+            var lines = [];
+            if (known.length === 1 && totals.length === 1) {
+                setDelta (nodes.figure, known[0].value, signed (known[0].value) + ' ' + known[0].unit, 'value');
                 nodes.context.textContent = 'unrealized PnL · ' + plural (rows.length, 'position');
+            } else if (known.length) {
+                // several currencies (or one total next to positions that report none): each
+                // total with its own currency and direction, never a sum
+                nodes.figure.className = 'value multi';
+                known.forEach (function (total) {
+                    var parts = deltaParts (total.value);
+                    nodes.figure.appendChild (app.element ('span', parts.direction, parts.arrow + signed (total.value) + ' ' + total.unit));
+                });
+                // a currency without a total is still named, so the ones shown do not pass for all
+                silent.forEach (function (unit) {
+                    nodes.figure.appendChild (app.element ('span', 'missing', '– ' + unit));
+                });
+                nodes.context.textContent = 'unrealized PnL per settle currency · ' + plural (rows.length, 'position');
+                if (known.length > 1) {
+                    lines.push ('PnL is totalled per settle currency: amounts in different currencies are not added up');
+                }
             } else {
                 nodes.figure.className = 'value';
                 nodes.figure.textContent = plural (rows.length, 'position');
                 nodes.context.textContent = '';
             }
+            if (known.length && silent.length) {
+                lines.push ('No ' + silent.join (', ') + ' total: not every position reports its PnL');
+            }
             nodes.asof.textContent = (newest === undefined) ? '' : 'as of ' + app.dateTime (newest);
-            setNote ([]);
+            setNote (lines);
         },
         empty: function () {
             return 'No open positions.';

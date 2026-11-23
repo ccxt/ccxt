@@ -10,8 +10,8 @@ After installing (below), no technical knowledge is needed:
 
 1. Say **"Get started"** — in the ChatGPT desktop app it is the first starter prompt ("Get started: connect my exchange account"); in Claude Code and Grok, type it.
 2. The assistant asks which exchange you use and explains how to create an API key there. It recommends the exchange's **testnet** (practice money) first.
-3. A setup page opens **in your own web browser, on your own computer**. You type the key there and press "Save account". Never paste a key into the chat: the assistant does not need it and cannot see what you type in the page.
-4. Back in the chat, say you are done. The assistant shows your balance, and offers a chart, your open orders, or a small test order on the testnet.
+3. A setup page opens **in your own web browser, on your own computer**. You type the key there and press "Save account". Never paste a key into the chat: the assistant does not need it and cannot see what you type in the page. The page stays yours while you type: if the assistant asks for it again, the open page is kept, not replaced.
+4. Back in the chat, say you are done. The assistant shows your balance, and offers a chart, your open orders, or a small test order on the testnet. (On Binance the testnet is spot only; to practise futures, choose **Demo trading** in the page, with keys from Binance's Demo Trading.)
 
 Placing orders is off until you switch it on in that page. For a real (live) account the page asks for a maximum order size in USD and a confirmation, and every order is then shown to you before it is sent. Withdrawals cannot be switched on from the page or from the chat.
 
@@ -23,9 +23,11 @@ Per host:
 | Claude Code | say "get started"; the skill is loaded from the plugin's `skills/` directory | If you filled in the install prompt (exchange, API key, secret) you already have an account called `default` — the assistant sees it and skips the form. |
 | xAI Grok | say "get started" | Grok loads the plugin through its Claude Code compatibility; untested. |
 
-The setup page needs a desktop browser on the machine that runs the MCP server. On a remote or headless machine the assistant is told the page could not be opened and points you to the config file instead. The setup tool and the account views ship in `ccxt-mcp` releases after 0.1.3; the plugin pins its server version, and with a server that lacks them the skill falls back to the config-file route.
+The setup page needs a desktop browser on the machine that runs the MCP server. On a remote or headless machine the assistant is told the page could not be opened and points you to the config file instead. The page guards against other web pages, other users of the computer and the assistant itself reading your keys; it is not a guard against software running under your own account, which can read the config file anyway. The setup tool and the account views ship in `ccxt-mcp` releases after 0.1.3; the plugin pins its server version, and with a server that lacks them the skill falls back to the config-file route.
 
 ## Install
+
+The commands below install the plugin: the server pinned to the plugin's version, plus the two skills. For one-click links (Claude Desktop, the Claude Code VS Code extension, Cursor, VS Code, Kiro, Goose, Codex) see the [one-click install table](https://docs.ccxt.com/docs/mcp#one-click-install) in the MCP server docs; the links there that add only the MCP server install the latest `ccxt-mcp` without these skills.
 
 ### Claude Code
 

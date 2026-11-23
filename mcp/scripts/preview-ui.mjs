@@ -9,7 +9,8 @@
 // and show_balance / show_orders / show_positions (ts/tools/ui-account.ts) put in
 // structuredContent — keep them in step when those shapes change. The account views are
 // previewed twice, a LIVE and a SANDBOX example, because the environment badge is the one
-// thing a user must never misread; every account, id and amount here is made up.
+// thing a user must never misread (the chart also as a testnet account over live candles,
+// the mismatch its legend has to name); every account, id and amount here is made up.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -51,7 +52,11 @@ function round (value) {
 
 const STEP = { '1m': 60000, '5m': 300000, '15m': 900000, '1h': 3600000, '4h': 14400000, '1d': 86400000, '1w': 604800000 };
 
-function chartPayload (timeframe = '1h', limit = 200) {
+// `environment` is the account's, `candlesEnvironment` where the candles were read: the same
+// for a live account and normally for a practice one too — 'live' under a sandbox account is
+// the fallback when its testnet served no candles, which the legend must call out
+function chartPayload (timeframe = '1h', limit = 200, environment = 'live', candlesEnvironment = environment) {
+    const live = environment === 'live';
     return {
         'view': 'chart',
         'exchange': 'binance',
@@ -63,8 +68,9 @@ function chartPayload (timeframe = '1h', limit = 200) {
         'candles': makeCandles (limit, STEP[timeframe] ?? STEP['1h'], 94000, 7 + limit + (STEP[timeframe] ?? 1) % 97),
         // the account overlay (show_chart with `account`): that account's open orders on this
         // symbol, priced ones only — one is far from the candle range, one is partly filled
-        'account': 'main',
-        'environment': 'live',
+        'account': live ? 'main' : 'testnet',
+        environment,
+        candlesEnvironment,
         'orders': [
             { 'id': '48211930077', 'side': 'buy', 'type': 'limit', 'price': 92800, 'amount': 0.015, 'filled': 0, 'status': 'open' },
             { 'id': '48211930412', 'side': 'buy', 'type': 'limit', 'price': 90500, 'amount': 0.03, 'filled': 0.01, 'status': 'open' },
@@ -103,6 +109,8 @@ function balancePayload (environment = 'live') {
         // [ code, free, used, total, price ]
         [ 'BTC', 0.41250000, 0.03, 0.4425, 94250.12 ],
         [ 'USDT', 12840.55, 2784, 15624.55, 1 ],
+        // a dollar currency with no market against the quote here: counted 1:1 and flagged
+        [ 'USD', 1200, 0, 1200, 1, true ],
         [ 'ETH', 3.2, 0, 3.2, 3312.45 ],
         [ 'SOL', 41.7, 12, 53.7, 187.33 ],
         [ 'PEPE', 1250000000, 0, 1250000000, 0.00001234 ],
@@ -113,9 +121,10 @@ function balancePayload (environment = 'live') {
         // free/used unknown — some venues report a total only
         [ 'XRP', undefined, undefined, 250, 0.6123 ],
     ];
-    const balances = rows.map (([ code, free, used, total, price ]) => ({
+    const balances = rows.map (([ code, free, used, total, price, par ]) => ({
         code, free, used, total, price,
         'value': (price === undefined) ? undefined : Number ((total * price).toPrecision (12)),
+        par,
     })).sort ((a, b) => (b.value ?? -1) - (a.value ?? -1) || b.total - a.total);
     return plain ({
         'view': 'balance',
@@ -128,6 +137,9 @@ function balancePayload (environment = 'live') {
         balances,
         'quote': 'USDT',
         'totalValue': Number (balances.reduce ((sum, row) => sum + (row.value ?? 0), 0).toFixed (2)),
+        // a partial total: two holdings could not be priced
+        'unpricedCurrencies': balances.filter ((row) => row.value === undefined).length,
+        'valuedAtPar': balances.filter ((row) => row.par).map ((row) => row.code),
         'hiddenZeroBalances': 412,
     });
 }
@@ -186,7 +198,9 @@ function ordersPayload (environment = 'live', status = 'open', symbol = undefine
     });
 }
 
-function positionsPayload (environment = 'live') {
+// variant 'mixed': every position reports its PnL, in two settle currencies — the hero shows
+// one total per currency
+function positionsPayload (environment = 'live', variant = 'default') {
     const live = environment === 'live';
     // POSITION_FIELDS (ts/format.ts)
     const position = (symbol, side, contracts, contractSize, entryPrice, markPrice, leverage, marginMode, extra = {}) => {
@@ -218,15 +232,31 @@ function positionsPayload (environment = 'live') {
         position ('BTC/USD:BTC-261225', 'short', 15, 100, 94250, 94250, 20, 'cross'),
         // sparse row: only what the venue reported
         { 'symbol': 'SOL/USDT:USDT', 'side': 'long', 'contracts': 30, 'entryPrice': 181.4 },
-    ] : [
+    ].filter ((row) => variant !== 'mixed' || row.unrealizedPnl !== undefined).map ((row) => ((variant === 'mixed' && row.symbol.startsWith ('BTC/USD:')) ? { ...row, 'unrealizedPnl': -0.0213, 'percentage': -2.84 } : row)) : [
         position ('BTC/USDT:USDT', 'long', 1, 1, 95010, 94250.1, 2, 'cross', { 'liquidationPrice': 48100 }),
     ];
+    // what the server adds (pnlTotals in ts/tools/ui-account.ts): one total per settle
+    // currency, without a figure where a position of that currency reports no PnL — the live
+    // example mixes USDT with a coin-margined BTC future, and its sparse SOL row silences USDT
+    const totals = [];
+    for (const row of positions) {
+        const currency = /^[^/:]+\/([^/:]+)(?::([^-:]+))?/.exec (row.symbol).slice (1).reverse ().find ((code) => code !== undefined);
+        let total = totals.find ((entry) => entry.currency === currency);
+        if (total === undefined) {
+            total = { currency, 'positions': 0, 'sum': 0, 'known': true };
+            totals.push (total);
+        }
+        total.positions += 1;
+        total.known = total.known && row.unrealizedPnl !== undefined;
+        total.sum += row.unrealizedPnl ?? 0;
+    }
     return plain ({
         'view': 'positions',
         'account': live ? 'main' : 'testnet',
         'exchange': live ? 'binance' : 'bybit',
         'exchangeName': live ? 'Binance' : 'Bybit',
         environment, positions,
+        'pnlTotals': totals.map (({ currency, positions: count, sum, known }) => ({ currency, 'positions': count, 'unrealizedPnl': known ? Number (sum.toPrecision (12)) : undefined })),
     });
 }
 
@@ -277,7 +307,12 @@ function tickersPayload () {
 }
 
 const views = [
-    { 'id': 'chart', 'file': 'chart.html', 'tool': 'show_chart', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 200 }, 'payload': chartPayload () },
+    // the chart's arguments carry the account, as a real call with an overlay does: the view
+    // re-sends them on Refresh and on a timeframe switch, and must keep its order lines
+    { 'id': 'chart', 'file': 'chart.html', 'tool': 'show_chart', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 200, 'account': 'main' }, 'payload': chartPayload () },
+    { 'id': 'chart-sandbox', 'file': 'chart.html', 'tool': 'show_chart', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 200, 'account': 'testnet' }, 'payload': chartPayload ('1h', 200, 'sandbox') },
+    { 'id': 'chart-sandbox-live-candles', 'file': 'chart.html', 'tool': 'show_chart', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 200, 'account': 'testnet' }, 'payload': chartPayload ('1h', 200, 'sandbox', 'live') },
+    { 'id': 'chart-plain', 'file': 'chart.html', 'tool': 'show_chart', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 200 }, 'payload': (({ account, environment, candlesEnvironment, orders, ...rest }) => rest) (chartPayload ()) },
     { 'id': 'orderbook', 'file': 'orderbook.html', 'tool': 'show_orderbook', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'limit': 50 }, 'payload': bookPayload () },
     { 'id': 'tickers', 'file': 'tickers.html', 'tool': 'show_tickers', 'args': { 'exchange': 'binance', 'symbols': tickersPayload ().symbols }, 'payload': tickersPayload () },
     { 'id': 'balance', 'file': 'balance.html', 'tool': 'show_balance', 'args': { 'account': 'main' }, 'payload': balancePayload ('live') },
@@ -286,6 +321,7 @@ const views = [
     { 'id': 'orders-sandbox', 'file': 'orders.html', 'tool': 'show_orders', 'args': { 'account': 'testnet', 'status': 'all' }, 'payload': ordersPayload ('sandbox', 'all') },
     { 'id': 'orders-empty', 'file': 'orders.html', 'tool': 'show_orders', 'args': { 'account': 'main', 'symbol': 'LTC/USDT' }, 'payload': ordersPayload ('live', 'open', 'LTC/USDT') },
     { 'id': 'positions', 'file': 'positions.html', 'tool': 'show_positions', 'args': { 'account': 'main' }, 'payload': positionsPayload ('live') },
+    { 'id': 'positions-mixed', 'file': 'positions.html', 'tool': 'show_positions', 'args': { 'account': 'main' }, 'payload': positionsPayload ('live', 'mixed') },
     { 'id': 'positions-sandbox', 'file': 'positions.html', 'tool': 'show_positions', 'args': { 'account': 'testnet' }, 'payload': positionsPayload ('sandbox') },
 ].filter ((view) => fs.existsSync (path.join (uiDir, view.file))).map ((view) => ({ ...view, 'html': renderView (view.file) }));
 
@@ -328,6 +364,7 @@ function answer (view, name, args) {
         if (args.account === undefined) {
             delete payload.account;
             delete payload.environment;
+            delete payload.candlesEnvironment;
             delete payload.orders;
         }
         return payload;

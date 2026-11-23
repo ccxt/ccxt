@@ -560,6 +560,26 @@ td.c-price, td.c-status { white-space: normal; }
         return (row.ratio !== undefined) ? Math.floor (row.ratio * 100 + 1e-9) + '%' : quantity (row.filled);
     }
 
+    // A row key that is not unique hands focus (and the readout) to the first row sharing it
+    // when the board is rebuilt, so a repeated key gets its ordinal. Rows are normalized in
+    // order, index 0 first: that is where the count starts over.
+    var seenKeys = {};
+    function uniqueKey (base, index) {
+        if (index === 0) {
+            seenKeys = {};
+        }
+        var count = seenKeys['k' + base] = (seenKeys['k' + base] || 0) + 1;
+        return (count === 1) ? base : base + '#' + count;
+    }
+
+    // own keys only: a status of "constructor" is the venue's word, not Object.prototype's
+    function statusLabel (row) {
+        if (!row.status) {
+            return '–';
+        }
+        return Object.prototype.hasOwnProperty.call (STATUS, row.status) ? STATUS[row.status] : capital (row.status);
+    }
+
     function feeText (fee) {
         return quantity (fee.cost) + (fee.currency ? ' ' + fee.currency : '');
     }
@@ -630,7 +650,7 @@ td.c-price, td.c-status { white-space: normal; }
                 cell.appendChild (wrap);
             } },
             { key: 'status', label: 'Status', hint: 'Sort by status', className: 'c-status', text: true, fill: function (cell, row) {
-                var label = row.status ? (STATUS[row.status] || capital (row.status)) : '–';
+                var label = statusLabel (row);
                 var name = app.element ('span', 'name word', label);
                 name.title = label;
                 cell.appendChild (name);
@@ -682,7 +702,8 @@ td.c-price, td.c-status { white-space: normal; }
             if (fee && typeof fee === 'object' && app.isNumber (fee.cost)) {
                 row.fee = { cost: fee.cost, currency: text (fee.currency) };
             }
-            row.key = row.id || ('#' + index);
+            // an order id is only unique per symbol on some venues, and a list can span symbols
+            row.key = uniqueKey ((row.id || '') + '|' + row.symbol, index);
             return row;
         },
         caption: function () {
@@ -717,7 +738,7 @@ td.c-price, td.c-status { white-space: normal; }
             if (row.timeInForce) {
                 pairs.push ([ 'Time in force', row.timeInForce ]);
             }
-            pairs.push ([ 'Status', row.status ? (STATUS[row.status] || capital (row.status)) : '–' ]);
+            pairs.push ([ 'Status', statusLabel (row) ]);
             pairs.push ([ 'Placed', (row.timestamp === undefined) ? '–' : app.dateTime (row.timestamp) ]);
             pairs.push ([ 'ID', row.id || '–' ]);
             if (row.clientOrderId) {

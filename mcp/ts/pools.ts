@@ -2,7 +2,7 @@ import { Agent } from 'https';
 import { log } from './logging.js';
 import { registerSecret, redact } from './redact.js';
 import { ensureMarketsLoaded } from './markets.js';
-import { unescapePem, credentialSetupHelp } from './config.js';
+import { unescapePem, credentialSetupHelp, hasOwn } from './config.js';
 import type { AccountConfig, ResolvedConfig } from './types.js';
 import { CREDENTIAL_FIELDS } from './types.js';
 
@@ -172,7 +172,8 @@ export class ExchangePools {
     }
 
     account (name: string): AccountConfig {
-        const account = this.config.accounts[name];
+        // own property only: "toString" or "constructor" must be an unknown account, not a function
+        const account = hasOwn (this.config.accounts, name) ? this.config.accounts[name] : undefined;
         if (account === undefined) {
             throw new UnknownAccountError (name, Object.keys (this.config.accounts), credentialSetupHelp (this.config.configPath));
         }
@@ -248,8 +249,10 @@ export class ExchangePools {
 
     // Drops the cached instance of an account whose record was just replaced (setup form), so
     // the next call builds one from the new credentials and environment instead of reusing a
-    // client that still signs with the old keys. A private stream running on the old instance
-    // ends with it.
+    // client that still signs with the old keys. Closing the old instance does NOT end a
+    // private stream that runs on it — the subscription holds its own reference and would
+    // reconnect with the old keys — so the caller stops those first
+    // (SubscriptionRegistry.stopAccount).
     evictAuthenticated (accountName: string): void {
         const exchange = this.authPool.get (accountName);
         if (exchange !== undefined) {

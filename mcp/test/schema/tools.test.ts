@@ -88,11 +88,19 @@ test ('a write tool called with no account errors with actionable credential set
 test ('annotations: reads are readOnly, writes are destructive, cancel is the exception', async () => {
     const { tools } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } });
     const byName = new Map (tools.map ((tool: any) => [ tool.name, tool ]));
-    // watch_unsubscribe is a non-destructive control op (stops a stream), not a read
-    const readTools = [ ...MARKET_TOOLS, ...READ_TOOLS ].filter ((name) => name !== 'watch_unsubscribe');
+    // The market and read tiers are read-only, with exactly two exceptions, neither of them
+    // destructive: watch_unsubscribe is a control op (it stops a stream), and setup_account
+    // opens a browser window on the user's desktop and can discard an open setup form — a
+    // host that auto-approves read-only tools must not run it unasked.
+    const NOT_READ_ONLY = [ 'watch_unsubscribe', 'setup_account' ];
+    const readTools = [ ...MARKET_TOOLS, ...READ_TOOLS ].filter ((name) => !NOT_READ_ONLY.includes (name));
     for (const name of readTools) {
         assert.equal (byName.get (name)?.annotations?.readOnlyHint, true, name + ' must be readOnly');
         assert.ok (!byName.get (name)?.annotations?.destructiveHint, name + ' must not be destructive');
+    }
+    for (const name of NOT_READ_ONLY) {
+        assert.equal (byName.get (name)?.annotations?.readOnlyHint, false, name + ' must not claim to be readOnly');
+        assert.equal (byName.get (name)?.annotations?.destructiveHint, false, name + ' is not destructive either');
     }
     assert.equal (byName.get ('watch_unsubscribe')?.annotations?.destructiveHint, false);
     assert.equal (byName.get ('watch_unsubscribe')?.annotations?.idempotentHint, true);

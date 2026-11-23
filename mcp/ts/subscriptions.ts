@@ -426,6 +426,24 @@ export class SubscriptionRegistry {
         }));
     }
 
+    // Stops every stream bound to an account whose record was just replaced. Such a stream
+    // holds its own reference to the old exchange instance: closing that instance only makes
+    // the loop back off and reconnect — with the old keys, on the old environment, under the
+    // same account name — and an identical watch_subscribe would be handed that stale stream.
+    stopAccount (account: string): number {
+        let stopped = 0;
+        for (const sub of [ ...this.subs.values () ]) {
+            if (sub.account === account) {
+                const wasActive = sub.active;
+                this.stopSub (sub);
+                if (wasActive) {
+                    stopped += 1;
+                }
+            }
+        }
+        return stopped;
+    }
+
     async closeAll (): Promise<void> {
         for (const sub of [ ...this.subs.values () ]) {
             this.stopSub (sub);

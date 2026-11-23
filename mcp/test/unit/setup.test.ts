@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { ConfigWriteError, credentialSetupHelp, isValidAccountName, resolveConfigPath, validateAccount, writeAccountToConfigFile } from '../../ts/config.js';
-import { browserCommand } from '../../ts/setup.js';
+import { ConfigWriteError, credentialSetupHelp, isValidAccountName, loadConfig, resolveConfigPath, validateAccount, writeAccountToConfigFile } from '../../ts/config.js';
+import { browserCommand, defaultLaunchRoots, launchPage } from '../../ts/setup.js';
+import { ExchangePools, UnknownAccountError } from '../../ts/pools.js';
 
 // The config-file writer behind the setup form's save, and the small pure helpers around it.
 // The HTTP side (sessions, CSRF, hot-apply) is covered in test/integration/setup.test.ts.
@@ -208,8 +209,10 @@ test ('credentialSetupHelp: the setup form comes first, the config file second, 
     assert.match (help, /config file/);
 });
 
-test ('browserCommand: the URL is always one argv element and no shell is involved', () => {
-    const url = 'http://127.0.0.1:1234/setup/abc';
+test ('browserCommand: the launch file is always one argv element and no shell is involved', () => {
+    // a path with everything a shell would trip over — it is what the launcher is given; the
+    // form URL itself never goes on a command line (see launchPage below)
+    const url = '/tmp/ccxt-mcp-setup-a b$(x)&;"\'/open.html';
     assert.deepEqual (browserCommand ('darwin', url), { 'command': 'open', 'args': [ url ] });
     assert.deepEqual (browserCommand ('linux', url), { 'command': 'xdg-open', 'args': [ url ] });
     const windows = browserCommand ('win32', url);
@@ -219,5 +222,54 @@ test ('browserCommand: the URL is always one argv element and no shell is involv
         const { command, args } = browserCommand (platform, url);
         assert.ok (![ 'cmd', 'cmd.exe', 'sh', 'bash', 'powershell' ].includes (command), platform);
         assert.equal (args.filter ((arg) => arg === url).length, 1);
+    }
+});
+
+test ('launchPage: a redirect to the form with a link fallback, and nothing that leaks it onward', () => {
+    const url = 'http://127.0.0.1:1234/setup/' + 'ab'.repeat (16);
+    const page = launchPage (url);
+    assert.ok (page.includes ('<meta http-equiv="refresh" content="0;url=' + url + '">'));
+    assert.ok (page.includes ('<a rel="noreferrer" href="' + url + '">'));
+    assert.ok (page.includes ('<meta name="referrer" content="no-referrer">'));
+    assert.ok (!/<script|src=/.test (page), 'no script and nothing fetched');
+});
+
+test ('defaultLaunchRoots: always ends in the temp directory', () => {
+    const roots = defaultLaunchRoots ();
+    assert.equal (roots[roots.length - 1], os.tmpdir ());
+    assert.ok (roots.every ((root) => path.isAbsolute (root)));
+});
+
+test ('pools.account: only an own property is an account — never an Object.prototype member', () => {
+    const accounts: Record<string, any> = { 'main': { 'name': 'main', 'exchange': 'fakex' } };
+    const pools = new ExchangePools ({ accounts, 'settings': {} as any, 'problems': [], 'configPath': undefined }, {} as any);
+    assert.equal (pools.account ('main').exchange, 'fakex');
+    for (const name of [ 'toString', 'valueOf', 'hasOwnProperty', 'constructor', '__proto__', 'isPrototypeOf' ]) {
+        assert.throws (() => pools.account (name), UnknownAccountError, name);
+    }
+    accounts['toString'] = { 'name': 'toString', 'exchange': 'fakex' };
+    assert.equal (pools.account ('toString').name, 'toString');
+});
+
+test ('loadConfig: a file account named __proto__/constructor/prototype is reported and ignored, never assigned', () => {
+    const file = path.join (tempDir (), 'config.json');
+    // written as text: an object literal would set the prototype instead of an own "__proto__" key
+    fs.writeFileSync (file, '{"accounts":{"__proto__":{"exchange":"binance","apiKey":"PROTOKEY-123456"},"constructor":{"exchange":"binance"},"toString":{"exchange":"binance","apiKey":"REALKEY-123456","secret":"REALSECRET-123456"}}}', { 'mode': 0o600 });
+    const saved = process.env['CCXT_MCP_CONFIG'];
+    process.env['CCXT_MCP_CONFIG'] = file;
+    try {
+        const config = loadConfig ();
+        // an ordinary Object.prototype member name is a usable account name
+        assert.deepEqual (Object.keys (config.accounts), [ 'toString' ]);
+        assert.equal (Object.getPrototypeOf (config.accounts), Object.prototype, 'the map\'s prototype was not replaced');
+        assert.equal ((config.accounts as any)['exchange'], undefined);
+        assert.ok (config.problems.some ((problem) => problem === 'account "__proto__" ignored: that name is reserved — rename it'));
+        assert.ok (config.problems.some ((problem) => problem.startsWith ('account "constructor" ignored:')));
+    } finally {
+        if (saved === undefined) {
+            delete process.env['CCXT_MCP_CONFIG'];
+        } else {
+            process.env['CCXT_MCP_CONFIG'] = saved;
+        }
     }
 });

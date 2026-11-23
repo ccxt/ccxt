@@ -322,6 +322,25 @@ test ('the onboarding skill keeps its safety script', () => {
     assert.ok (text.split ('\n').length <= 130, 'the onboarding skill is a script, not a manual — keep it short');
 });
 
+test ('the onboarding skill does not offer futures on a Binance testnet account', () => {
+    // the skill's default path is Binance + testnet, and ccxt refuses every private futures
+    // call there (binance.ts sign(): "testnet/sandbox mode is not supported for futures
+    // anymore") — so wherever the skill offers positions it must say where they do not work,
+    // and it must be able to explain that error when the user hits it anyway
+    const lines = fs.readFileSync (path.join (pluginRoot, 'skills', ONBOARDING_SKILL, 'SKILL.md'), 'utf8').split ('\n');
+    const fallback = lines.findIndex ((line) => line.startsWith ('## If the setup tool is missing'));
+    assert.ok (fallback > 0, 'the fallback section moved or was renamed — update this test');
+    // the fallback section only maps tool names for an older server; it offers nothing
+    const offers = lines.slice (0, fallback).filter ((line) => line.includes ('show_positions'));
+    assert.ok (offers.length > 0, 'the skill no longer mentions show_positions before the fallback section');
+    for (const line of offers) {
+        assert.ok (/spot only/.test (line) && /Demo trading/.test (line), 'a line offers show_positions without saying the Binance testnet is spot only: ' + line);
+    }
+    const text = lines.join ('\n');
+    assert.ok (text.includes ('testnet/sandbox mode is not supported for futures'), 'the skill no longer explains the Binance futures-on-testnet error');
+    assert.ok (text.includes ('https://demo.binance.com'), 'the skill no longer says where Binance demo-trading keys come from');
+});
+
 test ('the sync scripts report no drift', () => {
     for (const script of [ 'sync-versions.mjs', 'sync-plugin.mjs' ]) {
         const check = spawnSync (process.execPath, [ path.join (mcpRoot, 'scripts', script), '--check' ], { 'encoding': 'utf8' });

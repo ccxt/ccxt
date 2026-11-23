@@ -369,6 +369,13 @@ export function unescapePem (value: string): string {
     return value;
 }
 
+// Account maps are plain objects keyed by a user-chosen name, so a bare accounts[name] also
+// finds Object.prototype members ("toString", "constructor", ...). Every lookup by name goes
+// through an own-property check instead.
+export function hasOwn (object: any, key: string): boolean {
+    return object !== null && object !== undefined && Object.prototype.hasOwnProperty.call (object, key);
+}
+
 export function loadConfig (): ResolvedConfig {
     const problems: string[] = [];
     const accounts: Record<string, AccountConfig> = {};
@@ -394,6 +401,11 @@ export function loadConfig (): ResolvedConfig {
             const strict = settingsRaw['strictPermissions'] === true;
             if (checkFilePermissions (configPath, strict, problems)) {
                 for (const [ name, accountRaw ] of Object.entries (parsed.accounts)) {
+                    if (RESERVED_ACCOUNT_NAMES.includes (name)) {
+                        // assigning it below would replace the map's prototype, not add an account
+                        problems.push ('account ' + JSON.stringify (name) + ' ignored: that name is reserved — rename it');
+                        continue;
+                    }
                     const account = validateAccount (name, accountRaw, problems);
                     if (account !== undefined) {
                         accounts[name] = account;
@@ -407,7 +419,7 @@ export function loadConfig (): ResolvedConfig {
 
     // env-var accounts fill in any name a config file didn't already claim (config wins)
     for (const envAccount of envAccounts (problems)) {
-        if (accounts[envAccount.name] === undefined) {
+        if (!hasOwn (accounts, envAccount.name)) {
             accounts[envAccount.name] = envAccount;
         } else {
             // config wins, but don't drop the env/.mcpb-form account SILENTLY — surface it, and
@@ -461,7 +473,11 @@ export function loadConfig (): ResolvedConfig {
 export const ACCOUNT_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,40}$/;
 // assigning one of these as an own key would either rewrite the object's prototype or be
 // indistinguishable from an inherited member when the file is read back
-const RESERVED_ACCOUNT_NAMES = [ '__proto__', 'constructor', 'prototype' ];
+export const RESERVED_ACCOUNT_NAMES = [ '__proto__', 'constructor', 'prototype' ];
+
+export function isReservedAccountName (name: any): boolean {
+    return RESERVED_ACCOUNT_NAMES.includes (name);
+}
 
 export function isValidAccountName (name: any): name is string {
     return typeof name === 'string' && ACCOUNT_NAME_PATTERN.test (name) && !RESERVED_ACCOUNT_NAMES.includes (name);
@@ -547,9 +563,9 @@ export function writeAccountToConfigFile (configPath: string, name: string, acco
         if (name !== account['exchange']) {
             throw new ConfigWriteError ('LEGACY_NAME', 'this config file uses the older {"<exchange id>": {...}} layout, where an account is always named after its exchange — use the account name ' + JSON.stringify (String (account['exchange'])) + ', or convert the file to the {"accounts": {...}} layout first');
         }
-        replaced = Object.prototype.hasOwnProperty.call (root, name);
+        replaced = hasOwn (root, name);
     } else {
-        replaced = root['accounts'] !== undefined && Object.prototype.hasOwnProperty.call (root['accounts'], name);
+        replaced = hasOwn (root['accounts'], name);
     }
     if (replaced && options.replace !== true) {
         throw new ConfigWriteError ('ACCOUNT_EXISTS', 'an account named ' + JSON.stringify (name) + ' already exists in the config file');

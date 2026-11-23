@@ -16,7 +16,9 @@ import { redact } from '../redact.js';
 // account, read-only — and the data tools (get_ohlcv, get_orderbook, get_tickers) remain the
 // way to get raw rows. The one exception is show_chart's optional `account`: it overlays that
 // account's own open orders on the chart, a read-tier fetch gated exactly like get_orders (the
-// account must be configured). The account views proper live in ./ui-account.ts.
+// account must be configured) — and for a sandbox or demo account the candles then come from
+// that account's environment, so both halves of the chart are one market. The account views
+// proper live in ./ui-account.ts.
 
 const CHART_DEFAULT_LIMIT = 200;
 const CHART_MAX_LIMIT = 500;
@@ -203,7 +205,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
 
     server.registerTool ('show_chart', {
         'title': 'Show candlestick chart',
-        'description': 'Render an interactive candlestick + volume chart for a symbol on an exchange. Use this whenever the user asks to see, show, plot or chart a price. In hosts with MCP Apps support the chart is displayed to the user; the tool result is a compact summary (range, open/close, change %, high/low, volume), not the candles — use get_ohlcv when you need the raw rows. Pass "account" to also draw that account\'s open orders for the symbol on the chart.',
+        'description': 'Render an interactive candlestick + volume chart for a symbol on an exchange. Use this whenever the user asks to see, show, plot or chart a price. In hosts with MCP Apps support the chart is displayed to the user; the tool result is a compact summary (range, open/close, change %, high/low, volume), not the candles — use get_ohlcv when you need the raw rows. Pass "account" to also draw that account\'s open orders for the symbol on the chart (meta.openOrders counts them, meta.drawnOrders the ones with a price line); for a sandbox or demo account the candles are then read from that same environment (meta.candlesEnvironment), not the live market.',
         'inputSchema': {
             'exchange': exchangeParam,
             'symbol': z.string ().describe ('unified symbol, e.g. "BTC/USDT" — resolve with search_markets'),
@@ -224,7 +226,23 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
         if (auth !== undefined && auth.account.exchange !== exchangeId) {
             throw new ArgError ('account ' + JSON.stringify (auth.account.name) + ' is on ' + auth.account.exchange + ', not ' + exchangeId, 'pass exchange: "' + auth.account.exchange + '" to chart this account\'s orders, or omit "account"');
         }
-        const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
+        // an id that exists in both namespaces is two different venues' worth of markets: the
+        // account's orders belong on the chart of the one it trades on (compared by class, so
+        // a prediction-only id needs no flag on either side)
+        if (auth !== undefined && ctx.pools.getBare (exchangeId, prediction ?? false).constructor !== auth.exchange.constructor) {
+            const accountSide = auth.account.prediction ? 'prediction' : 'non-prediction';
+            throw new ArgError ('account ' + JSON.stringify (auth.account.name) + ' is a ' + accountSide + ' account on ' + exchangeId + ', but the chart was requested with prediction: ' + (prediction ?? false), 'pass prediction: ' + (auth.account.prediction ? 'true' : 'false') + ' to chart this account\'s orders, or omit "account"');
+        }
+        // Candles and order lines must describe the same market. A sandbox or demo account
+        // trades in its own environment, whose prices are not the live market's (a testnet
+        // routinely sits thousands away), while the public pool only holds live instances —
+        // so for such an account the candles are read through the account's own instance:
+        // fetchOHLCV is a public call there too, and it resolves the symbol exactly as the
+        // order fetch below does. A live account keeps the shared public instance.
+        const environment = (auth !== undefined) ? accountEnvironment (auth.account) : 'live';
+        const publicExchange = () => ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
+        let exchange = (auth !== undefined && environment !== 'live') ? auth.exchange : await publicExchange ();
+        let candlesEnvironment = environment;
         const frame = timeframe ?? '1h';
         const timeframeError = badTimeframe (exchange, frame);
         if (timeframeError !== undefined) {
@@ -232,7 +250,25 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
         }
         const rowLimit = clampLimit (limit, CHART_DEFAULT_LIMIT, CHART_MAX_LIMIT);
         const sinceMs = parseSince (exchange, since);
-        const rows = await exchange.fetchOHLCV (symbol, frame, sinceMs, rowLimit, params ?? {});
+        let rows: any[];
+        let environmentNotice: string | undefined = undefined;
+        try {
+            rows = await exchange.fetchOHLCV (symbol, frame, sinceMs, rowLimit, params ?? {});
+        } catch (e: any) {
+            if (auth === undefined || environment === 'live') {
+                throw e;
+            }
+            // not every practice environment serves candles (or lists the symbol). The live
+            // chart is still worth showing, but then the two halves are NOT the same market,
+            // and the model and the user are both told so; if live fails too, that is the error
+            exchange = await publicExchange ();
+            rows = await exchange.fetchOHLCV (symbol, frame, sinceMs, rowLimit, params ?? {});
+            candlesEnvironment = 'live';
+            environmentNotice = 'the candles are LIVE market data (the ' + environment + ' environment of ' + exchange.id + ' could not serve them: ' + redact (String (e?.message ?? e)).slice (0, 200) + ') while the order lines are from the ' + environment + ' account ' + JSON.stringify (auth.account.name) + ' — ' + environment + ' prices differ from the live market, so the lines are not comparable to these candles';
+        }
+        if (auth !== undefined && environment !== 'live' && environmentNotice === undefined) {
+            environmentNotice = 'candles and order lines are both from the ' + environment + ' environment of ' + exchange.id + ' (account ' + JSON.stringify (auth.account.name) + '), not the live market — its prices can differ from live ones';
+        }
         // some exchanges ignore the API-level limit — keep rowLimit candles: the first ones
         // from `since` when a start was requested (what get_ohlcv returns for the same
         // arguments), otherwise the most recent
@@ -242,26 +278,35 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
         const notices = [
             (candles.length === 0) ? 'the exchange returned no candles for this symbol/timeframe/since' : undefined,
             marketTypeMismatchNotice (exchange, [ symbol ], marketType),
+            environmentNotice,
         ];
-        // The overlay is decoration on a chart of public data: the candles above never depend
-        // on it, and a venue that cannot list open orders (or fails to) costs the user the
+        // The overlay is decoration on the chart: the candles above never depend on the order
+        // fetch, and a venue that cannot list open orders (or fails to) costs the user the
         // lines, not the chart.
         const overlay: Record<string, any> = {};
         const overlayMeta: Record<string, any> = {};
         if (auth !== undefined) {
             overlay['account'] = auth.account.name;
-            overlay['environment'] = accountEnvironment (auth.account);
+            overlay['environment'] = environment;
+            // where the candles came from, next to where the orders did: the view names a
+            // difference in its legend
+            overlay['candlesEnvironment'] = candlesEnvironment;
             overlay['orders'] = [];
             overlayMeta['account'] = auth.account.name;
-            overlayMeta['environment'] = overlay['environment'];
+            overlayMeta['environment'] = environment;
+            overlayMeta['candlesEnvironment'] = candlesEnvironment;
             if (!auth.exchange.has?.['fetchOpenOrders']) {
                 notices.push ('open orders are not drawn: ' + auth.exchange.id + ' has no fetchOpenOrders');
             } else {
                 try {
                     const openOrders = await auth.exchange.fetchOpenOrders (symbol, undefined, undefined, {});
+                    const count = Array.isArray (openOrders) ? openOrders.length : 0;
                     overlay['orders'] = chartOrders (openOrders);
-                    overlayMeta['openOrders'] = overlay['orders'].length;
-                    const unpriced = (Array.isArray (openOrders) ? openOrders.length : 0) - overlay['orders'].length;
+                    // two counts, so neither is mistaken for the other: what the account has
+                    // open on the symbol, and how many of those have a line on the chart
+                    overlayMeta['openOrders'] = count;
+                    overlayMeta['drawnOrders'] = overlay['orders'].length;
+                    const unpriced = count - overlay['orders'].length;
                     if (unpriced > 0) {
                         notices.push (unpriced + ' open order(s) are not drawn (no limit price, or more than ' + CHART_MAX_ORDERS + ') — get_orders lists them all');
                     }

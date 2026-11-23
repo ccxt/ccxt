@@ -1,5 +1,6 @@
 import fs from 'fs';
 import http from 'http';
+import os from 'os';
 import path from 'path';
 import { spawn } from 'child_process';
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
@@ -7,10 +8,10 @@ import type { AddressInfo } from 'net';
 import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { log } from './logging.js';
-import { redact, registerSecret } from './redact.js';
-import { ConfigWriteError, isValidAccountName, registerAccountSecrets, resolveConfigPath, unescapePem, validateAccount, writeAccountToConfigFile } from './config.js';
+import { redact, registerSecret, unregisterSecret } from './redact.js';
+import { ConfigWriteError, hasOwn, isReservedAccountName, isValidAccountName, registerAccountSecrets, resolveConfigPath, unescapePem, validateAccount, writeAccountToConfigFile } from './config.js';
 import type { AccountConfig, ServerContext } from './types.js';
-import { CREDENTIAL_FIELDS } from './types.js';
+import { CREDENTIAL_FIELDS, accountEnvironment } from './types.js';
 
 // The account setup form: a single page served over loopback HTTP by this process, opened in
 // the user's own browser, where they type an exchange API key that is then written to the
@@ -24,22 +25,39 @@ import { CREDENTIAL_FIELDS } from './types.js';
 // Threat model, and what answers each threat:
 //   another web page in the same browser      Host allow-list (DNS rebinding), Origin + JSON
 //     (CSRF, DNS rebinding, framing)          content type + per-session nonce on every write,
-//                                             no CORS headers at all, X-Frame-Options DENY
-//   the model itself (it may have a shell     the URL carries a 128-bit single-use token that
-//     or a fetch tool)                        never appears in a tool result, log line, journal
-//                                             record or error — only in the browser launch
-//   something scanning local ports            every miss is an identical empty 404, and the
-//                                             listener shuts after MAX_BAD_REQUESTS of them
+//                                             no CORS headers at all, X-Frame-Options DENY.
+//                                             Its blind requests get an empty 404 and nothing
+//                                             else: no miss, however many, ends the session
+//   another OS user on this machine           the URL carries a 128-bit token that is never a
+//     (process lists are world-readable)      command-line argument: the browser is launched on
+//                                             a 0600 file inside a 0700 directory that merely
+//                                             redirects to it, deleted on the first page load
+//   the model itself (it may have a shell     the token appears in no tool result, log line,
+//     or a fetch tool, as the same user)      journal record, error or argv; and the first page
+//                                             load binds the session to that browser with an
+//                                             HttpOnly cookie, after which the URL alone opens
+//                                             nothing — every later request needs the cookie
+//   something scanning local ports            every miss is an identical empty 404; the token
+//                                             is compared in constant time and 128 bits are not
+//                                             guessable within SESSION_TTL_MS
 //   leftovers                                 one session at a time, dead after one save or
-//                                             SESSION_TTL_MS; the listener closes with it
-// A process already running as the same OS user is out of scope: it can read the config file.
+//                                             SESSION_TTL_MS; the listener and the launch file
+//                                             go with it
+// What is left: a process running as the same OS user can read the launch file in the moment
+// before the browser does (and can read the config file anyway), so it is out of scope.
+//
+// There is deliberately no "close after N bad requests" switch. Any web page can fire requests
+// at a loopback port without knowing anything, so such a counter protects nothing a 128-bit
+// token does not already protect — and hands every open tab a way to close the form the user
+// is typing into.
 
 export const SESSION_TTL_MS = 10 * 60 * 1000;
 export const MAX_BODY_BYTES = 32 * 1024;
-export const MAX_BAD_REQUESTS = 20;
 const DEFAULT_TEST_TIMEOUT_MS = 20000;
 const DRAIN_LIMIT_BYTES = 1024 * 1024;
 const NONCE_HEADER = 'x-setup-nonce';
+const COOKIE_NAME = 'ccxt_setup';
+const LAUNCH_FILE = 'open.html';
 
 export interface SetupPrefill {
     exchange?: string;
@@ -48,18 +66,40 @@ export interface SetupPrefill {
 }
 
 export interface SetupDeps {
-    // launches the user's browser at the form URL; rejects when it cannot. Tests inject one —
-    // it is also the only way anything outside this module ever sees the URL.
-    opener: (url: string) => Promise<void>;
+    // launches the user's browser on the launch FILE (a local path, never the form URL);
+    // rejects when it cannot. Tests inject one and read the file to learn the URL — which is
+    // also the only way anything outside this module ever sees it.
+    opener: (file: string) => Promise<void>;
+    // directories to try, in order, for the launch file's private directory
+    launchRoots: () => string[];
     now: () => number;
     testTimeoutMs: number;
 }
 
 export class SetupOpenError extends Error {}
 
+// what a setup_account call did: opened a new form, launched the browser again on a form that
+// no browser had loaded yet, or found one the user already has open and left it alone
+export type SetupOpenState = 'opened' | 'reopened' | 'already-open';
+
+export interface SetupOpened {
+    state: SetupOpenState;
+    expiresInSeconds: number;
+}
+
+// what the server could do about tool tiers a saved account newly enables (see tools/setup.ts)
+export interface TierListing {
+    added: string[];
+    restartNeeded: boolean;
+}
+
 interface Session {
     token: string;
     csrf: string;
+    // minted by the first page load; from then on the URL token alone is worth nothing
+    cookie: string | undefined;
+    // the private directory holding the redirect file the browser was launched on
+    launchDir: string | undefined;
     expiresAt: number;
     prefill: SetupPrefill;
     busy: boolean;
@@ -83,6 +123,7 @@ const credentialsSchema = z.record (z.string ().max (8192));
 
 const testSchema = z.object ({
     'exchange': z.string ().max (64),
+    'prediction': z.boolean ().optional (),
     'credentials': credentialsSchema,
     'environment': z.enum ([ 'sandbox', 'demo', 'live' ]),
 }).strict ();
@@ -90,6 +131,7 @@ const testSchema = z.object ({
 const saveSchema = z.object ({
     'name': z.string ().max (64),
     'exchange': z.string ().max (64),
+    'prediction': z.boolean ().optional (),
     'credentials': credentialsSchema,
     'environment': z.enum ([ 'sandbox', 'demo', 'live' ]),
     'trading': z.boolean (),
@@ -120,27 +162,49 @@ function randomToken (): string {
     return randomBytes (16).toString ('hex'); // 128 bits
 }
 
-// The launcher gets the URL as ONE argv element and no shell is involved on any platform, so
-// nothing in it can be interpreted (it is only ever our own loopback URL, but the opener must
-// not be the place that assumption gets tested). Windows uses rundll32's protocol handler
-// rather than `cmd /c start`, whose argument goes through cmd.exe's parser.
-export function browserCommand (platform: string, url: string): { command: string, args: string[] } {
+// The launcher is given the PATH of the launch file, never the form URL: a command line is
+// readable by every local user (ps, /proc/<pid>/cmdline) for as long as the process lives, and
+// a freshly started browser keeps its argv for its whole life. The path is ONE argv element
+// and no shell is involved on any platform, so nothing in it can be interpreted. Windows uses
+// rundll32's handler rather than `cmd /c start`, whose argument goes through cmd.exe's parser.
+export function browserCommand (platform: string, file: string): { command: string, args: string[] } {
     if (platform === 'darwin') {
-        return { 'command': 'open', 'args': [ url ] };
+        return { 'command': 'open', 'args': [ file ] };
     }
     if (platform === 'win32') {
-        return { 'command': 'rundll32', 'args': [ 'url.dll,FileProtocolHandler', url ] };
+        return { 'command': 'rundll32', 'args': [ 'url.dll,FileProtocolHandler', file ] };
     }
-    return { 'command': 'xdg-open', 'args': [ url ] };
+    return { 'command': 'xdg-open', 'args': [ file ] };
 }
 
-export function openInBrowser (url: string): Promise<void> {
+// Where the launch file's private directory is created. The temp directory, except where
+// snap is installed: a snap-packaged browser (the default Firefox and Chromium on Ubuntu)
+// runs with its own private /tmp and may not read hidden directories under home, so the one
+// place it and every other browser can read is a non-hidden directory in home. It exists for
+// the seconds between the launch and the first page load.
+export function defaultLaunchRoots (): string[] {
+    if (process.platform === 'linux' && fs.existsSync ('/snap/bin')) {
+        return [ os.homedir (), os.tmpdir () ];
+    }
+    return [ os.tmpdir () ];
+}
+
+// The page the browser is launched on: it only forwards to the form. The token it carries is
+// 32 hex characters and the port a number, so there is nothing to escape.
+export function launchPage (url: string): string {
+    return '<!doctype html>\n<meta charset="utf-8">\n<meta name="referrer" content="no-referrer">\n'
+        + '<meta http-equiv="refresh" content="0;url=' + url + '">\n'
+        + '<title>Opening the CCXT account setup…</title>\n'
+        + '<p>Opening the account setup form… <a rel="noreferrer" href="' + url + '">Continue</a> if nothing happens.</p>\n';
+}
+
+export function openInBrowser (file: string): Promise<void> {
     return new Promise ((resolve, reject) => {
         if (process.platform !== 'darwin' && process.platform !== 'win32' && !process.env['DISPLAY'] && !process.env['WAYLAND_DISPLAY']) {
             reject (new Error ('no graphical session'));
             return;
         }
-        const { command, args } = browserCommand (process.platform, url);
+        const { command, args } = browserCommand (process.platform, file);
         let settled = false;
         const settle = (error?: Error) => {
             if (!settled) {
@@ -161,7 +225,7 @@ export function openInBrowser (url: string): Promise<void> {
             return;
         }
         child.on ('error', () => settle (new Error ('could not start ' + command)));
-        // launchers exit right after handing the URL over; a non-zero status means they found
+        // launchers exit right after handing the file over; a non-zero status means they found
         // no browser. One that is still running after the grace period is taken as launched.
         child.on ('exit', (code) => settle ((code === 0 || code === null) ? undefined : new Error (command + ' exited with status ' + code)));
         const grace = setTimeout (() => settle (), 1500);
@@ -204,16 +268,18 @@ function firstHttpsUrl (value: any): string | undefined {
 
 export class SetupServer {
     deps: SetupDeps;
+    // set by tools/setup.ts: lists the tool tiers a saved account newly enables
+    listTiers: ((account: AccountConfig) => TierListing) | undefined = undefined;
     private ctx: ServerContext;
     private server: http.Server | undefined = undefined;
     private session: Session | undefined = undefined;
     private expiryTimer: NodeJS.Timeout | undefined = undefined;
-    private badRequests = 0;
 
     constructor (ctx: ServerContext, deps: Partial<SetupDeps> = {}) {
         this.ctx = ctx;
         this.deps = {
             'opener': deps.opener ?? openInBrowser,
+            'launchRoots': deps.launchRoots ?? defaultLaunchRoots,
             'now': deps.now ?? (() => Date.now ()),
             'testTimeoutMs': deps.testTimeoutMs ?? DEFAULT_TEST_TIMEOUT_MS,
         };
@@ -232,38 +298,98 @@ export class SetupServer {
         return this.ctx.config.configPath ?? resolveConfigPath ().path;
     }
 
-    // Starts (or reuses) the loopback listener, replaces any earlier session with a fresh
-    // one and launches the browser at it. Deliberately returns nothing that identifies the
-    // session — the caller is a tool handler whose result goes to the model.
-    async open (prefill: SetupPrefill = {}): Promise<{ expiresInSeconds: number }> {
+    // Starts (or reuses) the loopback listener and makes sure a form is in front of the user.
+    // A form that is still live is never replaced by a repeat call: the user may be typing
+    // keys into it, and the caller is a model that can be talked into calling again. One a
+    // browser has already loaded is left exactly as it is (no new window either); one that
+    // no browser loaded yet is launched again — nothing was typed into it, so it can take
+    // the new prefill. Only an explicit restart retires a live form.
+    // Deliberately returns nothing that identifies the session — the result goes to the model.
+    async open (prefill: SetupPrefill = {}, options: { restart?: boolean } = {}): Promise<SetupOpened> {
         const port = await this.listen ();
-        const session: Session = {
-            'token': randomToken (),
-            'csrf': randomToken (),
-            'expiresAt': this.deps.now () + SESSION_TTL_MS,
-            prefill,
-            'busy': false,
-        };
-        // one session at a time: opening a new form is how a lost or stale one is retired
-        this.session = session;
-        this.badRequests = 0;
-        this.armExpiry ();
+        let session = this.hasLiveSession () ? this.session : undefined;
+        let state: SetupOpenState = 'reopened';
+        if (session !== undefined && options.restart !== true) {
+            if (session.cookie !== undefined) {
+                return { 'state': 'already-open', 'expiresInSeconds': this.remainingSeconds (session) };
+            }
+            session.prefill = prefill;
+        } else {
+            this.dropLaunchFile (this.session);
+            session = {
+                'token': randomToken (),
+                'csrf': randomToken (),
+                'cookie': undefined,
+                'launchDir': undefined,
+                'expiresAt': this.deps.now () + SESSION_TTL_MS,
+                prefill,
+                'busy': false,
+            };
+            this.session = session;
+            this.armExpiry ();
+            state = 'opened';
+        }
         try {
-            await this.deps.opener ('http://127.0.0.1:' + port + '/setup/' + session.token);
+            await this.deps.opener (this.writeLaunchFile (session, port));
         } catch (e) {
             if (this.session === session) {
                 this.endSession ();
             }
-            // never forward the opener's own message: it may quote the URL it was given
-            throw new SetupOpenError ('the browser could not be opened from this machine');
+            this.dropLaunchFile (session);
+            // never forward the opener's own message: it may quote what it was given
+            throw new SetupOpenError ((e instanceof SetupOpenError) ? e.message : 'the browser could not be opened from this machine');
         }
-        log ('info', 'setup form opened in the browser (expires in ' + (SESSION_TTL_MS / 60000) + ' minutes)');
-        return { 'expiresInSeconds': SESSION_TTL_MS / 1000 };
+        log ('info', 'setup form ' + ((state === 'opened') ? 'opened' : 'opened again') + ' in the browser (expires in ' + Math.ceil (this.remainingSeconds (session) / 60) + ' minutes)');
+        return { state, 'expiresInSeconds': this.remainingSeconds (session) };
     }
 
     async close (): Promise<void> {
+        this.dropLaunchFile (this.session);
         this.session = undefined;
         this.stopListening (false);
+    }
+
+    private remainingSeconds (session: Session): number {
+        return Math.max (1, Math.round ((session.expiresAt - this.deps.now ()) / 1000));
+    }
+
+    // The form URL reaches the browser through a file only this user can read, in a directory
+    // only this user can enter, and never through anyone's command line.
+    private writeLaunchFile (session: Session, port: number): string {
+        this.dropLaunchFile (session);
+        const page = launchPage ('http://127.0.0.1:' + port + '/setup/' + session.token);
+        for (const root of this.deps.launchRoots ()) {
+            let directory: string | undefined = undefined;
+            try {
+                // mkdtemp creates the directory 0700 under a name nobody could have planted
+                directory = fs.mkdtempSync (path.join (root, 'ccxt-mcp-setup-'));
+                const file = path.join (directory, LAUNCH_FILE);
+                // "wx": the file must not exist yet; 0600 from the first byte
+                fs.writeFileSync (file, page, { 'mode': 0o600, 'flag': 'wx' });
+                session.launchDir = directory;
+                return file;
+            } catch (e) {
+                if (directory !== undefined) {
+                    fs.rmSync (directory, { 'recursive': true, 'force': true });
+                }
+            }
+        }
+        throw new SetupOpenError ('the file that opens the form could not be written');
+    }
+
+    // the redirect file has done its job once a browser loaded the form, and must not outlive
+    // the session either way
+    private dropLaunchFile (session: Session | undefined): void {
+        if (session === undefined || session.launchDir === undefined) {
+            return;
+        }
+        const directory = session.launchDir;
+        session.launchDir = undefined;
+        try {
+            fs.rmSync (directory, { 'recursive': true, 'force': true });
+        } catch (e) {
+            // already gone, or not ours to remove any more
+        }
     }
 
     private listen (): Promise<number> {
@@ -314,6 +440,7 @@ export class SetupServer {
 
     // no live session means no reason to keep a port open
     private endSession (): void {
+        this.dropLaunchFile (this.session);
         this.session = undefined;
         this.stopListening (true);
     }
@@ -365,68 +492,95 @@ export class SetupServer {
         });
     }
 
-    // every request that does not prove it knows the session looks the same from outside:
-    // an empty 404, whatever was wrong with it
-    private notFound (res: http.ServerResponse, counted: boolean): void {
+    // every request that does not prove it belongs to the session looks the same from
+    // outside: an empty 404, whatever was wrong with it — and it costs the session nothing
+    private notFound (res: http.ServerResponse): void {
         this.send (res, 404, '');
-        if (!counted) {
-            return;
+    }
+
+    private presentedCookie (req: http.IncomingMessage): string {
+        for (const part of String (req.headers['cookie'] ?? '').split (';')) {
+            const pair = part.trim ();
+            if (pair.startsWith (COOKIE_NAME + '=')) {
+                return pair.slice (COOKIE_NAME.length + 1);
+            }
         }
-        this.badRequests += 1;
-        if (this.badRequests >= MAX_BAD_REQUESTS) {
-            log ('warning', 'setup form: closed after ' + this.badRequests + ' requests without a valid session — call setup_account again to reopen it');
-            this.endSession ();
-        }
+        return '';
     }
 
     private async handle (server: http.Server, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
         const address = server.address () as AddressInfo | null;
         if (address === null || this.server !== server) {
-            this.notFound (res, false);
+            this.notFound (res);
             return;
         }
         // DNS rebinding: a hostile page can point its own hostname at 127.0.0.1 and would then
         // be same-origin with this server, but the browser still sends that hostname as Host
         const host = req.headers['host'];
         if (host !== '127.0.0.1:' + address.port && host !== 'localhost:' + address.port) {
-            this.notFound (res, true);
+            this.notFound (res);
             return;
         }
         const rawUrl = req.url ?? '';
         const queryAt = rawUrl.indexOf ('?');
         const pathname = (queryAt === -1) ? rawUrl : rawUrl.slice (0, queryAt);
         const query = new URLSearchParams ((queryAt === -1) ? '' : rawUrl.slice (queryAt + 1));
-        if (pathname === '/favicon.ico') {
-            // browsers ask on their own; not a guess
-            this.notFound (res, false);
-            return;
-        }
         const match = /^\/setup\/([0-9a-f]{32})(?:\/([a-z]+))?$/.exec (pathname);
         const session = this.session;
         if (session !== undefined && this.deps.now () >= session.expiresAt) {
-            this.notFound (res, false);
+            this.notFound (res);
             this.endSession ();
             return;
         }
         if (match === null || session === undefined || !safeEqual (match[1], session.token)) {
-            this.notFound (res, true);
+            this.notFound (res);
             return;
         }
         const action = match[2] ?? '';
-        if (action === '' || action === 'credentials') {
+        // Once a browser has loaded the form, the session belongs to that browser: whoever
+        // else learns the URL afterwards (it was on disk for a moment, it is in the address
+        // bar) gets the same empty 404 as a wrong token.
+        const bound = session.cookie !== undefined;
+        if (bound && !safeEqual (this.presentedCookie (req), session.cookie as string)) {
+            this.notFound (res);
+            return;
+        }
+        if (action === '') {
             if (req.method !== 'GET') {
                 this.send (res, 405, '', { 'Allow': 'GET' });
                 return;
             }
-            if (action === '') {
-                this.sendPage (res, session);
-            } else {
-                this.sendJson (res, 200, this.describeExchange (query.get ('exchange') ?? ''));
+            // the first load is the one the URL token is good for; a reload by the same
+            // browser arrives with the cookie and is served again
+            let setCookie: string | undefined = undefined;
+            if (session.cookie === undefined) {
+                session.cookie = randomToken ();
+                // Scoped to this form's own path, so the browser sends it nowhere else — not
+                // even to another program listening on a different loopback port.
+                // SameSite=Lax, not Strict: the form is reached by a navigation that starts
+                // on the launch file (another site, to the browser), and Chromium replays
+                // that initiator on a reload — with Strict the reload arrives without the
+                // cookie and the user's own tab gets the 404. Lax still withholds the cookie
+                // from every cross-site subrequest and POST; what it lets through is a
+                // top-level GET by someone who already knows the token, which shows them
+                // nothing (the page opens in the user's browser, unframeable, unscriptable).
+                setCookie = COOKIE_NAME + '=' + session.cookie + '; HttpOnly; SameSite=Lax; Path=/setup/' + session.token;
             }
+            this.dropLaunchFile (session);
+            this.sendPage (res, session, setCookie);
             return;
         }
-        if (action !== 'test' && action !== 'save') {
-            this.notFound (res, true);
+        if (!bound || (action !== 'credentials' && action !== 'test' && action !== 'save')) {
+            // nothing but the page itself is served before a browser is bound to the session
+            this.notFound (res);
+            return;
+        }
+        if (action === 'credentials') {
+            if (req.method !== 'GET') {
+                this.send (res, 405, '', { 'Allow': 'GET' });
+                return;
+            }
+            this.sendJson (res, 200, this.describeExchange (query.get ('exchange') ?? '', query.get ('prediction') === '1'));
             return;
         }
         // from here on the request changes something (or sends keys to an exchange), so it
@@ -464,24 +618,35 @@ export class SetupServer {
             this.sendJson (res, 400, { 'ok': false, 'code': 'BAD_REQUEST', 'error': 'the submitted form could not be read' });
             return;
         }
-        // FIRST thing done with a submission, before it is validated, tested or mentioned in
-        // any log line: its values become redactable, so no later error text can carry them
-        this.registerSubmittedSecrets (body);
         if (session.busy) {
             this.sendJson (res, 409, { 'ok': false, 'code': 'BUSY', 'error': 'the previous step is still running — wait a moment' });
             return;
         }
         session.busy = true;
+        // The credential values this request puts to use are registered with the redactor by
+        // baseAccount, before anything is tested or logged. `provisional` collects the ones
+        // this request added: unless it ends in a save they are taken back at the very end,
+        // after the response and every log line about it went through the redactor.
+        const provisional: string[] = [];
+        let saved = false;
         try {
-            const result = (action === 'test') ? await this.runTest (body) : await this.runSave (body, session);
+            const result = (action === 'test') ? await this.runTest (body, provisional) : await this.runSave (body, session, provisional);
+            saved = action === 'save';
             this.sendJson (res, 200, result);
         } catch (e: any) {
-            if (!(e instanceof FormError)) {
-                throw e;
+            if (e instanceof FormError) {
+                this.sendJson (res, e.status, { 'ok': false, 'code': e.code, 'error': e.message });
+            } else {
+                log ('warning', 'setup form: request failed: ' + redact (String (e?.message ?? e)));
+                this.sendJson (res, 500, { 'ok': false, 'code': 'INTERNAL', 'error': 'something went wrong on this computer — close this tab and ask the assistant to open the setup form again' });
             }
-            this.sendJson (res, e.status, { 'ok': false, 'code': e.code, 'error': e.message });
         } finally {
             session.busy = false;
+            if (!saved) {
+                for (const value of provisional) {
+                    unregisterSecret (value);
+                }
+            }
         }
         if (this.session === undefined) {
             // the save ended the session; let this response out, then give the port back
@@ -516,21 +681,7 @@ export class SetupServer {
         });
     }
 
-    private registerSubmittedSecrets (body: any): void {
-        const credentials = body?.['credentials'];
-        if (credentials === null || typeof credentials !== 'object') {
-            return;
-        }
-        for (const [ field, value ] of Object.entries (credentials)) {
-            if (typeof value === 'string') {
-                const label = (CREDENTIAL_FIELDS as readonly string[]).includes (field) ? field : 'credential';
-                registerSecret (value, label);
-                registerSecret (unescapePem (value), label);
-            }
-        }
-    }
-
-    private sendPage (res: http.ServerResponse, session: Session): void {
+    private sendPage (res: http.ServerResponse, session: Session, setCookie: string | undefined): void {
         const nonce = randomBytes (16).toString ('base64');
         const directory = this.ctx.pools.directory ();
         const prefill = session.prefill;
@@ -544,12 +695,12 @@ export class SetupServer {
             },
             'configPath': this.configPath (),
             'expiresInMs': Math.max (0, session.expiresAt - this.deps.now ()),
-            'restartForTools': this.ctx.config.settings.hideDisabledTools === true,
         };
         const html = loadTemplate ()
             .replace (/__CSP_NONCE__/g, () => nonce)
             .replace ('__BOOT_JSON__', () => scriptJson (boot));
         this.send (res, 200, html, {
+            ...((setCookie !== undefined) ? { 'Set-Cookie': setCookie } : {}),
             'Content-Type': 'text/html; charset=utf-8',
             // nothing external, nothing inline without this response's nonce, and the only
             // place the page may send data is back here
@@ -560,11 +711,26 @@ export class SetupServer {
     // ---------------------------------------------------------------------------------
     // form logic
 
-    private bare (exchangeId: string): any {
+    // Some exchange ids exist twice in ccxt: once as the ordinary exchange and once in the
+    // prediction-markets namespace (a different class, sometimes with different credentials).
+    // Asked of the pools — the same catalogue accounts are instantiated from — and not of a
+    // list kept here.
+    private hasPredictionVariant (exchangeId: string): boolean {
+        try {
+            return this.ctx.pools.getBare (exchangeId, true).constructor !== this.ctx.pools.getBare (exchangeId, false).constructor;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    private bare (exchangeId: string, prediction = false): any {
         if (typeof exchangeId !== 'string' || !this.ctx.pools.directory ().isKnownExchange (exchangeId)) {
             throw new FormError (400, 'UNKNOWN_EXCHANGE', 'that exchange is not supported — pick one from the list');
         }
-        return this.ctx.pools.getBare (exchangeId);
+        if (prediction && !this.hasPredictionVariant (exchangeId)) {
+            throw new FormError (400, 'NO_PREDICTION', exchangeId + ' has no separate prediction-markets account');
+        }
+        return this.ctx.pools.getBare (exchangeId, prediction);
     }
 
     private requiredFields (bare: any): string[] {
@@ -586,35 +752,80 @@ export class SetupServer {
         };
     }
 
-    private describeExchange (exchangeId: string): Record<string, any> {
+    // On some exchanges (OKX and its regional sites, WEEX) ccxt's "sandbox" is not a separate
+    // testnet at all: urls.test repeats the live hosts and setSandboxMode only adds a header
+    // that selects the exchange's own demo/simulated trading. Their users know that mode as
+    // "demo trading", so the page must not present it as a testnet and call demo trading
+    // "not offered". Detected from the metadata: every REST entry of urls.test equals its
+    // urls.api counterpart (the "ws" entry is left out — a demo mode may still stream from
+    // its own socket host). An exchange whose practice mode lives on a different REST host
+    // is, as far as the metadata can tell, a testnet — whatever the exchange itself calls it.
+    private sandboxIsDemo (bare: any): boolean {
+        const test = bare.urls?.test;
+        const api = bare.urls?.api;
+        if (test === undefined || api === undefined) {
+            return false;
+        }
+        if (typeof test !== 'object' || test === null) {
+            return test === api;
+        }
+        const keys = Object.keys (test).filter ((key) => key !== 'ws');
+        return keys.length > 0 && typeof api === 'object' && api !== null && keys.every ((key) => JSON.stringify (test[key]) === JSON.stringify (api[key]));
+    }
+
+    private describeExchange (exchangeId: string, prediction = false): Record<string, any> {
         let bare: any;
         try {
-            bare = this.bare (exchangeId);
+            bare = this.bare (exchangeId, prediction);
         } catch (e: any) {
-            return { 'ok': false, 'code': 'UNKNOWN_EXCHANGE', 'error': e.message };
+            return { 'ok': false, 'code': (e instanceof FormError) ? e.code : 'UNKNOWN_EXCHANGE', 'error': e.message };
         }
+        const fields = this.requiredFields (bare);
         return {
             'ok': true,
             'exchange': exchangeId,
+            prediction,
+            // true: the page asks which of the two accounts on this exchange is being added
+            'predictionVariant': this.hasPredictionVariant (exchangeId),
             'name': (typeof bare.name === 'string') ? bare.name : exchangeId,
             'website': firstHttpsUrl (bare.urls?.www),
-            'fields': this.requiredFields (bare).map ((field) => ({ 'name': field, 'label': CREDENTIAL_LABELS[field] ?? field })),
+            'fields': fields.map ((field) => ({ 'name': field, 'label': CREDENTIAL_LABELS[field] ?? field })),
+            // ccxt declares no credential for it, yet its private calls need some (a wallet key
+            // in "options", keys derived at run time): nothing this form could ask for
+            'configFileOnly': fields.length === 0,
+            // signs with a wallet key rather than an exchange-issued API key
+            'walletKey': fields.includes ('privateKey'),
             'environments': this.environments (bare),
+            'sandboxIsDemo': this.sandboxIsDemo (bare),
         };
     }
 
     // exchange + credentials + environment -> the account record both the test and the save
     // build on; every rule here is enforced server-side whatever the page did or did not check
-    private baseAccount (input: { exchange: string, credentials: Record<string, string>, environment: string }): Record<string, any> {
-        const bare = this.bare (input.exchange);
+    private baseAccount (input: { exchange: string, prediction?: boolean, credentials: Record<string, string>, environment: string }, provisional: string[]): Record<string, any> {
+        const prediction = input.prediction === true;
+        const bare = this.bare (input.exchange, prediction);
         const required = this.requiredFields (bare);
+        if (required.length === 0) {
+            // saving it would produce an account with no credentials that fails on every call
+            throw new FormError (400, 'CONFIG_FILE_ONLY', input.exchange + (prediction ? ' prediction markets' : '') + ' cannot be set up from this form: it takes its credentials in a way the form cannot collect — add the account to the config file instead');
+        }
         const account: Record<string, any> = { 'exchange': input.exchange };
+        if (prediction) {
+            account['prediction'] = true;
+        }
         for (const [ field, rawValue ] of Object.entries (input.credentials)) {
             if (!required.includes (field)) {
                 throw new FormError (400, 'BAD_REQUEST', 'unexpected credential field for this exchange');
             }
             const value = unescapePem (rawValue.trim ());
             if (value !== '') {
+                // exactly the value that is sent to the exchange and written to the file
+                // becomes redactable, before either happens — and nothing else does: a
+                // field this exchange does not take, or the untrimmed text, is never used
+                if (registerSecret (value, field)) {
+                    provisional.push (value);
+                }
                 account[field] = value;
             }
         }
@@ -637,12 +848,12 @@ export class SetupServer {
         return account;
     }
 
-    private async runTest (body: any): Promise<Record<string, any>> {
+    private async runTest (body: any, provisional: string[]): Promise<Record<string, any>> {
         const parsed = testSchema.safeParse (body);
         if (!parsed.success) {
             throw new FormError (400, 'BAD_REQUEST', 'the submitted form is incomplete');
         }
-        const account = this.baseAccount (parsed.data);
+        const account = this.baseAccount (parsed.data, provisional);
         return this.testConnection ({ ...account, 'name': 'setup-test' } as AccountConfig);
     }
 
@@ -654,21 +865,32 @@ export class SetupServer {
         let exchange: any = undefined;
         let timer: NodeJS.Timeout | undefined = undefined;
         let outcome: Record<string, any>;
+        // an exchange with no balance endpoint cannot fail this test in a way that says
+        // anything about the keys — reported as "not tested", never as a failure
+        const untestable = { 'ok': true, 'tested': false, 'code': 'NOT_TESTABLE' };
         try {
             exchange = this.ctx.pools.buildProbe ({ ...account, 'timeout': timeoutMs });
-            await Promise.race ([
-                exchange.fetchBalance (),
-                new Promise ((_resolve, reject) => {
-                    timer = setTimeout (() => reject (new FormError (504, 'TIMEOUT', 'the exchange did not answer in time')), timeoutMs);
-                }),
-            ]);
-            outcome = { 'ok': true, 'tested': true };
+            if (exchange.has?.['fetchBalance'] !== true) {
+                outcome = untestable;
+            } else {
+                await Promise.race ([
+                    exchange.fetchBalance (),
+                    new Promise ((_resolve, reject) => {
+                        timer = setTimeout (() => reject (new FormError (504, 'TIMEOUT', 'the exchange did not answer in time')), timeoutMs);
+                    }),
+                ]);
+                outcome = { 'ok': true, 'tested': true };
+            }
         } catch (e: any) {
             const kind = (e instanceof FormError) ? 'RequestTimeout' : String (e?.constructor?.name ?? 'Error');
-            // redact() covers the submitted values (registered on arrival); the slice keeps a
-            // verbose exchange payload from flooding the page
-            const detail = redact (String (e?.message ?? e)).slice (0, 300);
-            outcome = { 'ok': false, 'tested': true, 'code': 'TEST_FAILED', kind, 'error': detail };
+            if (kind === 'NotSupported') {
+                outcome = untestable;
+            } else {
+                // redact() covers the values in use (registered by baseAccount); the slice
+                // keeps a verbose exchange payload from flooding the page
+                const detail = redact (String (e?.message ?? e)).slice (0, 300);
+                outcome = { 'ok': false, 'tested': true, 'code': 'TEST_FAILED', kind, 'error': detail };
+            }
         } finally {
             if (timer !== undefined) {
                 clearTimeout (timer);
@@ -681,20 +903,24 @@ export class SetupServer {
                 // a probe that will not close cleanly has nothing left to release
             }
         }
-        log ('info', 'setup form: connection test on ' + account.exchange + ' ' + (outcome['ok'] ? 'succeeded' : ('failed (' + outcome['kind'] + ')')));
+        const verdict = (outcome['tested'] === false) ? 'was skipped (the exchange has no balance check)' : (outcome['ok'] ? 'succeeded' : ('failed (' + outcome['kind'] + ')'));
+        log ('info', 'setup form: connection test on ' + account.exchange + ' ' + verdict);
         return outcome;
     }
 
-    private async runSave (body: any, session: Session): Promise<Record<string, any>> {
+    private async runSave (body: any, session: Session, provisional: string[]): Promise<Record<string, any>> {
         const parsed = saveSchema.safeParse (body);
         if (!parsed.success) {
             throw new FormError (400, 'BAD_REQUEST', 'the submitted form is incomplete');
         }
         const input = parsed.data;
+        if (isReservedAccountName (input.name)) {
+            throw new FormError (400, 'INVALID_NAME', '"' + input.name + '" cannot be used as an account name — choose a different one');
+        }
         if (!isValidAccountName (input.name)) {
             throw new FormError (400, 'INVALID_NAME', 'the account name must be 1-40 characters: letters, digits, "-" and "_"');
         }
-        const raw = this.baseAccount (input);
+        const raw = this.baseAccount (input, provisional);
         if (input.trading) {
             if (input.environment === 'live') {
                 // real money: an explicit cap and an explicit second yes, both checked here
@@ -722,8 +948,11 @@ export class SetupServer {
         }
         const replace = input.replace === true;
         // an account of this name the server is already using (from the file or from
-        // environment variables) is only ever swapped out on an explicit yes
-        if (this.ctx.config.accounts[input.name] !== undefined && !replace) {
+        // environment variables) is only ever swapped out on an explicit yes. Own property:
+        // a name like "toString" is not "already there" because every object has one.
+        const accounts = this.ctx.config.accounts;
+        const previous: AccountConfig | undefined = hasOwn (accounts, input.name) ? accounts[input.name] : undefined;
+        if (previous !== undefined && !replace) {
             throw new FormError (409, 'ACCOUNT_EXISTS', 'an account named "' + input.name + '" already exists');
         }
         let written;
@@ -738,17 +967,48 @@ export class SetupServer {
         // hot-apply: the pools read ctx.config.accounts on every call, so the account is
         // usable from the next tool call on — no restart
         registerAccountSecrets (account);
-        this.ctx.config.accounts[input.name] = account;
+        accounts[input.name] = account;
+        // Streams first, then the cached client. A private stream keeps its own reference to
+        // the old client and would go on reconnecting with the old keys on the old
+        // environment under this account's name; they are stopped, not migrated — the new
+        // account may be a different environment or even a different exchange.
+        const stoppedStreams: number = this.ctx.subscriptions.stopAccount (input.name);
         this.ctx.pools.evictAuthenticated (input.name);
-        if (this.ctx.config.configPath === undefined) {
+        const hadNoFile = this.ctx.config.configPath === undefined;
+        if (hadNoFile) {
             this.ctx.config.configPath = written.path;
-            // the file exists now; a startup complaint that it was missing would be stale
-            this.ctx.config.problems = this.ctx.config.problems.filter ((problem) => !problem.startsWith ('CCXT_MCP_CONFIG points to a missing file'));
         }
+        // Startup complaints this save made untrue would otherwise sit in get_safety_status
+        // until a restart, contradicting the accounts listed next to them: the ones about
+        // the account that was just replaced, the file being readable by others (the writer
+        // leaves it 0600) and, when there was no file, that it was missing. Two stay because
+        // they still hold: an env account shadowed by this name, and a file refused under
+        // strictPermissions (its other accounts were never loaded).
+        const accountPrefix = 'account ' + JSON.stringify (input.name);
+        this.ctx.config.problems = this.ctx.config.problems.filter ((problem) => {
+            if (problem.startsWith (accountPrefix + ':') || problem.startsWith (accountPrefix + ' invalid:') || problem.startsWith (accountPrefix + ' ignored:')) {
+                return false;
+            }
+            if (problem.startsWith ('WARNING: config file ') && problem.includes (' is readable by other users')) {
+                return false;
+            }
+            return !(hadNoFile && problem.startsWith ('CCXT_MCP_CONFIG points to a missing file'));
+        });
+        // an account that only lived in memory (environment variables) was replaced just as
+        // much as one in the file, and the record must say so
+        const replaced = written.replaced || previous !== undefined;
         const trading = account.trading ?? false;
         const tradingText = (trading === 'live') ? 'LIVE trading, max order ' + account.maxOrderValue + ' USD' : (trading ? 'trading' : 'read-only');
+        // tool tiers this account newly enables on a server that hides unconfigured ones
+        let tiers: TierListing = { 'added': [], 'restartNeeded': false };
+        if (this.listTiers !== undefined) {
+            tiers = this.listTiers (account);
+        }
         // names and modes only — a credential value has no business in either record
-        log ('info', 'account ' + JSON.stringify (input.name) + ' on ' + input.exchange + ' saved via setup form (' + input.environment + ', ' + tradingText + ')' + (written.replaced ? ' — replaced the previous account of that name' : ''));
+        log ('info', 'account ' + JSON.stringify (input.name) + ' on ' + input.exchange + ' saved via setup form (' + input.environment + ', ' + tradingText + ')'
+            + (replaced ? ' — replaced the previous account of that name' : '')
+            + ((stoppedStreams > 0) ? ' — stopped ' + stoppedStreams + ' live stream(s) that ran on its old keys' : '')
+            + ((tiers.added.length > 0) ? ' — now listing the ' + tiers.added.join (' and ') + ' tools' : ''));
         try {
             this.ctx.journal.append ({
                 'ts': new Date (this.deps.now ()).toISOString (),
@@ -759,13 +1019,21 @@ export class SetupServer {
                 'environment': input.environment,
                 'tool': 'setup_account',
                 'method': 'saveAccount',
-                'outcome': { 'source': 'setup form', trading, 'maxOrderValue': account.maxOrderValue, 'replaced': written.replaced },
+                'outcome': {
+                    'source': 'setup form',
+                    trading,
+                    'maxOrderValue': account.maxOrderValue,
+                    replaced,
+                    'previousEnvironment': (previous !== undefined) ? accountEnvironment (previous) : undefined,
+                    stoppedStreams,
+                },
             });
         } catch (e: any) {
             log ('warning', 'setup form: could not journal the saved account: ' + redact (String (e?.message ?? e)));
         }
         // single use: the token that just saved an account can never save (or read) another
         if (this.session === session) {
+            this.dropLaunchFile (session);
             this.session = undefined;
         }
         return {
@@ -774,8 +1042,12 @@ export class SetupServer {
             'exchange': input.exchange,
             'environment': input.environment,
             trading,
-            'replaced': written.replaced,
-            'restartForTools': this.ctx.config.settings.hideDisabledTools === true,
+            replaced,
+            stoppedStreams,
+            // tools that were just added to the running server's list for this account
+            'toolsAdded': tiers.added.length > 0,
+            // true only when a newly enabled tier could NOT be listed without a restart
+            'restartForTools': tiers.restartNeeded,
         };
     }
 }

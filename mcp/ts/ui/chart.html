@@ -34,6 +34,10 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
 svg text.tag-text { fill: var(--text); font-weight: 600; }
 .overlay { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: 6px; color: var(--text-2); }
 .overlay .name { color: var(--text); font-weight: 600; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* which market the candles are, when the orders are not live ones: its own line, and in the
+   text colour when the two differ — then the lines cannot be read against the candles */
+.overlay .source { flex: 0 0 100%; }
+.overlay .source.differs { color: var(--text); font-weight: 600; }
 /* whether the account is real must never be misread: LIVE is a solid inverted pill, the
    practice environments an outline — told apart by the word and the form, not by a colour */
 .env { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; line-height: 16px; padding: 0 7px; border: 1px solid var(--text-2); border-radius: 999px; color: var(--text-2); white-space: nowrap; }
@@ -500,6 +504,16 @@ svg text.tag-text { fill: var(--text); font-weight: 600; }
             }
         }
         node.appendChild (app.element ('span', '', summary));
+        // A practice account's orders belong to that environment's market. The server reads
+        // the candles there too; when it could not, they are live prices and say so.
+        var known = function (value) { return (typeof value === 'string' && Object.prototype.hasOwnProperty.call (ENVIRONMENTS, value)) ? ENVIRONMENTS[value] : ''; };
+        var orderSide = known (data.environment);
+        var candleSide = known (data.candlesEnvironment);
+        if (orderSide && candleSide && candleSide !== orderSide) {
+            node.appendChild (app.element ('span', 'source differs', '⚠ Candles are ' + candleSide + ' market prices, the orders are from the ' + orderSide + ' account: the lines are not comparable to these candles'));
+        } else if (orderSide && candleSide && data.environment !== 'live') {
+            node.appendChild (app.element ('span', 'source', 'Candles are ' + candleSide + ' prices too, not the live market'));
+        }
     }
 
     function renderPlot () {

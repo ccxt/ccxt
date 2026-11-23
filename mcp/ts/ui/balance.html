@@ -599,6 +599,7 @@ thead .short { display: none; }
             if (row.value === undefined && row.total !== undefined && row.price !== undefined) {
                 row.value = number (row.total * row.price);
             }
+            row.par = entry.par === true;
             row.key = row.code;
             return row;
         },
@@ -608,14 +609,22 @@ thead .short { display: none; }
         header: function () {
             var quote = text (data.quote);
             var total = number (data.totalValue);
+            var held = 0;
+            var par = [];
             valued = 0;
             unvalued = 0;
             rows.forEach (function (row) {
                 if (row.value > 0) {
                     valued += row.value;
                 }
+                if (row.total !== 0) {
+                    held++;
+                }
                 if (row.value === undefined && row.total !== 0) {
                     unvalued++;
+                }
+                if (row.par && row.value !== undefined) {
+                    par.push (row.code);
                 }
             });
             if (!app.isNumber (valued)) {
@@ -624,7 +633,9 @@ thead .short { display: none; }
             nodes.hero.hidden = !rows.length;
             if (total !== undefined) {
                 nodes.figure.textContent = '≈\u00a0' + money (total) + (quote ? ' ' + quote : '');
-                nodes.context.textContent = 'total value · ' + plural (rows.length, 'asset');
+                // a total that leaves holdings out is not the account's worth: the headline
+                // says so itself, the note below says how many
+                nodes.context.textContent = ((unvalued > 0) ? 'partial value · ' + (held - unvalued) + ' of ' + plural (held, 'asset') + ' priced' : 'total value · ' + plural (rows.length, 'asset'));
             } else {
                 // nothing could be priced: the count is the one honest headline
                 nodes.figure.textContent = plural (rows.length, 'asset');
@@ -640,6 +651,10 @@ thead .short { display: none; }
             if (total !== undefined && unvalued > 0) {
                 lines.push (plural (unvalued, 'asset') + ' without a ' + (quote ? quote + ' ' : '') + 'price ' + ((unvalued === 1) ? 'is' : 'are') + ' not in the total');
             }
+            if (total !== undefined && par.length > 0) {
+                // no market between two dollar currencies on this venue: an assumption, named
+                lines.push (par.join (', ') + ' counted 1:1 with ' + (quote || 'the quote currency') + ' (no market price here)');
+            }
             setNote (lines);
         },
         empty: function () {
@@ -650,7 +665,7 @@ thead .short { display: none; }
             node.appendChild (app.element ('b', 'sym', row.code));
             var suffix = quote ? ' ' + quote : '';
             [ [ 'Free', quantity (row.free) ], [ 'In orders', quantity (row.used) ], [ 'Total', quantity (row.total) ],
-                [ 'Price', (row.price === undefined) ? '–' : price (row.price) + suffix ],
+                [ 'Price', (row.price === undefined) ? '–' : price (row.price) + suffix + (row.par ? ' (assumed 1:1)' : '') ],
                 [ 'Value', (row.value === undefined) ? '–' : money (row.value) + suffix ],
                 [ 'Share', shareText (share (row)) || '–' ] ].forEach (function (pair) {
                 labelled (node, pair[0], pair[1]);
