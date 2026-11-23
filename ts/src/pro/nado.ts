@@ -58,6 +58,13 @@ export default class nado extends nadoRest {
             'options': {
                 'tradesLimit': 1000,
                 'requestId': 0,
+                // the subscription gateway sits behind cloudflare, which 403s any
+                // handshake that does not offer permessage-deflate (RFC 7692);
+                // the node 'ws' client already defaults to offering it, the flag
+                // makes the venue requirement explicit and reaches the Go mirror
+                'ws': {
+                    'compress': true,
+                },
             },
             'urls': {
                 'api': {

@@ -19,6 +19,19 @@ import type { Dict } from '../types.js';
 // eslint-disable-next-line no-restricted-globals
 const WebSocketPlatform = isBun ? globalThis.WebSocket : (isNode || !selfIsDefined () ? WebSocket : self.WebSocket);
 
+//  maps the venue-level `ws.compress` switch onto the 'ws' package's
+//  perMessageDeflate option: undefined leaves the client default untouched,
+//  false/0 disables the offer, any other value (true, 15, ...) enables it.
+//  Nado's subscription gateway is the current opt-in: cloudflare 403s any
+//  handshake that does not offer permessage-deflate (RFC 7692).
+export function wsPerMessageDeflate (options: Dict): boolean | undefined {
+    const compress = options['compress'];
+    if (compress === undefined) {
+        return undefined;
+    }
+    return (compress !== 0) && (compress !== false);
+}
+
 export default class WsClient extends Client {
 
     connectionStarted: number | undefined;
@@ -69,6 +82,10 @@ export default class WsClient extends Client {
             this.connection.binaryType = 'nodebuffer'; // bun extension, keeps binary messages as Buffer like the 'ws' package
         } else if (isNode) {
             this.options = this.options || {};
+            const perMessageDeflate = wsPerMessageDeflate (this.options);
+            if (perMessageDeflate !== undefined) {
+                this.options['perMessageDeflate'] = perMessageDeflate;
+            }
             this.connection = new WebSocketPlatform (this.url, this.protocols, this.options);
             // ws emits a whole socket chunk synchronously on one stack; the duplex buffers
             // it and deliverLoop's async iterator hands out one message per step on a fresh
