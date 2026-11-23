@@ -104,11 +104,13 @@ const BASE_ASYNC_HELPERS: MethodInfo[] = [
     // ral-84j7: Promise<DepositAddresses> on the base stub and all 10 venue bodies; every body
     // returns this.indexBy (x, k) (hand-written Map<String, Object>) or a Map-declared local
     { name: 'fetchDepositAddressesByNetwork', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+    // Promise<{}> on the base stub: every venue body returns a response dict, a parse* dict or { 'info': .. }
+    ...[ 'setLeverage', 'setMarginMode', 'setPositionMode', 'cancelAllOrdersAfter' ].map(name => ({ name, javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false })),
 ];
 // Promise<Market[]> / Promise<Currencies> on every tier: the raw rows setMarkets reads; TypedSurface wraps them
 const LOAD_SOURCE_CORES: Record<string, string> = { fetchMarkets: 'List<Object>', fetchCurrencies: 'Map<String, Object>' };
 // ral-84j7: base stubs of these typed cores take a type witness on failedFuture (no cast lambda)
-const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork' ]);
+const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork', 'setLeverage', 'setMarginMode', 'setPositionMode', 'cancelAllOrdersAfter' ]);
 // loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path
 const PREDICTION_BASE_ASYNC_HELPERS: MethodInfo[] = [
     { name: 'loadOutcome', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
