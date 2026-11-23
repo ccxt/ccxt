@@ -1572,7 +1572,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray (trades);
         let results: PredictionTrade[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePredictionTrade (rows[i], outcomeObj);
+            const parsed = this.parsePredictionTrade (this.safeDict (rows, i, {}), outcomeObj);
             const trade = this.extend (parsed, params);
             results.push (trade);
         }
