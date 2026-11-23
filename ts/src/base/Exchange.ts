@@ -4161,7 +4161,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchOpenInterests() is not supported yet');
     }
 
-    async signIn (params = {}): Promise<{}> {
+    async signIn (params: Dict = {}): Promise<{}> {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
 
