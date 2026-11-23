@@ -278,6 +278,21 @@ function declaredReturnTypes(source: string): Map<string, string> {
     return out;
 }
 
+let baseExchangeReturnCache: Map<string, string> | undefined;
+/** Declared returns of the on-disk BaseExchange.java (single-spelling names only), read once. */
+function baseExchangeDeclaredReturns(): Map<string, string> {
+    if (baseExchangeReturnCache === undefined) {
+        let content = '';
+        try {
+            content = fs.readFileSync('./java/lib/src/main/java/io/github/ccxt/BaseExchange.java', 'utf8');
+        } catch (e) {
+            content = '';
+        }
+        baseExchangeReturnCache = declaredReturnTypes(content);
+    }
+    return baseExchangeReturnCache;
+}
+
 const API_METHOD_RE = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
 const apiReturnCache = new Map<string, Map<string, string>>();
 /** `CompletableFuture<T>` of the generated implicit-api wrappers the class extends (on-disk api/<X>Api.java). */
@@ -407,6 +422,8 @@ function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): 
     if (ctx === undefined) return false;
     // a method of this class whose declared Java return is `want` (an override can only narrow it)
     if (call !== undefined && ctx.declared.get(call) === want) return true;
+    // an inherited BaseExchange.java method declared `want` (filterBy*SinceLimit: List<Object>)
+    if (call !== undefined && !ctx.declared.has(call) && baseExchangeDeclaredReturns().get(call) === want) return true;
     // a TypedMap view (`Order parseOrder(..)`) is a Map<String, Object>
     const view = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec(call === undefined ? '' : ctx.declared.get(call) ?? '');
     if (want === 'Map<String, Object>' && view !== null && javaIsTypedMapDto(view[1])) return true;
@@ -613,6 +630,8 @@ export function javaTypedCoreDirectReturnSelfTest(): string[] {
         [ 'joined ws Future cast in place', 'String', [ 'Object future = this.safeValue(parameters, "k");', 'if (future != null)', '{', '    return ((io.github.ccxt.ws.Future)future).getFuture().join();', '}', 'return null;' ], false ],
         [ 'Object local cast in place', 'Boolean', [ 'Object r = this.safeValue(parameters, "k");', 'return r;' ], false ],
         [ 'typed future of another type keeps cast', 'String', [ 'Object r = null;', 'if (r == null)', '{', '    return r;', '}', 'return (this.fetchX(parameters)).join();' ], true ],
+        [ 'inherited filterBySymbolSinceLimit is List', 'List<Object>', [ 'return this.filterBySymbolSinceLimit(parameters, null, null, null, false);' ], false ],
+        [ 'inherited Object reader keeps cast', 'List<Object>', [ 'return this.filterBySymbol(parameters, null);' ], true ],
         [ 'Long core is no reference cast', 'Long', [ 'Object r = this.safeValue(parameters, "k");', 'return r;' ], true ],
     ];
     for (const [ label, type, body, cast ] of rows) {
