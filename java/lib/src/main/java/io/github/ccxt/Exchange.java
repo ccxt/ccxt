@@ -177,7 +177,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsForSymbol(String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -902,19 +902,19 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderBook() is not supported yet"))).thenApply(OrderBook::new);
 
     }
 
-    public CompletableFuture<Object> fetchRestOrderBookSafe(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchRestOrderBookSafe(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRestOrderBookSafeCore(symbol, limit, parameters));
     }
 
-    private Object fetchRestOrderBookSafeCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchRestOrderBookSafeCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         List<Object> fetchSnapshotMaxRetriesfetchParamsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "maxRetries", 3L);
@@ -1045,7 +1045,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPosition() is not supported yet"))).thenApply(Position::new);
@@ -1128,7 +1128,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrder() is not supported yet"))).thenApply(Order::new);
@@ -1297,12 +1297,12 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketBuyOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketBuyOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         /**

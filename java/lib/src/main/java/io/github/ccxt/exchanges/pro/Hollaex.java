@@ -134,7 +134,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Map<String, Object> data = this.safeDict(message, "data", null);
             String timestamp = this.safeString(data, "timestamp");
             Long timestampMs = this.parse8601(timestamp);
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) null;
             if (!(this.orderbooks.containsKey(symbol)))
             {
@@ -613,7 +613,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { error: "Bearer or HMAC authentication required" }

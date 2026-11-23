@@ -346,7 +346,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(updateType, "update"))
         {
             Map<String, Object> ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
-            parsed = (Map<String, Object>) this.parseTicker(this.extend(this.safeDict(ticker, "info", new HashMap<String, Object>() {{}}), data), market);
+            parsed = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.extend(this.safeDict(ticker, "info", new HashMap<String, Object>() {{}}), data)), market);
         }
         this.tickers.put(symbol, parsed);
         String messageHash = ("ticker::" + symbol);
@@ -427,7 +427,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             put( "bids", bids );
             put( "asks", asks );
         }};
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(snapshot, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> parsed = this.parseOrderBook(snapshot, symbol, timestamp, "bids", "asks", 0, 1, 2);
         List<Object> sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
         Integer sequenceNumberRangeLength = sequenceNumberRange.size();
         if ((sequenceNumberRangeLength != null && sequenceNumberRangeLength > 0))
@@ -710,7 +710,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < rawTrades.size(); i++)
             {
-                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), (Map<String, Object>) null);
+                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
                 trades.append(parsedTrade);
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -940,7 +940,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         client.resolve(positions, "positions");
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

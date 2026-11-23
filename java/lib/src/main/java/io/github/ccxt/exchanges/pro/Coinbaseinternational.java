@@ -1375,13 +1375,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
+        List<Object> parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<Object> resolved = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolved, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
@@ -1543,7 +1543,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Integer dataLength = data.size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market);
             tradesArray.append(trade);
         }
         this.trades.put(symbol, tradesArray);
@@ -1646,12 +1646,12 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchOrderBook", parameters);
@@ -1830,7 +1830,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         Map<String, Object> error = this.safeDict(message, "error", null);
         if (java.util.Objects.equals(error, null))

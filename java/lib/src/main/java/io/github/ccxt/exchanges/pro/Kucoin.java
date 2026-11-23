@@ -1774,12 +1774,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchOrderBook", "uta", false);
@@ -2128,7 +2128,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String messageHash = ((("uta:orderbook:" + symbol) + ":depth:") + depth);
         if (java.util.Objects.equals(type, "snapshot"))
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
+            Map<String, Object> parsed = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
             parsed.put("nonce", this.safeInteger(data, "O"));
             orderbook.reset(parsed);
             this.orderbooks.put(symbol, orderbook);
@@ -4227,7 +4227,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.lastPong = ((Number)this.milliseconds()).longValue();
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -4267,23 +4267,33 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     {
         String type = this.safeString2(message, "type", "message");
         Map<String, String> methods = new HashMap<String, String>() {{
-            put( "welcome", "handleSystemStatus");
-            put( "ack", "handleSubscriptionStatus");
-            put( "message", "handleSubject");
-            put( "pong", "handlePong");
-            put( "error", "handleErrorMessage");
+            put("welcome", "handleSystemStatus");
+            put("ack", "handleSubscriptionStatus");
+            put("message", "handleSubject");
+            put("pong", "handlePong");
+            put("error", "handleErrorMessage");
         }};
         String method = methods.get(type);
         if (!java.util.Objects.equals(method, null))
         {
-            switch (method)
-            {
-                case "handleErrorMessage" -> this.handleErrorMessage(client, message);
-                case "handlePong" -> this.handlePong(client, message);
-                case "handleSubject" -> this.handleSubject(client, message);
-                case "handleSubscriptionStatus" -> this.handleSubscriptionStatus(client, message);
-                case "handleSystemStatus" -> this.handleSystemStatus(client, message);
-                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            switch (method) {
+                case "handleSystemStatus":
+                    this.handleSystemStatus(client, message);
+                    break;
+                case "handleSubscriptionStatus":
+                    this.handleSubscriptionStatus(client, message);
+                    break;
+                case "handleSubject":
+                    this.handleSubject(client, message);
+                    break;
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleErrorMessage":
+                    this.handleErrorMessage(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
             }
         } else if (message.containsKey("T"))
         {

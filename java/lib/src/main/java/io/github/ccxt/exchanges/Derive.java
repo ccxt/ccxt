@@ -875,9 +875,9 @@ public class Derive extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
@@ -980,12 +980,12 @@ public class Derive extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -1395,7 +1395,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(interest, "t");
         Map<String, Object> stats = this.safeDict(interest, "stats", new HashMap<String, Object>() {{}});
@@ -1759,7 +1759,7 @@ public class Derive extends DeriveApi
         return result;
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
@@ -2004,7 +2004,7 @@ public class Derive extends DeriveApi
             {
                 continue;
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(this.safeDict(tradesArray, i, new HashMap<String, Object>() {{}}), market);
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)result).add(trade);
         }
@@ -2106,7 +2106,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open_price", (Object) null), this.safeNumber(ohlcv, "high_price", (Object) null), this.safeNumber(ohlcv, "low_price", (Object) null), this.safeNumber(ohlcv, "close_price", (Object) null), this.safeNumber(ohlcv, "volume_contracts", (Object) null)));
     }
@@ -2335,7 +2335,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
     {
         String symbol = this.safeString(contract, "symbol");
         Long fundingTimestamp = this.safeInteger(contract, "timestamp");
@@ -3103,12 +3103,12 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4376,7 +4376,7 @@ public class Derive extends DeriveApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        Map<String, Object> transferEntry = (Map<String, Object>) this.parseTransfer(result, currency);
+        Map<String, Object> transferEntry = this.parseTransfer(result, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
         Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
@@ -4390,7 +4390,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
     {
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "asset");
@@ -4679,12 +4679,12 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
     }
 
-    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4895,7 +4895,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         //     {
@@ -5035,7 +5035,7 @@ public class Derive extends DeriveApi
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -5059,7 +5059,7 @@ public class Derive extends DeriveApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

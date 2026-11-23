@@ -728,12 +728,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -750,7 +750,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             name = ((("depth@" + marketId) + ",") + levels);
         }
         String messageHash = ("unsubscribe::" + name);
-        return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), paramsOmitted, new HashMap<String, Object>() {{}})).join();
+        return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new ArrayList<String>(Arrays.asList(symbol)), paramsOmitted, new HashMap<String, Object>() {{}})).join();
 
     }
 
@@ -1277,7 +1277,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Object tickerData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> tickerData = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1357,7 +1357,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
             String symbol = this.safeString(market, "symbol", "");
-            List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
+            List<Object> parsed = this.parseOHLCV(data, market);
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
@@ -2011,7 +2011,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         this.cleanCache(subscription);
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

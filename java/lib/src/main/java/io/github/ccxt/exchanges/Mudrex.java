@@ -257,7 +257,7 @@ public class Mudrex extends MudrexApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -327,7 +327,7 @@ public class Mudrex extends MudrexApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null) || !(response instanceof Map))
         {
@@ -366,7 +366,7 @@ public class Mudrex extends MudrexApi
         return null;
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
@@ -561,13 +561,13 @@ public class Mudrex extends MudrexApi
             {
                 continue;
             }
-            resultTickers.put(symbol, this.parseTicker(t, m));
+            resultTickers.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(rows, i, new HashMap<String, Object>() {{}})), m));
         }
         return this.filterByArrayTickers(resultTickers, "symbol", symbols);
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         String ms = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(ms, market, (String) null, (String) null);
@@ -605,12 +605,12 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> aggregated = new ArrayList<Object>(Arrays.asList());
@@ -871,12 +871,12 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Object leverage, String symbol, Map<String, Object> parameters)
+    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -1193,12 +1193,12 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1584,12 +1584,12 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.addMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object addMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object addMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1631,15 +1631,15 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.reduceMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object reduceMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.addMargin(symbol, this.parseNumber(Precise.stringNeg(this.numberToString(amount))), parameters)).join();
+        return (this.addMargin(symbol, (Double) (this.parseNumber(Precise.stringNeg(this.numberToString(amount)))), parameters)).join();
 
     }
 

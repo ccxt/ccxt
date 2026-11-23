@@ -759,8 +759,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> optionsType = this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
         String listenKey = this.safeString(optionsType, "listenKey");
         String url = this.getPrivateWsUrl(type, (String) (listenKey));
-        List<String> message = null;
-        List<Object> newLiquidations = (List<Object>) (this.watchMultiple(url, messageHashes, message, new ArrayList<Object>(Arrays.asList(type)), null)).join();
+        List<Object> newLiquidations = (List<Object>) (this.watchMultiple(url, messageHashes, null, new ArrayList<Object>(Arrays.asList(type)), null)).join();
         if (this.newUpdates)
         {
             return newLiquidations;
@@ -1075,12 +1074,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1183,7 +1182,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = this.safeDict(message, "result", null);
         Long timestamp = this.safeInteger(result, "T");
-        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, null, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> orderbook = this.parseOrderBook(result, null, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.put("nonce", this.safeInteger2(result, "lastUpdateId", "u"));
         client.resolve(orderbook, messageHash);
     }
@@ -1901,7 +1900,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Boolean isTradeExecution = (java.util.Objects.equals(executionType, "TRADE"));
         if (!Boolean.TRUE.equals(isTradeExecution))
         {
-            return this.parseTrade(trade, market);
+            return this.parseTrade(this.extend(new HashMap<String, Object>() {{}}, trade), market);
         }
         String id = this.safeString2(trade, "t", "a");
         Long timestamp = this.safeInteger(trade, "T");
@@ -4505,8 +4504,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
         }
         String messageHash = (type + ":balance");
-        List<String> message = null;
-        return (this.watch(url, messageHash, message, type, null)).join();
+        return (this.watch(url, messageHash, null, type, null)).join();
 
     }
 
@@ -5587,8 +5585,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Client client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, (List<String>) null, isPortfolioMargin);
-        List<String> message = null;
-        List<Object> orders = (this.<List<Object>>watch(url, messageHash, message, type, null)).join();
+        List<Object> orders = (this.<List<Object>>watch(url, messageHash, null, type, null)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -6838,8 +6835,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Client client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, (List<String>) null, isPortfolioMargin);
-        List<String> message = null;
-        List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, type, null)).join();
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, null, type, null)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

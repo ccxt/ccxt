@@ -1837,9 +1837,9 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchMarketsCore(Map<String, Object> parameters)
@@ -3104,7 +3104,7 @@ public class Interactivebrokers extends InteractivebrokersApi
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         String marketId = this.safeString(interest, "conid");
         Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -3208,7 +3208,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return result;
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "conid");
         Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -3354,7 +3354,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return ((this.yyyymmdd(timestamp, "") + "-") + (iso == null ? null : ((String)iso).substring(Math.min(11, ((String)iso).length()), Math.min(19, ((String)iso).length()))));
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
     }
@@ -3962,12 +3962,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -4793,12 +4793,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsForSymbol(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsForSymbolCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsForSymbolCore(Object symbol, Map<String, Object> parameters)
+    private Object fetchPositionsForSymbolCore(String symbol, Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -4894,7 +4894,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return this.safePosition(mapLiteral10);
     }
 
-    public Object ibkrEncrypt(String value)
+    public String ibkrEncrypt(String value)
     {
         // RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string
         String encoded = this.urlencode(new HashMap<String, Object>() {{
@@ -4995,7 +4995,7 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} gatewayUrl options.gatewayUrl
      * @returns {string} the gateway base url
      */
-    public Object ibkrGatewayBaseUrl(String baseUrl, String gatewayUrl)
+    public String ibkrGatewayBaseUrl(String baseUrl, String gatewayUrl)
     {
         Object gateway = gatewayUrl;
         if (!((String)gateway).endsWith("/"))
@@ -5056,7 +5056,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return Boolean.TRUE.equals(useGatewayOption) || (!Boolean.TRUE.equals(hasLiveSessionToken) && !Boolean.TRUE.equals(oauthConfigured) && !Boolean.TRUE.equals(isLiveSessionTokenRequest));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         Object implodedPath = this.ibkrImplodePath((String) (path), (Map<String, Object>) (parameters));
         String apiBase = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -5220,7 +5220,7 @@ public class Interactivebrokers extends InteractivebrokersApi
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (((code != null && ((Number) code).doubleValue() == 401)) && Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
         {

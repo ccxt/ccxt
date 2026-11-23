@@ -315,12 +315,12 @@ public class Predictfun extends PredictfunApi
      * @param {int} [params.limit] the maximum number of events to collect markets from
      * @returns {Market[]} array of market structures
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<PredictionEvent> events = (this.fetchEvents(parameters)).join();
@@ -1412,12 +1412,12 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -1453,7 +1453,7 @@ public class Predictfun extends PredictfunApi
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         if (Boolean.TRUE.equals(isYesOutcome))
         {
-            Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
+            Map<String, Object> yesOrderbook = this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
             return this.safePredictionOrderBook(yesOrderbook, outcomeObj);
         } else
         {
@@ -2480,12 +2480,12 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.address] read another wallet's position, which needs no JWT
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionPosition> fetchPosition(String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionCore(outcome, parameters)).thenApply(PredictionPosition::new);
     }
 
-    private Object fetchPositionCore(Object outcome, Map<String, Object> parameters)
+    private Object fetchPositionCore(String outcome, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -2707,12 +2707,12 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(String id, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -3043,7 +3043,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3380,12 +3380,12 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(outcome, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object outcome, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String outcome, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -4483,7 +4483,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.

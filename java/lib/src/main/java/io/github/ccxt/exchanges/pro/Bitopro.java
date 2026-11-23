@@ -165,7 +165,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount", 2);
+        Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount", 2);
         orderbook.reset(snapshot);
         if (!java.util.Objects.equals(eventVar, null))
         {

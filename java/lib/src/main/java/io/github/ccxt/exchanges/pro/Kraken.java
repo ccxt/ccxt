@@ -2126,7 +2126,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

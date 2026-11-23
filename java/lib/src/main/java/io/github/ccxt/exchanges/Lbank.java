@@ -559,9 +559,9 @@ public class Lbank extends LbankApi
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
@@ -680,9 +680,9 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchMarketsCore(Map<String, Object> parameters)
@@ -900,7 +900,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -942,7 +942,7 @@ public class Lbank extends LbankApi
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> tickerData = this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object data = ((Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))) ? ticker : tickerData;
+        Map<String, Object> data = ((Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))) ? ticker : tickerData;
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("symbol", symbol);
         mapLiteral2.put("timestamp", timestamp);
@@ -1133,12 +1133,12 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1410,7 +1410,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //   [
@@ -1624,7 +1624,7 @@ public class Lbank extends LbankApi
         return this.safeBalance(result);
     }
 
-    public Object parseFundingRate(Object ticker, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object ticker, Map<String, Object> market)
     {
         // {
         //     "symbol": "BTCUSDT",
@@ -1929,12 +1929,12 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketBuyOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketBuyOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2257,12 +2257,12 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2864,12 +2864,12 @@ public class Lbank extends LbankApi
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
     }
 
-    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
         List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
@@ -2947,7 +2947,7 @@ public class Lbank extends LbankApi
         return this.safeString(this.safeDict(statuses, ((String)type), new HashMap<String, Object>() {{}}), status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits (private)
@@ -3181,12 +3181,12 @@ public class Lbank extends LbankApi
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(Object codes, Map<String, Object> parameters)
+    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         // private only returns information for currencies with non-zero balance
@@ -3379,12 +3379,12 @@ public class Lbank extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositWithdrawFeesCore(codes, parameters)).thenApply(DepositWithdrawFees::new);
     }
 
-    private Object fetchDepositWithdrawFeesCore(Object codes, Map<String, Object> parameters)
+    private Object fetchDepositWithdrawFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3408,12 +3408,12 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchPrivateDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchPrivateDepositWithdrawFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPrivateDepositWithdrawFeesCore(codes, parameters));
     }
 
-    private Object fetchPrivateDepositWithdrawFeesCore(Object codes, Map<String, Object> parameters)
+    private Object fetchPrivateDepositWithdrawFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         // complete response
@@ -3458,12 +3458,12 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchPublicDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchPublicDepositWithdrawFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPublicDepositWithdrawFeesCore(codes, parameters));
     }
 
-    private Object fetchPublicDepositWithdrawFeesCore(Object codes, Map<String, Object> parameters)
+    private Object fetchPublicDepositWithdrawFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         // extremely incomplete response
@@ -3500,7 +3500,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Map<String, Object> parsePublicDepositWithdrawFees(List<Object> response, Object codes)
+    public Map<String, Object> parsePublicDepositWithdrawFees(List<Object> response, List<String> codes)
     {
         //
         //    [
@@ -3642,7 +3642,7 @@ public class Lbank extends LbankApi
         return result;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -3759,7 +3759,7 @@ public class Lbank extends LbankApi
         return (pem + "-----END PRIVATE KEY-----");
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

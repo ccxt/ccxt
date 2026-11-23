@@ -146,7 +146,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q", 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q", 2);
             snapshot.put("nonce", nonce);
             orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
@@ -902,7 +902,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         subscription.put("nonce", nonce);
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market);
             stored.append(trade);
         }
         client.resolve(stored, messageHash);
@@ -1026,7 +1026,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
+            List<Object> parsed = this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
@@ -1048,7 +1048,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         return null;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }

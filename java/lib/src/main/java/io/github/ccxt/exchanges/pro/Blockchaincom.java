@@ -837,7 +837,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
+            Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
             orderbook.reset(snapshot);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {

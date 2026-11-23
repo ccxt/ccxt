@@ -613,7 +613,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             return;
         }
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(payload, symbol, (Long) null, "bids", "asks", 6, 8, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(payload, symbol, (Long) null, "bids", "asks", 6, 8, 2);
         Long limit = this.safeInteger(subscription, "limit");
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates

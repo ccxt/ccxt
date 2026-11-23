@@ -772,14 +772,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         if (!java.util.Objects.equals(data, null))
         {
-            List<Object> ohlcv = (List<Object>) this.parseWsOHLCV(data, market);
+            List<Object> ohlcv = this.parseWsOHLCV(data, market);
             stored.append(ohlcv);
         }
         String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -840,12 +840,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
      * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -978,7 +978,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "asks", asks );
         }};
         Long timestamp = this.safeInteger(message, "mt", 0);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         List<Object> cachedMessages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var j = 0; j < cachedMessages.size(); j++)
@@ -1553,7 +1553,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         this.cleanCache(subscription);
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

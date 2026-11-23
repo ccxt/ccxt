@@ -712,12 +712,12 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -733,7 +733,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -862,8 +862,7 @@ public class Coinspot extends CoinspotApi
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String symbol = this.safeString(market, "symbol", "");
-                Object ticker = (prices == null || id == null ? null : prices.get(id));
-                result.put(symbol, this.parseTicker(ticker, market));
+                result.put(symbol, this.parseTicker((Map<String, Object>) (this.safeDict(prices, id, new HashMap<String, Object>() {{}})), market));
             }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1161,7 +1160,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1182,7 +1181,7 @@ public class Coinspot extends CoinspotApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;

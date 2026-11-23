@@ -515,12 +515,12 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] exchange specific params
      * @returns An array of market structures
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
@@ -715,12 +715,12 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] exchange specific params
      * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -879,7 +879,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -1183,7 +1183,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //    {
@@ -2139,12 +2139,12 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3240,7 +3240,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //    {
@@ -3599,7 +3599,7 @@ public class Krakenfutures extends KrakenfuturesApi
         List<String> marketIds = this.marketIds(symbols);
         Map<String, Object> response = (this.publicGetTickers(parameters)).join();
         List<Object> tickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
-        List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> fundingRates = new ArrayList<Map<String, Object>>();
         for (var i = 0; i < tickers.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(tickers, i, null);
@@ -3613,13 +3613,13 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> market = this.safeMarket(entry_symbol, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, market);
-            ((List<Object>)fundingRates).add(parsed);
+            fundingRates.add(parsed);
         }
         return this.indexBy(fundingRates, "symbol");
 
     }
 
-    public Object parseFundingRate(Object ticker, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -4187,7 +4187,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return tiers;
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -4321,7 +4321,7 @@ public class Krakenfutures extends KrakenfuturesApi
         //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
-        Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(response, currency);
+        Map<String, Object> transfer = this.parseTransfer(response, currency);
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
         mapLiteral9.put("amount", amount);
         mapLiteral9.put("fromAccount", fromAccount);
@@ -4340,12 +4340,12 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Object leverage, String symbol, Map<String, Object> parameters)
+    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4470,7 +4470,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4498,7 +4498,7 @@ public class Krakenfutures extends KrakenfuturesApi
         throw new ExchangeError(feedback) ;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiVersions = this.safeDict(this.options.get("versions"), apiName, new HashMap<String, Object>() {{}});

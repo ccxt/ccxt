@@ -2199,9 +2199,9 @@ public class Kucoin extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchMarketsCore(Map<String, Object> parameters)
@@ -2866,9 +2866,9 @@ public class Kucoin extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
@@ -2935,11 +2935,10 @@ public class Kucoin extends KucoinApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
-        Object entry = currency;
-        String id = this.safeString(entry, "currency");
+        String id = this.safeString(currency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> chains = (List<Object>) this.safeList2(entry, "chains", "items", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList2(currency, "chains", "items", new ArrayList<Object>(Arrays.asList()));
         Integer chainsLength = chains.size();
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
@@ -2972,16 +2971,16 @@ public class Kucoin extends KucoinApi
             }
         }
         // kucoin has determined 'fiat' currencies with below logic
-        String rawPrecision = this.safeString(entry, "precision");
+        String rawPrecision = this.safeString(currency, "precision");
         Double precision = this.parseNumber(this.parsePrecision(rawPrecision));
         Boolean isFiat = java.util.Objects.equals(chainsLength, 0);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "name", Kucoin.this.safeString(entry, "fullName") );
+            put( "name", Kucoin.this.safeString(currency, "fullName") );
             put( "code", code );
             put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
             put( "precision", precision );
-            put( "info", entry );
+            put( "info", currency );
             put( "networks", networks );
             put( "deposit", null );
             put( "withdraw", null );
@@ -3449,11 +3448,11 @@ public class Kucoin extends KucoinApi
         return this.safeTicker(mapLiteral2, marketResolved);
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         // wrapper for parseTickers
         // parseTickers used only in methods for contract markets
-        return this.parseContractTicker((Map<String, Object>) (ticker), market);
+        return this.parseContractTicker(ticker, market);
     }
 
     public Ticker parseContractTicker(Map<String, Object> ticker, Map<String, Object> market)
@@ -3954,7 +3953,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -4482,7 +4481,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         String address = this.safeString(depositAddress, "address");
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
@@ -4601,7 +4600,7 @@ public class Kucoin extends KucoinApi
             this.setDepositAddressesVersion(version);
         }
         List<Object> chains = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object parsed = this.parseDepositAddresses(chains, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{
+        Object parsed = this.parseDepositAddresses(chains, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{
             put( "currency", currency.get("code") );
         }});
         return this.indexBy(parsed, "network");
@@ -4622,12 +4621,12 @@ public class Kucoin extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4770,7 +4769,7 @@ public class Kucoin extends KucoinApi
                 timestamp = this.parseToInt((((double) nanoseconds) / ((double) 1000000)));
             }
         }
-        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, market.get("symbol"), timestamp, "bids", "asks", (level - 2L), (level - 1L), 2);
+        Map<String, Object> orderbook = this.parseOrderBook(data, market.get("symbol"), timestamp, "bids", "asks", (level - 2L), (level - 1L), 2);
         orderbook.put("nonce", this.safeInteger(data, "sequence"));
         return orderbook;
 
@@ -5629,12 +5628,12 @@ public class Kucoin extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
     }
 
-    private Object createMarketBuyOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    private Object createMarketBuyOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6146,8 +6145,7 @@ public class Kucoin extends KucoinApi
             {
                 response = (this.privateDeleteOrderClientOrderClientOid(this.extend(request, paramsOmitted))).join();
             }
-            response = this.safeDict(response, "data", null);
-            return this.parseOrder(response, (Map<String, Object>) null);
+            return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
         } else
         {
             request.put("orderId", id);
@@ -6183,8 +6181,7 @@ public class Kucoin extends KucoinApi
                 //        }
                 //    }
                 //
-                response = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseOrder(response, (Map<String, Object>) null);
+                return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             } else
             {
                 response = (this.privateDeleteOrdersOrderId(this.extend(request, paramsOmitted))).join();
@@ -7244,12 +7241,12 @@ public class Kucoin extends KucoinApi
      * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -9204,12 +9201,12 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
     }
 
-    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
         List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
@@ -9292,7 +9289,7 @@ public class Kucoin extends KucoinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -10434,7 +10431,7 @@ public class Kucoin extends KucoinApi
         //
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(data, currency);
+        Map<String, Object> transfer = this.parseTransfer(data, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
         Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
@@ -10542,7 +10539,7 @@ public class Kucoin extends KucoinApi
             response = (this.privatePostAccountsUniversalTransfer(this.extend(request, paramsTransferType))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(data, currency);
+        Map<String, Object> transfer = this.parseTransfer(data, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
         Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
@@ -10561,7 +10558,7 @@ public class Kucoin extends KucoinApi
         return this.inArray(fromId, new ArrayList<Object>(Arrays.asList("trade_hf", "pool"))) || this.inArray(toId, new ArrayList<Object>(Arrays.asList("trade_hf", "pool")));
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // transfer (spot)
@@ -10747,7 +10744,7 @@ public class Kucoin extends KucoinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //     {
@@ -11423,12 +11420,12 @@ public class Kucoin extends KucoinApi
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public CompletableFuture<Map<String, Object>> fetchBorrowRateHistories(Object codes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchBorrowRateHistories(List<String> codes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoriesCore(codes, since, limit, parameters));
     }
 
-    private Map<String, Object> fetchBorrowRateHistoriesCore(Object codes, Long since, Long limit, Map<String, Object> parameters)
+    private Map<String, Object> fetchBorrowRateHistoriesCore(List<String> codes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11872,12 +11869,12 @@ public class Kucoin extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchDepositWithdrawFeesCore(codes, parameters)).thenApply(DepositWithdrawFees::new);
     }
 
-    private Object fetchDepositWithdrawFeesCore(Object codes, Map<String, Object> parameters)
+    private Object fetchDepositWithdrawFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11991,12 +11988,12 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Object leverage, String symbol, Map<String, Object> parameters)
+    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -12301,7 +12298,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseFundingRate(Object data, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object data, Map<String, Object> market)
     {
         // uta
         //     {
@@ -12637,12 +12634,12 @@ public class Kucoin extends KucoinApi
      * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionCore(symbol, parameters)).thenApply(Position::new);
     }
 
-    private Object fetchPositionCore(Object symbol, Map<String, Object> parameters)
+    private Object fetchPositionCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13297,12 +13294,12 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.addMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object addMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object addMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13385,12 +13382,12 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.reduceMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object reduceMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13982,7 +13979,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
         //     {
@@ -14124,7 +14121,7 @@ public class Kucoin extends KucoinApi
         this.options.put("versions", versions);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         //
@@ -14246,7 +14243,7 @@ public class Kucoin extends KucoinApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

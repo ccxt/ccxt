@@ -1160,7 +1160,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
@@ -1168,7 +1168,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

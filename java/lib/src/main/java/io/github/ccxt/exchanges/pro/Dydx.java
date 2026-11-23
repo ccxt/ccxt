@@ -249,12 +249,12 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -475,7 +475,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         List<Object> candles = this.safeList(content, "candles", null);
         String messageHash = ("ohlcv:" + symbol);
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(candles, 0, content);
-        List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
+        List<Object> parsed = this.parseOHLCV(ohlcv, market);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -488,7 +488,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         client.resolve(stored, messageHash);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         try
         {

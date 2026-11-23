@@ -718,12 +718,12 @@ public class Backpack extends BackpackApi
      * @param {boolean} [params.stock] return tokenized stock assets only
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCurrencies", "stock", false);
@@ -809,7 +809,10 @@ public class Backpack extends BackpackApi
         Boolean withdraw = null;
         if (this.isEmpty(parsedNetworks))
         {
-            active = ((Boolean.TRUE.equals(stock))) ? null : false;
+            if (!Boolean.TRUE.equals(stock))
+            {
+                active = false;
+            }
             deposit = false;
             withdraw = false;
         }
@@ -849,12 +852,12 @@ public class Backpack extends BackpackApi
      * @param {string|string[]} [params.marketType] market types to discover: spot, swap or stock
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -1123,7 +1126,7 @@ public class Backpack extends BackpackApi
         Boolean inverse = null;
         String settle = null;
         String settleId = null;
-        Integer contractSize = null;
+        Double contractSize = null;
         if ((java.util.Objects.equals(typeOfMarket, "spot")) || Boolean.TRUE.equals(rfq))
         {
             type = "spot";
@@ -1161,7 +1164,13 @@ public class Backpack extends BackpackApi
                 {
                     amountPrecision = this.parseNumber(stepSize);
                     minQuantity = this.parseNumber(minimum);
-                    maxQuantity = ((Boolean.TRUE.equals(unbounded))) ? null : this.parseNumber(maximum);
+                    if (Boolean.TRUE.equals(unbounded))
+                    {
+                        maxQuantity = null;
+                    } else
+                    {
+                        maxQuantity = this.parseNumber(maximum);
+                    }
                 }
             }
         } else if (java.util.Objects.equals(typeOfMarket, "swap"))
@@ -1172,7 +1181,7 @@ public class Backpack extends BackpackApi
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
             symbol = ((((base + "/") + quote) + ":") + quote); // settle is the quote currency
-            contractSize = 1;
+            contractSize = this.parseNumber("1");
         } else
         {
             return null;
@@ -1736,12 +1745,11 @@ public class Backpack extends BackpackApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < entries.size(); i++)
         {
-            Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
-            String symbol = this.safeString(entry, "symbol");
+            String symbol = this.safeString((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)), "symbol");
             Map<String, Object> market = this.safeDict(this.markets, symbol, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
             {
-                ((List<Object>)result).add(entry);
+                ((List<Object>)result).add((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)));
             }
         }
         return result;
@@ -1896,7 +1904,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         // fetchTicker/fetchTickers
@@ -1915,7 +1923,7 @@ public class Backpack extends BackpackApi
         //     }, ...
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
+        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
         String open = this.safeString(ticker, "firstPrice");
         String last = this.safeString(ticker, "lastPrice");
         String high = this.safeString(ticker, "high");
@@ -1953,7 +1961,7 @@ public class Backpack extends BackpackApi
         mapLiteral8.put("markPrice", null);
         mapLiteral8.put("indexPrice", null);
         mapLiteral8.put("info", ticker);
-        Ticker parsedTicker = this.safeTicker(mapLiteral8, marketResolved);
+        Ticker parsedTicker = this.safeTicker(mapLiteral8, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         return (Ticker) parsedTicker;
     }
 
@@ -1969,12 +1977,12 @@ public class Backpack extends BackpackApi
      * @param {string} [params.source] Venue, External provider depth is not supported
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2015,7 +2023,7 @@ public class Backpack extends BackpackApi
             throw new ExchangeError((this.id + " fetchOrderBook() missing microseconds")) ;
         }
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
-        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> orderbook = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
         if (!java.util.Objects.equals(limit, null))
         {
@@ -2108,7 +2116,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -2164,7 +2172,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -2236,7 +2244,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
         //     [
@@ -2458,11 +2466,10 @@ public class Backpack extends BackpackApi
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < rfqTrades.size(); i++)
             {
-                Object trade = (rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i));
-                Long timestamp = this.safeInteger(trade, "timestamp");
+                Long timestamp = this.safeInteger((rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i)), "timestamp");
                 if ((java.util.Objects.equals(until, null)) || ((!java.util.Objects.equals(timestamp, null)) && ((timestamp == null || (until != null && timestamp <= until)))))
                 {
-                    ((List<Object>)filtered).add(trade);
+                    ((List<Object>)filtered).add((rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i)));
                 }
             }
             List<Object> sorted = this.sortBy(filtered, "timestamp");
@@ -2843,12 +2850,12 @@ public class Backpack extends BackpackApi
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
     }
 
-    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
         List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
@@ -2882,7 +2889,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -3058,7 +3065,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -3636,12 +3643,12 @@ public class Backpack extends BackpackApi
      * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4108,16 +4115,16 @@ public class Backpack extends BackpackApi
         Double entryPrice = this.safeNumber(position, "entryPrice", (Object) null);
         Double markPrice = this.safeNumber(position, "markPrice", (Object) null);
         String netCost = this.safeString(position, "netCost");
-        Boolean hedged = false;
-        String side = "long";
-        if (Precise.stringLt(netCost, "0"))
+        Boolean hedged = null;
+        String side = null;
+        if (!java.util.Objects.equals(netCost, null))
         {
-            side = "short";
-        }
-        if (java.util.Objects.equals(netCost, null))
-        {
-            hedged = null;
-            side = null;
+            hedged = false;
+            side = "long";
+            if (Precise.stringLt(netCost, "0"))
+            {
+                side = "short";
+            }
         }
         Double unrealizedPnl = this.safeNumber(position, "pnlUnrealized", (Object) null);
         Double realizedPnl = this.safeNumber(position, "pnlRealized", (Object) null);
@@ -4234,7 +4241,7 @@ public class Backpack extends BackpackApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + path);
@@ -4327,7 +4334,7 @@ public class Backpack extends BackpackApi
         return payload;
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

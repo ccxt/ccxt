@@ -1186,12 +1186,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         parameters.put("callerMethodName", "unWatchOrderBook");
@@ -1367,7 +1367,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", 0, 1, 2);
         orderbook.reset(snapshot);
         String messageHash = (("orderbook" + ":") + symbol);
         this.orderbooks.put(symbol, orderbook);
@@ -1620,14 +1620,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(kline, (Map<String, Object>) null);
+        List<Object> parsed = this.parseWsOHLCV(kline, (Map<String, Object>) null);
         stored.append(parsed);
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
     }

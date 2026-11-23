@@ -631,12 +631,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -720,7 +720,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "t");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a", 2);
+        Map<String, Object> snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a", 2);
         Long nonce = this.safeInteger(entry, "li");
         if ((!java.util.Objects.equals(nonce, null)) && ((nonce == null || nonce != 0)))
         {
@@ -1004,22 +1004,17 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> info = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(info, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(info, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, market);
             this.tickers.put(symbol, ticker);
             ((List<Object>)parsedTickers).add(ticker);
         }
         Map<String,Object> tickers = this.indexBy(parsedTickers, "symbol");
         client.resolve(tickers, "tickers");
         return true;
-    }
-
-    public Ticker parseWsTicker(Object rawTicker, Map<String, Object> market)
-    {
-        return this.parseTicker(rawTicker, market);
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -1473,7 +1468,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             this.ohlcvs.get(symbol).put(timeframe, ohlcv);
         }
-        List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
+        List<Object> parsed = this.parseOHLCV(data, (Map<String, Object>) null);
         ohlcv.append(parsed);
         client.resolve(ohlcv, messageHash);
     }
@@ -1664,7 +1659,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         client.resolve(stored, messageHash);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used

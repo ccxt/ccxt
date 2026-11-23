@@ -334,12 +334,12 @@ public class Limitless extends LimitlessApi
      * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> queries = this.parseSearchQueries(parameters);
@@ -473,8 +473,7 @@ public class Limitless extends LimitlessApi
         for (var i = 0; i < eventKeys.size(); i++)
         {
             String eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
-            Map<String, Object> g = (Map<String, Object>) ((eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey)));
-            eventsDict.put(eventKey, this.parseEvent(g));
+            eventsDict.put(eventKey, this.parseEvent((Map<String, Object>) (this.safeDict(eventGroups, eventKey, new HashMap<String, Object>() {{}}))));
         }
         this.events = eventsDict;
         Integer marketsLength = markets.size();
@@ -599,8 +598,7 @@ public class Limitless extends LimitlessApi
         for (var i = 0; i < tokenEntries.size(); i++)
         {
             String outcomeLabel = (tokenEntries == null || i < 0 || i >= tokenEntries.size() ? null : tokenEntries.get(i));
-            Object tokenData = (tokens == null || outcomeLabel == null ? null : tokens.get(outcomeLabel));
-            Object tokenId = tokenData;
+            String tokenId = this.safeString(tokens, outcomeLabel);
             String outcomeHandle = this.slugToOutcomeSymbol((String) (groupId), (String) (slug), outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1271,10 +1269,8 @@ public class Limitless extends LimitlessApi
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             List<Object> rawBids = this.safeList(book, "bids", new ArrayList<Object>(Arrays.asList()));
             List<Object> rawAsks = this.safeList(book, "asks", new ArrayList<Object>(Arrays.asList()));
-            Integer rawBidsLength = rawBids.size();
-            Integer rawAsksLength = rawAsks.size();
-            Object yesBestBid = ((((rawBidsLength != null && rawBidsLength > 0)))) ? (rawBids == null || 0 >= ((List<?>)rawBids).size() ? null : ((List<?>)rawBids).get(0)) : null;
-            Object yesBestAsk = ((((rawAsksLength != null && rawAsksLength > 0)))) ? (rawAsks == null || 0 >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(0)) : null;
+            Map<String, Object> yesBestBid = this.safeDict(rawBids, 0, null);
+            Map<String, Object> yesBestAsk = this.safeDict(rawAsks, 0, null);
             String yesBidPrice = this.safeString(yesBestBid, "price");
             String yesBidSize = this.safeString(yesBestBid, "size");
             String yesAskPrice = this.safeString(yesBestAsk, "price");
@@ -1534,12 +1530,12 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -2088,12 +2084,12 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(String id, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
         if (!java.util.Objects.equals(outcome, null))
@@ -2571,7 +2567,11 @@ public class Limitless extends LimitlessApi
                 } else
                 {
                     Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                    Object costRequest = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
+                    Object costRequest = quoteAmount;
+                    if (!java.util.Objects.equals(cost, null))
+                    {
+                        costRequest = cost;
+                    }
                     makerAmount = this.costToPredictionPrecision((String) (outcome), costRequest);
                 }
             } else
@@ -2716,10 +2716,8 @@ public class Limitless extends LimitlessApi
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
-        String rHex = this.safeString(signature, "r");
-        String sHex = this.safeString(signature, "s");
-        rHex = this.padHexToEven((String) (rHex));
-        sHex = this.padHexToEven((String) (sHex));
+        String rHex = this.padHexToEven(this.safeString(signature, "r"));
+        String sHex = this.padHexToEven(this.safeString(signature, "s"));
         Long yParity = this.safeInteger(signature, "v");
         List<Object> signedFields = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < fields.size(); i++)
@@ -3778,7 +3776,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseUrl = this.safeString(this.urls.get("api"), apiGroup, this.safeString(this.urls.get("api"), "limitless", ""));
@@ -3835,7 +3833,7 @@ public class Limitless extends LimitlessApi
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

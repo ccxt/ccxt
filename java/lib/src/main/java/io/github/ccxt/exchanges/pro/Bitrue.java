@@ -499,7 +499,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
@@ -946,7 +946,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(tick, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        List<Object> parsed = this.parseWsOHLCV(tick, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
@@ -961,7 +961,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsOHLCV(Object tick, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object tick, Map<String, Object> market)
     {
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeTimestamp(tick, "id");

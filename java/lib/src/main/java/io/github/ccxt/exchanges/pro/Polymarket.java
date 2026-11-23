@@ -186,12 +186,12 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -233,7 +233,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(message, "sq"));
         if (!(this.orderbooks.containsKey(symbol)))
         {
@@ -760,7 +760,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         for (var i = 0; i < rows.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market);
+            List<Object> parsed = this.parseOHLCV((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market);
             ohlcv.append(parsed);
         }
         String messageHash = ((("candles:" + timeframe) + ":") + symbol);

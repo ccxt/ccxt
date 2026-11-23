@@ -245,7 +245,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         Map<String, Object> error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");

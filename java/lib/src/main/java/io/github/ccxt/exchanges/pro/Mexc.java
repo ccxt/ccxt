@@ -227,7 +227,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             ticker.put("datetime", this.iso8601(timestamp));
         } else if (!java.util.Objects.equals(rawTicker, null))
         {
-            ticker = this.parseTicker(rawTicker, market);
+            ticker = this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, rawTicker)), market);
         } else
         {
             return;
@@ -382,7 +382,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 ticker = this.parseWsTicker(entry, market);
             } else
             {
-                ticker = this.parseTicker(entry, (Map<String, Object>) null);
+                ticker = this.parseTicker((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             }
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -805,7 +805,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //    }
         // }
         //
-        Object parsed = null;
+        List<Object> parsed = null;
         Map<String, Object> market = null;
         String timeframe = null;
         if (message.containsKey("publicSpotKline"))
@@ -843,7 +843,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // spot
@@ -1278,7 +1278,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 parsedTrade = this.parseWsTrade((Map<String, Object>) ((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j))), market);
             } else
             {
-                parsedTrade = this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
+                parsedTrade = this.parseTrade(this.safeDict(trades, j, new HashMap<String, Object>() {{}}), market);
             }
             stored.append(parsedTrade);
         }
@@ -1390,7 +1390,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             trade = this.parseWsTrade(data, market);
         } else if (!java.util.Objects.equals(data, null))
         {
-            trade = this.parseTrade(data, market);
+            trade = this.parseTrade(this.extend(new HashMap<String, Object>() {{}}, data), market);
         } else
         {
             return;
@@ -1977,12 +1977,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("unsubscribe:fundingRate:" + market.get("symbol"));
-        Object url = null;
         String channel = "unsub.funding.rate";
         Map<String, Object> requestParams = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+        String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
         this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         Client client = this.client(url);
         this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
@@ -2231,12 +2230,12 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))

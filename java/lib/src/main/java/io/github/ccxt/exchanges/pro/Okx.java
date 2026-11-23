@@ -129,9 +129,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public String getUrl(String channel, Object access)
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        boolean isSandbox = Boolean.TRUE.equals(this.options.get("sandboxMode"));
+        Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String sandboxSuffix = "";
-        if (isSandbox)
+        if (java.util.Objects.equals(isSandbox, true))
         {
             sandboxSuffix = "?brokerId=9999";
         }
@@ -436,7 +436,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
@@ -889,7 +889,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             this.tickers.put(symbol, ticker);
             newTickers.put(symbol, ticker);
         }
@@ -1155,8 +1155,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         List<Object> rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < rawLiquidations.size(); i++)
         {
-            Map<String, Object> rawLiquidation = (Map<String, Object>) (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
-            Map<String, Object> liquidation = this.parseWsLiquidation(rawLiquidation, (Map<String, Object>) null);
+            Map<String, Object> liquidation = this.parseWsLiquidation((Map<String, Object>) ((rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i))), (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1588,7 +1587,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String timeframe = this.findTimeframe(interval, (Object) null);
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            List<Object> parsed = this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
             if (java.util.Objects.equals(stored, null))
@@ -1809,12 +1808,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -2013,7 +2012,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
-                Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
+                Map<String, Object> snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
                 snapshot.put("nonce", this.safeInteger(update, "seqId"));
                 snapshotBook.reset(snapshot);
                 if (!(client.subscriptions.containsKey(messageHash)))
@@ -2056,7 +2055,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     Long timestamp = this.safeInteger(update, "ts");
-                    Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 2);
+                    Map<String, Object> snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 2);
                     bboBook.reset(snapshot);
                     client.resolve(bboBook, messageHash);
                 }
@@ -3212,7 +3211,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }

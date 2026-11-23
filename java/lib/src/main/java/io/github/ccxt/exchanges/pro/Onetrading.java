@@ -480,7 +480,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         if (java.util.Objects.equals(type, "ORDER_BOOK_SNAPSHOT"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
@@ -863,7 +863,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             List<Object> rawTrades = this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < rawTrades.size(); ii++)
             {
-                Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)), (Map<String, Object>) null);
+                Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, ii, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
                 symbol = this.safeString(trade, "symbol", symbol);
                 ((io.github.ccxt.ws.ArrayCache) this.myTrades).append(trade);
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
@@ -1397,7 +1397,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         throw new ExchangeError(((this.id + " ") + this.json(message))) ;
     }

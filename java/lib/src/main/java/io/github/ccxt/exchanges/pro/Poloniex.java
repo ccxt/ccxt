@@ -968,7 +968,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //    {
@@ -1018,7 +1018,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
+        List<Object> parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe));
         if (!java.util.Objects.equals(symbol, null))
@@ -1469,7 +1469,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> item = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1819,7 +1819,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

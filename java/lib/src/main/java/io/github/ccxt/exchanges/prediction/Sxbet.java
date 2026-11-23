@@ -262,12 +262,12 @@ public class Sxbet extends SxbetApi
      * @param {int} [params.limit] max number of markets to collect (defaults to options.marketsPageSize * options.maxMarketsPages, 5000)
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
@@ -1707,12 +1707,12 @@ public class Sxbet extends SxbetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(String id, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -2535,12 +2535,12 @@ public class Sxbet extends SxbetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -3381,7 +3381,7 @@ public class Sxbet extends SxbetApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
@@ -3428,7 +3428,7 @@ public class Sxbet extends SxbetApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String accessLevel = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

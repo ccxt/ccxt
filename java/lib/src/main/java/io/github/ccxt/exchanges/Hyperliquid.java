@@ -512,9 +512,9 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
@@ -616,12 +616,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
@@ -1400,12 +1400,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1515,7 +1515,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             Object market = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
             String symbol = this.safeString(ticker, "symbol");
             result.put((String)symbol, ticker);
         }
@@ -1542,7 +1542,7 @@ public class Hyperliquid extends HyperliquidApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
+        FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
         Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
         if (java.util.Objects.equals(rate, null))
         {
@@ -1628,7 +1628,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseFundingRate(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object info, Map<String, Object> market)
     {
         //
         //     {
@@ -1680,7 +1680,7 @@ public class Hyperliquid extends HyperliquidApi
         }};
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1798,7 +1798,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -2953,11 +2953,9 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)orderReq).add(mainOrderObj);
             }
         }
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "createOrder", "vaultAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams(params2, "createOrder", "vaultAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Map<String, Object> orderAction = new HashMap<String, Object>();
         orderAction.put("type", "order");
         orderAction.put("orders", orderReq);
@@ -3224,11 +3222,9 @@ public class Hyperliquid extends HyperliquidApi
             // "f" must be omitted when false, actions hashed with "f": false are rejected
             cancelAction.put("f", true);
         }
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Map<String, Object> signature = this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
         request.put("action", cancelAction);
         request.put("signature", signature);
@@ -3371,11 +3367,9 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> cancelAction = new HashMap<String, Object>();
         cancelAction.put("type", "scheduleCancel");
         cancelAction.put("time", (nonce + this.parseToInt(timeout)));
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Map<String, Object> signature = this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);
         request.put("action", cancelAction);
         request.put("signature", signature);
@@ -3524,11 +3518,9 @@ public class Hyperliquid extends HyperliquidApi
             put( "type", "batchModify" );
             put( "modifies", modifies );
         }};
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "editOrder", "vaultAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams(params2, "editOrder", "vaultAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Map<String, Object> signature = this.signL1Action(modifyAction, nonce, vaultAddress, (Long) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "action", modifyAction );
@@ -4065,12 +4057,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         String userAddress = null;
@@ -4128,8 +4120,7 @@ public class Hyperliquid extends HyperliquidApi
         //         "status": "order"
         //     }
         //
-        Map<String, Object> data = this.safeDict(response, "order", null);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.safeDict(response, "order", new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -4639,15 +4630,15 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionCore(symbol, parameters)).thenApply(Position::new);
     }
 
-    private Object fetchPositionCore(Object symbol, Map<String, Object> parameters)
+    private Object fetchPositionCore(String symbol, Map<String, Object> parameters)
     {
 
-        List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+        List<Position> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
 
     }
@@ -4907,11 +4898,9 @@ public class Hyperliquid extends HyperliquidApi
         updateAction.put("asset", asset);
         updateAction.put("isCross", isCross);
         updateAction.put("leverage", leverage);
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Map<String, Object> signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "action", updateAction );
@@ -4945,12 +4934,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
     }
 
-    private Object setLeverageCore(Object leverage, String symbol, Map<String, Object> parameters)
+    private Object setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -4973,11 +4962,9 @@ public class Hyperliquid extends HyperliquidApi
             put( "isCross", isCross );
             put( "leverage", leverage );
         }};
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Map<String, Object> signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "action", updateAction );
@@ -5014,12 +5001,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.addMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object addMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object addMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         return (this.modifyMarginHelper((String) (symbol), amount, "add", parameters)).join();
@@ -5038,12 +5025,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.reduceMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object reduceMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         return (this.modifyMarginHelper((String) (symbol), amount, "reduce", parameters)).join();
@@ -5334,7 +5321,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // {'response': {'type': 'default'}, 'status': 'ok'}
@@ -5366,12 +5353,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.vaultAddress] vault address withdraw from
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
     }
 
-    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
@@ -5428,7 +5415,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // { status: 'ok', response: { type: 'default' } }
@@ -5672,7 +5659,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         // {
@@ -5791,11 +5778,9 @@ public class Hyperliquid extends HyperliquidApi
         // ]
         //
         List<Object> records = this.extractTypeFromDelta(depositLedger);
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         if (java.util.Objects.equals(vaultAddress, null))
         {
             List<Object> filtered = (List<Object>) this.filterByArray(records, "type", new ArrayList<Object>(Arrays.asList("deposit")), false);
@@ -5877,11 +5862,9 @@ public class Hyperliquid extends HyperliquidApi
         // ]
         //
         List<Object> records = this.extractTypeFromDelta(withdrawalLedger);
-        String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
-        vaultAddress = vaultAddressparams2Variable.first();
-        params2 = vaultAddressparams2Variable.second();
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionVariable.first();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
         if (java.util.Objects.equals(vaultAddress, null))
         {
             List<Object> filtered = (List<Object>) this.filterByArray(records, "type", new ArrayList<Object>(Arrays.asList("withdraw")), false);
@@ -5964,7 +5947,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
         //  {
@@ -6252,7 +6235,7 @@ public class Hyperliquid extends HyperliquidApi
         return (this.safeCurrencyCode(coinId, (Map<String, Object>) null) + "/USDC:USDC");
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -6318,7 +6301,7 @@ public class Hyperliquid extends HyperliquidApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

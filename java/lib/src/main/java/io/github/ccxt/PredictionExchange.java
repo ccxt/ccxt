@@ -1159,7 +1159,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderBook() is not supported yet"))).thenApply(PredictionOrderBook::new);
@@ -1383,7 +1383,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionPosition> fetchPosition(String outcome, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPosition() is not supported yet"))).thenApply(PredictionPosition::new);
@@ -1475,12 +1475,12 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Double cost, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(outcome, cost, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object createMarketBuyOrderWithCostCore(String outcome, Object cost, Map<String, Object> parameters)
+    private Object createMarketBuyOrderWithCostCore(String outcome, Double cost, Map<String, Object> parameters)
     {
 
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
@@ -2284,7 +2284,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
 
 
 
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrder() is not supported yet"))).thenApply(PredictionOrder::new);

@@ -69,10 +69,10 @@ public interface TypedSurface {
 
     // --- abstract core signatures (implemented by the transpiled tiers) ---
     CompletableFuture<Object> loadMarkets(Object reload, Object params);
-    CompletableFuture<Object> fetchCurrencies(Map<String, Object> params);
-    CompletableFuture<Object> fetchMarkets(Map<String, Object> params);
+    CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> params);
+    CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> params);
     CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> params);
-    CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> params);
+    CompletableFuture<List<DepositAddress>> fetchDepositAddresses(List<String> codes, Map<String, Object> params);
     CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> params);
     CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Long> fetchTime(Map<String, Object> params);
@@ -82,12 +82,12 @@ public interface TypedSurface {
     CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> params);
     CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> params);
     CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> params);
-    CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> params);
+    CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> params);
     CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> params);
     CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> params);
     CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> params);
     CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> params);
     CompletableFuture<LongShortRatio> fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params);
     CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
@@ -113,7 +113,7 @@ public interface TypedSurface {
     CompletableFuture<Balance> fetchUsedBalance(Map<String, Object> params);
     CompletableFuture<Balance> fetchTotalBalance(Map<String, Object> params);
     CompletableFuture<Status> fetchStatus(Map<String, Object> params);
-    CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> params);
+    CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params);
     CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> params);
     CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> params);
     CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> params);
@@ -167,13 +167,13 @@ public interface TypedSurface {
     CompletableFuture<List<Position>> fetchPositionHistory(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionsRisk(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> params);
+    CompletableFuture<List<Position>> fetchPositionsForSymbol(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> fetchMarkPrice(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> params);
     CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> params);
+    CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
     CompletableFuture<OrderBook> fetchL2OrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Object amount, Object price, Map<String, Object> params);
@@ -181,11 +181,11 @@ public interface TypedSurface {
     CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object price, Map<String, Object> params);
     CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
     CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> params);
+    CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> params);
+    CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> params);
     CompletableFuture<Order> fetchOrderWithClientOrderId(Object clientOrderId, String symbol, Map<String, Object> params);
     CompletableFuture<String> fetchOrderStatus(String id, String symbol, Map<String, Object> params);
     CompletableFuture<Order> fetchUnifiedOrder(Object order, Map<String, Object> params);
@@ -193,7 +193,7 @@ public interface TypedSurface {
     CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
     CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> params);
     CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> params);
-    CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> params);
+    CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params);
     CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> params);
     CompletableFuture<Order> createTriggerOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
     CompletableFuture<Order> createStopLossOrder(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> params);

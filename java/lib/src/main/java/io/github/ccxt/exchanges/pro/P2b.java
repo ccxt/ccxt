@@ -378,7 +378,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
-        List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
+        List<Object> parsed = this.parseOHLCV(data, market);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (!java.util.Objects.equals(symbol, null))
@@ -434,8 +434,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         for (var i = 0; i < trades.size(); i++)
         {
-            Object item = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(item, market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(trades, i, new HashMap<String, Object>() {{}}), market);
             tradesArray.append(trade);
         }
         String messageHash = ("deals::" + symbol);
@@ -620,7 +619,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))

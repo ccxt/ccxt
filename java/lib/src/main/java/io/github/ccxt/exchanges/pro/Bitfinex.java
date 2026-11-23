@@ -343,7 +343,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Integer ohlcvsLength = ohlcvs.size();
         for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV(this.safeList(ohlcvs, ((((long) ohlcvsLength) - ((long) i)) - 1L), null), market);
+            List<Object> parsed = this.parseOHLCV(this.safeList(ohlcvs, ((((long) ohlcvsLength) - ((long) i)) - 1L), null), market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);

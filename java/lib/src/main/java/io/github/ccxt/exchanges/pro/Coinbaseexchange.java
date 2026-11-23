@@ -1014,7 +1014,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1127,7 +1127,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(message, symbol, (Long) null, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else if (java.util.Objects.equals(type, "l2update"))
@@ -1171,7 +1171,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1210,15 +1210,15 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     {
         String type = this.safeString(message, "type");
         Map<String, String> methods = new HashMap<String, String>() {{
-            put( "snapshot", "handleOrderBook");
-            put( "l2update", "handleOrderBook");
-            put( "subscribe", "handleSubscriptionStatus");
-            put( "ticker", "handleTicker");
-            put( "received", "handleOrder");
-            put( "open", "handleOrder");
-            put( "change", "handleOrder");
-            put( "done", "handleOrder");
-            put( "error", "handleErrorMessage");
+            put("snapshot", "handleOrderBook");
+            put("l2update", "handleOrderBook");
+            put("subscribe", "handleSubscriptionStatus");
+            put("ticker", "handleTicker");
+            put("received", "handleOrder");
+            put("open", "handleOrder");
+            put("change", "handleOrder");
+            put("done", "handleOrder");
+            put("error", "handleErrorMessage");
         }};
         Boolean authenticated = ((String)client.url).endsWith("?");
         String method = methods.get(type);
@@ -1237,14 +1237,24 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }
         } else
         {
-            switch (method)
-            {
-                case "handleErrorMessage" -> this.handleErrorMessage(client, message);
-                case "handleOrder" -> this.handleOrder(client, message);
-                case "handleOrderBook" -> this.handleOrderBook(client, message);
-                case "handleSubscriptionStatus" -> this.handleSubscriptionStatus(client, message);
-                case "handleTicker" -> this.handleTicker(client, message);
-                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            switch (method) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleSubscriptionStatus":
+                    this.handleSubscriptionStatus(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleErrorMessage":
+                    this.handleErrorMessage(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
             }
         }
     }

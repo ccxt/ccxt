@@ -1043,13 +1043,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, (Map<String, Object>) null);
+        List<Object> parsed = this.parseWsOHLCV(data, (Map<String, Object>) null);
         ohlcv.append(parsed);
         String messageHash = ((("candles:" + symbol) + ":") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1402,12 +1402,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
@@ -2166,9 +2166,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String markPrice = this.safeString(position, "M");
         Double netQuantity = this.safeNumber(position, "q", (Object) null);
         Boolean hedged = false;
-        String side = "long";
+        String side = null;
         if (!java.util.Objects.equals(netQuantity, null))
         {
+            side = "long";
             if (((netQuantity == null || 0 > netQuantity)))
             {
                 side = "short";
@@ -2176,7 +2177,6 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         } else
         {
             hedged = null;
-            side = null;
         }
         Long microseconds = this.safeInteger(position, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
@@ -2251,7 +2251,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

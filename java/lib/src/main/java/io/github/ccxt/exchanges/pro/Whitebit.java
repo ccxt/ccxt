@@ -159,7 +159,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
             String messageHash = (("candles" + ":") + symbol);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
+            List<Object> parsed = this.parseOHLCV(data, market);
             if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
             {
                 this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
@@ -268,7 +268,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         orderbook.put("datetime", this.iso8601(timestamp));
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);
         } else
         {
@@ -1293,7 +1293,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

@@ -445,7 +445,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Long nonce = this.safeInteger(item, "s");
             if (java.util.Objects.equals(type, "snapshot"))
             {
-                Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(item, symbol, timestamp, "b", "a", 0, 1, 2);
+                Map<String, Object> parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a", 0, 1, 2);
                 orderbook.reset(parsedSnapshot);
             } else
             {
@@ -1115,7 +1115,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> rawOhlcvs = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < rawOhlcvs.size(); j++)
             {
-                List<Object> parsed = (List<Object>) this.parseWsOHLCV((rawOhlcvs == null || j < 0 || j >= rawOhlcvs.size() ? null : rawOhlcvs.get(j)), market);
+                List<Object> parsed = this.parseWsOHLCV((rawOhlcvs == null || j < 0 || j >= rawOhlcvs.size() ? null : rawOhlcvs.get(j)), market);
                 stored.append(parsed);
             }
             String messageHash = ((channel + "::") + symbol);
@@ -1124,7 +1124,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return message;
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //    {

@@ -440,7 +440,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         return this.safeTrade(mapLiteral2, marketResolved);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

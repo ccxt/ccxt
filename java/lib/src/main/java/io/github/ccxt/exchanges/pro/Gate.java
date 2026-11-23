@@ -653,12 +653,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -779,7 +779,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(full))
         {
-            Map<String, Object> snapshopt = (Map<String, Object>) this.parseOrderBook(result, symbol, (Long) null, "b", "a", 0, 1, 2);
+            Map<String, Object> snapshopt = this.parseOrderBook(result, symbol, (Long) null, "b", "a", 0, 1, 2);
             snapshopt.put("nonce", this.safeInteger(result, "u"));
             snapshopt.put("timestamp", this.safeInteger(result, "t"));
             orderbook.reset(snapshopt);
@@ -1178,7 +1178,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Boolean isTicker = (java.util.Objects.equals(objectName, "ticker")); // whether ticker or bid-ask
         for (var i = 0; i < results.size(); i++)
         {
-            Object rawTicker = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
+            Map<String, Object> rawTicker = (Map<String, Object>) (results == null || i < 0 || i >= results.size() ? null : results.get(i));
             String marketId = this.safeString(rawTicker, "s");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", marketType);
             Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);
@@ -1540,7 +1540,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String prefix = (timeframe + "_");
             String marketId = (subscription == null ? null : ((String)subscription).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(prefix, "")), ""));
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", marketType);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, (Map<String, Object>) null);
+            List<Object> parsed = this.parseOHLCV(ohlcv, (Map<String, Object>) null);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
@@ -1564,7 +1564,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < keys.size(); i++)
         {
             String symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object timeframe = (marketIds == null || symbol == null ? null : marketIds.get(symbol));
+            String timeframe = this.safeString(marketIds, symbol);
             String interval = this.findTimeframe(timeframe, (Object) null);
             String hash = (((("candles" + ":") + interval) + ":") + symbol);
             io.github.ccxt.ws.ArrayCache symbolOhlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), interval);
@@ -1603,7 +1603,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
-            marketId = this.safeString(market, "id");
+            marketId = this.safeString(market, "id", "");
         }
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
         String type = typeparamsMarketTypeVariable.first();
@@ -2494,7 +2494,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }}, marketResolved);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

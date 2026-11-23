@@ -354,12 +354,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -428,7 +428,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             put( "asks", Hyperliquid.this.safeList(rawData, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "time");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz", 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz", 2);
         if (!(this.orderbooks.containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
@@ -893,7 +893,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
     public Ticker parseWsTicker(Object rawTicker, Map<String, Object> market)
     {
-        return this.parseTicker(rawTicker, market);
+        return this.parseTicker((Map<String, Object>) (rawTicker), market);
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -1353,7 +1353,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
+        List<Object> parsed = this.parseOHLCV(data, (Map<String, Object>) null);
         ohlcv.append(parsed);
         String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
@@ -1982,7 +1982,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         client.resolve(stored, messageHash);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

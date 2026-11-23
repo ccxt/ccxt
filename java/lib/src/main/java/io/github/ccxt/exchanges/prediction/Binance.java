@@ -209,12 +209,12 @@ public class Binance extends BinanceApi
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> queries = this.parseSearchQueries(parameters);
@@ -1086,12 +1086,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -1113,7 +1113,7 @@ public class Binance extends BinanceApi
         //     }
         //
         Long timestamp = this.safeInteger(response, "timestamp");
-        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
+        Map<String, Object> orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
         return this.safePredictionOrderBook(orderbook, outcomeObj);
 
     }
@@ -1590,12 +1590,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionPosition> fetchPosition(String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionCore(outcome, parameters)).thenApply(PredictionPosition::new);
     }
 
-    private Object fetchPositionCore(Object outcome, Map<String, Object> parameters)
+    private Object fetchPositionCore(String outcome, Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1614,7 +1614,7 @@ public class Binance extends BinanceApi
         //
         List<Object> positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
-        Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, java.util.Objects.toString(outcome, null), (Long) null, (Long) null, false);
+        Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, (Long) null, (Long) null, false);
         return this.safeDict(filteredPositions, 0, null);
 
     }
@@ -2265,7 +2265,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2294,7 +2294,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> baseUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});

@@ -1049,12 +1049,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {boolean} [params.deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
      * @returns {boolean} true once unsubscribed
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1239,7 +1239,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "asks", asks );
         }};
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", nonce);
         orderbook.reset(snapshot);
         // a channel override in params still resolves, frames are routed by market and package type
@@ -3206,7 +3206,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return account;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

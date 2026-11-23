@@ -411,7 +411,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market);
             tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
@@ -536,7 +536,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
         }
         Map<String, Object> tick = this.safeDict(message, "tick", null);
-        List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
+        List<Object> parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
     }
@@ -622,12 +622,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -692,7 +692,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> data = this.safeDict(message, "data", null);
             List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
             Map<String, Object> firstMessage = this.safeDict(messages, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
             Map<String, Object> tick = this.safeDict(firstMessage, "tick", new HashMap<String, Object>() {{}});
             Long sequence = this.safeInteger(tick, "prevSeqNum");
             Long nonce = this.safeInteger(data, "seqNum");
@@ -902,7 +902,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeInteger(message, "ts");
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);
             orderbook.put("nonce", version);
         }
@@ -1833,11 +1833,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String order = this.safeString(trade, "orderId");
         Long timestamp = this.safeInteger(trade, "tradeTime");
         String type = this.safeString(trade, "type");
-        Object side = null;
+        String side = null;
         if (!java.util.Objects.equals(type, null))
         {
-            List<String> typeParts = new ArrayList<String>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
-            side = (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
+            List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
+            side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
         Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
@@ -2852,7 +2852,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         promise.resolve(message);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -3196,8 +3196,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Map<String, Object> market = this.market(marketId);
                 for (var i = 0; i < rawTrades.size(); i++)
                 {
-                    Object trade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-                    Object parsedTrade = this.parseTrade(trade, market);
+                    Object parsedTrade = this.parseTrade(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
                     cachedTrades.append(parsedTrade);

@@ -550,8 +550,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < trades.size(); i++)
         {
-            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(this.safeDict(trades, i, new HashMap<String, Object>() {{}}), market);
             stored.append(parsed);
         }
         this.trades.put(symbol, stored);
@@ -1079,7 +1078,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(unifiedTimeframe);
         Map<String, Object> ohlcv = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
+        List<Object> parsed = this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
         this.ohlcvs.get(symbol).put(unifiedTimeframe, stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
@@ -1087,7 +1086,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //    {

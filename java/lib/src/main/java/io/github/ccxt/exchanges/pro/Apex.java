@@ -424,7 +424,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
             orderbook.reset(snapshot);
         } else
         {
@@ -716,7 +716,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
+            List<Object> parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -724,7 +724,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1141,7 +1141,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //   {

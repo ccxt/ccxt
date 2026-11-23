@@ -181,7 +181,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         client.resolve(orderbook, topic);
     }
@@ -395,12 +395,12 @@ public class Derive extends io.github.ccxt.exchanges.Derive
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -654,7 +654,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             tradesArray.append(trade);
         }
         this.trades.put(symbol, tradesArray);
@@ -987,7 +987,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         List<Object> rawTrades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < rawTrades.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             myTrades.append(trade);
             client.resolve(myTrades, topic);
             if (!java.util.Objects.equals(topic, null))
@@ -1309,7 +1309,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1317,7 +1317,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!(((Map<?, ?>)message).containsKey("error")))
+        if (!(message.containsKey("error")))
         {
             return false;
         }

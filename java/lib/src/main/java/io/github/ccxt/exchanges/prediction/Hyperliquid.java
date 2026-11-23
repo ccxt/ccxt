@@ -451,12 +451,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters
      * @returns {Market[]} array of market structures
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         //
@@ -948,12 +948,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -990,7 +990,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> entry = this.safeDict(rawAsks, i, null);
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(entry, "px", (Object) null), this.safeNumber(entry, "sz", (Object) null))));
         }
-        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+        Map<String, Object> orderbook = this.parseOrderBook(new HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );
         }}, this.safeString(outcomeObj, "outcome", outcome), timestamp, "bids", "asks", 0, 1, 2);
@@ -1082,7 +1082,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [market] the market the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1877,12 +1877,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(String id, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String outcome, Map<String, Object> parameters)
     {
 
         List<Object> userAddressparamsAddressVariable = (List<Object>) this.handlePublicAddress("fetchOrder", (Map<String, Object>) (parameters));
@@ -2705,7 +2705,7 @@ public class Hyperliquid extends HyperliquidApi
         return normalized.toLowerCase();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2739,7 +2739,7 @@ public class Hyperliquid extends HyperliquidApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

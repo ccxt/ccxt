@@ -5600,7 +5600,7 @@ public Map<String, Object> describe()
         this.options.put("enableDemoTrading", enable);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         return new HashMap<String, Object>() {{
             put( "url", null );
@@ -5733,7 +5733,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(List<String> codes, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositAddresses() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
@@ -5767,7 +5767,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOrderBook() is not supported yet")));
@@ -5833,12 +5833,12 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseTicker() is not supported yet")) ;
     }
 
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         throw new NotSupported((this.id + " parseDepositAddress() is not supported yet")) ;
     }
@@ -5848,12 +5848,12 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseTrade() is not supported yet")) ;
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         throw new NotSupported((this.id + " parseTransaction() is not supported yet")) ;
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Object transfer, Map<String, Object> currency)
     {
         throw new NotSupported((this.id + " parseTransfer() is not supported yet")) ;
     }
@@ -5863,7 +5863,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseAccount() is not supported yet")) ;
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         throw new NotSupported((this.id + " parseLedgerEntry() is not supported yet")) ;
     }
@@ -5993,7 +5993,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " withdraw() is not supported yet"))).thenApply(Transaction::new);
@@ -6007,7 +6007,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " setLeverage() is not supported yet")));
@@ -6048,14 +6048,14 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " addMargin() is not supported yet"))).thenApply(MarginModification::new);
 
     }
 
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " reduceMargin() is not supported yet"))).thenApply(MarginModification::new);
@@ -7381,7 +7381,7 @@ public Map<String, Object> describe()
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), market); // don't inline this call
+                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.safeDict(orders, i, new HashMap<String, Object>() {{}}), market); // don't inline this call
                 Map<String, Object> order = this.extend(parsed, parameters);
                 ((List<Object>)results).add(order);
             }
@@ -8134,16 +8134,16 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object currencyIds(Object codes)
+    public Object currencyIds(List<String> codes)
     {
         if (java.util.Objects.equals(codes, null))
         {
             return codes;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)codes).size(); i++)
+        for (var i = 0; i < codes.size(); i++)
         {
-            Object id = this.currencyId((String) ((codes == null || i < 0 || i >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(i))));
+            Object id = this.currencyId((String) ((codes == null || i < 0 || i >= codes.size() ? null : codes.get(i))));
             if (!java.util.Objects.equals(id, null))
             {
                 ((List<Object>)result).add(id);
@@ -8291,7 +8291,7 @@ public Map<String, Object> describe()
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
         }
-        return ohlcv;
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
     public Object safeNetwork(Map<String, Object> network)
@@ -9105,7 +9105,7 @@ public Map<String, Object> describe()
         List<Object> arrayData = this.toArray(data);
         for (var i = 0; i < arrayData.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.parseLedgerEntry((Map<String, Object>) (this.safeDict(arrayData, i, new HashMap<String, Object>() {{}})), currency);
+            Map<String,Object> entry = this.parseLedgerEntry((Map<String, Object>) (this.safeDict(arrayData, i, new HashMap<String, Object>() {{}})), currency);
             ((List<Object>)result).add(this.extend(entry, parameters));
         }
         result = this.sortBy(result, "timestamp");
@@ -9393,7 +9393,7 @@ public Map<String, Object> describe()
             try
             {
                 this.setLastRestRequestTimestamp();
-                Map<String, Object> request = (Map<String, Object>) this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
+                Map<String, Object> request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
                 if (!java.util.Objects.equals(fetchData, null))
                 {
                     fetchData.put("request", request);
@@ -9856,18 +9856,18 @@ public Map<String, Object> describe()
         {
             throw new NotSupported((this.id + " fetchTransactionFee() is not supported yet")) ;
         }
-        return (this.fetchTransactionFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
+        return (this.fetchTransactionFees(new ArrayList<String>(Arrays.asList(code)), parameters)).join();
 
     }
 
-    public CompletableFuture<Object> fetchTransactionFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransactionFees() is not supported yet")));
 
     }
 
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositWithdrawFees() is not supported yet"))).thenApply(DepositWithdrawFees::new);
@@ -9886,7 +9886,7 @@ public Map<String, Object> describe()
         {
             throw new NotSupported((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
         }
-        DepositWithdrawFees fees = (this.fetchDepositWithdrawFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
+        DepositWithdrawFees fees = (this.fetchDepositWithdrawFees(new ArrayList<String>(Arrays.asList(code)), parameters)).join();
         return this.safeDict(fees, code, null);
 
     }
@@ -10102,7 +10102,7 @@ public Map<String, Object> describe()
         return null;
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
@@ -10458,7 +10458,7 @@ public Map<String, Object> describe()
 
         if (!java.util.Objects.equals(this.has.get("fetchDepositAddresses"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddresses"), false))
         {
-            List<DepositAddress> depositAddressesList = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
+            List<DepositAddress> depositAddressesList = (this.fetchDepositAddresses(new ArrayList<String>(Arrays.asList(code)), parameters)).join();
             Map<String,Object> depositAddresses = this.indexBy(depositAddressesList, "currency");
             if (java.util.Objects.equals(this.safeDict(depositAddresses, code, null), null))
             {
@@ -10655,10 +10655,11 @@ public Map<String, Object> describe()
         }
         Map<String, Object> market = this.market(symbol);
         String marketSymbol = this.safeString(market, "symbol", "");
-        String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
+        Map<String, Object> precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+        String result = this.decimalToPrecision(price, ROUND, precision.get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            String pricePrecision = this.numberToString(((Map<String, Object>)market.get("precision")).get("price"));
+            String pricePrecision = this.numberToString(precision.get("price"));
             if (java.util.Objects.equals(pricePrecision, null))
             {
                 throw new BadSymbol((((this.id + " priceToPrecision() market ") + marketSymbol) + " has no price precision")) ;
@@ -10676,10 +10677,11 @@ public Map<String, Object> describe()
         }
         Map<String, Object> market = this.market(symbol);
         String marketSymbol = this.safeString(market, "symbol", "");
-        String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), this.precisionMode, this.paddingMode);
+        Map<String, Object> precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+        String result = this.decimalToPrecision(amount, TRUNCATE, precision.get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            String amountPrecision = this.numberToString(((Map<String, Object>)market.get("precision")).get("amount"));
+            String amountPrecision = this.numberToString(precision.get("amount"));
             if (java.util.Objects.equals(amountPrecision, null))
             {
                 throw new BadSymbol((((this.id + " amountToPrecision() market ") + marketSymbol) + " has no amount precision")) ;
@@ -10696,7 +10698,8 @@ public Map<String, Object> describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        return this.decimalToPrecision(fee, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
+        Map<String, Object> precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+        return this.decimalToPrecision(fee, ROUND, precision.get("price"), this.precisionMode, this.paddingMode);
     }
 
     public Object currencyToPrecision(String code, Object fee, String networkCode)
@@ -10996,9 +10999,11 @@ public Map<String, Object> describe()
     public Object parseTickersList(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        List<Object> tickersArray = this.toArray(tickers);
+        for (var i = 0; i < tickersArray.size(); i++)
         {
-            ((List<Object>)results).add(this.extend(this.parseTicker((tickers == null || i < 0 || i >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(i)), (Map<String, Object>) null), parameters));
+            Map<String, Object> ticker = this.extend(this.parseTicker((Map<String, Object>) (this.safeDict(tickersArray, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null), parameters);
+            ((List<Object>)results).add(ticker);
         }
         return this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
     }
@@ -11006,17 +11011,20 @@ public Map<String, Object> describe()
     public Object parseTickersDict(Map<String, Object> tickers, List<String> symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        List<String> marketIds = new ArrayList<String>(tickers.keySet());
+        Map<String, Object> tickersDict = this.extend(new HashMap<String, Object>() {{}}, tickers);
+        List<String> marketIds = new ArrayList<String>(tickersDict.keySet());
         for (var i = 0; i < marketIds.size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            ((List<Object>)results).add(this.extend(this.parseTicker((tickers == null || marketId == null ? null : tickers.get(marketId)), market), parameters));
+            Map<String, Object> rawTicker = this.safeDict(tickersDict, marketId, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.extend(this.parseTicker(rawTicker, market), parameters);
+            ((List<Object>)results).add(ticker);
         }
         return this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
     }
 
-    public List<Object> parseDepositAddresses(List<Object> addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
+    public List<Object> parseDepositAddresses(List<Object> addresses, List<String> codes, Boolean indexed, Map<String, Object> parameters)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < addresses.size(); i++)
@@ -11093,7 +11101,7 @@ public Map<String, Object> describe()
         return (String) marketResolved.get("symbol");
     }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseFundingRate() is not supported yet")) ;
     }
@@ -11275,7 +11283,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseOpenInterest () is not supported yet")) ;
     }
@@ -11285,7 +11293,7 @@ public Map<String, Object> describe()
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < response.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOpenInterest((response == null || i < 0 || i >= response.size() ? null : response.get(i)), (Map<String, Object>) null);
+            Map<String,Object> parsed = this.parseOpenInterest((response == null || i < 0 || i >= response.size() ? null : response.get(i)), (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -11559,7 +11567,7 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object parseDepositWithdrawFees(Object response, Object codes, String currencyIdKey)
+    public Object parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
     {
         /**
          * @ignore
@@ -12342,23 +12350,23 @@ public Map<String, Object> describe()
     }
 
 
-    public Object safeOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> safeOpenInterest(Object interest, Map<String, Object> market)
     {
         String symbol = this.safeString(interest, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
             symbol = this.safeString(market, "symbol");
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("baseVolume", this.safeNumber(interest, "baseVolume", (Object) null));
-        mapLiteral5.put("quoteVolume", this.safeNumber(interest, "quoteVolume", (Object) null));
-        mapLiteral5.put("openInterestAmount", this.safeNumber(interest, "openInterestAmount", (Object) null));
-        mapLiteral5.put("openInterestValue", this.safeNumber(interest, "openInterestValue", (Object) null));
-        mapLiteral5.put("timestamp", this.safeInteger(interest, "timestamp"));
-        mapLiteral5.put("datetime", this.safeString(interest, "datetime"));
-        mapLiteral5.put("info", this.safeValue(interest, "info"));
-        return this.extend(interest, mapLiteral5);
+        HashMap<String, Object> j39v33 = new HashMap<String, Object>();
+        j39v33.put("symbol", symbol);
+        j39v33.put("baseVolume", this.safeNumber(interest, "baseVolume", (Object) null));
+        j39v33.put("quoteVolume", this.safeNumber(interest, "quoteVolume", (Object) null));
+        j39v33.put("openInterestAmount", this.safeNumber(interest, "openInterestAmount", (Object) null));
+        j39v33.put("openInterestValue", this.safeNumber(interest, "openInterestValue", (Object) null));
+        j39v33.put("timestamp", this.safeInteger(interest, "timestamp"));
+        j39v33.put("datetime", this.safeString(interest, "datetime"));
+        j39v33.put("info", this.safeValue(interest, "info"));
+        return (Map<String, Object>) (this.extend(interest, j39v33));
     }
 
     public Object parseLiquidation(Object liquidation, Map<String, Object> market)

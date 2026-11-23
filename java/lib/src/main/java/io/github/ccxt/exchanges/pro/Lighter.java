@@ -247,7 +247,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String type = this.safeString(message, "type", "");
         if (java.util.Objects.equals(type, "subscribed/order_book"))
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size", 2);
+            Map<String, Object> parsed = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size", 2);
             parsed.put("nonce", this.safeInteger(data, "offset"));
             orderbook.reset(parsed);
         } else if (java.util.Objects.equals(type, "update/order_book"))
@@ -300,12 +300,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -386,7 +386,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || marketId == null ? null : data.get(marketId)), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, marketId, new HashMap<String, Object>() {{}})), market);
                 this.tickers.put(symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol, (String) null));
                 client.resolve(ticker, this.getMessageHash("ticker", (String) null, (String) null));
@@ -1486,7 +1486,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public Long requestId(String url)
     {
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", this.createSafeDictionary());
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         options.put(url, newValue);
@@ -1705,7 +1705,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return true;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

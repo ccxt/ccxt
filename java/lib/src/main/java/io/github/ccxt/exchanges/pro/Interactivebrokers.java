@@ -128,7 +128,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             String gatewayUrl = this.safeString(this.options, "gatewayUrl");
             String replacedUrl = wsUrl.replaceFirst("wss://", "https://");
-            Object restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
+            String restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
             url = (restUrl == null ? null : ((String)restUrl).replaceFirst("https://", "wss://"));
             url = (url == null ? null : ((String)url).replaceFirst("http://", "ws://"));
         } else
@@ -818,7 +818,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         Object lastHistoryTimestamp = null;
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            List<Object> parsed = this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             Object timestamp = ((List<Object>)parsed).get(0);
             if (java.util.Objects.equals(timestamp, null))
             {
@@ -1049,12 +1049,12 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
      * @returns {boolean} true
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1198,7 +1198,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         subscription.put("emitted", true);
         client.subscriptions.put(messageHash, subscription);
         Long timestamp = this.milliseconds();
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+        Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );
         }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -1532,7 +1532,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < args.size(); i++)
         {
             Object rawTrade = (args == null || i < 0 || i >= args.size() ? null : args.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(args, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             Long tradeTimestamp = this.safeInteger(trade, "timestamp");
             if ((!java.util.Objects.equals(threshold, null)) && (!java.util.Objects.equals(tradeTimestamp, null)) && ((threshold != null && (tradeTimestamp == null || tradeTimestamp < threshold))))
             {
@@ -1723,7 +1723,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "topic": "smd+123", "error": "..." }

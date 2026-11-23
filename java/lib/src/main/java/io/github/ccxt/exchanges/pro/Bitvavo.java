@@ -235,7 +235,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < tickers.size(); i++)
         {
-            Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+            Map<String, Object> data = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
@@ -599,7 +599,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < candles.size(); i++)
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
-            List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
+            List<Object> parsed = this.parseOHLCV(candle, market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
@@ -865,12 +865,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1075,7 +1075,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // the market was unsubscribed while this snapshot request was in flight
             return;
         }
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(response, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(response, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(response, "nonce"));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
@@ -2280,7 +2280,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2304,7 +2304,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         Long code = this.safeInteger(error, "errorCode");
         String action = this.safeString(message, "action");
-        Object buildMessage = this.buildMessageHash((String) (action), ((Map<String, Object>) (switch ((Object) (message)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        Object buildMessage = this.buildMessageHash((String) (action), message);
         String messageHash = this.safeString(message, "requestId", buildMessage);
         Boolean rejected = false;
         try

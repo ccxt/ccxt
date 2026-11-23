@@ -73,10 +73,10 @@ public interface PredictionTypedSurface {
 
     // --- abstract core signatures (implemented by the transpiled tiers) ---
     CompletableFuture<Object> loadMarkets(Object reload, Object params);
-    CompletableFuture<Object> fetchCurrencies(Map<String, Object> params);
-    CompletableFuture<Object> fetchMarkets(Map<String, Object> params);
+    CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> params);
+    CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> params);
     CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> params);
-    CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> params);
+    CompletableFuture<List<DepositAddress>> fetchDepositAddresses(List<String> codes, Map<String, Object> params);
     CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> params);
     CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Long> fetchTime(Map<String, Object> params);
@@ -86,12 +86,12 @@ public interface PredictionTypedSurface {
     CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> params);
     CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> params);
     CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> params);
-    CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> params);
+    CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> params);
     CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> params);
     CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> params);
     CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> params);
     CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> params);
     CompletableFuture<LongShortRatio> fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params);
     CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
@@ -117,7 +117,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<Balance> fetchUsedBalance(Map<String, Object> params);
     CompletableFuture<Balance> fetchTotalBalance(Map<String, Object> params);
     CompletableFuture<Status> fetchStatus(Map<String, Object> params);
-    CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> params);
+    CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params);
     CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> params);
     CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> params);
     CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> params);
@@ -165,17 +165,17 @@ public interface PredictionTypedSurface {
     CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> params);
     CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<PredictionTrade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<PredictionOrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> params);
+    CompletableFuture<PredictionOrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
     CompletableFuture<PredictionOrder> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<PredictionPosition> fetchPosition(Object symbol, Map<String, Object> params);
+    CompletableFuture<PredictionPosition> fetchPosition(String symbol, Map<String, Object> params);
     CompletableFuture<List<PredictionPosition>> fetchPositions(Object symbols, Map<String, Object> params);
     CompletableFuture<PredictionTicker> fetchTicker(String symbol, Map<String, Object> params);
     CompletableFuture<PredictionTickers> fetchTickers(Object symbols, Map<String, Object> params);
-    CompletableFuture<PredictionOrder> fetchOrder(Object id, String symbol, Map<String, Object> params);
+    CompletableFuture<PredictionOrder> fetchOrder(String id, String symbol, Map<String, Object> params);
     CompletableFuture<PredictionOrder> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
     CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> params);
-    CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> params);
+    CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params);
     CompletableFuture<PredictionOrder> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> params);
     CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Map<String, Object> params);
     CompletableFuture<PredictionOrder> cancelOrder(String id, String symbol, Map<String, Object> params);

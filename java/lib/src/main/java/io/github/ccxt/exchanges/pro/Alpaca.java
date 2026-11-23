@@ -143,7 +143,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(ticker, messageHash);
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -251,7 +251,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             this.ohlcvs.get(symbol).put("1m", stored);
         }
-        List<Object> parsed = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
+        List<Object> parsed = this.parseOHLCV(message, (Map<String, Object>) null);
         stored.append(parsed);
         String messageHash = ("ohlcv:" + symbol);
         client.resolve(stored, messageHash);
@@ -328,7 +328,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s", 2);
+            Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s", 2);
             orderbook.reset(snapshot);
         } else
         {
@@ -768,7 +768,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

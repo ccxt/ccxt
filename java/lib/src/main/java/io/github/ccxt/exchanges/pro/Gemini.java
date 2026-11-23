@@ -432,8 +432,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         // reverse order of array to store candles in ascending order
         for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV(this.safeValue(changes, ((((long) changesLength) - ((long) i)) - 1L)), market);
-            stored.append(parsed);
+            stored.append(this.parseOHLCV(this.safeValue(changes, ((((long) changesLength) - ((long) i)) - 1L)), market));
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
         client.resolve(stored, messageHash);
@@ -517,7 +516,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     ((List<Object>)asksSnapshot).add(bidAsk);
                 }
             }
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+            Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
                 put( "bids", bidsSnapshot );
                 put( "asks", asksSnapshot );
             }}, symbol, (Long) null, "bids", "asks", 0, 1, 2);

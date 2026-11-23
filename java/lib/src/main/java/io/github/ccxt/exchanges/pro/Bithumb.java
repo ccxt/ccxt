@@ -401,7 +401,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("market", this.safeString(ticker, "market", code));
-            return this.parseTicker(this.extend(ticker, mapLiteral2), market);
+            return this.parseTicker((Map<String, Object>) (this.extend(ticker, mapLiteral2)), market);
         }
         String date = this.safeString(ticker, "date", "");
         String time = this.safeString(ticker, "time", "");
@@ -609,7 +609,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
             }
         }
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+        Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
             put( "bids", bidsSnapshot );
             put( "asks", asksSnapshot );
         }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -848,7 +848,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         return this.safeTrade(mapLiteral5, market);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -872,7 +872,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             client.reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
             return false;
         }
-        if (!(((Map<?, ?>)message).containsKey("status")))
+        if (!(message.containsKey("status")))
         {
             return true;
         }

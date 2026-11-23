@@ -84,7 +84,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return String.valueOf(precise);
     }
 
-    public Object fromEp(String ep, Map<String, Object> market)
+    public String fromEp(String ep, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(ep, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -93,7 +93,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return this.fromEn((String) (ep), this.safeInteger(market, "priceScale"));
     }
 
-    public Object fromEv(String ev, Map<String, Object> market)
+    public String fromEv(String ev, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(ev, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -140,7 +140,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> marketValue = marketResolved;
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
-        Object lastString = this.fromEp(this.safeString(ticker, "close"), marketValue);
+        String lastString = this.fromEp(this.safeString(ticker, "close"), marketValue);
         Double last = this.parseNumber(lastString);
         Double quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "turnover"), marketValue));
         Double baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "volume"), marketValue));
@@ -203,7 +203,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> marketValue = marketResolved;
         String symbol = this.safeString(marketResolved, "symbol");
-        Object lastString = this.fromEp(this.safeString(ticker, 4), marketValue);
+        String lastString = this.fromEp(this.safeString(ticker, 4), marketValue);
         Double last = this.parseNumber(lastString);
         Double quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), marketValue));
         Double baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 5), marketValue));
@@ -574,8 +574,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             for (var i = 0; i < ohlcvs.size(); i++)
             {
-                Object candle = (ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i));
-                stored.append(candle);
+                stored.append((ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i)));
             }
             client.resolve(stored, messageHash);
         }
@@ -1536,8 +1535,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             trades = (List<Object>) this.safeList(ordersDict, "fills", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < orders.size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(this.safeDict(orders, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         } else

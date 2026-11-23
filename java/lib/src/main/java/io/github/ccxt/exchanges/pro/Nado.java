@@ -282,12 +282,12 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1841,7 +1841,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             this.ohlcvs.get(symbol).put(timeframe, stored);
         }
-        List<Object> parsed = (List<Object>) this.parseOHLCV(message, market);
+        List<Object> parsed = this.parseOHLCV(message, market);
         stored.append(parsed);
         String messageHash = ((("ohlcv:" + timeframe) + ":") + symbol);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHash);
@@ -2394,7 +2394,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         boolean error = (this.safeValue(message, "error")) != null;
         String status = this.safeString(message, "status");

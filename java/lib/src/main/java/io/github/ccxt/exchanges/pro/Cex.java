@@ -1118,9 +1118,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), market);
             order.put("status", "open");
             myOrders.append(order);
         }
@@ -1217,7 +1216,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", incrementalId);
         orderbook.reset(snapshot);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("orderbook")), symbol, new HashMap<String, Object>() {{
@@ -1399,7 +1398,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> sorted = this.sortBy(data, 0);
         for (var i = 0; i < sorted.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market);
+            List<Object> parsed = this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
@@ -1803,7 +1802,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         try
         {

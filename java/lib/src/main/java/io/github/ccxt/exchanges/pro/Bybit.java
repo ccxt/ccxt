@@ -735,7 +735,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Map<String, Object> rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             tickerInput = this.extend(rawTicker, data);
         }
-        Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(tickerInput, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{}}, tickerInput)), (Map<String, Object>) null);
         if (java.util.Objects.equals(updateType, "snapshot"))
         {
             symbol = this.safeString(parsed, "symbol");
@@ -1063,7 +1063,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            List<Object> parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -1071,7 +1071,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1247,12 +1247,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1317,7 +1317,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         orderbook.put("symbol", symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
             orderbook.reset(snapshot);
         } else
         {
@@ -1587,7 +1587,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         if (!java.util.Objects.equals(market, null))
         {
-            marketType = this.safeString(market, "type");
+            marketType = this.safeString(market, "type", marketType);
         }
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
@@ -3044,7 +3044,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //   {

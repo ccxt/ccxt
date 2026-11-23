@@ -247,7 +247,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend(new HashMap<String, Object>() {{}}, trade), market);
     }
 
     /**
@@ -345,7 +345,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String action = this.safeString(message, "action");
         if (java.util.Objects.equals(action, "snapshot"))
         {
-            Map<String, Object> orderBookSnapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
+            Map<String, Object> orderBookSnapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderBookSnapshot.put("nonce", this.safeInteger(data, "seqId"));
             orderbook.reset(orderBookSnapshot);
         } else
@@ -447,7 +447,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = this.safeList(message, "data", null);
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol", "");
             this.tickers.put(symbol, ticker);
             if (!java.util.Objects.equals(channelName, null))
@@ -456,11 +456,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
             }
         }
-    }
-
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
-    {
-        return this.parseTicker(ticker, market);
     }
 
     /**
@@ -701,7 +696,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         for (var i = 0; i < data.size(); i++)
         {
             List<Object> candle = this.safeList(data, i, null);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
+            List<Object> parsed = this.parseOHLCV(candle, market);
             stored.append(parsed);
         }
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));

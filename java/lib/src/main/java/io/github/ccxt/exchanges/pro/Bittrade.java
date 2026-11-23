@@ -253,7 +253,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market);
             tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
@@ -356,7 +356,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         Map<String, Object> tick = this.safeDict(message, "tick", null);
-        List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
+        List<Object> parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
     }
@@ -451,7 +451,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             return;
         }
         Map<String, Object> data = this.safeDict(message, "data", null);
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(data, "seqNum"));
         snapshot.put("timestamp", timestamp);
         snapshot.put("datetime", this.iso8601(timestamp));
@@ -770,7 +770,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         this.pong(client, message);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

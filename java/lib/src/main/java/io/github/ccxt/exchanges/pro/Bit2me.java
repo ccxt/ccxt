@@ -172,7 +172,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Long timestamp = this.safeInteger(data, "nonce");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", timestamp);
         if (!(this.orderbooks.containsKey(symbol)))
         {
@@ -958,7 +958,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         return message;
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }

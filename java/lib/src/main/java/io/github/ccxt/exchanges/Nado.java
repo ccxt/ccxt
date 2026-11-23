@@ -1150,12 +1150,12 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -1808,11 +1808,10 @@ public class Nado extends NadoApi
             Object tx = new HashMap<String, Object>() {{}};
             for (var j = 0; j < txs.size(); j++)
             {
-                Object rawTx = (txs == null || j < 0 || j >= txs.size() ? null : txs.get(j));
-                String txSubmissionIdx = this.safeString(rawTx, "submission_idx");
+                String txSubmissionIdx = this.safeString((txs == null || j < 0 || j >= txs.size() ? null : txs.get(j)), "submission_idx");
                 if (java.util.Objects.equals(txSubmissionIdx, submissionIdx))
                 {
-                    tx = rawTx;
+                    tx = (txs == null || j < 0 || j >= txs.size() ? null : txs.get(j));
                     break;
                 }
             }
@@ -1901,11 +1900,10 @@ public class Nado extends NadoApi
             Object product = new HashMap<String, Object>() {{}};
             for (var j = 0; j < products.size(); j++)
             {
-                Object rawProduct = (products == null || j < 0 || j >= products.size() ? null : products.get(j));
-                String rawProductId = this.safeString(rawProduct, "product_id");
+                String rawProductId = this.safeString((products == null || j < 0 || j >= products.size() ? null : products.get(j)), "product_id");
                 if (java.util.Objects.equals(rawProductId, productId))
                 {
-                    product = rawProduct;
+                    product = (products == null || j < 0 || j >= products.size() ? null : products.get(j));
                     break;
                 }
             }
@@ -1999,12 +1997,12 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Object symbolsRequest = this.gatewayPublicGetSymbols(parameters);
@@ -2181,12 +2179,12 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         List<Object> response = (this.gatewayV2PublicGetAssets(parameters)).join();
@@ -2596,12 +2594,12 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
     }
 
-    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2743,7 +2741,7 @@ public class Nado extends NadoApi
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -2894,7 +2892,7 @@ public class Nado extends NadoApi
         return this.safeTrade(mapLiteral3, marketResolved);
     }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -2969,7 +2967,7 @@ public class Nado extends NadoApi
         }};
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
         //     {
@@ -3004,7 +3002,7 @@ public class Nado extends NadoApi
         }}, marketResolved);
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -3117,7 +3115,7 @@ public class Nado extends NadoApi
         return this.safeBalance(result);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         //     {
@@ -3828,7 +3826,7 @@ public class Nado extends NadoApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(Object path, Object api, Object method, Object parameters)
     {
         String requestBody = null;
         String endpoint = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -3871,7 +3869,7 @@ public class Nado extends NadoApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Object handleErrors(Object code, String reason, String url, String method, Object headers, String body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

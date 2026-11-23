@@ -961,7 +961,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            List<Object> parsed = (List<Object>) this.parseWsOHLCV(entry, (Map<String, Object>) null);
+            List<Object> parsed = this.parseWsOHLCV(entry, (Map<String, Object>) null);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -969,7 +969,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1079,12 +1079,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
@@ -1191,7 +1191,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Long nonce = this.safeInteger(message, "u");
         if (java.util.Objects.equals(eventVar, "depthSnapshot"))
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", 0, 1, 2);
+            Map<String, Object> parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a", 0, 1, 2);
             parsed.put("nonce", nonce);
             orderbook.reset(parsed);
         } else
@@ -2423,7 +2423,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

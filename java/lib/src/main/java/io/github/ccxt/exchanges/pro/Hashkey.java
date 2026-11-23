@@ -211,14 +211,14 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> candle = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            List<Object> parsed = (List<Object>) this.parseWsOHLCV(candle, market);
+            List<Object> parsed = this.parseWsOHLCV(candle, market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -296,7 +296,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
         String symbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
@@ -464,7 +464,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataEntry = this.safeDict(data, 0, null);
         Long timestamp = this.safeInteger(dataEntry, "t");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a", 0, 1, 2);
         orderbook.reset(snapshot);
         orderbook.put("nonce", this.safeInteger(message, "id"));
         this.orderbooks.put(symbol, orderbook);

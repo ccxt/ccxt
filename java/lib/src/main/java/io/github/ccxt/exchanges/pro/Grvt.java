@@ -374,7 +374,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
     public Ticker parseWsTicker(Object message, Map<String, Object> market)
     {
         // same dict as REST api
-        return this.parseTicker(message, market);
+        return this.parseTicker((Map<String, Object>) (message), market);
     }
 
     /**
@@ -495,7 +495,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // same as REST api
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend(new HashMap<String, Object>() {{}}, trade), market);
     }
 
     /**
@@ -626,13 +626,13 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        Object parsed = this.parseWsOHLCV(data, market);
+        List<Object> parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         // same as REST api
         return this.parseOHLCV(ohlcv, market);
@@ -784,7 +784,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Boolean isSnapshotMessage = (sequenceNumber == null || sequenceNumber <= 0);
         if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size", 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size", 2);
             orderbook.reset(snapshot);
         } else
         {
@@ -1183,7 +1183,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         return this.parseOrder(order, market);
     }
 
-    public Boolean handleErrorMessage(Client client, Object response)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> response)
     {
         //
         //    {

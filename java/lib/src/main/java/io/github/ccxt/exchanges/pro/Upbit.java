@@ -375,7 +375,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
             }
         }
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+        Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
             put( "bids", bidsSnapshot );
             put( "asks", asksSnapshot );
         }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -437,7 +437,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String marketId = this.safeString(message, "code");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("candle.1s:" + symbol);
-        List<Object> ohlcv = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
+        List<Object> ohlcv = this.parseOHLCV(message, (Map<String, Object>) null);
         client.resolve(ohlcv, messageHash);
     }
 

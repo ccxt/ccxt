@@ -945,12 +945,12 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
     }
 
-    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1046,8 +1046,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Integer tradesLength = currentTrades.size();
             for (var j = 0; (tradesLength != null && j < tradesLength); j++)
             {
-                Object item = (currentTrades == null || ((int) ((((long) tradesLength) - ((long) j)) - 1L)) < 0 || ((int) ((((long) tradesLength) - ((long) j)) - 1L)) >= currentTrades.size() ? null : currentTrades.get(((int) ((((long) tradesLength) - ((long) j)) - 1L))));
-                tradesArray.append(this.parseTrade(item, (Map<String, Object>) null));
+                tradesArray.append(this.parseTrade(this.safeDict(currentTrades, ((((long) tradesLength) - ((long) j)) - 1L), new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
             }
         }
         client.resolve(tradesArray, messageHash);

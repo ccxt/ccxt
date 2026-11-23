@@ -358,7 +358,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend(new HashMap<String, Object>() {{}}, trade), market);
     }
 
     /**
@@ -504,7 +504,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            List<Object> parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -512,7 +512,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //             {
@@ -527,7 +527,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //                 st: 0
         //             }
         //
-        List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
+        List<Object> parsed = this.parseOHLCV(ohlcv, market);
         return parsed;
     }
 
@@ -672,7 +672,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
     {
-        return this.parseTicker(ticker, market);
+        return this.parseTicker((Map<String, Object>) (ticker), market);
     }
 
     /**
@@ -855,7 +855,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(entry, "t");
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(entry, symbol, timestamp, "b", "a", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(entry, symbol, timestamp, "b", "a", 0, 1, 2);
             orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         }
@@ -1590,7 +1590,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return ((wsBaseUrl + "/api/v1/ws/") + listenKey);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

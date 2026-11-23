@@ -1504,7 +1504,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             return;
         }
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty", 2);
+        Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty", 2);
         orderbook.reset(snapshot);
         client.resolve(orderbook, messageHash);
     }
@@ -2000,7 +2000,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         return messageHash;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
