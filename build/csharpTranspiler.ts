@@ -1476,6 +1476,7 @@ const CORE_DICT_ARGS: Record<string, number[]> = {
     'parseTransactionFee': [ 1 ],
     'parseWeiOrderBook': [ 0 ],
     'safeCurrencyStructure': [ 0 ],
+    'parseLongShortRatio': [ 0 ],
 };
 
 // as CORE_DICT_ARGS, but a caller holds the row in an `IDictionary<string, object>` local, so the
