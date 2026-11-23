@@ -3350,7 +3350,7 @@ export default class aster extends Exchange {
         };
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: number, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, addOrReduce: number, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const amountValue: any = this.amountToPrecision (symbol, amount);
