@@ -7400,11 +7400,6 @@ const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
     'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
     'createAuthToken': [ 0 ],
 };
-// required `amount: number` params whose public typed wrapper already takes float64: body and Async print `float64`
-const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
-    'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
-};
-
 // required `amount: number` / `cost: number` of the unified order family: body and Async print `float64`
 // like the public typed wrapper (base and every override); createOrder / createOrderWs stay boxed:
 // editOrder hands them a `Num` and bybit a `-1` literal printed int64
@@ -7420,6 +7415,7 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
     'createLimitSellOrderWs': [ 1 ], 'createMarketBuyOrder': [ 1 ], 'createMarketBuyOrderWs': [ 1 ], 'createMarketSellOrder': [ 1 ],
     'createMarketSellOrderWs': [ 1 ], 'createMarketOrderWithCost': [ 2 ], 'createMarketOrderWithCostWs': [ 2 ],
     'createMarketBuyOrderWithCost': [ 1 ], 'createMarketSellOrderWithCost': [ 1 ], 'createTwapOrder': [ 2 ],
+    'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
 };
 
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
