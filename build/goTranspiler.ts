@@ -12042,6 +12042,7 @@ function goProvenParseMapMethods (): string[] {
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
         'ParseMarginLoan',
         'ParseADLRank',
+        'ParseLastPrice',
         'ParseEvent', 'ParseMarketToEvent',
         'SafePosition', 'ParsePosition', 'ParseOptionPosition',
         // ral-77g8: ws struct parsers, every override returns a struct->map converter or a map literal
