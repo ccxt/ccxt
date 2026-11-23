@@ -229,11 +229,9 @@ class bithumb(ccxt.async_support.bithumb):
         #
         content = self.safe_dict(message, 'content')
         isGenerationTwo = (content is None)
-        tickerMessage = None
-        if isGenerationTwo:
-            tickerMessage = message
-        else:
-            tickerMessage = content
+        tickerMessage = message
+        if not isGenerationTwo:
+            tickerMessage = self.safe_dict(message, 'content', {})
         marketId = self.safe_string_2(tickerMessage, 'symbol', 'code')
         if marketId is None:
             return

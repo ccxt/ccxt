@@ -1494,7 +1494,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         rawSettlementsLength = len(rawSettlements)
         parsed = []
         for i in range(0, rawSettlementsLength):
-            parsed.append(self.parse_settlement(rawSettlements[i]))
+            parsed.append(self.parse_settlement(self.extend({}, rawSettlements[i])))
         wantedOutcomeObj = self.outcome(outcome) if (outcome is not None) else {}
         wantedOutcome = self.safe_string(wantedOutcomeObj, 'outcome')
         result = []

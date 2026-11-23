@@ -3868,7 +3868,7 @@ class BaseExchange(object):
     def fetch_open_interests(self, symbols: Strings = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
 
-    def sign_in(self, params={}):
+    def sign_in(self, params: dict = {}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 
     def fetch_payment_methods(self, params: dict = {}):
@@ -4355,12 +4355,10 @@ class BaseExchange(object):
         marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = self.safe_dict(marketValues, i, {})
-            if value['id'] in marketsById:
-                marketsByIdArray = marketsById[value['id']]
-                marketsByIdArray.append(value)
-                marketsById[value['id']] = marketsByIdArray
-            else:
-                marketsById[value['id']] = [value]
+            id = self.safe_string(value, 'id', '')
+            if not (id in marketsById):
+                marketsById[id] = []
+            marketsById[id].append(value)
             # strip undefined-valued keys from the parsed market before deepExtend,
             # otherwise an explicit `taker: undefined` (from safeMarketStructure)
             # would clobber the fee defaults from this.fees['trading'] in the merge
@@ -7023,7 +7021,7 @@ class BaseExchange(object):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            results.append(self.extend(self.parse_last_price(pricesData[marketId], market), params))
+            results.append(self.extend(self.parse_last_price(self.extend({}, pricesData[marketId]), market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
@@ -7996,7 +7994,7 @@ class BaseExchange(object):
             marketId = None if (symbolKey is None) else self.safe_string(info, symbolKey)
             market = self.safe_market(marketId, None, None, marketTypeResolved)
             if (symbols is None) or self.in_array(market['symbol'], symbols):
-                marginModeStructures[market['symbol']] = self.parse_margin_mode(info, market)
+                marginModeStructures[market['symbol']] = self.parse_margin_mode(self.safe_dict(response, i, {}), market)
         return marginModeStructures
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None):

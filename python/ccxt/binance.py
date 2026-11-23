@@ -4640,7 +4640,9 @@ class binance(Exchange, ImplicitAPI):
         elif self.safe_bool(market, 'linear', False):
             response = self.fapiPublicGetTicker24hr(self.extend(request, params))
         elif self.safe_bool(market, 'inverse', False):
-            response = self.dapiPublicGetTicker24hr(self.extend(request, params))
+            # coin-m returns a list of one ticker
+            inverseResponse = self.dapiPublicGetTicker24hr(self.extend(request, params))
+            response = self.safe_dict(inverseResponse, 0, {})
         else:
             stock = self.safe_bool(market, 'stock', False)
             if stock:
@@ -4900,7 +4902,9 @@ class binance(Exchange, ImplicitAPI):
         elif self.is_linear(type, subType):
             response = self.fapiPublicGetPremiumIndex(self.extend(request, paramsSubType))
         elif self.is_inverse(type, subType):
-            response = self.dapiPublicGetPremiumIndex(self.extend(request, paramsSubType))
+            # coin-m returns a list of one entry
+            inverseResponse = self.dapiPublicGetPremiumIndex(self.extend(request, paramsSubType))
+            return self.parse_ticker(self.safe_dict(inverseResponse, 0, {}), market)
         else:
             raise NotSupported(self.id + ' fetchMarkPrice() does not support ' + type + ' markets yet')
         if response is None:
@@ -12279,7 +12283,7 @@ class binance(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(self.safe_value(settlements, i), market))
+            result.append(self.parse_settlement(self.extend({}, settlements[i]), market))
         return result
 
     def fetch_ledger_entry(self, id: str, code: Str = None, params: dict = {}) -> LedgerEntry:
@@ -14131,7 +14135,6 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchMarginMode', market, params)
-        response = None
         if subType == 'linear':
             request = {
                 'symbol': market['id'],
@@ -14148,15 +14151,15 @@ class binance(Exchange, ImplicitAPI):
             #     }
             # ]
             #
+            if response is None:
+                raise NullResponse(self.id + ' fetchMarginMode() returned empty response')
+            return self.parse_margin_mode(self.safe_dict(response, 0, {}), market)
         elif subType == 'inverse':
             fetchMarginModesResponse = self.fetch_margin_modes([symbol], paramsSubType)
             marginMode = self.safe_dict(fetchMarginModesResponse, symbol)
             return marginMode
         else:
             raise BadRequest(self.id + ' fetchMarginMode () supports linear and inverse subTypes only')
-        if response is None:
-            raise NullResponse(self.id + ' fetchMarginMode() returned empty response')
-        return self.parse_margin_mode(self.safe_value(response, 0), market)
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')

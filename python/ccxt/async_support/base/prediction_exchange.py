@@ -601,23 +601,22 @@ class PredictionExchange(BaseExchange):
         # loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         # override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if outcomes is not None:
+            wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
+            loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
+            if loadAll and not wasWarm and not reload:
+                # same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                # request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                coldMiss = False
+                for i in range(0, len(outcomes)):
+                    if not self.has_outcome(outcomes[i]):
+                        coldMiss = True
+                if coldMiss:
+                    await self.load_outcomes()
             missing = []
             for i in range(0, len(outcomes)):
                 if reload or not self.has_outcome(outcomes[i]):
                     missing.append(outcomes[i])
             missingLength = len(missing)
-            wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
-            loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if (missingLength > 0) and (loadAll) and not wasWarm and not reload:
-                # same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                # request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                await self.load_outcomes()
-                stillMissing = []
-                for i in range(0, missingLength):
-                    if not self.has_outcome(missing[i]):
-                        stillMissing.append(missing[i])
-                missing = stillMissing
-                missingLength = len(missing)
             if missingLength > 0:
                 await self.fetch_outcomes(missing)
             return self.outcomes
@@ -1295,7 +1294,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(trades)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_prediction_trade(rows[i], outcomeObj)
+            parsed = self.parse_prediction_trade(self.safe_dict(rows, i, {}), outcomeObj)
             trade = self.extend(parsed, params)
             results.append(trade)
         results = self.sort_by_2(results, 'timestamp', 'id')
@@ -1339,7 +1338,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(positions)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_prediction_position(rows[i])
+            parsed = self.parse_prediction_position(self.safe_dict(rows, i, {}))
             position = self.extend(parsed, params)
             results.append(position)
         return results

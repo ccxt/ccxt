@@ -768,7 +768,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         orderbook.reset(snapshot)
         cachedMessages = orderbook.cache
         for j in range(0, len(cachedMessages)):
-            cachedMessage = cachedMessages[j]
+            cachedMessage = self.safe_dict(cachedMessages, j, {})
             self.handle_order_book_message(client, cachedMessage, orderbook)
         orderbook.cache = []
         messageHash = 'orderbook' + '::' + symbol

@@ -8049,7 +8049,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            result.append(self.parse_settlement(self.extend({}, settlements[i]), market))
         return result
 
     def fetch_volatility_history(self, code: str, params: dict = {}) -> list[dict]:

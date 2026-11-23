@@ -967,7 +967,7 @@ class binance(ccxt.async_support.binance):
             messages = orderbook.cache
             orderbook.cache = []
             for i in range(0, len(messages)):
-                messageItem = self.safe_value(messages, i)
+                messageItem = self.safe_dict(messages, i, {})
                 U = self.safe_integer(messageItem, 'U')
                 u = self.safe_integer(messageItem, 'u')
                 if (U is None) or (u is None):

@@ -914,7 +914,7 @@ class BaseExchange(SyncExchange):
     async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
 
-    async def sign_in(self, params={}):
+    async def sign_in(self, params: dict = {}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 
     async def fetch_payment_methods(self, params: dict = {}):

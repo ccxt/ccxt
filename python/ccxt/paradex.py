@@ -3185,7 +3185,7 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         configs = self.safe_list(response, 'configs')
-        return self.parse_margin_mode(self.safe_dict(configs, 0), market)
+        return self.parse_margin_mode(self.safe_dict(configs, 0, {}), market)
 
     def parse_margin_mode(self, rawMarginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(rawMarginMode, 'market')
@@ -3552,15 +3552,14 @@ class paradex(Exchange, ImplicitAPI):
         result = {}
         prefix = code + '-'
         for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'symbol', '')
+            marketId = self.safe_string(data[i], 'symbol', '')
             # the id starts with the base, so the other underlyings are skipped before the market is resolved
             if marketId.startswith(prefix):
                 # options left out by options.fetchMarkets.types are rebuilt from their id
                 market = self.safe_market(marketId)
                 if market['option'] is True:
                     optionSymbol = self.safe_string(market, 'symbol', '')
-                    result[optionSymbol] = self.parse_option(entry, None, market)
+                    result[optionSymbol] = self.parse_option(self.safe_dict(data, i, {}), None, market)
         return result
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:

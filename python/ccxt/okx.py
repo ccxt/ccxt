@@ -8221,7 +8221,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_settlement(data[i], market))
+            result.append(self.parse_settlement(self.extend({}, data[i]), market))
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
@@ -8277,7 +8277,7 @@ class okx(Exchange, ImplicitAPI):
             timestamp = self.safe_integer(entry, 'ts')
             details = self.safe_list(entry, 'details', [])
             for j in range(0, len(details)):
-                settlement = self.parse_settlement(details[j], market)
+                settlement = self.parse_settlement(self.extend({}, details[j]), market)
                 result.append(self.extend(settlement, {
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),

@@ -3088,7 +3088,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheByOutcomeById(limit)
         stored = self.myTrades
-        parsed = self.parse_prediction_trade(event)
+        parsed = self.parse_prediction_trade(self.extend({}, event))
         stored.append(parsed)
         client.resolve(stored, 'myTrades')
         outcome = self.safe_string(parsed, 'outcome')

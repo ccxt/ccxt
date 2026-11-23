@@ -533,7 +533,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            position = self.parse_prediction_position(data[i])
+            position = self.parse_prediction_position(self.safe_dict(data, i, {}))
             if (outcomes is None) or self.in_array(position['outcome'], outcomes):
                 result.append(position)
         return result

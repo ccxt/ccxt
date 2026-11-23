@@ -2491,47 +2491,46 @@ class interactivebrokers(Exchange, ImplicitAPI):
         """
         await self.authenticate()
         method, query = self.handle_option_and_params(params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts')
-        response = None
         if method == 'privateGetPortfolioSubaccounts':
-            response = await self.webapiGetV1ApiPortfolioSubaccounts(query)
-        else:
-            response = await self.webapiGetV1ApiPortfolioAccounts(query)
-            #
-            #    [
-            #        {
-            #            "id": "U3448646",
-            #            "PrepaidCrypto-Z": false,
-            #            "PrepaidCrypto-P": true,
-            #            "brokerageAccess": true,
-            #            "accountId": "U3448646",
-            #            "accountVan": "U3448646",
-            #            "accountTitle": "Toma Todua",
-            #            "displayName": "Toma Todua",
-            #            "accountAlias": null,
-            #            "accountStatus": 1646607600000,
-            #            "currency": "USD",
-            #            "type": "INDIVIDUAL",
-            #            "tradingType": "STKNOPT",
-            #            "businessType": "INDEPENDENT",
-            #            "category": "",
-            #            "ibEntity": "IBLLC-US",
-            #            "faclient": false,
-            #            "clearingStatus": "O",
-            #            "covestor": false,
-            #            "noClientTrading": false,
-            #            "trackVirtualFXPortfolio": true,
-            #            "acctCustType": "INDIVIDUAL",
-            #            "parent": {
-            #                "mmc": [],
-            #                "accountId": "",
-            #                "isMParent": false,
-            #                "isMChild": false,
-            #                "isMultiplex": false
-            #            },
-            #            "desc": "U3448646"
-            #        }
-            #    ]
-            #
+            subaccounts = await self.webapiGetV1ApiPortfolioSubaccounts(query)
+            return subaccounts
+        response = await self.webapiGetV1ApiPortfolioAccounts(query)
+        #
+        #    [
+        #        {
+        #            "id": "U3448646",
+        #            "PrepaidCrypto-Z": false,
+        #            "PrepaidCrypto-P": true,
+        #            "brokerageAccess": true,
+        #            "accountId": "U3448646",
+        #            "accountVan": "U3448646",
+        #            "accountTitle": "Toma Todua",
+        #            "displayName": "Toma Todua",
+        #            "accountAlias": null,
+        #            "accountStatus": 1646607600000,
+        #            "currency": "USD",
+        #            "type": "INDIVIDUAL",
+        #            "tradingType": "STKNOPT",
+        #            "businessType": "INDEPENDENT",
+        #            "category": "",
+        #            "ibEntity": "IBLLC-US",
+        #            "faclient": false,
+        #            "clearingStatus": "O",
+        #            "covestor": false,
+        #            "noClientTrading": false,
+        #            "trackVirtualFXPortfolio": true,
+        #            "acctCustType": "INDIVIDUAL",
+        #            "parent": {
+        #                "mmc": [],
+        #                "accountId": "",
+        #                "isMParent": false,
+        #                "isMChild": false,
+        #                "isMultiplex": false
+        #            },
+        #            "desc": "U3448646"
+        #        }
+        #    ]
+        #
         return response
 
     async def switch_to_account(self, accountId: str, params: dict = {}) -> dict:

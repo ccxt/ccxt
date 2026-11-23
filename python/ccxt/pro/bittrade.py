@@ -353,7 +353,8 @@ class bittrade(ccxt.async_support.bittrade):
         # unroll the accumulated deltas
         messages = orderbook.cache
         for i in range(0, len(messages)):
-            self.handle_order_book_message(client, messages[i], orderbook)
+            messageItem = self.safe_dict(messages, i, {})
+            self.handle_order_book_message(client, messageItem, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 

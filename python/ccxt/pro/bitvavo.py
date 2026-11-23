@@ -208,8 +208,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
-            data = tickers[i]
-            ticker = self.parse_ws_bid_ask(data)
+            ticker = self.parse_ws_bid_ask(self.safe_dict(tickers, i, {}))
             symbol = self.safe_string(ticker, 'symbol', '')
             self.bidsasks[symbol] = ticker
             result.append(ticker)
@@ -446,8 +445,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
         for i in range(0, len(candles)):
-            candle = candles[i]
-            parsed = self.parse_ohlcv(candle, market)
+            parsed = self.parse_ohlcv(candles[i], market)
             stored.append(parsed)
         client.resolve(stored, messageHash)
         # watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
@@ -809,7 +807,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         # unroll the accumulated deltas
         messages = orderbook.cache
         for i in range(0, len(messages)):
-            messageItem = messages[i]
+            messageItem = self.safe_dict(messages, i, {})
             self.handle_order_book_message(client, messageItem, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)

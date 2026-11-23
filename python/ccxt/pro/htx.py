@@ -565,7 +565,8 @@ class htx(ccxt.async_support.htx):
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas
                 for i in range(0, len(messages)):
-                    self.handle_order_book_message(client, messages[i])
+                    messageItem = self.safe_dict(messages, i, {})
+                    self.handle_order_book_message(client, messageItem)
                 orderbook.cache = []
                 if symbol is not None:
                     self.orderbooks[symbol] = orderbook

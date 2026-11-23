@@ -285,7 +285,7 @@ class woo(ccxt.async_support.woo):
             orderbook.reset(snapshot)
             messages = orderbook.cache
             for i in range(0, len(messages)):
-                messageItem = messages[i]
+                messageItem = self.safe_dict(messages, i, {})
                 ts = self.safe_integer(messageItem, 'ts')
                 if ts is None:
                     continue
@@ -571,8 +571,7 @@ class woo(ccxt.async_support.woo):
             ticker = self.safe_dict(data, i)
             if ticker is None:
                 continue
-            ticker['ts'] = timestamp
-            parsedTicker = self.parse_ws_bid_ask(ticker)
+            parsedTicker = self.parse_ws_bid_ask(self.extend(ticker, {'ts': timestamp}))
             symbol = self.safe_string(parsedTicker, 'symbol')
             if symbol is not None:
                 self.bidsasks[symbol] = parsedTicker

@@ -483,7 +483,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = self.safe_symbol(marketId, market)
-            ticker = self.parse_ws_ticker(data[marketId], market)
+            ticker = self.parse_ws_ticker(self.safe_dict(data, marketId, {}), market)
             self.tickers[symbol] = ticker
             result.append(ticker)
             messageHash = topic + '::' + symbol
@@ -605,7 +605,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = self.safe_symbol(marketId, market)
-            ticker = self.parse_ws_bid_ask(data[marketId], market)
+            ticker = self.parse_ws_bid_ask(self.safe_dict(data, marketId, {}), market)
             self.bidsasks[symbol] = ticker
             result.append(ticker)
             messageHash = topic + '::' + symbol

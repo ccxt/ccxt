@@ -2093,7 +2093,7 @@ class hibachi(Exchange, ImplicitAPI):
     def parse_settlements(self, settlements: list[object], market: Market = None) -> list[dict]:
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            result.append(self.parse_settlement(self.extend({}, settlements[i]), market))
         return result
 
     def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:

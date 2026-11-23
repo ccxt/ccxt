@@ -561,7 +561,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         market = self.safe_market(marketId)
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
-            ticker = data[i]
+            ticker = self.safe_dict(data, i, {})
             parsed = self.parse_ws_ticker(ticker, market)
             symbol = self.safe_string(parsed, 'symbol')
             if symbol is not None:

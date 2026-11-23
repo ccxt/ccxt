@@ -1719,7 +1719,7 @@ class aster(Exchange, ImplicitAPI):
         for i in range(0, len(rows)):
             marketId = self.safe_string(rows[i], 'symbol')
             safeMarket = self.safe_market(marketId, None, None, marketType)
-            priceData = self.extend(self.parse_last_price(rows[i], safeMarket), paramsMarketType)
+            priceData = self.extend(self.parse_last_price(self.extend({}, rows[i]), safeMarket), paramsMarketType)
             results.append(priceData)
         symbolsNormalized2 = self.market_symbols(symbolsNormalized)
         return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized2, False), 'symbol')

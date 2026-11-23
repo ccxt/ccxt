@@ -424,7 +424,7 @@ class coinbase(ccxt.async_support.coinbase):
             tickersObj = self.safe_dict(events, i)
             tickers = self.safe_list(tickersObj, 'tickers', [])
             for j in range(0, len(tickers)):
-                ticker = tickers[j]
+                ticker = self.safe_dict(tickers, j, {})
                 wsMarketId = self.safe_string(ticker, 'product_id')
                 if wsMarketId is None:
                     continue

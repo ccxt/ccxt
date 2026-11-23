@@ -1515,7 +1515,7 @@ class okx(ccxt.async_support.okx):
             if symbol in self.orderbooks:
                 updatedBook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
-                    update = data[i]
+                    update = self.safe_dict(data, i, {})
                     self.handle_order_book_message(client, update, updatedBook, messageHash, market)
                     if not (messageHash in client.subscriptions):
                         # a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it

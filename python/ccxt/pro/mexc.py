@@ -187,7 +187,7 @@ class mexc(ccxt.async_support.mexc):
         ticker: Ticker
         if self.safe_bool(market, 'spot', False):
             self.handle_bid_ask(client, message)  # the bids-asks channel is spot only
-            ticker = self.parse_ws_ticker(rawTicker, market)
+            ticker = self.parse_ws_ticker(self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'], {}), market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
         elif rawTicker is not None:
@@ -336,7 +336,7 @@ class mexc(ccxt.async_support.mexc):
         topic = messageHashPrefix + 'ticker'
         result = []
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             ticker: Ticker
             if isSpot is True:
                 ticker = self.parse_ws_ticker(entry, market)
