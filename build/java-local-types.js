@@ -1901,6 +1901,8 @@ const VENUE_RETURN_KINDS = {
     'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
     // nado `parseWsTimestamp (…): Int` returns parseToInt/safeInteger only
     'parseWsTimestamp': [ 'Long' ],
+    // `getCacheIndex (..): number` (base and pro overrides): an index or -1
+    'getCacheIndex': [ 'Long' ],
     'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
     // `: Dict` returning this.omit (map, keys), which binds the Map overload
     'handleRouteAndParams': [ JAVA_ARRAY_TYPE_MAP () ],
@@ -5621,7 +5623,14 @@ export function installJavaLocalTypes (transpiler) {
             if (venueType !== 'Long' && wrapsExtend) {
                 return printed.slice (0, at + 'return '.length) + '(' + venueCast + ' ' + tail.slice (0, end) + ')' + tail.slice (end);
             }
-            const open = venueType === 'Long' ? 'Helpers.toLongOrNull(' : venueCast + ' (';
+            // a whole-number literal or a provable int / long primitive (loop index, size ()) widens natively
+            const wholeLiteral = (e) => e !== undefined && (ts.isNumericLiteral (e) && /^\d+$/.test (e.text)
+                || ts.isPrefixUnaryExpression (e) && e.operator === ts.SyntaxKind.MinusToken && wholeLiteral (unwrapParens (e.operand)));
+            const integralOperand = (e) => e !== undefined && (wholeLiteral (e) || [ 'int', 'long' ].includes (printer.javaProvableNumericKind?.(e))
+                || ts.isBinaryExpression (e) && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (e.operatorToken.kind)
+                    && integralOperand (unwrapParens (e.left)) && integralOperand (unwrapParens (e.right)));
+            const primitiveLong = venueType === 'Long' && integralOperand (returned);
+            const open = primitiveLong ? '(long) (' : (venueType === 'Long' ? 'Helpers.toLongOrNull(' : venueCast + ' (');
             return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
         }
         if (JAVA_MAP_RETURN_METHODS.has (methodName) && !printer.isAsyncFunction?.(method)) {
