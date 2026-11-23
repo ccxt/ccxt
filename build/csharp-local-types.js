@@ -827,6 +827,14 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'parseBorrowRate': 'Dictionary<string, object>',
     // parseMarginMode: base `throw` stub plus venue overrides that each return one object literal
     'parseMarginMode': 'Dictionary<string, object>',
+    // unified single-row parsers declared with a struct return in ts/src: base `throw` stub plus
+    // venue overrides whose every return is an object literal or safeLiquidation
+    'parseAccount': 'Dictionary<string, object>', 'parseFundingRateHistory': 'Dictionary<string, object>',
+    'parseBorrowInterest': 'Dictionary<string, object>', 'parseLiquidation': 'Dictionary<string, object>',
+    'parseConversion': 'Dictionary<string, object>', 'parseGreeks': 'Dictionary<string, object>',
+    'parseOption': 'Dictionary<string, object>', 'parseLastPrice': 'Dictionary<string, object>',
+    'parseLongShortRatio': 'Dictionary<string, object>', 'parseIsolatedBorrowRate': 'Dictionary<string, object>',
+    'parseADLRank': 'Dictionary<string, object>',
     'parseCurrencyCustom': 'Dictionary<string, object>', 'parseDepositMethodId': 'Dictionary<string, object>', 'parseDepositWithdrawFees': 'Dictionary<string, object>', 'parseDustTrade': 'Dictionary<string, object>',
     'parseFeeTiers': 'Dictionary<string, object>', 'parseLedgerComment': 'Dictionary<string, object>', 'parseLeverages': 'Dictionary<string, object>', 'parseMarginLoan': 'Dictionary<string, object>',
     'parseMarginModes': 'Dictionary<string, object>', 'parseMarketToEvent': 'Dictionary<string, object>', 'parseNetworks': 'Dictionary<string, object>', 'parseOptionChain': 'Dictionary<string, object>',
@@ -1149,6 +1157,8 @@ function collectionReturnType (csharp, node, own) {
 // `new Dictionary<string, object>() { ... }` / `new List<object>() { ... }`, and
 // `this.extend(...)` / `this.deepExtend(...)` resolve to the hand-written base signatures.
 function collectionReturnIsTyped (csharp, expression, mapped) {
+    // `{ ... } as Account` prints the bare literal
+    expression = unwrapPassthroughExpression (expression);
     // the literal shortcut names the box the literal prints as: an object literal is a
     // Dictionary<string, object> and an array literal a List<object>/IList<object>, whatever
     // the printer's initializer hook answers — and nothing else (a `string?` mapping must not
