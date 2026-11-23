@@ -46,6 +46,7 @@ const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, t
     'Conversion': { 'names': [ 'ParseConversion' ] },
     'BorrowInterest': { 'names': [ 'ParseBorrowInterest' ] },
     'LongShortRatio': { 'names': [ 'ParseLongShortRatio' ] },
+    'FundingRateHistory': { 'names': [ 'ParseFundingRateHistory' ] },
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)

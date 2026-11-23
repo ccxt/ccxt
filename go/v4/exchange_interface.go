@@ -489,7 +489,7 @@ type IDerivedExchange interface {
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface]
 	ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress
 	ParseBorrowRate(info any, optionalArgs ...any) map[string]any
-	ParseFundingRateHistory(info any, optionalArgs ...any) any
+	ParseFundingRateHistory(info any, optionalArgs ...any) FundingRateHistory
 	ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate
 	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
