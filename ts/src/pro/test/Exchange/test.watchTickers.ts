@@ -24,7 +24,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
         let shouldReturn = false;
         const startTime = exchange.milliseconds ();
         try {
-            response = await exchange.watchTickers (argSymbols, argParams);
+            response = await exchange.watchTickers (argSymbols);
         } catch (e) {
             // for some exchanges, specifically watchTickers method not subscribe
             // to "all tickers" itself, and it requires symbols to be set

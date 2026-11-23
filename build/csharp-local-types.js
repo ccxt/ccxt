@@ -18117,6 +18117,9 @@ export const PARAMETERS_ARG_TYPED_METHODS = [
     'watchPrivateMultiple', 'watchPrivateSubscribe', 'watchSpotPrivate', 'watchSpotPublic',
     'watchStockMarketStream', 'watchSwapPrivate', 'watchSwapPublic', 'WatchTicker', 'WatchTrades',
     'WatchTradesForSymbols', 'watchWalletEvents', 'wathPublic', 'Withdraw', 'withdrawRequest', 'WithdrawWs',
+    'WatchBidsAsks', 'WatchTickers',
+    'parseAllGreeksDict', 'parseAllGreeksList', 'parseLastPricesDict', 'parseLastPricesList', 'parsePositions',
+    'parseTickersDict', 'parseTickersList',
 ];
 
 // the retyped trailing `params` of an admitted method, read inside its own body and never written
