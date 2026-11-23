@@ -9825,6 +9825,12 @@ export function csharpWsAndIndexGetValue (content: string): string {
             const listed = (wel !== null) && listTypes.includes ((bindingType (wel[1]) ?? '').replace (/\s+/g, '')) && (bindingType (wel[2]) === 'int');
             return listed ? dictionaryGetValue (r, k, 'object') : undefined;
         }
+        // `ex.options` of a declared exchange (ConcurrentDictionary): TryGetValue reads it atomically
+        const opt = /^([A-Za-z_]\w*)\.options$/.exec (r);
+        if ((opt !== null) && (bindingType (opt[1]) === 'BaseExchange') && [ 'string', 'object' ].includes (bindingType (keyMask) ?? '')) {
+            const v = opt[1] + 'Option' + i + '_' + at;
+            return `(${r} != null && ${k} != null && ${r}.TryGetValue((string)${k}, out var ${v}) ? ${v} : null)`;
+        }
         const rt = bindingType (r);
         if (rt === undefined) return undefined;
         const rn = rt.replace (/\s+/g, '');
@@ -9855,6 +9861,12 @@ export function csharpWsAndIndexGetValue (content: string): string {
                 const v = r + 'Value' + i + '_' + at;
                 return `(${r} != null && ${k} != null && ${r}.TryGetValue((string)${k}, out var ${v}) ? ${v} : null)`;
             }
+            // a guarded literal-key read of a declared dictionary (pure) as the key
+            const lk = /^\(([A-Za-z_]\w*) != null && \1\.ContainsKey\("[ ]+"\) \? \1\["[ ]+"\] : null\)$/.exec (keyMask);
+            if ((lk !== null) && dictTypes.includes ((bindingType (lk[1]) ?? '').replace (/\s+/g, ''))) {
+                const v = r + 'Value' + i + '_' + at;
+                return `(${r} != null && ${k} != null && ${r}.TryGetValue((string)${k}, out var ${v}) ? ${v} : null)`;
+            }
         }
         return undefined;
     });
@@ -9862,7 +9874,7 @@ export function csharpWsAndIndexGetValue (content: string): string {
 
 // snippet checks (run from csharpNativeEmissionSelfTest)
 function wsAndIndexGetValueSelfTest (): string[] {
-    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(WebSocketClient client, object mh, string s, List<object> xs, IDictionary<string, object> d)\n    {\n${body}\n    }\n}\n`;
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(WebSocketClient client, object mh, string s, List<object> xs, IDictionary<string, object> d, BaseExchange ex)\n    {\n${body}\n    }\n}\n`;
     const cases: [string, string, string][] = [
         [ 'subscriptions literal', '        object a = getValue(client.subscriptions, "token");', '(client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null)' ],
         [ 'subscriptions string key', '        object a = getValue(client.subscriptions, s);', '(client.subscriptions != null && s != null && client.subscriptions.ContainsKey(s) ? client.subscriptions[s] : null)' ],
@@ -9873,6 +9885,8 @@ function wsAndIndexGetValueSelfTest (): string[] {
         [ 'Int64? expression index', '        Int64? r = this.parseToInt("1");\n        object a = getValue(xs, (r - 1));', '(xs != null && (r - 1) != null && (r - 1) < xs.Count ? xs[(int)(r - 1)] : null)' ],
         [ 'array cache int index', '        ccxt.pro.ArrayCache stored = this.orders;\n        for (int i = 0; i < (stored?.Count ?? 0); i++)\n        {\n            object a = getValue(stored, i);\n        }', '(stored != null && i < stored.Count ? stored[i] : null)' ],
         [ 'guarded keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(d, (ks != null && i < ks.Count ? ks[i] : null));\n        }', '(d != null && (ks != null && i < ks.Count ? ks[i] : null) != null && d.TryGetValue((string)(ks != null && i < ks.Count ? ks[i] : null), out var dValue8_23) ? dValue8_23 : null)' ],
+        [ 'exchange options object key', '        object h = xs[0];\n        object a = getValue(ex.options, h);', '(ex.options != null && h != null && ex.options.TryGetValue((string)h, out var exOption' ],
+        [ 'guarded literal read key', '        object a = getValue(d, (d != null && d.ContainsKey("id") ? d["id"] : null));', 'd.TryGetValue((string)(d != null && d.ContainsKey("id") ? d["id"] : null), out var dValue' ],
         [ 'keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(d, ks[i]);\n        }', '(d != null && ks[i] != null && d.ContainsKey((string)ks[i]) ? d[(string)ks[i]] : null)' ],
     ];
     const keeps: [string, string][] = [
@@ -9886,6 +9900,8 @@ function wsAndIndexGetValueSelfTest (): string[] {
         [ 'guarded list key, Int64 index', '        List<object> ks = new List<object>();\n        Int64 i = 0;\n        object a = getValue(d, (ks != null && i < ks.Count ? ks[i] : null));' ],
         [ 'object list keys', '        object ks = new List<object>();\n        int i = 0;\n        object a = getValue(d, ks[i]);' ],
         [ 'object receiver', '        object o = d;\n        object a = getValue(o, "k");' ],
+        [ 'object exchange options', '        object e = ex;\n        object a = getValue(e.options, s);' ],
+        [ 'guarded read of object receiver key', '        object o = d;\n        object a = getValue(d, (o != null && o.ContainsKey("id") ? o["id"] : null));' ],
     ];
     return snippetSuite ('ws and index get value', csharpWsAndIndexGetValue, wrap, cases, keeps, 400, true, wrap ('        object a = getValue(client.subscriptions, "x");', 'Tests'), 'ws and index get value tests namespace changed');
 }
