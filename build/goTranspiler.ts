@@ -29,7 +29,7 @@ import { fileURLToPath } from 'url';
 const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, to?: string }> = {
     'Ticker': { 'names': [ 'ParseTicker', 'SafeTicker', 'ParseContractTicker', 'ParseTickerList' ] }, // bitfinex + coinbaseexchange list-row parsers
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
-    'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
+    'OHLCV': { 'names': [ 'ParseOHLCV', 'ParseWsOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
     'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] },
     'Transaction': { 'names': [ 'ParseTransaction', 'ParseTransactionRow' ] }, // bitfinex list-row parser
