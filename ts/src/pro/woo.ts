@@ -628,8 +628,7 @@ export default class woo extends wooRest {
             if (ticker === undefined) {
                 continue;
             }
-            ticker['ts'] = timestamp;
-            const parsedTicker = this.parseWsBidAsk (ticker);
+            const parsedTicker = this.parseWsBidAsk (this.extend (ticker, { 'ts': timestamp }));
             const symbol = this.safeString (parsedTicker, 'symbol');
             if (symbol !== undefined) {
                 this.bidsasks[symbol] = parsedTicker;
