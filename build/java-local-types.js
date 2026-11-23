@@ -27187,6 +27187,7 @@ const JAVA_LIST_PARAM_SLOTS = {
     'parseSettlements': [ 0 ],
     'parseTransactionsByType': [ 1 ],
     'handleBookDeltas': [ 1 ],
+    'handleDeltas': [ 1 ],
     'parseBorrowRateHistory': [ 0 ],
 };
 // unified list parameters: the typed surface hands List<Map<String, Object>> rows (OrderRequest[]) and
