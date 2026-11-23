@@ -6859,6 +6859,7 @@ const RUST_PARSE_LIST_FNS = [
     'extract_type_from_delta',
     'parse_event_to_markets',
     'parse_portfolio_details',
+    'parse_markets',
     'filter_transactions_by_kind',
     'wallet_event_message_hashes',
     'parse_sxbet_cancel_response',
@@ -6939,7 +6940,7 @@ function typeParseListReturns(content: string): string {
     const printerTyped = new Set([...content.matchAll(/\n {4}(?:pub )?(?:async )?fn (\w+)\([^\n]*\) -> crate::value::List \{/g)].map((d) => d[1]).filter((n) => !typed.has(n)));
     const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && !printerTyped.has(n) && (typed.has(n) || (n !== 'parse_settlements' && !RUST_VENUE_LIST_FNS.has(n))));
     if (names.length === 0) return content;
-    const head = new RegExp(String.raw`(?:\bself(?:\.parent)?\.|<Self as crate::prediction_exchange_generated::PredictionBase>::)(?:${names.join('|')})\(`, 'g');
+    const head = new RegExp(String.raw`(?:\b(?:self(?:\.parent)?|exchange)\.|<Self as crate::prediction_exchange_generated::PredictionBase>::)(?:${names.join('|')})\(`, 'g');
     const typedBody = new RegExp(String.raw`\n {4}(?:pub )?(?:async )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
     const spans: Array<[number, number]> = [];
     // sample JSON in comment lines has unbalanced brackets: blank them before finding the body's close
