@@ -6301,6 +6301,10 @@ function callReturnType (csharp, initializer) {
         if (localType !== undefined) {
             return localType;
         }
+        const declaredInt = declaredIntCallType (csharp, initializer);
+        if (declaredInt !== undefined) {
+            return declaredInt;
+        }
         // a TS-array receiver binds Exchange.cs `IList<object> arraySlice(object, ...)` (byte[] has its own overload)
         if (methodName === 'arraySlice' && arraySliceCallIsProvenList (csharp, initializer)) {
             return 'IList<object>';
@@ -16608,7 +16612,7 @@ function csharpMethodReturnType (csharp, node, own) {
         : undefined;
     const mapped = (name === 'requestId')
         ? ((sameFileCallBoxType (node.getSourceFile?.()) === 'Int64') ? 'Int64' : undefined)
-        : ((sameFileMapped !== undefined) ? sameFileMapped : CSHARP_NUMERIC_RETURN_TYPES[node.name?.text]);
+        : ((sameFileMapped !== undefined) ? sameFileMapped : (CSHARP_NUMERIC_RETURN_TYPES[node.name?.text] ?? declaredIntReturnType (csharp, node)));
     if (mapped === undefined) {
         return undefined;
     }
@@ -16633,6 +16637,10 @@ function needsUnboxingWrap (csharp, expression, mapped) {
         return false;
     }
     if (expression.kind === ts.SyntaxKind.NullKeyword) {
+        return false;
+    }
+    // `undefined` prints `null`, which converts to every nullable mapped type
+    if (expression.kind === ts.SyntaxKind.Identifier && expression.text === 'undefined' && mapped.endsWith ('?')) {
         return false;
     }
     let expression2 = expression;
@@ -25101,3 +25109,86 @@ const asyncTupleUpstreamOmitReceiverIsDictionary = omitReceiverIsDictionary;
 omitReceiverIsDictionary = function (csharp, receiver) {
     return asyncTupleUpstreamOmitReceiverIsDictionary (csharp, receiver) || asyncTupleElement1Read (csharp, receiver);
 };
+
+// ===== venue methods annotated `: int` / `: Int` =====
+// `Int64?` signature when every body declaration of the name is a venue one, non-async, annotated
+// int/Int, and each return is null/undefined, an integer literal or a value already typed int/Int64(?).
+const declaredIntInProgress = new Set ();
+
+function declaredIntAnnotation (declaration) {
+    const text = declaration?.type?.getText?.()?.trim ();
+    return (text === 'int' || text === 'Int') ? text : undefined;
+}
+
+function declaredIntReturnPathProves (csharp, expression) {
+    let node = stripParens (expression);
+    if (node?.kind === ts.SyntaxKind.PrefixUnaryExpression && node.operator === ts.SyntaxKind.MinusToken) {
+        node = stripParens (node.operand);
+    }
+    if (node?.kind === ts.SyntaxKind.NumericLiteral) {
+        return /^\d+$/.test (node.text);
+    }
+    if (node?.kind === ts.SyntaxKind.NullKeyword) {
+        return true;
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        if (node.text === 'undefined') {
+            return true;
+        }
+        const type = identifierType (csharp, node);
+        return type === 'int' || type === 'Int64' || type === 'Int64?';
+    }
+    if (node?.kind === ts.SyntaxKind.CallExpression) {
+        const type = callReturnType (csharp, node);
+        return type === 'int' || type === 'Int64' || type === 'Int64?';
+    }
+    return false;
+}
+
+function declaredIntNameType (csharp, name) {
+    const tables = parseReturnTables (csharp);
+    if (tables === undefined || typeof name !== 'string') {
+        return undefined;
+    }
+    tables.declaredInt = tables.declaredInt ?? new Map ();
+    if (tables.declaredInt.has (name)) {
+        return tables.declaredInt.get (name);
+    }
+    if (declaredIntInProgress.has (name)) {
+        return undefined; // a proof chain that reaches its own name
+    }
+    declaredIntInProgress.add (name);
+    let type;
+    try {
+        const declarations = parseReturnDeclarations (tables, name);
+        const venueOnly = declarations.every ((d) => !/[\\/]base[\\/]/.test (d.getSourceFile?.()?.fileName ?? '/base/'));
+        const proved = (declarations.length > 0) && venueOnly && declarations.every ((d) => (declaredIntAnnotation (d) !== undefined)
+            && !(typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (d))
+            && sameFileMethodReturnsProve (csharp, d, (expression) => declaredIntReturnPathProves (csharp, expression)));
+        type = proved ? 'Int64?' : undefined;
+    } catch (e) {
+        type = undefined; // no checker context: keep the printer's object
+    } finally {
+        declaredIntInProgress.delete (name);
+    }
+    tables.declaredInt.set (name, type);
+    return type;
+}
+
+function declaredIntReturnType (csharp, declaration) {
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaredIntAnnotation (declaration) === undefined) {
+        return undefined;
+    }
+    return declaredIntNameType (csharp, declaration.name?.text);
+}
+
+function declaredIntCallType (csharp, call) {
+    const name = call.expression?.name?.text;
+    if (typeof name !== 'string' || ![ 'nonce', 'requestId' ].every ((n) => n !== name)) {
+        return undefined;
+    }
+    if (typeof csharp.csharpCalleeResolves === 'function' && !csharp.csharpCalleeResolves (call)) {
+        return undefined;
+    }
+    return declaredIntNameType (csharp, name);
+}

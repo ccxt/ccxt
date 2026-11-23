@@ -334,3 +334,24 @@ describe ('ral-90c8-guarded-self-concat-write-native-use', () => {
         assert.match (out, /object url = this\.safeString\(apiUrls, tradeType\);/);
     });
 });
+
+describe ('cs-declared-int-venue-returns', () => {
+    test('interactivebrokers: venue methods declared int print Int64? and their comparisons print operators', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/interactivebrokers.ts').content as string;
+        assert.match (out, /public virtual Int64\? ibkrGatewayRegainDelay\(\)/);
+        assert.match (out, /Int64\? regainDelay = this\.ibkrGatewayRegainDelay\(\);/);
+        assert.match (out, /\(regainDelay == null \|\| regainDelay <= 0\)/);
+        assert.doesNotMatch (out, /isLessThanOrEqual\(regainDelay, 0\)/);
+        // undefined returns convert to the nullable signature with no box cast
+        assert.doesNotMatch (out, /\(\(Int64\?\)\(\(object\)\(null\)\)\)/);
+    });
+    test('a method declared number (not int) keeps object', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/bullish.ts').content as string;
+        assert.match (out, /public virtual object getTimestamp\(\)|public virtual Int64\? getTimestamp\(\)/);
+        assert.match (out, /public virtual Int64\? getClosestLimit\(Int64\? limit\)/);
+    });
+});
