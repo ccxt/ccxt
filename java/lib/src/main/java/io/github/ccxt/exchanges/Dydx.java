@@ -3034,7 +3034,7 @@ public class Dydx extends DydxApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return (this.milliseconds() - timeDifference);
+        return (long) ((this.milliseconds() - timeDifference));
     }
 
     public String getWalletAddress()

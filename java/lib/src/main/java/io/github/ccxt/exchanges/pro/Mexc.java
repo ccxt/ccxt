@@ -966,7 +966,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
     }
 
-    public Object getCacheIndex(Object orderbook, Object cache)
+    public Long getCacheIndex(Object orderbook, Object cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Long nonce = this.safeInteger(orderbook, "nonce");
@@ -974,11 +974,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Long firstDeltaNonce = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaNonce, null)))
         {
-            return -1;
+            return (long) (-1);
         }
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (((nonce == null || nonce < (firstDeltaNonce - 1L)))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
@@ -990,10 +990,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             if ((nonce == null || (deltaNonce != null && deltaNonce >= nonce)))
             {
-                return i;
+                return (long) (i);
             }
         }
-        return ((List<?>)cache).size();
+        return (long) (((List<?>)cache).size());
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)

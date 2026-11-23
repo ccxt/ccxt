@@ -4087,9 +4087,9 @@ public class Aster extends AsterApi
         }
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
+        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object modifyMarginHelperCore(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)

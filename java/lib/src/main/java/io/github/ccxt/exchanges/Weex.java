@@ -885,7 +885,7 @@ public class Weex extends WeexApi
 
     public Long nonce()
     {
-        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
+        return (long) ((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -5237,9 +5237,9 @@ public class Weex extends WeexApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Long type, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, Long type, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
+        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object modifyMarginHelperCore(String symbol, Double amount, Long type, Map<String, Object> parameters)

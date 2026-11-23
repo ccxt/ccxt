@@ -3397,7 +3397,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> accounts = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)portfolioAccounts).size(); i++)
         {
-            ((List<Object>)accounts).add(this.parseAccount((Map<String, Object>) ((portfolioAccounts == null || i < 0 || i >= ((List<?>)portfolioAccounts).size() ? null : ((List<?>)portfolioAccounts).get(i)))));
+            ((List<Object>)accounts).add(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (portfolioAccounts == null || i < 0 || i >= ((List<?>)portfolioAccounts).size() ? null : ((List<?>)portfolioAccounts).get(i)))));
         }
         return accounts;
 
@@ -3872,12 +3872,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(amount, null))

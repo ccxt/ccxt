@@ -6472,12 +6472,12 @@ public class Gate extends GateApi
      * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -9044,7 +9044,7 @@ public class Gate extends GateApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return (this.milliseconds() - timeDifference);
+        return (long) ((this.milliseconds() - timeDifference));
     }
 
     public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
@@ -9183,12 +9183,12 @@ public class Gate extends GateApi
         }
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Double amount, Map<String, Object> parameters)
+    private Map<String, Object> modifyMarginHelperCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))

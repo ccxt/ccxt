@@ -3542,10 +3542,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         return "ping";
     }
 
-    public Object handlePong(Client client, Object message)
+    public void handlePong(Client client, Object message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
-        return message;
     }
 
     public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)

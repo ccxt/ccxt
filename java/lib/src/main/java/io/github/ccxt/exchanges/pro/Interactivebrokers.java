@@ -698,7 +698,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             }
             Map<String, Object> options = this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long historyLimit = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long historyLimit = 100L;
+            if (!java.util.Objects.equals(limit, null))
+            {
+                historyLimit = this.parseToInt(limit);
+            }
             Map<String, Object> historyRequest = new HashMap<String, Object>();
             historyRequest.put("exchange", this.safeString(options, "exchange", "SMART"));
             historyRequest.put("period", this.ibkrWsPeriod(((long) duration), historyLimit));

@@ -260,19 +260,19 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
     }
 
-    public Object getCacheIndex(Object orderbook, Object deltas)
+    public Long getCacheIndex(Object orderbook, Object deltas)
     {
         // we will consider it a fail
         Map<String, Object> firstElement = this.safeDict(deltas, 0, null);
         Long firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (java.util.Objects.equals(firstElementNonce, null))
         {
-            return -1;
+            return (long) (-1);
         }
         Long nonce = this.safeInteger(orderbook, "nonce");
         if ((java.util.Objects.equals(nonce, null)) || ((firstElementNonce != null && (nonce == null || nonce < firstElementNonce))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
@@ -280,10 +280,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
             if (java.util.Objects.equals(deltaNonce, nonce))
             {
-                return (((long) i) + 1L);
+                return (long) ((((long) i) + 1L));
             }
         }
-        return ((List<?>)deltas).size();
+        return (long) (((List<?>)deltas).size());
     }
 
     /**

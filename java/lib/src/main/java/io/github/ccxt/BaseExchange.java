@@ -5196,10 +5196,10 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object getCacheIndex(Object orderbook, Object deltas)
+    public Long getCacheIndex(Object orderbook, Object deltas)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
-        return -1;
+        return (long) (-1);
     }
 
     public List<Object> arraysConcat(Object arraysOfArrays)
@@ -5688,10 +5688,10 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOHLCVForSymbols() is not supported yet")));
+        return CompletableFuture.<Map<String, Object>>failedFuture(new NotSupported((this.id + " watchOHLCVForSymbols() is not supported yet")));
 
     }
 

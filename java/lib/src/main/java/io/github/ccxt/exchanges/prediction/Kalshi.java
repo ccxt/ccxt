@@ -990,7 +990,7 @@ public class Kalshi extends KalshiApi
 
         (this.loadOutcome((String) (outcome), false)).join();
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+        String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "ticker", ticker );
         }};
@@ -1105,7 +1105,7 @@ public class Kalshi extends KalshiApi
 
         (this.loadOutcome((String) (outcome), false)).join();
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+        String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "ticker", ticker );
         }};
@@ -1810,7 +1810,7 @@ public class Kalshi extends KalshiApi
         {
             ((List<Object>)trades).add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), outcomeObj));
         }
-        Object wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
+        Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
@@ -2065,7 +2065,7 @@ public class Kalshi extends KalshiApi
         {
             parsed.add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
         }
-        Object wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
+        Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
@@ -2615,12 +2615,12 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object editOrderCore(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),

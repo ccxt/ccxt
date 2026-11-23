@@ -529,7 +529,7 @@ public class Latoken extends LatokenApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return (this.milliseconds() - timeDifference);
+        return (long) ((this.milliseconds() - timeDifference));
     }
 
     /**

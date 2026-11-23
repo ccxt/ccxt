@@ -633,7 +633,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         this.watchOrderBookSnapshot(client, message, subscription);
     }
 
-    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -646,7 +646,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String id = this.safeString(message, "id");
         if (java.util.Objects.equals(id, null))
         {
-            return message;
+            return;
         }
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = this.safeDict(subscriptionsById, id, null);
@@ -656,11 +656,11 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             if (java.util.Objects.equals(method, "handleOrderBookSnapshot"))
             {
                 this.handleOrderBookSnapshot(client, message, subscription);
-                return null;
+                return;
             } else if (java.util.Objects.equals(method, "handleOrderBookSubscription"))
             {
                 this.handleOrderBookSubscription(client, message, subscription);
-                return null;
+                return;
             }
             // clean up
             if (client.subscriptions.containsKey(id))
@@ -668,7 +668,6 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 client.subscriptions.remove((String)id);
             }
         }
-        return message;
     }
 
     public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)

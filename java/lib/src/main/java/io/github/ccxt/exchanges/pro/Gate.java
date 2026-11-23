@@ -389,12 +389,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderWsCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderWsCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderWsCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -917,14 +917,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public Object getCacheIndex(Object orderBook, Object cache)
+    public Long getCacheIndex(Object orderBook, Object cache)
     {
         Long nonce = this.safeInteger(orderBook, "nonce");
         Map<String, Object> firstDelta = this.safeDict(cache, 0, null);
         Long firstDeltaStart = this.safeInteger(firstDelta, "U");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaStart, null)) && ((firstDeltaStart != null && (nonce == null || nonce < firstDeltaStart))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
@@ -933,10 +933,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Long deltaEnd = this.safeInteger(delta, "u");
             if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(deltaStart, null)) && (!java.util.Objects.equals(deltaEnd, null)) && (((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
-                return i;
+                return (long) (i);
             }
         }
-        return ((List<?>)cache).size();
+        return (long) (((List<?>)cache).size());
     }
 
     public void handleBidAsks(Object bookSide, Object bidAsks)

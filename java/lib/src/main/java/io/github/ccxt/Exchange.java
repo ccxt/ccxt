@@ -754,12 +754,12 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderWsCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderWsCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderWsCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         (this.cancelOrderWs(id, symbol, new HashMap<String, Object>() {{}})).join();
@@ -981,48 +981,48 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editLimitBuyOrderCore(id, symbol, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editLimitBuyOrderCore(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    private Object editLimitBuyOrderCore(String id, String symbol, Double amount, Double price, Map<String, Object> parameters)
     {
 
         return (this.editLimitOrder(id, symbol, "buy", amount, price, parameters)).join();
 
     }
 
-    public CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editLimitSellOrderCore(id, symbol, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editLimitSellOrderCore(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    private Object editLimitSellOrderCore(String id, String symbol, Double amount, Double price, Map<String, Object> parameters)
     {
 
         return (this.editLimitOrder(id, symbol, "sell", amount, price, parameters)).join();
 
     }
 
-    public CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editLimitOrderCore(id, symbol, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editLimitOrderCore(String id, String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editLimitOrderCore(String id, String symbol, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         return (this.editOrder(id, symbol, "limit", (String) (side), amount, price, parameters)).join();
 
     }
 
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         (this.cancelOrder(id, symbol, new HashMap<String, Object>() {{}})).join();
@@ -1030,12 +1030,12 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderWithClientOrderIdCore(clientOrderId, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderWithClientOrderIdCore(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderWithClientOrderIdCore(Object clientOrderId, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{

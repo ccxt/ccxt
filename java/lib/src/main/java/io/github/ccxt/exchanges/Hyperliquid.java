@@ -2899,7 +2899,7 @@ public class Hyperliquid extends HyperliquidApi
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-            Map<String, Object> mainOrderObj = this.createOrderRequest(symbol, type, side, (String) (amount), price, orderParams);
+            Map<String, Object> mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
                 // grouping opposed orders for sl/tp
@@ -2933,7 +2933,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
-                    Map<String, Object> orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, (String) (amount), takeProfitOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
+                    Map<String, Object> orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "takeProfitPrice", takeProfitOrderTriggerPrice );
                         put( "reduceOnly", true );
                     }}));
@@ -2941,7 +2941,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
-                    Map<String, Object> orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, (String) (amount), stopLossOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
+                    Map<String, Object> orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "stopLossPrice", stopLossOrderTriggerPrice );
                         put( "reduceOnly", true );
                     }}));
@@ -3554,12 +3554,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5037,9 +5037,9 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
+        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)

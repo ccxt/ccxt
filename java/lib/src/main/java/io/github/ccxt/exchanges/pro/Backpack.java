@@ -915,12 +915,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Map<String, Object> watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", parameters)).join();
@@ -1533,7 +1533,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
     }
 
-    public Object getCacheIndex(Object orderbook, Object cache)
+    public Long getCacheIndex(Object orderbook, Object cache)
     {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
@@ -1543,15 +1543,15 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Integer cacheLength = ((List<?>)cache).size();
         if (java.util.Objects.equals(nonce, null))
         {
-            return cacheLength;
+            return (long) (cacheLength);
         }
         if (java.util.Objects.equals(firstDeltaStart, null))
         {
-            return -1;
+            return (long) (-1);
         }
         if (((nonce == null || nonce < (firstDeltaStart - 1L))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; (cacheLength != null && i < cacheLength); i++)
         {
@@ -1560,14 +1560,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Long deltaEnd = this.safeInteger(delta, "u");
             if ((java.util.Objects.equals(deltaStart, null)) || (java.util.Objects.equals(deltaEnd, null)))
             {
-                return cacheLength;
+                return (long) (cacheLength);
             }
             if ((((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
-                return i;
+                return (long) (i);
             }
         }
-        return cacheLength;
+        return (long) (cacheLength);
     }
 
     /**

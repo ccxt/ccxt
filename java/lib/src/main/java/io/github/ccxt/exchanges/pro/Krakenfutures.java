@@ -2105,7 +2105,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
     }
 
-    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
+    public void handleAuthenticate(Client client, Map<String, Object> message)
     {
         /**
          * @ignore
@@ -2139,6 +2139,5 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 client.subscriptions.remove(messageHash);
             }
         }
-        return message;
     }
 }

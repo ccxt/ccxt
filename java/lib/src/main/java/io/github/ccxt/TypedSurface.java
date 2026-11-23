@@ -176,11 +176,11 @@ public interface TypedSurface {
     CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
     CompletableFuture<OrderBook> fetchL2OrderBook(String symbol, Long limit, Map<String, Object> params);
-    CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
+    CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
     CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> params);
@@ -272,7 +272,7 @@ public interface TypedSurface {
     CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
     CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> params);
     CompletableFuture<Order> createTriggerOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
+    CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchClosedOrdersWs(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchMyTradesWs(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchOpenOrdersWs(String symbol, Long since, Long limit, Map<String, Object> params);

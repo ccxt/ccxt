@@ -1100,7 +1100,7 @@ public class Sxbet extends SxbetApi
 
         this.checkRequiredCredentials(true);
         (this.loadOutcome((String) (outcome), false)).join();
-        Object outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         if ((!java.util.Objects.equals(type, "limit")) && (!java.util.Objects.equals(type, "market")))
         {
             throw new InvalidOrder(((this.id + " createOrder() type must be 'limit' or 'market', got ") + type)) ;
@@ -1121,7 +1121,7 @@ public class Sxbet extends SxbetApi
         {
             throw new NotSupported((this.id + " createOrder() does not support trigger, stop-loss or take-profit orders")) ;
         }
-        String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
+        String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
         String outcomeId = this.safeString(outcomeObj, "outcomeId");
         Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
         Boolean isBuy = (java.util.Objects.equals(side, "buy"));
@@ -2273,7 +2273,7 @@ public class Sxbet extends SxbetApi
 
         (this.loadOutcome((String) (outcome), false)).join();
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash");
+        String marketHash = this.safeString(outcomeObj.get("info"), "marketHash");
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
         Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
@@ -2434,7 +2434,7 @@ public class Sxbet extends SxbetApi
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
-            String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
+            String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
             Map<String, Object> raw = this.safeDict(rowsByHash, marketHash, null);
             if (java.util.Objects.equals(raw, null))
             {
@@ -3056,7 +3056,7 @@ public class Sxbet extends SxbetApi
         (this.loadOutcome((String) (outcome), false)).join();
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         String sym = this.safeString(outcomeObj, "outcome", "");
-        String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash");
+        String marketHash = this.safeString(outcomeObj.get("info"), "marketHash");
         String messageHash = ("ticker::" + sym);
         this.setWsOption("wsWatchedTickers", sym, marketHash);
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -3073,7 +3073,7 @@ public class Sxbet extends SxbetApi
             // for every newly watched market, not only on a fresh subscription
             Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
             Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
-            Object ticker = this.parsePredictionTicker(raw, outcomeObj);
+            Map<String, Object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             this.setWsOption("wsTickers", sym, ((Object)ticker));
             hydrated = true;
         }
@@ -3136,7 +3136,7 @@ public class Sxbet extends SxbetApi
                     continue;
                 }
                 Object outcomeObj = ((Object)this.outcome(sym));
-                Object ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Map<String, Object> ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 this.setWsOption("wsTickers", sym, ((Object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }

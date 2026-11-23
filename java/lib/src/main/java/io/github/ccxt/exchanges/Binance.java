@@ -4522,7 +4522,7 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return (this.milliseconds() - timeDifference);
+        return (long) ((this.milliseconds() - timeDifference));
     }
 
     /**
@@ -8067,12 +8067,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -16779,9 +16779,9 @@ public class Binance extends BinanceApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
+        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object modifyMarginHelperCore(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)

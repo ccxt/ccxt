@@ -565,7 +565,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
 
         parameters.put("callerMethodName", "watchOHLCV");
-        Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+        Map<String, Object> result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
         Map<String, Object> symbolResult = this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
         return this.safeList(symbolResult, java.util.Objects.requireNonNullElse(timeframe, "1m"), new ArrayList<Object>(Arrays.asList()));
 
@@ -582,12 +582,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
     }
 
-    private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    private Map<String, Object> watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         Integer symbolsLength = symbolsAndTimeframes.size();

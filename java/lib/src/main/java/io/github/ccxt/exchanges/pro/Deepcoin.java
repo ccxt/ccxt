@@ -118,10 +118,9 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return "ping";
     }
 
-    public Object handlePong(Client client, String message)
+    public void handlePong(Client client, String message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
-        return message;
     }
 
     public Long requestId()

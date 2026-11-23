@@ -1797,12 +1797,12 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {object} [params] Exchange specific params
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2341,7 +2341,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return this.safeString(typesMap, orderType, orderType);
     }
 
-    public void verifyOrderActionSuccess(Object status, String method, Object omit)
+    public void verifyOrderActionSuccess(String status, String method, Object omit)
     {
         Map<String, Object> errors = new HashMap<String, Object>() {{
             put( "invalidOrderType", InvalidOrder.class );
@@ -2365,9 +2365,12 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "filled", OrderNotFound.class );
             put( "notFound", OrderNotFound.class );
         }};
-        if (((status != null && errors.containsKey(status))) && !this.inArray(status, omit))
+        if (!java.util.Objects.equals(status, null))
         {
-            Helpers.throwDynamicException((errors == null || !(status instanceof String) ? null : errors.get(status)), ((((this.id + ": ") + method) + " failed due to ") + status));
+            if ((errors.containsKey(status)) && !this.inArray(status, omit))
+            {
+                Helpers.throwDynamicException((errors == null || status == null ? null : errors.get(status)), ((((this.id + ": ") + method) + " failed due to ") + status));
+            }
         }
     }
 

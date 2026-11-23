@@ -1293,12 +1293,12 @@ public class Myriad extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object editOrderCore(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         (this.loadOutcome((String) (outcome), false)).join();
@@ -1682,7 +1682,7 @@ public class Myriad extends MyriadApi
         {
             outcome = this.safeString(market, "outcome");
         }
-        Object outcomeObj = market;
+        Map<String, Object> outcomeObj = market;
         if (java.util.Objects.equals(outcome, null))
         {
             // the REST order has no top-level networkId; order book lives on the default network

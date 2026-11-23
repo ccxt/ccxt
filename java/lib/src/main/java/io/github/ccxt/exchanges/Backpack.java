@@ -4237,7 +4237,7 @@ public class Backpack extends BackpackApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return (this.milliseconds() - timeDifference);
+        return (long) ((this.milliseconds() - timeDifference));
     }
 
     public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)

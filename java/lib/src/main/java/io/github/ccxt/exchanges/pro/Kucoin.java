@@ -2169,18 +2169,18 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.resolve(book, messageHash);
     }
 
-    public Object getCacheIndex(Object orderbook, Object cache)
+    public Long getCacheIndex(Object orderbook, Object cache)
     {
         Map<String, Object> firstDelta = this.safeDict(cache, 0, null);
         Long nonce = this.safeInteger(orderbook, "nonce");
         Long firstDeltaStart = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaStart, null)))
         {
-            return -1;
+            return (long) (-1);
         }
         if (((nonce == null || nonce < (firstDeltaStart - 1L))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
@@ -2193,10 +2193,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             if ((((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
-                return i;
+                return (long) (i);
             }
         }
-        return ((List<?>)cache).size();
+        return (long) (((List<?>)cache).size());
     }
 
     public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)

@@ -189,7 +189,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     }
 
-    public Object getCacheIndex(Object orderbook, Object cache)
+    public Long getCacheIndex(Object orderbook, Object cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Long nonce = this.safeInteger(orderbook, "nonce");
@@ -197,7 +197,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (((nonce == null || nonce < (firstDeltaNonce - 1L)))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
@@ -205,10 +205,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Long deltaNonce = (Long) this.safeInteger2(delta, "i", "u");
             if ((!java.util.Objects.equals(deltaNonce, null)) && (!java.util.Objects.equals(nonce, null)) && ((nonce == null || (deltaNonce != null && deltaNonce >= nonce))))
             {
-                return i;
+                return (long) (i);
             }
         }
-        return ((List<?>)cache).size();
+        return (long) (((List<?>)cache).size());
     }
 
     public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)

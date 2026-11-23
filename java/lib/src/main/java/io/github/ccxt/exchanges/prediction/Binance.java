@@ -1209,7 +1209,7 @@ public class Binance extends BinanceApi
         // }
         //
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object outcomeObjResolved = outcomeObj;
+        Map<String, Object> outcomeObjResolved = outcomeObj;
         if (java.util.Objects.equals(outcomeObjResolved, null))
         {
             String marketId = this.safeString(order, "marketId");
@@ -1820,7 +1820,7 @@ public class Binance extends BinanceApi
         //     "networkFee": "0.000001"
         // }
         //
-        Object outcomeObjResolved = outcomeObj;
+        Map<String, Object> outcomeObjResolved = outcomeObj;
         if (java.util.Objects.equals(outcomeObjResolved, null))
         {
             String marketId = this.safeString(trade, "marketId");

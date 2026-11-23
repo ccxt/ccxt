@@ -1254,7 +1254,7 @@ public class Xt extends XtApi
 
     public Long nonce()
     {
-        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
+        return (long) ((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -5611,12 +5611,12 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
+    private Map<String, Object> modifyMarginHelperCore(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
     {
 
         String positionSide = this.safeString(parameters, "positionSide");
@@ -7005,12 +7005,12 @@ public class Xt extends XtApi
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(amount, null))

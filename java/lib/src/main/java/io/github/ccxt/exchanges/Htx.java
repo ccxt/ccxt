@@ -9407,7 +9407,7 @@ public class Htx extends HtxApi
 
     public Long nonce()
     {
-        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
+        return (long) ((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)

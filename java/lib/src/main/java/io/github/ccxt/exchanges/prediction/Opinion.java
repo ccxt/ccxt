@@ -903,7 +903,7 @@ public class Opinion extends OpinionApi
         List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             promises.add(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -916,7 +916,7 @@ public class Opinion extends OpinionApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             Long priceIndex = (((long) i) * 2L);
             Map<String, Object> priceResponse = this.safeDict(responses, priceIndex, null);
             Map<String, Object> bookResponse = this.safeDict(responses, this.sum(priceIndex, 1), null);
