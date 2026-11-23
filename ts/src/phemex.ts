@@ -1236,7 +1236,7 @@ export default class phemex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
-        const sides = [ bidsKey, asksKey ];
+        const sides: string[] = [ bidsKey, asksKey ];
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
             const orders: Num[][] = [];
@@ -5761,8 +5761,7 @@ export default class phemex extends Exchange {
         const ranks: Dict[] = this.safeList (data, 'positions', []);
         const result: ADL[] = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = ranks[i];
-            result.push (this.parseADLRank (rank));
+            result.push (this.parseADLRank (ranks[i]));
         }
         return this.filterByArrayADLRanks (result, 'symbol', symbolsNormalized, false);
     }

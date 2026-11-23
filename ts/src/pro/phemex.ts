@@ -509,8 +509,7 @@ export default class phemex extends phemexRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < ohlcvs.length; i++) {
-                const candle = ohlcvs[i];
-                stored.append (candle);
+                stored.append (ohlcvs[i]);
             }
             client.resolve (stored, messageHash);
         }
