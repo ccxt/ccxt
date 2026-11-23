@@ -299,7 +299,12 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		for k, v := range headersStrMap {
 			requestHeaders[k] = v
 		}
-		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, requestHeaders, body)
+		// the sent body as a nullable string (a map body was sent as JSON, so handleErrors gets nil for it)
+		var requestBody *string
+		if bodyStr, ok := body.(string); ok {
+			requestBody = &bodyStr
+		}
+		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, requestHeaders, requestBody)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {

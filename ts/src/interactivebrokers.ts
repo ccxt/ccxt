@@ -4167,7 +4167,7 @@ export default class interactivebrokers extends Exchange {
         return undefined;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: Str) {
         if ((code === 401) && this.safeBool (this.options, 'useGateway', false)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options['gatewayAuthenticatedTimestamp'] = undefined;
