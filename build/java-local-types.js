@@ -1297,7 +1297,7 @@ function javaCoreVenueTable (tier) {
         const merged = new Map (typedReturnTable (tier));
         for (const [ name, javaReturnType ] of javaVenueAsyncReturnTable ()) {
             if (!merged.has (name)) {
-                merged.set (name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven (name) });
+                merged.set (name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven (name), ...javaVenueDtoListInfo (javaReturnType) });
             }
         }
         javaCoreTierTables.set (key, merged);
@@ -9650,6 +9650,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'NullableDict': 'Map<String, Object>',
     // venue-private margin helpers: the parseMarginModification row (or the raw response) as a map
     'MarginModification': 'Map<String, Object>',
+    // venue-private `Promise<Order[]>` fetchers: the wrapper maps the core's rows to typed Order views
+    'Order[]': 'List<Order>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
@@ -9936,6 +9938,12 @@ export function javaVenueAsyncReturnTable () {
     return javaVenueReturnTable;
 }
 
+// a `List<Dto>` venue spelling: the typed-core converter maps the raw rows to the DTO view on the wrapper
+export function javaVenueDtoListInfo (spelling) {
+    const m = /^List<(\w+)>$/.exec (spelling);
+    return m !== null && m[1] !== 'Object' && javaIsTypedMapDto (m[1]) ? { isArray: true, elementType: m[1] } : {};
+}
+
 // file-scoped venue async cores: a `Promise<T>` declaration in exactly that ts/src file, with no
 // declaration of the name in its REST parent or the base files (closed list: every return is a typed
 // local or parseTransactions, and the awaited locals are handed to slots of that type)
@@ -9992,7 +10000,7 @@ function awaitedVenueCallType (printer, node) {
         }
         spelling = own === undefined ? undefined : javaVenueFileAsyncReturns (own).get (String (call.expression.name.text))?.javaReturnType;
     }
-    if (spelling === undefined) {
+    if (spelling === undefined || javaVenueDtoListInfo (spelling).isArray) {
         return undefined;
     }
     let file;
