@@ -439,10 +439,10 @@ type ICoreExchange interface {
 type IDerivedExchange interface {
 	Nonce() int64
 	SignInAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	HandleDelta(bookside any, delta any)
+	HandleDelta(bookside IOrderBookSide, delta any)
 	GetCacheIndex(orderbook any, deltas []any) any
 	Ping(client ClientInterface) any
-	HandleDeltas(bookside any, deltas []any)
+	HandleDeltas(bookside IOrderBookSide, deltas []any)
 	HandleBookDelta(orderbook OrderBookInterface, delta any)
 	HandleBookDeltas(orderbook OrderBookInterface, deltas []any)
 	ParseLeverage(leverage any, optionalArgs ...any) Leverage
