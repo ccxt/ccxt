@@ -9606,6 +9606,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'Str[]': 'List<Object>', 'string[]': 'List<Object>',
     // venue-only `Promise<any[]>` fetchers: the same every-return-proven and list-read gates apply
     'any[]': 'List<Object>',
+    // venue-private order / deposit fetchers and market-type loaders: the raw dict / row list their parse* builds
+    'Order': 'Map<String, Object>', 'Transaction': 'Map<String, Object>', 'Market[]': 'List<Object>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];

@@ -12,6 +12,7 @@ import {
 } from './generateJavaWrappers.js';
 import type { MethodInfo } from './generateJavaWrappers.js';
 import { nativeTypedList } from './javaUtilImports.js';
+import { javaIsTypedMapDto } from './java-local-types.js';
 
 export type JavaTier = 'rest' | 'ws' | 'prediction';
 
@@ -400,6 +401,9 @@ function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): 
     if (ctx === undefined) return false;
     // a method of this class whose declared Java return is `want` (an override can only narrow it)
     if (call !== undefined && ctx.declared.get(call) === want) return true;
+    // a TypedMap view (`Order parseOrder(..)`) is a Map<String, Object>
+    const view = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec(call === undefined ? '' : ctx.declared.get(call) ?? '');
+    if (want === 'Map<String, Object>' && view !== null && javaIsTypedMapDto(view[1])) return true;
     // `(this.m(..)).join()` of a CompletableFuture<want>: a generated api wrapper, a typed core
     // (retyped in this same pass, on every tier) or an on-disk typed declaration
     const joined = /^\((this\.\w+\(.*\))\)\.join\(\)$/.exec(e);
