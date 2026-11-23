@@ -320,6 +320,9 @@ ACCOUNT_PARSER_MAP_RETURN_METHODS.forEach ((m) => { J92J7_MAP_RETURN_METHODS.pus
 // every declaration (base throws) returns a literal, a HashMap local or this.safeLiquidation (a Map)
 const ROW_PARSER_MAP_RETURN_METHODS_2 = [ 'parseMarginMode', 'parseFundingRateHistory', 'parseBorrowInterest', 'parseLiquidation', 'parseConversion' ];
 ROW_PARSER_MAP_RETURN_METHODS_2.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
+// every declaration throws or returns a literal, a Map / HashMap local or safePredictionTrade (a Map)
+const ROW_PARSER_MAP_RETURN_METHODS_3 = [ 'parseBorrowRate', 'parseGreeks', 'parseOption', 'parseADLRank', 'parsePredictionTrade', 'parseLastPrice', 'parseDepositWithdrawFees' ];
+ROW_PARSER_MAP_RETURN_METHODS_3.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -333,6 +336,7 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseTrade': 'io.github.ccxt.types.Trade',
     'safeTrade': 'io.github.ccxt.types.Trade',
     'parseWsTrade': 'io.github.ccxt.types.Trade',
+    'parseWsOrderTrade': 'io.github.ccxt.types.Trade',
     'parseDustTrade': 'io.github.ccxt.types.Trade',
     'parseMyUtaTrade': 'io.github.ccxt.types.Trade',
     'parseSpotOrUtaTrade': 'io.github.ccxt.types.Trade',
