@@ -109,6 +109,8 @@
     "cli.js": "node ./cli/js/cli.js",
     "mcp.ts": "tsx ./mcp/ts/server.ts",
     "mcp.js": "node ./mcp/js/server.js",
+    "mcp.http.ts": "tsx ./mcp/ts/http.ts",
+    "mcp.http.js": "node ./mcp/js/http.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",

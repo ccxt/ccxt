@@ -10,7 +10,7 @@ claude mcp add ccxt -- npx -y ccxt-mcp
 
 Your API keys stay on your machine, and **the AI model never sees them**:
 
-- The server runs **locally over stdio**. Nothing is hosted; keys never transit any third-party service.
+- The server runs **locally over stdio**. Keys never transit any third-party service. (The optional [hosted HTTP server](#hosted-http-server-public-market-data-only) is a separate entry point that cannot hold accounts at all.)
 - Credentials are **never tool parameters**: no tool schema accepts a key, so neither the model nor a prompt-injected page can supply, request, or change them. Tools reference accounts by **name** ("binance-main").
 - Keys leave the process only inside signed HTTPS requests to the exchange itself — the same as any trading bot.
 - Every tool result, error, and log line passes a **redaction filter** holding your loaded secret values (some exchanges echo signed URLs in error bodies — that path is closed). Raw request URLs/headers/bodies are never emitted. `verbose` is force-disabled.
@@ -148,6 +148,61 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 Every list result is capped and paginated to fit host context limits (with in-band truncation notices); the raw `info` payload is stripped by default. Prediction exchanges use the same tools with outcome handles (from `search_events`) in the symbol position.
 
+## Interactive market data
+
+MCP Apps hosts such as ChatGPT can render a horizontally scrollable candlestick chart with volume beneath from `get_ohlcv` (latest 100 candles by default) and searchable tables from `get_trades`, `get_tickers`, `get_orderbook`, `search_markets`, and `list_exchanges`. The MCP server serves the widget directly through `resources/read`. Hosts use the URI advertised in `_meta.ui.resourceUri` or ChatGPT’s compatibility alias, `_meta["openai/outputTemplate"]`. Other clients can continue reading the JSON envelope in tool results.
+
+Clients with tool calls only can inspect either widget by calling `read_market_widget` with its URI. For the candle chart, use `{"uri":"ui://ccxt/candles-v2.html"}`. The reader returns the resource’s HTML and MIME type. Interactive rendering still depends on the host’s MCP Apps support.
+
+## Hosted HTTP server (public market data only)
+
+A second entry point serves the **public REST tools** over Streamable HTTP, for deployments where users should not have to run anything locally. It is deliberately limited:
+
+| | Local (stdio) — `ccxt-mcp` | Hosted (HTTP) — `ccxt-mcp-http` |
+|---|---|---|
+| Transport | stdio, launched by the MCP host | Streamable HTTP at `/mcp`, stateless |
+| Accounts / API keys | from your local config file | **none — cannot be configured** |
+| Tools | every tier you enable | `list_exchanges`, `describe_exchange`, `describe_method`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events`, `call_read_method`, `call_implicit_get`, `fetch_route`, `read_market_widget` |
+| Live WebSocket streams (`watch_*`) | yes | no |
+| `get_safety_status` | yes | no (nothing to report; would expose server paths) |
+
+The hosted entry never reads a config file or credential environment variables: its configuration is built in code with an empty account map, so there is no setting that turns private access on. Anything that needs an account stays on the local server.
+
+```bash
+cd mcp && npm run build && npm run start:http   # compiled
+cd mcp && npm run dev:http                      # from TypeScript sources (tsx)
+npx -y -p ccxt-mcp ccxt-mcp-http                # from the published package
+```
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `CCXT_MCP_HTTP_PORT` (or `PORT`) | `3000` | listen port |
+| `CCXT_MCP_HTTP_HOST` | `127.0.0.1` | bind address — set `0.0.0.0` to accept outside connections |
+| `CCXT_MCP_HTTP_PATH` | `/mcp` | MCP endpoint path |
+| `CCXT_MCP_HTTP_ALLOWED_HOSTS` | loopback names when bound to loopback, otherwise unset | comma-separated `Host` header allowlist (e.g. `mcp.example.com`); other hosts get `403` |
+
+| `CCXT_MCP_HTTP_ACCESS_LOG` | `true` | set `false` to turn the access log off |
+| `CCXT_MCP_HTTP_TRUST_PROXY` | `false` | set `true` to log the caller IP from `X-Forwarded-For` — only behind a reverse proxy you control, since the header is otherwise caller-supplied |
+
+**Access log.** The hosted server writes to stderr one `http` line per request (HTTP method, path, status, duration, caller IP, plus the JSON-RPC method as `rpc` and — for a `tools/call` — the tool name; `/health` is skipped) and one `call` line per tool call (tool, exchange, ok / error code, duration), tied together by `requestId`. Every time a widget HTML file is served — through `resources/read` or the `read_market_widget` tool — an `html` line records the `ui://` resource, the **path of the file on disk**, its size and the caller; the request's own `http` line carries the same path in `served`. (The local stdio server writes the same `html` line to stderr.) Both lines carry the targeted symbol(s) in `symbols` (from the `symbol` / `symbols` arguments, or the first positional argument of `call_read_method`; at most 20). No other tool argument and no result is ever logged.
+
+```
+[ccxt-mcp] [info] call {"event":"call","requestId":"…","ip":"127.0.0.1","tool":"get_tickers","exchange":"kraken","ok":true,"code":null,"ms":412,"symbols":["BTC/USDT"]}
+[ccxt-mcp] [info] http {"event":"http","requestId":"…","ip":"127.0.0.1","ms":415,"method":"POST","path":"/mcp","status":200,"rpc":"tools/call","tool":"get_tickers","symbols":["BTC/USDT"]}
+```
+
+`GET /health` returns `{"status":"ok"}`. Replies are plain JSON and no session is needed, so one `curl` is a complete request:
+
+```bash
+curl -s http://127.0.0.1:3000/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_tickers","arguments":{"exchange":"kraken","symbols":["BTC/USDT"]}}}'
+```
+
+Connect an MCP host by URL, e.g. `claude mcp add --transport http ccxt https://your-host/mcp`.
+
+Not included, and yours to add in front (reverse proxy / gateway) before exposing it publicly: **TLS, authentication and per-caller rate limiting**. All callers share the server's IP budget on each exchange, and exchanges that geo-block datacenter IPs will fail from wherever you host it.
+
 ## Troubleshooting
 
 - **"Trading is not enabled for account …"** — edit the config file (see tiers above); this is not something the conversation can change.
@@ -160,6 +215,7 @@ Every list result is capped and paginated to fit host context limits (with in-ba
 
 ```bash
 npm run mcp.ts          # run the server from live TypeScript sources (tsx)
+npm run mcp.http.ts     # run the hosted public HTTP server from TypeScript sources
 cd mcp && npm test      # unit + schema + integration tests
 cd mcp && npm run build # tsc + regenerate js/data/method-docs.json
 ```

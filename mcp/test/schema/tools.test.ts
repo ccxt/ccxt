@@ -10,7 +10,7 @@ import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.
 
 const MARKET_TOOLS = [
     'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
-    'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
+    'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events', 'read_market_widget',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
 ];
@@ -63,6 +63,12 @@ test ('default: full activation still lists every tier', async () => {
 test ('hideDisabledTools: empty config registers the market tier only', async () => {
     const { names } = await listToolNames ({}, { 'hideDisabledTools': true });
     assert.deepEqual (names, [ ...MARKET_TOOLS ].sort ());
+});
+
+test ('publicRestOnly: only public REST tools, even when accounts and every tier are configured', async () => {
+    const { names } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } }, { 'publicRestOnly': true });
+    const streamOrStatus = [ 'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'get_safety_status' ];
+    assert.deepEqual (names, MARKET_TOOLS.filter ((name) => !streamOrStatus.includes (name)).sort ());
 });
 
 test ('hideDisabledTools: accounts without trading add the read tier only', async () => {

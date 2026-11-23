@@ -46,6 +46,60 @@ test ('market data flows end to end with projection and info stripped', async ()
     await client.close ();
 });
 
+test ('public market tools advertise a widget and preserve the JSON envelope', async (t) => {
+    const { client } = await connect ({});
+    t.after (() => client.close ());
+    const { tools } = await client.listTools ();
+    const uri = 'ui://ccxt/market-data.html';
+    const market = { 'exchange': 'fakex', 'symbol': 'BTC/USDT' };
+    const requests = {
+        'get_ohlcv': market,
+        'get_trades': { ...market, 'limit': 2 },
+        'get_orderbook': { ...market, 'limit': 2 },
+        'get_tickers': { 'exchange': 'fakex', 'symbols': [ market.symbol ] },
+        'search_markets': { 'exchange': 'fakex', 'base': 'BTC' },
+        'list_exchanges': { 'query': 'fakex' },
+    };
+    const chartUri = 'ui://ccxt/candles-v2.html';
+    const names = tools.filter ((tool) => tool._meta?.ui?.resourceUri === uri).map ((tool) => tool.name).sort ();
+    assert.deepEqual (names, Object.keys (requests).filter ((name) => name !== 'get_ohlcv').sort ());
+    const ohlcv = tools.find ((tool) => tool.name === 'get_ohlcv');
+    assert.equal (ohlcv?._meta?.ui?.resourceUri, chartUri);
+    assert.equal (ohlcv?._meta?.['openai/outputTemplate'], chartUri);
+    assert.equal (tools.find ((tool) => tool.name === 'get_tickers')?._meta?.['openai/outputTemplate'], uri);
+    const { resources } = await client.listResources ();
+    assert.ok (resources.some ((resource) => resource.uri === uri && resource.mimeType === 'text/html;profile=mcp-app'));
+    const { contents } = await client.readResource ({ uri });
+    assert.equal (contents[0].mimeType, 'text/html;profile=mcp-app');
+    assert.match (String (contents[0].text), /ui\/notifications\/tool-result/);
+
+    const chart = await client.readResource ({ 'uri': chartUri });
+    assert.equal (chart.contents[0].mimeType, 'text/html;profile=mcp-app');
+    for (const widget of [ contents[0], chart.contents[0] ]) {
+        assert.match (String (widget._meta?.['openai/widgetDescription']), /widget is the entire response/);
+    }
+    assert.match (String (chart.contents[0].text), /className = 'chart-scroll'/);
+    for (const widget of [ contents[0], chart.contents[0] ]) {
+        const result = await call (client, 'read_market_widget', { 'uri': widget.uri });
+        assert.equal (result.ok, true);
+        assert.deepEqual (result.data, widget);
+    }
+    const unsupported = await client.callTool ({ 'name': 'read_market_widget', 'arguments': { 'uri': 'file:///tmp/unregistered.html' } });
+    assert.equal (unsupported.isError, true);
+
+    for (const [ name, args ] of Object.entries (requests)) {
+        const result: any = await client.callTool ({ name, 'arguments': args });
+        const envelope = JSON.parse (result.content[0].text);
+        assert.equal (result._meta.marketWidget, name);
+        assert.equal (envelope.ok, true, name);
+        assert.ok (envelope.data);
+        if (name === 'get_ohlcv') {
+            assert.equal (envelope.data.length, 100);
+            assert.equal (envelope.meta.timeframe, '1h');
+        }
+    }
+});
+
 test ('call_read_method: reads pass, writes and watch are structurally rejected', async () => {
     const { client } = await connect ({});
     const funding = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRate', 'args': [ 'BTC/USDT' ] });

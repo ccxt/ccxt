@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCXT market data hereee!!!</title>
+  <style>
+:root {
+  color-scheme: light dark;
+  font: 14px/1.5 system-ui, sans-serif;
+  --text: light-dark(#17222d, #eaf0f5);
+  --muted: light-dark(#526373, #a6b7c6);
+  --line: light-dark(#dce4ea, #34434f);
+  --surface: light-dark(#f4f7f9, #202b35);
+  --up: light-dark(#007b68, #57dbb5);
+  --down: light-dark(#bd4343, #ff9292);
+  color: var(--text);
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { padding: 16px; }
+header, .controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+header { margin-bottom: 12px; }
+h1 { font-size: 21px; line-height: 1.2; margin: 0; }
+p { margin: 0; }
+#market { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+#count, output, .status { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.controls { margin: 8px 0; justify-content: flex-start; }
+button, input { font: inherit; color: inherit; border: 1px solid var(--line); background: var(--surface); border-radius: 7px; padding: 5px 9px; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+input { min-width: 0; max-width: 100%; }
+.chart-frame { display: grid; grid-template-columns: minmax(0, 1fr) 86px; }
+.chart-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; }
+.chart-track { width: 100%; }
+.chart-track canvas, .chart-axis { display: block; height: 318px; }
+.chart-track canvas { position: sticky; left: 0; }
+.chart-track canvas:focus-visible { outline: 2px solid var(--muted); outline-offset: -2px; }
+.chart-axis { width: 100%; border-left: 1px solid var(--line); }
+output { display: block; min-height: 3em; margin-top: 6px; }
+.scroller { max-height: 360px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th { background: var(--surface); position: sticky; top: 0; }
+th button { border: 0; padding: 0; font-weight: 600; }
+td[data-side="buy"], td[data-side="bids"] { color: var(--up); }
+td[data-side="sell"], td[data-side="asks"] { color: var(--down); }
+pre { margin: 0; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; background: var(--surface); border-radius: 8px; }
+
+#result > .status { margin-top: 8px; }
+</style>
+</head>
+<body>
+  <main>
+    <header><div><p id="market" hidden></p><h1 id="title">CCXT market data</h1></div><span id="count"></span></header>
+    <section id="result" aria-label="Market data"><p role="status">Waiting for market data…</p></section>
+  </main>
+  <script>
+const root = document.querySelector('#result');
+const number = new Intl.NumberFormat(undefined, { maximumSignificantDigits: 10 });
+const priceNumber = new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const date = new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' });
+const valueText = (value) => typeof value === 'number' ? number.format(value) : String(value ?? '—');
+const element = (tag, text) => {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  return node;
+};
+
+const titles = {
+  get_ohlcv: 'Candlesticks!!!',
+  get_trades: 'Recent trades',
+  get_tickers: 'Tickers',
+  get_orderbook: 'Order book',
+  search_markets: 'Markets',
+  list_exchanges: 'Exchanges',
+};
+const isScalar = (value) => ['string', 'number', 'boolean'].includes(typeof value);
+const tableFields = (record) => Object.fromEntries(Object.entries(record).filter(([, value]) => isScalar(value)));
+
+function parseEnvelope(result) {
+  const text = result.content?.find((item) => item.type === 'text')?.text;
+  if (result.structuredContent) return result.structuredContent;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: false, error: { message: text } };
+  }
+}
+
+let disposeChart = () => {};
+function render(result) {
+  disposeChart();
+  disposeChart = () => {};
+  root.replaceChildren();
+  const { ok, data, meta, error } = parseEnvelope(result);
+  const isOhlcv = meta?.columns?.[0] === 'timestamp' && meta?.columns?.[5] === 'volume';
+  const tool = result._meta?.marketWidget ?? (isOhlcv ? 'get_ohlcv' : undefined);
+  const market = document.querySelector('#market');
+  market.textContent = [meta?.exchange, meta?.symbol ?? data?.symbol, meta?.timeframe].filter(Boolean).join(' · ');
+  market.hidden = !market.textContent;
+  document.querySelector('#title').textContent = Object.hasOwn(titles, tool) ? titles[tool] : 'CCXT market data';
+  const count = document.querySelector('#count');
+  count.textContent = '';
+  if (result.isError || ok !== true) {
+    root.append(element('p', error?.message || 'No market data was returned.'));
+    return;
+  }
+
+  if (tool === 'get_ohlcv') {
+    const candles = (Array.isArray(data) ? data : [])
+      .filter((row) => Array.isArray(row) && row.length >= 5
+        && row.slice(0, 5).every(Number.isFinite) && Math.abs(row[0]) <= 8.64e15)
+      .sort(([left], [right]) => left - right);
+    count.textContent = number.format(candles.length) + ' candles';
+    if (candles.length) drawChart(candles);
+  } else if (Array.isArray(data) || (Array.isArray(data?.bids) && Array.isArray(data?.asks))) {
+    const rows = Array.isArray(data)
+      ? data.filter((row) => row && typeof row === 'object' && !Array.isArray(row)).map(tableFields)
+      : ['bids', 'asks'].flatMap((side) => data[side].map(([price, amount]) => ({ side, price, amount })));
+    count.textContent = number.format(rows.length) + ' records';
+    if (rows.length) drawTable(rows);
+  } else if (!meta?.truncated && data != null) {
+    root.append(element('pre', JSON.stringify(data, null, 2)));
+  }
+  if (!root.firstChild && !meta?.truncated) root.append(element('p', 'No records matched this request.'));
+  if (meta?.notice && (tool !== 'get_ohlcv' || meta.truncated)) {
+    const notice = element('p', meta.notice);
+    notice.className = 'status';
+    root.append(notice);
+  }
+}
+
+function drawTable(rows) {
+  const priority = ['symbol', 'side', 'last', 'bid', 'ask', 'price', 'amount', 'datetime', 'timestamp', 'cost', 'id'];
+  const rank = (key) => {
+    const index = priority.indexOf(key);
+    return index === -1 ? priority.length : index;
+  };
+  const keys = [...new Set(rows.flatMap(Object.keys))].sort((a, b) => rank(a) - rank(b));
+  const pageSize = 25;
+  const search = element('input');
+  search.type = 'search';
+  search.placeholder = 'Search records';
+  search.setAttribute('aria-label', 'Search records');
+  const scroller = element('div');
+  scroller.className = 'scroller';
+  const table = element('table');
+  const headings = table.createTHead().insertRow();
+  const body = table.createTBody();
+  const controls = element('div');
+  controls.className = 'controls';
+  const previous = element('button', 'Previous');
+  const next = element('button', 'Next');
+  const status = element('span');
+  status.className = 'status';
+  status.setAttribute('role', 'status');
+  controls.append(previous, next, status);
+  scroller.append(table);
+  root.append(search, scroller, controls);
+  let page = 0;
+  let sortBy;
+  let direction = 1;
+  const headers = keys.map((key) => {
+    const header = element('th');
+    header.scope = 'col';
+    const button = element('button', key);
+    button.onclick = () => {
+      direction = sortBy === key ? -direction : 1;
+      sortBy = key;
+      page = 0;
+      update();
+    };
+    header.append(button);
+    headings.append(header);
+    return header;
+  });
+  function update() {
+    const query = search.value.trim().toLowerCase();
+    const filtered = rows.filter((row) => Object.values(row).some((value) =>
+      String(value).toLowerCase().includes(query) || valueText(value).toLowerCase().includes(query)));
+    if (sortBy) filtered.sort((left, right) => {
+      const a = left[sortBy];
+      const b = right[sortBy];
+      return direction * (typeof a === 'number' && typeof b === 'number'
+        ? a - b : String(a ?? '').localeCompare(String(b ?? ''), undefined, { numeric: true }));
+    });
+    headers.forEach((header, index) => {
+      const active = keys[index] === sortBy;
+      header.setAttribute('aria-sort', active ? (direction === 1 ? 'ascending' : 'descending') : 'none');
+      header.firstChild.textContent = keys[index] + (active ? (direction === 1 ? ' ↑' : ' ↓') : '');
+    });
+    body.replaceChildren();
+    scroller.scrollTop = 0;
+    const offset = page * pageSize;
+    for (const row of filtered.slice(offset, offset + pageSize)) {
+      const tr = body.insertRow();
+      for (const key of keys) {
+        const cell = tr.insertCell();
+        cell.textContent = valueText(row[key]);
+        if (key === 'side') cell.dataset.side = row[key];
+      }
+    }
+    previous.disabled = page === 0;
+    next.disabled = offset + pageSize >= filtered.length;
+    status.textContent = filtered.length
+      ? (offset + 1) + '–' + Math.min(offset + pageSize, filtered.length) + ' of ' + filtered.length
+      : 'No matching records';
+  }
+  search.oninput = () => { page = 0; update(); };
+  previous.onclick = () => { page--; update(); };
+  next.onclick = () => { page++; update(); };
+  update();
+}
+
+function drawChart(candles) {
+  const frame = element('div');
+  frame.className = 'chart-frame';
+  const viewport = element('div');
+  viewport.className = 'chart-scroll';
+  const track = element('div');
+  track.className = 'chart-track';
+  track.style.minWidth = (candles.length * 12) + 'px';
+  const plot = element('canvas');
+  plot.tabIndex = 0;
+  plot.setAttribute('aria-label', 'Candlestick price and volume chart. Scroll horizontally for older candles, or use the left and right arrow keys to inspect candles.');
+  const axis = element('canvas');
+  axis.className = 'chart-axis';
+  axis.setAttribute('aria-hidden', 'true');
+  const details = element('output');
+  details.setAttribute('aria-live', 'polite');
+  track.append(plot);
+  viewport.append(track);
+  frame.append(viewport, axis);
+  root.append(frame, details);
+
+  const height = 318;
+  const priceTop = 28;
+  const priceBottom = 209;
+  const volumeTop = 238;
+  const volumeBottom = 289;
+  const scale = window.devicePixelRatio || 1;
+  const interval = (candles.at(-1)[0] - candles[0][0]) / Math.max(1, candles.length - 1);
+  const tickFormat = interval >= 86400000
+    ? { month: 'short', day: 'numeric' }
+    : { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' };
+  const time = new Intl.DateTimeFormat(undefined, { ...tickFormat, timeZone: 'UTC' });
+  const colors = {};
+  let selected = -1;
+  let offset = 0;
+  let spacing = 0;
+  let width = 0;
+  let frameId = 0;
+  let mounted = false;
+
+  function themeColors() {
+    const probe = element('span');
+    probe.hidden = true;
+    frame.append(probe);
+    for (const name of ['up', 'down', 'muted', 'line']) {
+      probe.style.color = 'var(--' + name + ')';
+      colors[name] = getComputedStyle(probe).color;
+    }
+    probe.remove();
+  }
+
+  function context(canvas, cssWidth) {
+    const pixelWidth = Math.round(cssWidth * scale);
+    const pixelHeight = Math.round(height * scale);
+    if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
+    if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, height);
+    ctx.font = '12px ' + getComputedStyle(frame).fontFamily;
+    ctx.fillStyle = colors.muted;
+    return ctx;
+  }
+
+  function gridLine(ctx, x1, y1, x2, y2, color = colors.line) {
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  function draw() {
+    frameId = 0;
+    if (!width || !spacing) return;
+    offset = viewport.scrollLeft;
+    const start = Math.floor(offset / spacing);
+    const end = Math.min(candles.length, Math.ceil((offset + width) / spacing));
+    const visible = candles.slice(start, end);
+    const high = Math.max(...visible.map(([, open, peak, , close]) => Math.max(open, peak, close)));
+    const low = Math.min(...visible.map(([, open, , trough, close]) => Math.min(open, trough, close)));
+    const topVolume = Math.max(0, ...visible.map((row) => row[5] ?? 0));
+    const padding = (high - low || Math.abs(high) || 1) * .06;
+    const priceY = (price) => priceTop + (high + padding - price) / (high - low + 2 * padding) * (priceBottom - priceTop);
+    const plotX = (index) => (index + .5) * spacing - offset;
+    const ctx = context(plot, width);
+    const labels = context(axis, axis.clientWidth);
+    const labelWidth = axis.clientWidth - 10;
+
+    labels.fillText('Price', 5, 15);
+    labels.fillText('Volume', 5, volumeTop - 8);
+    labels.fillText('UTC', 5, height - 8);
+    for (let step = 0; step <= 4; step++) {
+      const price = low - padding + (high - low + 2 * padding) * step / 4;
+      const y = priceY(price);
+      gridLine(ctx, 0, y, width, y);
+      labels.fillText(priceNumber.format(price), 5, y + 4, labelWidth);
+    }
+    gridLine(ctx, 0, volumeBottom, width, volumeBottom);
+    labels.fillText(valueText(topVolume), 5, volumeTop + 5, labelWidth);
+    if (topVolume > 0) labels.fillText('0', 5, volumeBottom + 4);
+    const bodyWidth = Math.min(14, spacing * .65);
+    visible.forEach(([, open, high, low, close, volume], position) => {
+      const x = plotX(start + position);
+      const up = close >= open;
+      const color = up ? colors.up : colors.down;
+      gridLine(ctx, x, priceY(high), x, priceY(low), color);
+      ctx.fillStyle = color;
+      ctx.fillRect(x - bodyWidth / 2, Math.min(priceY(open), priceY(close)), bodyWidth, Math.max(1, Math.abs(priceY(open) - priceY(close))));
+      if (topVolume > 0 && volume > 0) {
+        const bar = volume / topVolume * (volumeBottom - volumeTop);
+        ctx.globalAlpha = .6;
+        ctx.fillRect(x - bodyWidth / 2, volumeBottom - bar, bodyWidth, bar);
+        ctx.globalAlpha = 1;
+      }
+    });
+
+    ctx.fillStyle = colors.muted;
+    ctx.textAlign = 'center';
+    const tickEvery = Math.max(1, Math.ceil(62 / spacing));
+    for (let index = Math.ceil(start / tickEvery) * tickEvery; index < end; index += tickEvery) {
+      const x = plotX(index);
+      if (x >= 27 && x <= width - 27) ctx.fillText(time.format(candles[index][0]), x, height - 8);
+    }
+    const inspected = selected >= start && selected < end;
+    if (inspected) {
+      const x = plotX(selected);
+      gridLine(ctx, x, priceTop, x, volumeBottom, colors.muted);
+    }
+    const [timestamp, open, highPrice, lowPrice, close, volume] = candles[inspected ? selected : end - 1];
+    details.textContent = [
+      date.format(timestamp) + ' UTC', 'Open ' + priceNumber.format(open), 'High ' + priceNumber.format(highPrice),
+      'Low ' + priceNumber.format(lowPrice), 'Close ' + priceNumber.format(close), 'Volume ' + valueText(volume),
+    ].join(' · ');
+  }
+
+  function scheduleDraw() {
+    if (!frameId) frameId = requestAnimationFrame(draw);
+  }
+
+  function resize() {
+    const atLatest = !mounted || offset + width >= spacing * candles.length - 2;
+    width = viewport.clientWidth;
+    if (!width) return;
+    plot.style.width = width + 'px';
+    spacing = track.clientWidth / candles.length;
+    if (atLatest) viewport.scrollLeft = viewport.scrollWidth;
+    mounted = true;
+    scheduleDraw();
+  }
+
+  function updateTheme() {
+    themeColors();
+    scheduleDraw();
+  }
+
+  viewport.addEventListener('scroll', scheduleDraw, { passive: true });
+  plot.onpointermove = (event) => {
+    selected = Math.min(candles.length - 1, Math.max(0, Math.floor((viewport.scrollLeft + event.offsetX) / spacing)));
+    scheduleDraw();
+  };
+  plot.onpointerleave = () => { selected = -1; scheduleDraw(); };
+  plot.onkeydown = (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key) || !spacing) return;
+    event.preventDefault();
+    const lastVisible = Math.min(candles.length - 1, Math.ceil((viewport.scrollLeft + width) / spacing) - 1);
+    const from = selected >= 0 ? selected : lastVisible;
+    if (event.key === 'Home') selected = 0;
+    else if (event.key === 'End') selected = candles.length - 1;
+    else selected = Math.max(0, Math.min(candles.length - 1, from + (event.key === 'ArrowLeft' ? -1 : 1)));
+    const left = selected * spacing;
+    const right = left + spacing;
+    if (left < viewport.scrollLeft) viewport.scrollLeft = left;
+    if (right > viewport.scrollLeft + width) viewport.scrollLeft = right - width;
+    scheduleDraw();
+  };
+  const observer = new ResizeObserver(resize);
+  observer.observe(viewport);
+  const theme = matchMedia('(prefers-color-scheme: dark)');
+  theme.addEventListener('change', updateTheme);
+  const themeObserver = new MutationObserver(updateTheme);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  disposeChart = () => {
+    observer.disconnect();
+    themeObserver.disconnect();
+    theme.removeEventListener('change', updateTheme);
+    cancelAnimationFrame(frameId);
+  };
+  themeColors();
+  resize();
+}
+
+const send = (message) => window.parent.postMessage({ jsonrpc: '2.0', ...message }, '*');
+const applyTheme = (context) => {
+  if (['light', 'dark'].includes(context?.theme)) document.documentElement.dataset.theme = context.theme;
+};
+let initialized = false;
+window.addEventListener('message', (event) => {
+  const message = event.data;
+  if (event.source !== window.parent || message?.jsonrpc !== '2.0') return;
+  if (message.id === 1 && message.result?.protocolVersion && !initialized) {
+    initialized = true;
+    applyTheme(message.result.hostContext);
+    send({ method: 'ui/notifications/initialized' });
+    const observer = new ResizeObserver(([entry]) =>
+      send({ method: 'ui/notifications/size-changed', params: { height: Math.ceil(entry.contentRect.height) } }));
+    observer.observe(document.body);
+  }
+  if (!initialized) return;
+  if (message.method === 'ui/notifications/host-context-changed') applyTheme(message.params);
+  if (message.method === 'ui/notifications/tool-result') render(message.params);
+  if (message.method === 'ui/resource-teardown') {
+    disposeChart();
+    send({ id: message.id, result: {} });
+  }
+});
+if (window.parent !== window) {
+  send({
+    id: 1, method: 'ui/initialize',
+    params: { appInfo: { name: 'CCXT market data', version: '1.0.0' }, appCapabilities: {}, protocolVersion: '2026-01-26' },
+  });
+}
+</script>
+</body>
+</html>

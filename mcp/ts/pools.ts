@@ -174,7 +174,12 @@ export class ExchangePools {
     account (name: string): AccountConfig {
         const account = this.config.accounts[name];
         if (account === undefined) {
-            throw new UnknownAccountError (name, Object.keys (this.config.accounts), credentialSetupHelp (this.config.configPath));
+            // the hosted public server has no accounts by design, and must not point callers at
+            // a config path on the server's own filesystem
+            const hint = (this.config.settings.publicRestOnly === true)
+                ? 'this hosted server serves public market data only and has no accounts — private data and trading need the local server (npx -y ccxt-mcp), where API keys stay on the user\'s machine'
+                : credentialSetupHelp (this.config.configPath);
+            throw new UnknownAccountError (name, Object.keys (this.config.accounts), hint);
         }
         return account;
     }

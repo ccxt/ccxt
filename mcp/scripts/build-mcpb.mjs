@@ -35,6 +35,7 @@ fs.mkdirSync (serverDir, { recursive: true });
 
 log ('copying compiled server (js/) …');
 fs.cpSync (path.join (mcpRoot, 'js'), path.join (serverDir, 'js'), { recursive: true });
+fs.cpSync (path.join (mcpRoot, 'widgets'), path.join (serverDir, 'widgets'), { recursive: true });
 
 // a minimal package.json so `npm install` pulls only the runtime deps into the bundle
 const serverPkg = {

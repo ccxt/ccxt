@@ -6,6 +6,7 @@ import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVE
 import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
+import { candleWidgetMeta, marketWidgetMeta, runMarketWidget } from '../market-widget.js';
 
 const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
 
@@ -24,8 +25,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'supports': z.string ().optional ().describe ('keep only exchanges supporting this unified method, e.g. "fetchOHLCV"'),
             'prediction': z.boolean ().optional ().describe ('true: only prediction-market exchanges; false: exclude them'),
         },
+        '_meta': marketWidgetMeta,
         'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
-    }, async ({ query, supports, prediction }) => run ({ 'tool': 'list_exchanges' }, async () => {
+    }, async ({ query, supports, prediction }) => runMarketWidget ({ 'tool': 'list_exchanges' }, async () => {
         const predictionIds = new Set (ctx.ccxt.prediction !== undefined ? ctx.ccxt.prediction.exchanges : []);
         const wsIds = new Set (ctx.ccxt.pro !== undefined ? ctx.ccxt.pro.exchanges : []);
         const ids: string[] = (ctx.ccxt.exchanges as string[]).concat ([ ...predictionIds ].filter ((id) => !(ctx.ccxt.exchanges as string[]).includes (id as string)) as string[]).sort ();
@@ -179,8 +181,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'reload': z.boolean ().optional ().describe ('force-refresh the markets cache'),
             'prediction': predictionParam,
         },
+        '_meta': marketWidgetMeta,
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async (args) => run ({ 'tool': 'search_markets', 'exchange': args.exchange }, async () => {
+    }, async (args) => runMarketWidget ({ 'tool': 'search_markets', 'exchange': args.exchange }, async () => {
         const exchange = await ctx.pools.getPublic (args.exchange, undefined, args.prediction ?? false);
         if (args.reload === true) {
             await exchange.loadMarkets (true);
@@ -241,8 +244,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'prediction': predictionParam,
             'params': paramsParam,
         },
+        '_meta': marketWidgetMeta,
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, symbols, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'get_tickers', 'exchange': exchangeId }, async () => {
+    }, async ({ exchange: exchangeId, symbols, includeInfo, marketType, prediction, params }) => runMarketWidget ({ 'tool': 'get_tickers', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         let tickers: any[];
         if (exchange.has['fetchTickers'] && symbols.length > 1) {
@@ -291,8 +295,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'prediction': predictionParam,
             'params': paramsParam,
         },
+        '_meta': marketWidgetMeta,
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, symbol, limit, depth, marketType, prediction, params }) => run ({ 'tool': 'get_orderbook', 'exchange': exchangeId }, async () => {
+    }, async ({ exchange: exchangeId, symbol, limit, depth, marketType, prediction, params }) => runMarketWidget ({ 'tool': 'get_orderbook', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const levels = clampLimit (limit ?? depth, 20, 100);
         const book = await exchange.fetchOrderBook (symbol, levels, params ?? {});
@@ -313,7 +318,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('get_ohlcv', {
         'title': 'Get OHLCV candles',
-        'description': 'Historical OHLCV candlestick data for a symbol and timeframe. Rows are [timestampMs, open, high, low, close, volume]. Page back with "since"; "params.until" bounds the end.',
+        'description': 'Fetch OHLCV candlesticks for a symbol and timeframe. By default, leave limit and since unset to fetch the latest 100 candles. For chart requests, use the widget as the sole presentation when available. It shows candlesticks with aligned volume bars. Rows are [timestampMs, open, high, low, close, volume]. Page back with "since"; "params.until" bounds the end.',
         'inputSchema': {
             'exchange': exchangeParam,
             'symbol': z.string ().describe ('unified symbol'),
@@ -324,8 +329,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'prediction': predictionParam,
             'params': paramsParam,
         },
+        '_meta': candleWidgetMeta,
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_ohlcv', 'exchange': exchangeId }, async () => {
+    }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, params }) => runMarketWidget ({ 'tool': 'get_ohlcv', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const frame = timeframe ?? '1h';
         const timeframes = exchange.timeframes;
@@ -360,8 +366,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'prediction': predictionParam,
             'params': paramsParam,
         },
+        '_meta': marketWidgetMeta,
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, symbol, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_trades', 'exchange': exchangeId }, async () => {
+    }, async ({ exchange: exchangeId, symbol, since, limit, marketType, prediction, params }) => runMarketWidget ({ 'tool': 'get_trades', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const tradeLimit = clampLimit (limit, 50, 200);
         const trades = await exchange.fetchTrades (symbol, parseSince (exchange, since), tradeLimit, params ?? {});
@@ -527,6 +534,11 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         return ok (result, { 'exchange': exchange.id, method, 'docsUrl': exchange.urls?.doc });
     }));
 
+    // a hosted public deployment has no accounts, tiers or journal to report, and must not
+    // disclose server-side filesystem paths
+    if (ctx.config.settings.publicRestOnly === true) {
+        return;
+    }
     server.registerTool ('get_safety_status', {
         'title': 'Show safety and configuration status',
         'description': 'What this server is currently allowed to do: configured accounts (names only — never credentials), enabled capability tiers, caps, sandbox/live environments, journal location, unresolved order intents, and any configuration problems.',

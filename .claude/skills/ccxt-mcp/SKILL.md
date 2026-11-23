@@ -5,7 +5,7 @@ description: Official CCXT MCP (Model Context Protocol) server — connect an AI
 
 # CCXT MCP Server
 
-`ccxt-mcp` is the official CCXT Model Context Protocol server. It runs **locally over stdio** and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
+`ccxt-mcp` is the official CCXT Model Context Protocol server. It normally runs **locally over stdio** (a public-data-only hosted HTTP variant also exists — see "Local (stdio) vs hosted (HTTP)") and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
 
 - npm: `ccxt-mcp` · runs via `npx -y ccxt-mcp` · source: https://github.com/ccxt/ccxt/tree/master/mcp
 - Full docs: https://docs.ccxt.com/docs/mcp
@@ -73,6 +73,28 @@ To use private data or trading, create the config file (its path is shown by the
 Any credential the exchange needs works (`apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, …), plus `sandbox`/`demo`, `defaultType`, `options`, and `prediction: true` for exchanges that exist in both crypto and prediction namespaces (e.g. hyperliquid). `chmod 600` the file. Env vars also work: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing fields, and `CCXT_MCP_EXCHANGE`/`CCXT_MCP_APIKEY`/`CCXT_MCP_SECRET`/`CCXT_MCP_SANDBOX`/`CCXT_MCP_TRADING` define a single account named `default`. The `accounts` map holds as many exchanges/accounts as you want — one entry each.
 
 On **Claude Desktop** the `.mcpb` install form has fields for a single exchange plus a **Config file** picker — point that at a `config.json` (as above) to configure multiple exchanges, or create the file at the default path and leave the form blank.
+
+## Local (stdio) vs hosted (HTTP)
+
+There are two ways to reach the server; everything else in this skill describes the **local** one unless it says otherwise.
+
+| | Local — `npx -y ccxt-mcp` | Hosted — `ccxt-mcp-http` |
+|---|---|---|
+| How to connect | the host launches a command (stdio) | a URL, e.g. `claude mcp add --transport http ccxt https://<host>/mcp` |
+| Install on the user's machine | Node.js + the npm package | nothing |
+| Accounts / API keys | local config file, never seen by the model | **none — it cannot hold accounts** |
+| What it can do | market data, plus private reads / trading / funds as enabled | public REST market data only |
+| Live `watch_*` streams | yes | no |
+
+Choosing: use **hosted** when the user only needs public data (prices, order books, candles, trades, funding rates, market search, `fetch_route` quotes) and should not install anything. Use **local** for anything touching an account — balances, orders, positions, trading, transfers — and for live WebSocket streams.
+
+On the hosted server:
+- Tools available: `list_exchanges`, `describe_exchange`, `describe_method`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events`, `call_read_method`, `call_implicit_get`, `fetch_route`. There is no `get_safety_status`, no `list_accounts`, no `watch_*`, no order or funds tools, and `fetch_route` quotes cannot be executed.
+- The `account` argument on `call_read_method` / `call_implicit_get` always fails with `UNKNOWN_ACCOUNT`; methods that need authentication fail.
+- **Never ask the user to send API keys to a hosted server, in chat or otherwise.** Private access is local-only by design: the keys stay on the user's machine. If they need it, have them install the local server.
+- Each request is independent (stateless HTTP) — call the `get_*` tools again for fresh data.
+
+Self-hosting it: `cd mcp && npm run build && npm run start:http` (or `npm run dev:http` from sources). Settings are env vars: `CCXT_MCP_HTTP_PORT` (default 3000), `CCXT_MCP_HTTP_HOST` (default `127.0.0.1`; set `0.0.0.0` to accept outside connections), `CCXT_MCP_HTTP_PATH` (default `/mcp`), `CCXT_MCP_HTTP_ALLOWED_HOSTS` (comma-separated `Host` allowlist), `CCXT_MCP_HTTP_ACCESS_LOG` (default on; `false` disables), `CCXT_MCP_HTTP_TRUST_PROXY` (`true` logs the caller IP from `X-Forwarded-For`, only behind your own proxy). It logs to stderr one `http` line per request (with the JSON-RPC method, and the tool name for a `tools/call`) and one `call` line per tool call (tool, exchange, outcome, duration, caller IP) — including the targeted symbol(s), but no other argument and no results. Each time a widget HTML file is served (`resources/read` or `read_market_widget`) it also writes an `html` line with the file's path on disk. `GET /health` is a liveness check. Replies are plain JSON with no session, so it can be tested with a single `curl` POST of a JSON-RPC `tools/call` to `/mcp` (headers `Content-Type: application/json` and `Accept: application/json, text/event-stream`). TLS, authentication and per-caller rate limiting are not built in — put a reverse proxy in front.
 
 ## Capability tiers (opt-in, off by default)
 

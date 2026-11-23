@@ -39,6 +39,9 @@ export interface ServerSettings {
     maxSubscriptions: number;
     hideDisabledTools: boolean;
     loadEnvKeys: boolean;
+    // hosted deployments (ts/http.ts): register only the public REST tools — no accounts,
+    // no private/write tiers, no WebSocket streams. Set in code, never from a config file.
+    publicRestOnly?: boolean;
 }
 
 export interface ResolvedConfig {

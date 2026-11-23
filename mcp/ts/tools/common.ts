@@ -7,6 +7,7 @@ import { toContent, ok, type Envelope } from '../format.js';
 import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
 import { log } from '../logging.js';
+import { requestContext } from '../request-context.js';
 
 export type ToolResult = { content: { type: 'text', text: string }[], isError?: boolean };
 
@@ -46,23 +47,35 @@ export function parseSince (exchange: any, since: number | string | undefined): 
 
 // uniform tool wrapper: envelope + error mapping + size budget in one place
 export async function run (context: ErrorContext, fn: () => Promise<Envelope>): Promise<ToolResult> {
+    const started = Date.now ();
+    let envelope: Envelope;
     try {
-        return toContent (await fn ());
+        envelope = await fn ();
     } catch (error: any) {
-        if (error instanceof SafetyError) {
-            return toContent ({ 'ok': false, 'error': { 'code': error.code, 'message': error.message, 'retryable': false, 'hint': error.hint } });
-        }
-        if (error instanceof ArgError) {
-            return toContent ({ 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': error.message, 'retryable': false, 'hint': error.hint } });
-        }
-        if (error instanceof UnknownExchangeError) {
-            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' } });
-        }
-        if (error instanceof UnknownAccountError) {
-            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_ACCOUNT', 'message': error.message, 'retryable': false, 'hint': error.hint || 'list configured accounts with list_accounts' } });
-        }
-        return toContent (toErrorEnvelope (error, context));
+        envelope = errorEnvelope (error, context);
     }
+    // hosted HTTP only: report the call to the request's access log (no-op under stdio)
+    const request = requestContext.getStore ();
+    if (request !== undefined) {
+        request.onToolCall ({ 'tool': context.tool, 'exchange': context.exchange, 'ok': envelope.ok, 'code': envelope.ok ? undefined : envelope.error?.['code'], 'ms': Date.now () - started });
+    }
+    return toContent (envelope);
+}
+
+function errorEnvelope (error: any, context: ErrorContext): Envelope {
+    if (error instanceof SafetyError) {
+        return { 'ok': false, 'error': { 'code': error.code, 'message': error.message, 'retryable': false, 'hint': error.hint } };
+    }
+    if (error instanceof ArgError) {
+        return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': error.message, 'retryable': false, 'hint': error.hint } };
+    }
+    if (error instanceof UnknownExchangeError) {
+        return { 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' } };
+    }
+    if (error instanceof UnknownAccountError) {
+        return { 'ok': false, 'error': { 'code': 'UNKNOWN_ACCOUNT', 'message': error.message, 'retryable': false, 'hint': error.hint || 'list configured accounts with list_accounts' } };
+    }
+    return toErrorEnvelope (error, context);
 }
 
 // a fully-qualified symbol determines its own market, so a conflicting marketType is a
