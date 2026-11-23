@@ -4082,7 +4082,7 @@ function typedBalanceField(content: string): string {
     const head = /(let __t = )?\b(?:self|exchange)(?:\.parent)?\.safe_balance\(/g;
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec(content)) !== null) {
-        if (m[1] !== undefined || content.slice(Math.max(0, m.index - 3), m.index) === 'fn ') continue;
+        if (m[1] !== undefined || content.slice(Math.max(0, m.index - 3), m.index) === 'fn ' || content.slice(Math.max(0, m.index - 12), m.index) === 'return Some(') continue;
         const close = balancedCloseIndex(content, m.index + m[0].length);
         out += content.slice(last, m.index) + 'Value::Dict(' + content.slice(m.index, close + 1) + ')';
         last = close + 1;
@@ -4691,11 +4691,12 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction'): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance'): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam[0].toUpperCase () + fam.slice (1);
-    const arg2 = fam === 'transfer' || fam === 'transaction' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>', a2 = arg2.split (':')[0];
+    // `parseBalance (response)` has no second argument
+    const arg2 = fam === 'balance' ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = fam === 'balance' ? 'response' : fam;
     const arg2Re = arg2.replace (/[()<>&]/g, '\\$&');
-    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(&self, \\w+: impl Into<crate::Value>, ' + arg2Re + '\\) -> Value \\{\\n');
+    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(&self, \\w+: impl Into<crate::Value>' + arg2Re + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + '(';
     const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
     const unbox = (body: string, wrap: string) => {
@@ -4739,7 +4740,7 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
         }
         // a sub-parser whose every return is `safeOrder` returns `Dict`
         for (const m of [ ...body.matchAll (new RegExp ('\\breturn self\\.(parse_\\w+_' + fam + ')\\(', 'g')) ]) {
-            const sig = '\n    pub fn ' + m[1] + '(&self, mut ' + fam + ': Value, ' + arg2 + ') -> Value {\n';
+            const sig = '\n    pub fn ' + m[1] + '(&self, mut ' + fam + ': Value' + arg2 + ') -> Value {\n';
             const s = content.indexOf (sig);
             if (s < 0) continue;
             const e = content.indexOf ('\n\n    Value::Null\n}', s);
@@ -4748,6 +4749,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
             body = body.split ('return self.' + m[1] + '(').join ('return \u0000self.' + m[1] + '(');
         }
         body = unbox (body, 'Some');
+        // `safeBalance` already returns `Dict`
+        if (fam === 'balance') body = body.split ('return self.safe_balance(').join ('return \u0000self.safe_balance(');
         let out = '', last = 0, r: RegExpExecArray | null;
         const ret = /(?<=^ *)return ([^;\n]*)/gm;
         while ((r = ret.exec (body)) !== null) {
@@ -4763,18 +4766,18 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
         content = content.slice (0, at) + content.slice (at, open).replace ('-> Value {', '-> Option<crate::value::Dict> {') + body + content.slice (end);
     }
     for (const name of dictFns) {
-        const sig = '\n    pub fn ' + name + '(&self, mut ' + fam + ': Value, ' + arg2 + ') -> Value {\n';
+        const sig = '\n    pub fn ' + name + '(&self, mut ' + fam + ': Value' + arg2 + ') -> Value {\n';
         const s = content.indexOf (sig);
         const e = content.indexOf ('\n\n    Value::Null\n}', s) + '\n\n    Value::Null\n'.length;
         const body = unbox (content.slice (s + sig.length, e), '').replace (/\n\n    Value::Null\n$/, '\n\n    Default::default()\n');
         content = content.slice (0, s) + sig.replace ('-> Value {', '-> crate::value::Dict {') + body + content.slice (e);
     }
-    const base = 'fn ' + fn + '(&self, mut ' + fam + ': Value, ' + arg2 + ') -> Value {\n';
+    const base = 'fn ' + fn + '(&self, mut ' + pn + ': Value' + arg2 + ') -> Value {\n';
     const b = content.indexOf (base);
     if (b >= 0) {
         const e = content.indexOf ('\n\n    Value::Null\n}', b) + '\n\n    Value::Null\n'.length;
         const body = content.slice (b + base.length, e);
-        const args = [ fam + ', ' + a2, fam + '.clone(), ' + a2 ].find ((x) => body.includes ('DerivedExchange::' + fn + '(self, ' + x + ');')) ?? fam + ', ' + a2;
+        const args = [ pn + a2, pn + '.clone()' + a2 ].find ((x) => body.includes ('DerivedExchange::' + fn + '(self, ' + x + ');')) ?? pn + a2;
         const probe = '{ let __v = crate::exchange::DerivedExchange::' + fn + '(self, ' + args + '); if !matches!(__v, crate::Value::Null) { return __v; } }';
         if (body.includes (probe) && body.split ('return').length === 2 && body.endsWith ('\n\n    Value::Null\n')) {
             content = content.slice (0, b) + base.replace ('-> Value {', '-> crate::value::Dict {')
@@ -4935,6 +4938,7 @@ function rustTypedParsePositionFamilies (content: string): string {
         });
     }
     content = rustTypedParseFamily (rustTypedParseFamily (rustTypedParseFamily (content, 'position'), 'transfer'), 'transaction');
+    content = rustTypedParseFamily (content, 'balance');
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
     const typeAll = (name: string) => {
         const head = new RegExp ('\\n    pub fn ' + name + '\\([^\\n]*\\) -> Value \\{\\n');
