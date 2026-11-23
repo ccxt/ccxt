@@ -281,7 +281,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
         ticker.put("timestamp", timestamp);
@@ -400,7 +400,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
@@ -520,10 +520,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String interval = this.safeString(parts, 3);
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -692,7 +692,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> data = this.safeDict(message, "data", null);
             List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
             Map<String, Object> firstMessage = this.safeDict(messages, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            Map<String, Object> snapshot = this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1, 2);
             Map<String, Object> tick = this.safeDict(firstMessage, "tick", new HashMap<String, Object>() {{}});
             Long sequence = this.safeInteger(tick, "prevSeqNum");
             Long nonce = this.safeInteger(data, "seqNum");
@@ -736,7 +736,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 // unroll the accumulated deltas
                 for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
                 {
-                    this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))));
+                    Map<String, Object> messageItem = this.safeDict(messages, i, new HashMap<String, Object>() {{}});
+                    this.handleOrderBookMessage(client, messageItem);
                 }
                 orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(symbol, null))
@@ -892,7 +893,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String ch = this.safeString(message, "ch", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> tick = this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
@@ -992,7 +993,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         if (!(this.orderbooks.containsKey(symbol)))
         {
             String size = this.safeString(parts, 3);
@@ -1482,7 +1483,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             marketId = this.safeString2(data, "contract_code", "symbol");
         }
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Map<String, Object> parsedOrder = null;
         if (!java.util.Objects.equals(data, null))
         {
@@ -1507,8 +1508,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 order.put("symbol", market.get("symbol"));
                 order.put("filled", this.parseNumber(filled));
                 order.put("remaining", this.parseNumber(remaining));
-                order.put("price", this.safeNumber(data, "orderPrice", (Object) null));
-                order.put("amount", this.safeNumber(data, "orderSize", (Object) null));
+                order.put("price", this.safeNumber(data, "orderPrice", null));
+                order.put("amount", this.safeNumber(data, "orderSize", null));
                 order.put("info", data);
                 parsedOrder = order;
             } else
@@ -1727,8 +1728,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long lastTradeTimestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("lastActTime", "updated_time", "ts")));
         Long created = (Long) this.safeInteger2(order, "orderCreateTime", "created_time");
         String marketId = this.safeString2(order, "contract_code", "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         String amount = this.safeString2(order, "orderSize", "volume");
         String status = this.parseOrderStatus(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderStatus", "state", "status"))));
         String id = this.safeString2(order, "orderId", "order_id");
@@ -1744,7 +1745,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
-                hx4NewMap0.put("currency", this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode((String) (feeCurrencyId), null));
                 fee = hx4NewMap0;
             }
         }
@@ -1794,7 +1795,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         mapLiteral2.put("fee", fee);
         mapLiteral2.put("average", avgPrice);
         mapLiteral2.put("trades", rawTrades);
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral2.put("stopPrice", null);
         mapLiteral2.put("triggerPrice", null);
         mapLiteral2.put("takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"));
@@ -1824,7 +1825,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //         "orderId": 509835753860328
         //     }
         //
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         Map<String, Object> marketValue = marketResolved;
         String symbol = this.safeString(marketResolved, "symbol");
         String tradeId = this.safeString(trade, "tradeId");
@@ -1840,7 +1841,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
+        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
@@ -1911,7 +1912,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
         } else
         {
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             type = (((java.util.Objects.equals(marketType, "spot")))) ? "future" : marketType;
@@ -1919,7 +1920,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             subType = subTypeparamsSubTypeVariable.first();
             paramsSubType = subTypeparamsSubTypeVariable.second();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> paramsPositions = ((Boolean.TRUE.equals(hasMarket))) ? parameters : paramsSubType;
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         String marginMode = marginModeparamsMarginModeVariable.first();
@@ -2071,7 +2072,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             String marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
@@ -2130,10 +2131,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
     private Object watchBalanceCore(Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, null);
         var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, "linear");
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", null, paramsMarketType, "linear");
         var subType = subTypeparamsSubTypeVariable.first();
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Boolean isUnifiedAccount = (Boolean) this.safeBool2(paramsSubType, "isUnifiedAccount", "unified", false);
@@ -2385,7 +2386,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             // spot balance
             String currencyId = this.safeString(data, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (currencyId), null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(data, "available"));
             account.put("total", this.safeString(data, "balance"));
@@ -2412,7 +2413,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     Map<String, Object> detail = this.safeDict(details, i, null);
                     String currencyId = this.safeString(detail, "currency");
-                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                    String code = this.safeCurrencyCode((String) (currencyId), null);
                     if (java.util.Objects.equals(code, null))
                     {
                         continue;
@@ -2434,7 +2435,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             String messageHash = this.safeString(splitTopic, 0, "");
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict2(client.subscriptions, messageHash, (messageHash + ".*"), (Object) null);
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict2(client.subscriptions, messageHash, (messageHash + ".*"), null);
             if (java.util.Objects.equals(subscription, null))
             {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2467,7 +2468,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 //     "isolated_swap": []
                 // }
                 String marginAsset = this.safeString(first, "margin_asset");
-                String code = this.safeCurrencyCode((String) (marginAsset), (Map<String, Object>) null);
+                String code = this.safeCurrencyCode((String) (marginAsset), null);
                 String marginFrozen = this.safeString(first, "margin_frozen");
                 Map<String, Object> unifiedAccount = this.account();
                 unifiedAccount.put("free", this.safeString(first, "withdraw_available"));
@@ -2485,7 +2486,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     String currencyId = this.safeString2(first, "margin_asset", "margin_account");
-                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                    String code = this.safeCurrencyCode((String) (currencyId), null);
                     if (!java.util.Objects.equals(code, null))
                     {
                         Map<String, Object> account = this.account();
@@ -2505,7 +2506,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         account.put("free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         account.put("used", this.safeString(isolatedBalance, "margin_frozen"));
                         String currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
-                        String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                        String code = this.safeCurrencyCode((String) (currencyId), null);
                         if (!java.util.Objects.equals(code, null))
                         {
                             this.balance.put(code, account);
@@ -2520,7 +2521,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     Map<String, Object> balance = this.safeDict(data, i, null);
                     String currencyId = this.safeString(balance, "symbol");
-                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                    String code = this.safeCurrencyCode((String) (currencyId), null);
                     Map<String, Object> account = this.account();
                     account.put("free", this.safeString(balance, "margin_available"));
                     account.put("used", this.safeString(balance, "margin_frozen"));
@@ -3160,7 +3161,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (data)
             {
                 String contractCode = this.safeString(message, "contract_code");
-                Map<String, Object> market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode, (Map<String, Object>) null, (String) null, (String) null) : null;
+                Map<String, Object> market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode, null, null, null) : null;
                 List<Object> dataList = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < dataList.size(); i++)
                 {
@@ -3266,7 +3267,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //     }
         //
         String marketId = this.safeString2(trade, "symbol", "contract_code");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("side", "orderSide", "direction")));
         String tradeId = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "trade_id", "id")));
@@ -3275,7 +3276,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String order = this.safeString2(trade, "orderId", "order_id");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("tradeTime", "updated_time", "created_time")));
         String orderType = this.safeString2(trade, "orderType", "type");
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
+        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
@@ -3291,7 +3292,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             type = this.safeString(orderTypeParts, 1, orderType);
         }
         Map<String, Object> fee = null;
-        String feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))), (Map<String, Object>) null);
+        String feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))), null);
         if (!java.util.Objects.equals(feeCurrency, null))
         {
             {

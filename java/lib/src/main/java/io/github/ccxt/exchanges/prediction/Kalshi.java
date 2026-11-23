@@ -602,7 +602,7 @@ public class Kalshi extends KalshiApi
                 }
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+                    return this.safeOutcome((String) (outcomeSymbol), null);
                 }
             }
         }
@@ -642,7 +642,7 @@ public class Kalshi extends KalshiApi
             }
             String tickerText = this.safeString(outcomeSymbols, i, "");
             String baseTicker = tickerText;
-            if ((outcomeSymbol.endsWith(((String)"-NO"))))
+            if (outcomeSymbol.endsWith("-NO"))
             {
                 baseTicker = (outcomeSymbol == null ? null : ((String)outcomeSymbol).substring(0, Math.max(((String)outcomeSymbol).length() - 3, 0)));
             }
@@ -809,9 +809,9 @@ public class Kalshi extends KalshiApi
         String result = this.safeStringLower(raw, "result");
         Boolean resolved = (java.util.Objects.equals(status, "settled")) || ((!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")));
         String endDate = this.safeString2(raw, "latest_expiration_time", "expiration_time");
-        Double volume = this.safeNumber2(raw, "volume_fp", "volume", (Object) null);
-        Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity", (Object) null);
-        Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest", (Object) null);
+        Double volume = this.safeNumber2(raw, "volume_fp", "volume", null);
+        Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity", null);
+        Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest", null);
         // Derive series ticker: drop last hyphen-segment from event_ticker
         Object seriesTicker = eventTicker;
         if ((!java.util.Objects.equals(eventTicker, null)) && (!java.util.Objects.equals(eventTicker, "")))
@@ -988,8 +988,8 @@ public class Kalshi extends KalshiApi
     private Object fetchTickerCore(String outcome, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "ticker", ticker );
@@ -1103,8 +1103,8 @@ public class Kalshi extends KalshiApi
     private Object fetchOpenInterestCore(String outcome, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "ticker", ticker );
@@ -1122,8 +1122,8 @@ public class Kalshi extends KalshiApi
         //
         Long timestamp = this.parse8601(this.safeString(interest, "updated_time"));
         Object openInterest = this.safeOpenInterest(new HashMap<String, Object>() {{
-            put( "symbol", Kalshi.this.safeSymbol(null, market, (String) null, (String) null) );
-            put( "openInterestAmount", Kalshi.this.safeNumber2(interest, "open_interest_fp", "open_interest", (Object) null) );
+            put( "symbol", Kalshi.this.safeSymbol(null, market, null, null) );
+            put( "openInterestAmount", Kalshi.this.safeNumber2(interest, "open_interest_fp", "open_interest", null) );
             put( "openInterestValue", null );
             put( "baseVolume", null );
             put( "quoteVolume", null );
@@ -1131,7 +1131,7 @@ public class Kalshi extends KalshiApi
             put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
-        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol((String) (null), market));
+        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol(null, market));
         ((Map<String, Object>)openInterest).put("outcomeId", this.safeString(market, "outcomeId"));
         ((Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
@@ -1208,11 +1208,11 @@ public class Kalshi extends KalshiApi
         Boolean isNo = java.util.Objects.equals(outcomeLabel, "NO");
         Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         String outcome = this.safeString(outcomeObj, "outcome");
-        Double yesAsk = this.safeNumber(raw, "yes_ask_dollars", (Object) null);
-        Double yesBid = this.safeNumber(raw, "yes_bid_dollars", (Object) null);
-        Double noAsk = this.safeNumber(raw, "no_ask_dollars", (Object) null);
-        Double noBid = this.safeNumber(raw, "no_bid_dollars", (Object) null);
-        Double last = this.safeNumber(raw, "last_price_dollars", (Object) null);
+        Double yesAsk = this.safeNumber(raw, "yes_ask_dollars", null);
+        Double yesBid = this.safeNumber(raw, "yes_bid_dollars", null);
+        Double noAsk = this.safeNumber(raw, "no_ask_dollars", null);
+        Double noBid = this.safeNumber(raw, "no_bid_dollars", null);
+        Double last = this.safeNumber(raw, "last_price_dollars", null);
         Double bid = null;
         Double ask = null;
         Double close = null;
@@ -1394,8 +1394,8 @@ public class Kalshi extends KalshiApi
     private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Boolean isNo = java.util.Objects.equals(this.safeString(outcomeObj, "label"), "NO");
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1426,28 +1426,28 @@ public class Kalshi extends KalshiApi
             // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
             for (var bi = 0; bi < rawNo.size(); bi++)
             {
-                Double price = this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 0, (Object) null);
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1, (Object) null))));
+                Double price = this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 0, null);
+                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1, null))));
             }
             for (var ai = 0; ai < rawYes.size(); ai++)
             {
-                Double yesPrice = this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 0, (Object) null);
+                Double yesPrice = this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 0, null);
                 Object price = (((!java.util.Objects.equals(yesPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 1, (Object) null))));
+                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 1, null))));
             }
         } else
         {
             // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
             for (var bi = 0; bi < rawYes.size(); bi++)
             {
-                Double price = this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 0, (Object) null);
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1, (Object) null))));
+                Double price = this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 0, null);
+                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1, null))));
             }
             for (var ai = 0; ai < rawNo.size(); ai++)
             {
-                Double noPrice = this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 0, (Object) null);
+                Double noPrice = this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 0, null);
                 Object price = (((!java.util.Objects.equals(noPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 1, (Object) null))));
+                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 1, null))));
             }
         }
         return this.safePredictionOrderBook((Map<String, Object>) (this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), null, bids, asks)), outcomeObj);
@@ -1500,8 +1500,8 @@ public class Kalshi extends KalshiApi
     private Object fetchOHLCVCore(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         String seriesTicker = this.safeString(outcomeObj.get("info"), "seriesTicker", ticker);
         Long periodMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1584,8 +1584,8 @@ public class Kalshi extends KalshiApi
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             Map<String, Object> priceObj = this.safeDict(candle, "price", new HashMap<String, Object>() {{}});
-            Double openPrice = this.safeNumber(priceObj, "open_dollars", (Object) null);
-            Double previousPrice = this.safeNumber(priceObj, "previous_dollars", (Object) null);
+            Double openPrice = this.safeNumber(priceObj, "open_dollars", null);
+            Double previousPrice = this.safeNumber(priceObj, "previous_dollars", null);
             if ((!java.util.Objects.equals(openPrice, null)) || (!java.util.Objects.equals(previousPrice, null)))
             {
                 ((List<Object>)usableCandles).add(candle);
@@ -1640,7 +1640,7 @@ public class Kalshi extends KalshiApi
         //
         Map<String, Object> price = this.safeDict(ohlcv, "price", new HashMap<String, Object>() {{}});
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        Double previous = this.safeNumber(price, "previous_dollars", (Object) null);
+        Double previous = this.safeNumber(price, "previous_dollars", null);
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         Long endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
@@ -1672,8 +1672,8 @@ public class Kalshi extends KalshiApi
     private Object fetchTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "ticker", ticker );
@@ -1711,14 +1711,14 @@ public class Kalshi extends KalshiApi
     {
         String id = this.safeString(trade, "trade_id");
         Long ts = this.parse8601(this.safeString(trade, "created_time"));
-        Double priceCents = this.safeNumber2(trade, "yes_price", "price", (Object) null);
+        Double priceCents = this.safeNumber2(trade, "yes_price", "price", null);
         Object centsPrice = null;
         if (!java.util.Objects.equals(priceCents, null))
         {
             centsPrice = (((double) priceCents) / ((double) 100));
         }
         Double price = this.safeNumber2(trade, "yes_price_dollars", "price_dollars", centsPrice);
-        Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp", (Object) null);
+        Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp", null);
         Double amount = this.safeNumber(trade, "count", amountFp);
         String rawSide = this.safeStringLower(trade, "taker_side");
         Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
@@ -1783,7 +1783,7 @@ public class Kalshi extends KalshiApi
 
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome(outcome, false)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> outcomeObj = null;
@@ -1791,7 +1791,7 @@ public class Kalshi extends KalshiApi
         {
             // the ticker filter narrows to the market; a market has both legs, so the
             // wanted-leg filter below still drops the opposite-leg fills
-            outcomeObj = this.outcome((String) (outcome));
+            outcomeObj = this.outcome(outcome);
             if (java.util.Objects.equals(outcomeObj, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
@@ -1810,7 +1810,7 @@ public class Kalshi extends KalshiApi
         {
             ((List<Object>)trades).add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), outcomeObj));
         }
-        Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
+        Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome(outcome) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
@@ -1863,14 +1863,14 @@ public class Kalshi extends KalshiApi
             centsKey = "no_price";
             dollarsKey = "no_price_dollars";
         }
-        Double legCents = this.safeNumber(fill, centsKey, (Object) null);
+        Double legCents = this.safeNumber(fill, centsKey, null);
         Object centsPrice = null;
         if (!java.util.Objects.equals(legCents, null))
         {
             centsPrice = (((double) legCents) / ((double) 100));
         }
         Double price = this.safeNumber(fill, dollarsKey, centsPrice);
-        Double amount = this.safeNumber2(fill, "count_fp", "count", (Object) null);
+        Double amount = this.safeNumber2(fill, "count_fp", "count", null);
         Object cost = null;
         if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
         {
@@ -1882,7 +1882,7 @@ public class Kalshi extends KalshiApi
         {
             takerOrMaker = "taker";
         }
-        Double feeCost = this.safeNumber(fill, "fee_cost", (Object) null);
+        Double feeCost = this.safeNumber(fill, "fee_cost", null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -1948,7 +1948,7 @@ public class Kalshi extends KalshiApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Double balanceCents = this.safeNumber(response, "balance", (Object) null);
+        Double balanceCents = this.safeNumber(response, "balance", null);
         Object total = null;
         if (!java.util.Objects.equals(balanceCents, null))
         {
@@ -2050,7 +2050,7 @@ public class Kalshi extends KalshiApi
 
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome(outcome, false)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(limit, null))
@@ -2063,9 +2063,9 @@ public class Kalshi extends KalshiApi
         List<Map<String, Object>> parsed = new ArrayList<Map<String, Object>>();
         for (var i = 0; (rawSettlementsLength != null && i < rawSettlementsLength); i++)
         {
-            parsed.add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
+            parsed.add(this.parseSettlement(this.extend(new HashMap<String, Object>() {{}}, (rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
         }
-        Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
+        Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome(outcome) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
@@ -2116,7 +2116,7 @@ public class Kalshi extends KalshiApi
         String marketResult = this.safeStringUpper(settlement, "market_result");
         Boolean won = (java.util.Objects.equals(marketResult, heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
-        Double revenueCents = this.safeNumber(settlement, "revenue", (Object) null);
+        Double revenueCents = this.safeNumber(settlement, "revenue", null);
         Object centsPayout = null;
         if (!java.util.Objects.equals(revenueCents, null))
         {
@@ -2133,7 +2133,7 @@ public class Kalshi extends KalshiApi
         {
             costDollarsKey = "yes_total_cost_dollars";
         }
-        Double costCents = this.safeNumber(settlement, costKey, (Object) null);
+        Double costCents = this.safeNumber(settlement, costKey, null);
         Object centsCost = null;
         if (!java.util.Objects.equals(costCents, null))
         {
@@ -2180,7 +2180,7 @@ public class Kalshi extends KalshiApi
     {
         String ticker = this.safeString(position, "ticker");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (ticker), market);
-        Double yesContracts = this.safeNumber(position, "position", (Object) null); // positive = long YES
+        Double yesContracts = this.safeNumber(position, "position", null); // positive = long YES
         String positionSide = null;
         Double contractsValue = null;
         if (!java.util.Objects.equals(yesContracts, null))
@@ -2241,7 +2241,7 @@ public class Kalshi extends KalshiApi
 
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome(outcome, false)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "status", "resting" );
@@ -2249,7 +2249,7 @@ public class Kalshi extends KalshiApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            outcomeObj = this.outcome((String) (outcome));
+            outcomeObj = this.outcome(outcome);
             if (java.util.Objects.equals(outcomeObj, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
@@ -2283,14 +2283,14 @@ public class Kalshi extends KalshiApi
 
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome(outcome, false)).join();
         }
         // no status filter — the endpoint returns every order; pass params.status to narrow
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            outcomeObj = this.outcome((String) (outcome));
+            outcomeObj = this.outcome(outcome);
             if (java.util.Objects.equals(outcomeObj, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
@@ -2361,12 +2361,12 @@ public class Kalshi extends KalshiApi
         // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome(outcome, false)).join();
         }
         Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new HashMap<String, Object>() {{
             put( "order_id", id );
         }}, parameters))).join();
-        return this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), (Map<String, Object>) null);
+        return this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), null);
 
     }
 
@@ -2417,19 +2417,19 @@ public class Kalshi extends KalshiApi
         {
             centsKey = "no_price";
         }
-        Object price = this.safeNumber(order, dollarsKey, (Object) null);
+        Object price = this.safeNumber(order, dollarsKey, null);
         if (java.util.Objects.equals(price, null))
         {
-            Double priceCents = this.safeNumber(order, centsKey, (Object) null);
+            Double priceCents = this.safeNumber(order, centsKey, null);
             if (!java.util.Objects.equals(priceCents, null))
             {
                 price = (((double) priceCents) / ((double) 100));
             }
         }
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
-        Double amount = this.safeNumber2(order, "initial_count_fp", "count", (Object) null);
+        Double amount = this.safeNumber2(order, "initial_count_fp", "count", null);
         Double filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
-        Object remaining = this.safeNumber(order, "remaining_count_fp", (Object) null);
+        Object remaining = this.safeNumber(order, "remaining_count_fp", null);
         if ((java.util.Objects.equals(remaining, null)) && (!java.util.Objects.equals(amount, null)) && (!java.util.Objects.equals(filled, null)))
         {
             remaining = (amount - filled);
@@ -2496,12 +2496,12 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object createOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         // kalshi has no market orders — every order is a limit order and the price is required
@@ -2509,8 +2509,8 @@ public class Kalshi extends KalshiApi
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
         }
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String ticker = this.safeString(outcomeObj.get("info"), "ticker");
         Boolean isNo = (java.util.Objects.equals(this.safeString(outcomeObj, "label"), "NO"));
         Boolean isBuy = (java.util.Objects.equals(side, "buy"));
@@ -2526,7 +2526,7 @@ public class Kalshi extends KalshiApi
         {
             bookSide = ((Boolean.TRUE.equals(isBuy))) ? "ask" : "bid";
         }
-        Object yesPrice = (((Boolean.TRUE.equals(isNo) && (!java.util.Objects.equals(price, null))))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(price))) : price;
+        Double yesPrice = (((Boolean.TRUE.equals(isNo) && (!java.util.Objects.equals(price, null))))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(price))) : price;
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -2575,14 +2575,14 @@ public class Kalshi extends KalshiApi
         // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
         // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
         // otherwise a fully-filled order would return status 'closed' with filled 0
-        Double remainingCount = this.safeNumber(response, "remaining_count", (Object) null);
-        Double filledCount = this.safeNumber(response, "fill_count", (Object) null);
+        Double remainingCount = this.safeNumber(response, "remaining_count", null);
+        Double filledCount = this.safeNumber(response, "fill_count", null);
         if (!java.util.Objects.equals(filledCount, null))
         {
             order.put("filled", filledCount);
         } else if (!java.util.Objects.equals(remainingCount, null))
         {
-            order.put("filled", Helpers.subtract(amount, remainingCount));
+            order.put("filled", (amount - remainingCount));
         }
         if (!java.util.Objects.equals(remainingCount, null))
         {
@@ -2635,9 +2635,9 @@ public class Kalshi extends KalshiApi
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires an amount")) ;
         }
-        (this.loadOutcome((String) (outcome), false)).join();
+        (this.loadOutcome(outcome, false)).join();
         (this.cancelOrder(id, outcome, new HashMap<String, Object>() {{}})).join();
-        return (this.createOrder(outcome, (String) (type), (String) (side), amount, price, parameters)).join();
+        return (this.createOrder(outcome, type, side, (Double) (amount), price, parameters)).join();
 
     }
 
@@ -2662,7 +2662,7 @@ public class Kalshi extends KalshiApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            outcomeObj = (this.loadOutcome(outcome, false)).join();
         }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -2703,7 +2703,7 @@ public class Kalshi extends KalshiApi
 
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
+            (this.loadOutcome(outcome, false)).join();
         }
         // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
         // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
@@ -2713,7 +2713,7 @@ public class Kalshi extends KalshiApi
         }};
         if (!java.util.Objects.equals(outcome, null))
         {
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome(outcome);
             request.put("ticker", this.safeString(outcomeObj.get("info"), "ticker"));
         }
         Map<String, Object> restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
@@ -2731,7 +2731,7 @@ public class Kalshi extends KalshiApi
                 (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(mapLiteral13, parameters))).join();
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                Map<String, Object> parsed = this.parsePredictionOrder(restingOrder, (Map<String, Object>) null);
+                Map<String, Object> parsed = this.parsePredictionOrder(restingOrder, null);
                 parsed.put("status", "canceled");
                 ((List<Object>)canceledOrders).add(parsed);
             }
@@ -3136,7 +3136,7 @@ public class Kalshi extends KalshiApi
     private Object fetchEventCore(String id, Map<String, Object> parameters)
     {
 
-        Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (id), parameters)).join();
+        Map<String, Object> fullEvent = (this.fetchRawEventByTicker(id, parameters)).join();
         Map<String, Object> eventVar = this.parseEvent(fullEvent);
         this.indexEventOutcomes(eventVar);
         return eventVar;
@@ -3266,7 +3266,7 @@ public class Kalshi extends KalshiApi
         {
             active = anyActive;
         }
-        Boolean resolved = (Boolean) this.safeBool(rawEvent, "resolved", (Object) null);
+        Boolean resolved = (Boolean) this.safeBool(rawEvent, "resolved", null);
         if ((java.util.Objects.equals(resolved, null)) && ((marketsCount != null && marketsCount > 0)))
         {
             resolved = allResolved;

@@ -1110,8 +1110,8 @@ public class Woo extends WooApi
         }
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -1128,7 +1128,7 @@ public class Woo extends WooApi
         {
             margin = false;
             settleId = this.safeString(parts, 2);
-            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+            settle = this.safeCurrencyCode(settleId, null);
             symbol = ((((base + "/") + quote) + ":") + settle);
             contractSize = this.parseNumber("1");
             linear = true;
@@ -1160,8 +1160,8 @@ public class Woo extends WooApi
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Woo.this.safeNumber(market, "baseTick", (Object) null) );
-                put( "price", Woo.this.safeNumber(market, "quoteTick", (Object) null) );
+                put( "amount", Woo.this.safeNumber(market, "baseTick", null) );
+                put( "price", Woo.this.safeNumber(market, "quoteTick", null) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -1169,15 +1169,15 @@ public class Woo extends WooApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Woo.this.safeNumber(market, "baseMin", (Object) null) );
-                    put( "max", Woo.this.safeNumber(market, "baseMax", (Object) null) );
+                    put( "min", Woo.this.safeNumber(market, "baseMin", null) );
+                    put( "max", Woo.this.safeNumber(market, "baseMax", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", Woo.this.safeNumber(market, "quoteMin", (Object) null) );
-                    put( "max", Woo.this.safeNumber(market, "quoteMax", (Object) null) );
+                    put( "min", Woo.this.safeNumber(market, "quoteMin", null) );
+                    put( "max", Woo.this.safeNumber(market, "quoteMax", null) );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Woo.this.safeNumber(market, "minNotional", (Object) null) );
+                    put( "min", Woo.this.safeNumber(market, "minNotional", null) );
                     put( "max", null );
                 }} );
             }});
@@ -1287,7 +1287,7 @@ public class Woo extends WooApi
             }
         }
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString2(trade, "executed_price", "executedPrice");
         String amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
@@ -1326,7 +1326,7 @@ public class Woo extends WooApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeStringN(item, feeTokenKeys);
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
@@ -1340,7 +1340,7 @@ public class Woo extends WooApi
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
         String marketId = this.safeString(fee, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -1594,7 +1594,7 @@ public class Woo extends WooApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "_coin_id");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String,Object> tokensByNetworkId = this.indexBy(this.safeList(rawCurrency, "_tokens_by_id", new ArrayList<Object>(Arrays.asList())), "network");
         Map<String,Object> chainsByNetworkId = this.indexBy(this.safeList(rawCurrency, "_networks_by_id", new ArrayList<Object>(Arrays.asList())), "network");
         List<String> keys = new ArrayList<String>(chainsByNetworkId.keySet());
@@ -1615,11 +1615,11 @@ public class Woo extends WooApi
                 mapLiteral3.put("active", null);
                 mapLiteral3.put("deposit", java.util.Objects.equals(this.safeString(networkEntry, "allow_deposit"), "1"));
                 mapLiteral3.put("withdraw", java.util.Objects.equals(this.safeString(networkEntry, "allow_withdraw"), "1"));
-                mapLiteral3.put("fee", this.safeNumber(networkEntry, "withdrawal_fee", (Object) null));
+                mapLiteral3.put("fee", this.safeNumber(networkEntry, "withdrawal_fee", null));
                 mapLiteral3.put("precision", this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, "decimals"))));
                 mapLiteral3.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Woo.this.safeNumber(networkEntry, "minimum_withdrawal", (Object) null) );
+            put( "min", Woo.this.safeNumber(networkEntry, "minimum_withdrawal", null) );
             put( "max", null );
         }} );
         put( "deposit", new HashMap<String, Object>() {{
@@ -1686,7 +1686,7 @@ public class Woo extends WooApi
         {
             throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
+        return (this.createOrder(symbol, "market", "buy", cost, 1.0, parameters)).join();
 
     }
 
@@ -1717,7 +1717,7 @@ public class Woo extends WooApi
         {
             throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
-        return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
+        return (this.createOrder(symbol, "market", "sell", cost, 1.0, parameters)).join();
 
     }
 
@@ -1736,12 +1736,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createTrailingAmountOrderCore(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters)).thenApply(Order::new);
     }
 
-    private Object createTrailingAmountOrderCore(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
+    private Object createTrailingAmountOrderCore(String symbol, String type, String side, Double amount, Double price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(trailingAmount, null))
@@ -1754,7 +1754,7 @@ public class Woo extends WooApi
         }
         parameters.put("trailingAmount", trailingAmount);
         parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
 
     }
 
@@ -1773,12 +1773,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
     }
 
-    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(trailingPercent, null))
@@ -1791,7 +1791,7 @@ public class Woo extends WooApi
         }
         parameters.put("trailingPercent", trailingPercent);
         parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
 
     }
 
@@ -1821,17 +1821,17 @@ public class Woo extends WooApi
      * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
-        String orderType = ((String)type).toUpperCase();
+        String orderType = type.toUpperCase();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1841,7 +1841,7 @@ public class Woo extends WooApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", orderSide);
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))
@@ -1863,7 +1863,7 @@ public class Woo extends WooApi
         Boolean isConditional = Boolean.TRUE.equals(isTrailing) || !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeList(paramsMarginMode, "childOrders", null), null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(paramsMarginMode, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsMarginMode);
+        Boolean postOnly = this.isPostOnly(isMarket, null, paramsMarginMode);
         String clientOrderIdKey = "clientOrderId";
         if (Boolean.TRUE.equals(isConditional))
         {
@@ -2246,7 +2246,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbol, null))
@@ -2275,7 +2275,7 @@ public class Woo extends WooApi
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
     put( "info", data );
-}}, (Map<String, Object>) null)));
+}}, null)));
 
     }
 
@@ -2350,7 +2350,7 @@ public class Woo extends WooApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String clientOrderId = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
@@ -2418,7 +2418,7 @@ public class Woo extends WooApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
-        Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -2637,7 +2637,7 @@ public class Woo extends WooApi
         String orderId = this.safeString2(order, "orderId", "algoOrderId");
         String clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity"); // This is base amount
@@ -2647,9 +2647,9 @@ public class Woo extends WooApi
         String filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         String average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
-        Double fee = this.safeNumber(order, "totalFee", (Object) null);
+        Double fee = this.safeNumber(order, "totalFee", null);
         String feeCurrency = this.safeString(order, "feeAsset");
-        Double triggerPrice = this.safeNumber(order, "triggerPrice", (Object) null);
+        Double triggerPrice = this.safeNumber(order, "triggerPrice", null);
         String lastUpdateTimestampString = this.safeString(order, "updatedTime");
         Long lastUpdateTimestamp = null;
         if (!java.util.Objects.equals(lastUpdateTimestampString, null))
@@ -2679,7 +2679,7 @@ public class Woo extends WooApi
         mapLiteral5.put("type", orderType);
         mapLiteral5.put("timeInForce", this.parseTimeInForce(orderType));
         mapLiteral5.put("postOnly", postOnly);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);
@@ -2798,7 +2798,7 @@ public class Woo extends WooApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
@@ -2937,7 +2937,7 @@ public class Woo extends WooApi
         Map<String, Object> paramsRequest = parameters;
         if (java.util.Objects.equals(symbolsNormalized, null))
         {
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, "swap");
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(marketType, "swap"))
@@ -2969,7 +2969,7 @@ public class Woo extends WooApi
             Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseTicker(ticker, (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parseTicker(ticker, null));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -3050,7 +3050,7 @@ public class Woo extends WooApi
 
     public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "startTimestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "startTimestamp"), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "volume", null)));
     }
 
     /**
@@ -3372,7 +3372,7 @@ public class Woo extends WooApi
         for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = this.safeDict(balances, i, null);
-            String code = this.safeCurrencyCode(this.safeString(balance, "token"), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(this.safeString(balance, "token"), null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "holding"));
             account.put("free", this.safeString(balance, "availableBalance"));
@@ -3406,7 +3406,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
@@ -3453,7 +3453,7 @@ public class Woo extends WooApi
     public Map<String, Object> parseDepositAddress(Map<String, Object> depositEntry, Map<String, Object> currency)
     {
         String address = this.safeString(depositEntry, "address");
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         String networkId = this.safeString(depositEntry, "network");
         return new HashMap<String, Object>() {{
             put( "info", depositEntry );
@@ -3480,7 +3480,7 @@ public class Woo extends WooApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("token", currency.get("id"));
         }
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -3569,7 +3569,7 @@ public class Woo extends WooApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         return this.parseLedger(rows, currency, since, limit, parameters);
 
@@ -3602,7 +3602,7 @@ public class Woo extends WooApi
         String networkizedCode = this.safeString(item, "token");
         String code = this.safeCurrencyCode(networkizedCode, currency);
         Map<String, Object> currencyResolved = this.safeCurrency(code, currency);
-        Double amount = this.safeNumber(item, "amount", (Object) null);
+        Double amount = this.safeNumber(item, "amount", null);
         String side = this.safeString(item, "tokenSide");
         String direction = "out";
         if (java.util.Objects.equals(side, "DEPOSIT"))
@@ -3646,7 +3646,7 @@ public class Woo extends WooApi
             return currency;
         } else
         {
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)networkizedCode).split(java.util.regex.Pattern.quote("_"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(networkizedCode.split(java.util.regex.Pattern.quote("_"))));
             Integer partsLength = parts.size();
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
@@ -3654,7 +3654,7 @@ public class Woo extends WooApi
             {
                 currencyId = ((this.safeString(parts, 1, "") + "_") + this.safeString(parts, 2, ""));
             }
-            return this.safeCurrency(currencyId, (Map<String, Object>) null);
+            return this.safeCurrency(currencyId, null);
         }
     }
 
@@ -3736,7 +3736,7 @@ public class Woo extends WooApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         return this.parseTransactions(rows, currency, since, limit, this.omit(parameters, "tokenSide"));
 
@@ -3792,7 +3792,7 @@ public class Woo extends WooApi
             h2kMap1.put("tagFrom", null);
             h2kMap1.put("tagTo", null);
             h2kMap1.put("type", movementDirection);
-            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap1.put("currency", code);
             h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
             h2kMap1.put("updated", this.safeTimestamp2(transaction, "updated_time", "updatedTime"));
@@ -3840,7 +3840,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "token", currency.get("id") );
             put( "amount", Woo.this.parseToNumeric(amount) );
@@ -3899,7 +3899,7 @@ public class Woo extends WooApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         if (!java.util.Objects.equals(limit, null))
         {
@@ -3994,7 +3994,7 @@ public class Woo extends WooApi
         //
         String code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         Long timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
-        Boolean success = (Boolean) this.safeBool(transfer, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {
@@ -4008,7 +4008,7 @@ public class Woo extends WooApi
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
             h2kMap2.put("currency", code);
-            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", null));
             h2kMap2.put("fromAccount", this.safeString(fromAccount, "applicationId"));
             h2kMap2.put("toAccount", this.safeString(toAccount, "applicationId"));
             h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transfer, "status", status)));
@@ -4037,7 +4037,7 @@ public class Woo extends WooApi
     private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
@@ -4045,7 +4045,7 @@ public class Woo extends WooApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         this.checkAddress(address, code, tagWithdrawTag);
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "amount", amount );
             put( "address", address );
@@ -4109,10 +4109,10 @@ public class Woo extends WooApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(this.market(symbol), "symbol") : null;
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "token", currency.get("id") );
-            put( "amount", Woo.this.currencyToPrecision((String) (code), amount, (String) null) );
+            put( "amount", Woo.this.currencyToPrecision(code, amount, null) );
         }};
         Map<String, Object> response = (this.v1PrivatePostInterestRepay(this.extend(request, parameters))).join();
         //
@@ -4137,7 +4137,7 @@ public class Woo extends WooApi
         //
         return new HashMap<String, Object>() {{
             put( "id", null );
-            put( "currency", Woo.this.safeCurrencyCode((String) (null), currency) );
+            put( "currency", Woo.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "symbol", null );
             put( "timestamp", null );
@@ -4272,7 +4272,7 @@ public class Woo extends WooApi
         if (!Boolean.TRUE.equals(success))
         {
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
         }
         return null;
@@ -4295,12 +4295,12 @@ public class Woo extends WooApi
         //     }
         //
         String marketId = this.safeString(income, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String amount = this.safeString(income, "fundingFee");
-        String code = this.safeCurrencyCode("USD", (Map<String, Object>) null);
+        String code = this.safeCurrencyCode("USD", null);
         String id = this.safeString(income, "id");
         Long timestamp = this.safeInteger(income, "updatedTime");
-        Double rate = this.safeNumber(income, "fundingRate", (Object) null);
+        Double rate = this.safeNumber(income, "fundingRate", null);
         String paymentType = this.safeString(income, "paymentType");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
         {
@@ -4446,13 +4446,13 @@ public class Woo extends WooApi
             h2kMap5.put("estimatedSettlePrice", null);
             h2kMap5.put("timestamp", estFundingRateTimestamp);
             h2kMap5.put("datetime", this.iso8601(estFundingRateTimestamp));
-            h2kMap5.put("fundingRate", this.safeNumber2(fundingRate, "estFundingRate", "fundingRate", (Object) null));
+            h2kMap5.put("fundingRate", this.safeNumber2(fundingRate, "estFundingRate", "fundingRate", null));
             h2kMap5.put("fundingTimestamp", nextFundingTimestamp);
             h2kMap5.put("fundingDatetime", this.iso8601(nextFundingTimestamp));
             h2kMap5.put("nextFundingRate", null);
             h2kMap5.put("nextFundingTimestamp", null);
             h2kMap5.put("nextFundingDatetime", null);
-            h2kMap5.put("previousFundingRate", this.safeNumber(fundingRate, "lastFundingRate", (Object) null));
+            h2kMap5.put("previousFundingRate", this.safeNumber(fundingRate, "lastFundingRate", null));
             h2kMap5.put("previousFundingTimestamp", lastFundingRateTimestamp);
             h2kMap5.put("previousFundingDatetime", this.iso8601(lastFundingRateTimestamp));
             h2kMap5.put("interval", interval);
@@ -4555,7 +4555,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.v3PublicGetFundingRate(parameters)).join();
         //
         //     {
@@ -4664,8 +4664,8 @@ public class Woo extends WooApi
             Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                 put( "info", entry );
-                put( "symbol", Woo.this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null) );
-                put( "fundingRate", Woo.this.safeNumber(entry, "fundingRate", (Object) null) );
+                put( "symbol", Woo.this.safeSymbol(marketId, null, null, null) );
+                put( "fundingRate", Woo.this.safeNumber(entry, "fundingRate", null) );
                 put( "timestamp", timestamp );
                 put( "datetime", Woo.this.iso8601(timestamp) );
             }});
@@ -4766,7 +4766,7 @@ public class Woo extends WooApi
     public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String marginMode = this.safeStringLower(leverage, "marginMode");
         Long spotLeverage = this.safeInteger(leverage, "leverage");
         if ((spotLeverage != null && spotLeverage == 0))
@@ -4875,7 +4875,7 @@ public class Woo extends WooApi
     private Object addMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.modifyMarginHelper((String) (symbol), amount, "ADD", parameters)).join();
+        return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
 
     }
 
@@ -4898,7 +4898,7 @@ public class Woo extends WooApi
     private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.modifyMarginHelper((String) (symbol), amount, "REDUCE", parameters)).join();
+        return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
 
     }
 
@@ -5010,7 +5010,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
@@ -5110,7 +5110,7 @@ public class Woo extends WooApi
         //     }
         //
         String contract = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, null, null);
         String size = this.safeString(position, "holding");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -5144,7 +5144,7 @@ public class Woo extends WooApi
         Double positionMargin = null;
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
-            positionMargin = this.safeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount", (Object) null);
+            positionMargin = this.safeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount", null);
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
@@ -5159,12 +5159,12 @@ public class Woo extends WooApi
         mapLiteral8.put("maintenanceMarginPercentage", null);
         mapLiteral8.put("entryPrice", this.parseNumber(entryPrice));
         mapLiteral8.put("notional", this.parseNumber(notional));
-        mapLiteral8.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral8.put("leverage", this.safeNumber(position, "leverage", null));
         mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
         mapLiteral8.put("contracts", this.parseNumber(size));
         mapLiteral8.put("contractSize", this.parseNumber(contractSize));
         mapLiteral8.put("marginRatio", null);
-        mapLiteral8.put("liquidationPrice", this.safeNumber2(position, "estLiqPrice", "est_liq_price", (Object) null));
+        mapLiteral8.put("liquidationPrice", this.safeNumber2(position, "estLiqPrice", "est_liq_price", null));
         mapLiteral8.put("markPrice", this.parseNumber(markPrice));
         mapLiteral8.put("lastPrice", null);
         mapLiteral8.put("positionMargin", positionMargin);
@@ -5202,8 +5202,8 @@ public class Woo extends WooApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sellToken", ((String)fromCode).toUpperCase() );
-            put( "buyToken", ((String)toCode).toUpperCase() );
+            put( "sellToken", fromCode.toUpperCase() );
+            put( "buyToken", toCode.toUpperCase() );
             put( "sellQuantity", Woo.this.numberToString(amount) );
         }};
         Map<String, Object> response = (this.v3PrivateGetConvertRfq(this.extend(request, parameters))).join();
@@ -5271,7 +5271,7 @@ public class Woo extends WooApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseConversion(data, (Map<String, Object>) null, (Map<String, Object>) null);
+        return this.parseConversion(data, null, null);
 
     }
 
@@ -5443,10 +5443,10 @@ public class Woo extends WooApi
             put( "datetime", Woo.this.iso8601(timestamp) );
             put( "id", Woo.this.safeString(conversion, "quoteId") );
             put( "fromCurrency", fromCode );
-            put( "fromAmount", Woo.this.safeNumber2(conversion, "sellQuantity", "sellAmount", (Object) null) );
+            put( "fromAmount", Woo.this.safeNumber2(conversion, "sellQuantity", "sellAmount", null) );
             put( "toCurrency", toCode );
-            put( "toAmount", Woo.this.safeNumber2(conversion, "buyQuantity", "buyAmount", (Object) null) );
-            put( "price", Woo.this.safeNumber(conversion, "buyPrice", (Object) null) );
+            put( "toAmount", Woo.this.safeNumber2(conversion, "buyQuantity", "buyAmount", null) );
+            put( "price", Woo.this.safeNumber(conversion, "buyPrice", null) );
             put( "fee", null );
         }};
     }
@@ -5491,7 +5491,7 @@ public class Woo extends WooApi
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String id = this.safeString(entry, "token");
-            String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(id, null);
             if (!java.util.Objects.equals(code, null))
             {
                 HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
@@ -5505,7 +5505,7 @@ public class Woo extends WooApi
                 mapLiteral9.put("deposit", null);
                 mapLiteral9.put("withdraw", null);
                 mapLiteral9.put("fee", null);
-                mapLiteral9.put("precision", this.safeNumber(entry, "tick", (Object) null));
+                mapLiteral9.put("precision", this.safeNumber(entry, "tick", null));
                 mapLiteral9.put("limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
             put( "min", null );
@@ -5549,7 +5549,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
@@ -5629,8 +5629,8 @@ public class Woo extends WooApi
         Long timestamp = this.safeInteger(info, "timestamp");
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", Woo.this.safeSymbol(marketId, market, (String) null, "contract") );
-            put( "rank", Woo.this.safeNumber(info, "adlQuantile", (Object) null) );
+            put( "symbol", Woo.this.safeSymbol(marketId, market, null, "contract") );
+            put( "rank", Woo.this.safeNumber(info, "adlQuantile", null) );
             put( "rating", null );
             put( "percentage", null );
             put( "timestamp", timestamp );
@@ -5640,7 +5640,7 @@ public class Woo extends WooApi
 
     public String defaultNetworkCodeForCurrency(String code)
     {
-        Map<String, Object> currencyItem = this.currency((String) (code));
+        Map<String, Object> currencyItem = this.currency(code);
         Object networks = currencyItem.get("networks");
         List<String> networkKeys = new ArrayList<String>(((Map<String, Object>)networks).keySet());
         for (var i = 0; i < networkKeys.size(); i++)

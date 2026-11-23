@@ -154,7 +154,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String marketId = this.safeString(message, "id");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> content = this.safeDict(message, "contents", null);
         List<Object> rawTrades = this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -165,7 +165,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        List<Object> parsedTrades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedTrades = this.parseTrades(rawTrades, market, null, null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < parsedTrades.size(); i++)
         {
             stored.append((parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i)));
@@ -299,7 +299,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String marketId = this.safeString(message, "id");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> content = this.safeDict(message, "contents", null);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -467,9 +467,9 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String id = this.safeString(message, "id", "");
         List<Object> part = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("/"))));
         String interval = this.safeString(part, 1);
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         String marketId = this.safeString(part, 0);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> content = this.safeDict(message, "contents", null);
         List<Object> candles = this.safeList(content, "candles", null);

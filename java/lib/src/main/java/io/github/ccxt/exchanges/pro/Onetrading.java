@@ -247,7 +247,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
         String subscriptionHash = "MARKET_TICKER";
         String messageHash = "tickers";
@@ -287,10 +287,10 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             Map<String, Object> ticker = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
-            String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            String symbol = this.safeSymbol(marketId, null, null, null);
             Long timestamp = this.parse8601(datetime);
             String isoDatetime = this.iso8601(timestamp);
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, (Map<String, Object>) (null), timestamp, (String) (isoDatetime));
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, null, timestamp, (String) (isoDatetime));
             this.tickers.put(symbol, parsedTicker);
             client.resolve(parsedTicker, ("ticker." + symbol));
         }
@@ -312,7 +312,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         String marketId = this.safeString(ticker, "instrument");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Onetrading.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Onetrading.this.safeSymbol(marketId, market, null, null) );
             put( "timestamp", timestamp );
             put( "datetime", datetime );
             put( "high", Onetrading.this.safeString(ticker, "high") );
@@ -330,7 +330,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             put( "percentage", Onetrading.this.safeString(ticker, "price_change_percentage") );
             put( "average", null );
             put( "baseVolume", null );
-            put( "quoteVolume", Onetrading.this.safeNumber(ticker, "volume", (Object) null) );
+            put( "quoteVolume", Onetrading.this.safeNumber(ticker, "volume", null) );
             put( "info", ticker );
         }}, market);
     }
@@ -469,7 +469,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         String type = this.safeString(message, "type", "");
         String marketId = this.safeString(message, "instrument_code");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         String dateTime = this.safeString(message, "time");
         Long timestamp = this.parse8601(dateTime);
         String channel = ("book:" + symbol);
@@ -644,7 +644,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Order order = this.parseTradingOrder(message, (Map<String, Object>) null);
+        Order order = this.parseTradingOrder(message, null);
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(order);
         String orderSymbol = this.safeString(order, "symbol", "");
@@ -740,7 +740,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         String datetime = this.safeString(order, "time");
         String marketId = this.safeString(order, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_", null);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Onetrading.this.safeString(order, "order_id") );
             put( "clientOrderId", Onetrading.this.safeString(order, "client_id") );
@@ -753,9 +753,9 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", Onetrading.this.safeStringLower(order, "side") );
-            put( "price", Onetrading.this.safeNumber2(order, "price", "matched_price", (Object) null) );
-            put( "stopPrice", Onetrading.this.safeNumber(order, "trigger_price", (Object) null) );
-            put( "amount", Onetrading.this.safeNumber(order, "amount", (Object) null) );
+            put( "price", Onetrading.this.safeNumber2(order, "price", "matched_price", null) );
+            put( "stopPrice", Onetrading.this.safeNumber(order, "trigger_price", null) );
+            put( "amount", Onetrading.this.safeNumber(order, "amount", null) );
             put( "cost", null );
             put( "average", null );
             put( "filled", null );
@@ -856,14 +856,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), null);
             String symbol = this.safeString(order, "symbol", "");
             orders.append(order);
             client.resolve(this.orders, ("orders:" + symbol));
             List<Object> rawTrades = this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < rawTrades.size(); ii++)
             {
-                Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, ii, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+                Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, ii, new HashMap<String, Object>() {{}}), null);
                 symbol = this.safeString(trade, "symbol", symbol);
                 ((io.github.ccxt.ws.ArrayCache) this.myTrades).append(trade);
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
@@ -1132,7 +1132,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             orders.append(orderObject);
         } else
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(update, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(update, null);
             symbol = this.safeString(parsed, "symbol", "");
             orders.append(parsed);
         }
@@ -1152,7 +1152,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         // update trades
         if (java.util.Objects.equals(updateType, "TRADE_SETTLED"))
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(update, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(update, null);
             symbol = this.safeString(parsed, "symbol", "");
             io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             myTrades.append(parsed);
@@ -1182,7 +1182,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         String currencyId = this.safeString(balance, "currency_code");
-        String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+        String code = this.safeCurrencyCode((String) (currencyId), null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(balance, "new_available"));
         account.put("used", this.safeString(balance, "new_locked"));
@@ -1323,13 +1323,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         String marketId = this.safeString(message, "instrument_code");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         String dateTime = this.safeString(message, "time");
         Map<String, Object> timeframeId = this.safeDict(message, "granularity", null);
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(timeframeId, timeframes);
         String channel = ((("ohlcv." + symbol) + ".") + timeframe);
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open", (Object) null), this.safeNumber(message, "high", (Object) null), this.safeNumber(message, "low", (Object) null), this.safeNumber(message, "close", (Object) null), this.safeNumber(message, "volume", (Object) null)));
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open", null), this.safeNumber(message, "high", null), this.safeNumber(message, "low", null), this.safeNumber(message, "close", null), this.safeNumber(message, "volume", null)));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))

@@ -947,7 +947,7 @@ public class Derive extends DeriveApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
@@ -1163,8 +1163,8 @@ public class Derive extends DeriveApi
         Boolean inverse = null;
         String baseId = this.safeString(market, "base_currency");
         String quoteId = this.safeString(market, "quote_currency");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -1185,7 +1185,7 @@ public class Derive extends DeriveApi
         {
             margin = false;
             settleId = "USDC";
-            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+            settle = this.safeCurrencyCode(settleId, null);
             if (!java.util.Objects.equals(settle, null))
             {
                 symbol = ((((base + "/") + quote) + ":") + settle);
@@ -1197,13 +1197,13 @@ public class Derive extends DeriveApi
         } else if (java.util.Objects.equals(type, "option"))
         {
             settleId = "USDC";
-            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+            settle = this.safeCurrencyCode(settleId, null);
             margin = false;
             option = true;
             marketType = "option";
             Map<String, Object> optionDetails = this.safeDict(market, "option_details", null);
             expiry = this.safeTimestamp(optionDetails, "expiry");
-            strike = this.safeNumber(optionDetails, "strike", (Object) null); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
+            strike = this.safeNumber(optionDetails, "strike", null); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = this.safeString(optionDetails, "option_type");
             if (!java.util.Objects.equals(settle, null))
             {
@@ -1235,20 +1235,20 @@ public class Derive extends DeriveApi
         mapLiteral1.put("swap", swap);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", option);
-        mapLiteral1.put("active", this.safeBool(market, "is_active", (Object) null));
+        mapLiteral1.put("active", this.safeBool(market, "is_active", null));
         mapLiteral1.put("contract", (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option)));
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
         mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", expiry);
         mapLiteral1.put("expiryDatetime", this.iso8601(expiry));
-        mapLiteral1.put("taker", this.safeNumber(market, "taker_fee_rate", (Object) null));
-        mapLiteral1.put("maker", this.safeNumber(market, "maker_fee_rate", (Object) null));
+        mapLiteral1.put("taker", this.safeNumber(market, "taker_fee_rate", null));
+        mapLiteral1.put("maker", this.safeNumber(market, "maker_fee_rate", null));
         mapLiteral1.put("strike", strike);
         mapLiteral1.put("optionType", optionType);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Derive.this.safeNumber(market, "amount_step", (Object) null) );
-                put( "price", Derive.this.safeNumber(market, "tick_size", (Object) null) );
+                put( "amount", Derive.this.safeNumber(market, "amount_step", null) );
+                put( "price", Derive.this.safeNumber(market, "tick_size", null) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -1256,8 +1256,8 @@ public class Derive extends DeriveApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Derive.this.safeNumber(market, "minimum_amount", (Object) null) );
-                    put( "max", Derive.this.safeNumber(market, "maximum_amount", (Object) null) );
+                    put( "min", Derive.this.safeNumber(market, "minimum_amount", null) );
+                    put( "max", Derive.this.safeNumber(market, "maximum_amount", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1408,7 +1408,7 @@ public class Derive extends DeriveApi
             value = Precise.stringMul(amount, this.safeString(interest, "M"));
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+        mapLiteral2.put("symbol", this.safeSymbol(null, market, null, null));
         mapLiteral2.put("openInterestAmount", this.parseNumber(amount));
         mapLiteral2.put("openInterestValue", this.parseNumber(value));
         mapLiteral2.put("timestamp", timestamp);
@@ -1497,24 +1497,24 @@ public class Derive extends DeriveApi
         Long timestamp = this.safeInteger(greeks, "t");
         Map<String, Object> pricing = this.safeDict(greeks, "option_pricing", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
-            put( "symbol", Derive.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "symbol", Derive.this.safeSymbol(null, market, null, null) );
             put( "timestamp", timestamp );
             put( "datetime", Derive.this.iso8601(timestamp) );
-            put( "delta", Derive.this.safeNumber(pricing, "d", (Object) null) );
-            put( "gamma", Derive.this.safeNumber(pricing, "g", (Object) null) );
-            put( "theta", Derive.this.safeNumber(pricing, "t", (Object) null) );
-            put( "vega", Derive.this.safeNumber(pricing, "v", (Object) null) );
-            put( "rho", Derive.this.safeNumber(pricing, "r", (Object) null) );
-            put( "bidSize", Derive.this.safeNumber(greeks, "B", (Object) null) );
-            put( "askSize", Derive.this.safeNumber(greeks, "A", (Object) null) );
-            put( "bidImpliedVolatility", Derive.this.safeNumber(pricing, "bi", (Object) null) );
-            put( "askImpliedVolatility", Derive.this.safeNumber(pricing, "ai", (Object) null) );
-            put( "markImpliedVolatility", Derive.this.safeNumber(pricing, "i", (Object) null) );
-            put( "bidPrice", Derive.this.safeNumber(greeks, "b", (Object) null) );
-            put( "askPrice", Derive.this.safeNumber(greeks, "a", (Object) null) );
-            put( "markPrice", Derive.this.safeNumber(pricing, "m", (Object) null) );
+            put( "delta", Derive.this.safeNumber(pricing, "d", null) );
+            put( "gamma", Derive.this.safeNumber(pricing, "g", null) );
+            put( "theta", Derive.this.safeNumber(pricing, "t", null) );
+            put( "vega", Derive.this.safeNumber(pricing, "v", null) );
+            put( "rho", Derive.this.safeNumber(pricing, "r", null) );
+            put( "bidSize", Derive.this.safeNumber(greeks, "B", null) );
+            put( "askSize", Derive.this.safeNumber(greeks, "A", null) );
+            put( "bidImpliedVolatility", Derive.this.safeNumber(pricing, "bi", null) );
+            put( "askImpliedVolatility", Derive.this.safeNumber(pricing, "ai", null) );
+            put( "markImpliedVolatility", Derive.this.safeNumber(pricing, "i", null) );
+            put( "bidPrice", Derive.this.safeNumber(greeks, "b", null) );
+            put( "askPrice", Derive.this.safeNumber(greeks, "a", null) );
+            put( "markPrice", Derive.this.safeNumber(pricing, "m", null) );
             put( "lastPrice", null );
-            put( "underlyingPrice", Derive.this.safeNumber(greeks, "I", (Object) null) );
+            put( "underlyingPrice", Derive.this.safeNumber(greeks, "I", null) );
             put( "info", greeks );
         }};
     }
@@ -1551,7 +1551,7 @@ public class Derive extends DeriveApi
         Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
         // the response sample is listed in fetchGreeks, both methods read the same endpoint
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOption(result, (Map<String, Object>) null, market);
+        return this.parseOption(result, null, market);
 
     }
 
@@ -1570,21 +1570,21 @@ public class Derive extends DeriveApi
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", chain);
             h2kMap0.put("currency", this.safeString(market, "base"));
-            h2kMap0.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+            h2kMap0.put("symbol", this.safeSymbol(null, market, null, null));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("impliedVolatility", this.safeNumber(pricing, "i", (Object) null));
-            h2kMap0.put("openInterest", this.safeNumber(stats, "oi", (Object) null));
-            h2kMap0.put("bidPrice", this.safeNumber(chain, "b", (Object) null));
-            h2kMap0.put("askPrice", this.safeNumber(chain, "a", (Object) null));
+            h2kMap0.put("impliedVolatility", this.safeNumber(pricing, "i", null));
+            h2kMap0.put("openInterest", this.safeNumber(stats, "oi", null));
+            h2kMap0.put("bidPrice", this.safeNumber(chain, "b", null));
+            h2kMap0.put("askPrice", this.safeNumber(chain, "a", null));
             h2kMap0.put("midPrice", null);
-            h2kMap0.put("markPrice", this.safeNumber(chain, "M", (Object) null));
+            h2kMap0.put("markPrice", this.safeNumber(chain, "M", null));
             h2kMap0.put("lastPrice", null);
-            h2kMap0.put("underlyingPrice", this.safeNumber(chain, "I", (Object) null));
+            h2kMap0.put("underlyingPrice", this.safeNumber(chain, "I", null));
             h2kMap0.put("change", null);
             h2kMap0.put("percentage", this.parseNumber(percentage));
-            h2kMap0.put("baseVolume", this.safeNumber(stats, "c", (Object) null));
-            h2kMap0.put("quoteVolume", this.safeNumber(stats, "v", (Object) null));
+            h2kMap0.put("baseVolume", this.safeNumber(stats, "c", null));
+            h2kMap0.put("quoteVolume", this.safeNumber(stats, "v", null));
             return h2kMap0;
         }
     }
@@ -1736,13 +1736,13 @@ public class Derive extends DeriveApi
         String symbolResolved = null;
         if (!java.util.Objects.equals(marketId, null))
         {
-            symbolResolved = this.safeSymbol(marketId, market, (String) null, (String) null);
+            symbolResolved = this.safeSymbol(marketId, market, null, null);
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", settlement);
             h2kMap1.put("symbol", symbolResolved);
-            h2kMap1.put("price", this.safeNumber2(settlement, "price", "settlement_price", (Object) null));
+            h2kMap1.put("price", this.safeNumber2(settlement, "price", "settlement_price", null));
             h2kMap1.put("timestamp", timestamp);
             h2kMap1.put("datetime", this.iso8601(timestamp));
             return h2kMap1;
@@ -1754,7 +1754,7 @@ public class Derive extends DeriveApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < settlements.size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i))), market));
+            ((List<Object>)result).add(this.parseSettlement(this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i))), market));
         }
         return result;
     }
@@ -1788,7 +1788,7 @@ public class Derive extends DeriveApi
         //         "maxp": "85617.6"
         //     }
         //
-        Long timestamp = (Long) this.safeIntegerOmitZero(ticker, "t", (Long) null);
+        Long timestamp = (Long) this.safeIntegerOmitZero(ticker, "t", null);
         Map<String, Object> stats = this.safeDict(ticker, "stats", null);
         String change = this.safeString(stats, "p");
         String percentage = null;
@@ -1797,7 +1797,7 @@ public class Derive extends DeriveApi
             percentage = Precise.stringMul(change, "100");
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+        mapLiteral3.put("symbol", this.safeSymbol(null, market, null, null));
         mapLiteral3.put("timestamp", timestamp);
         mapLiteral3.put("datetime", this.iso8601(timestamp));
         mapLiteral3.put("high", this.safeString(stats, "h"));
@@ -2051,7 +2051,7 @@ public class Derive extends DeriveApi
         // todo: check active spot markets after launch of v3
         Map<String, Object> market = this.market(symbol);
         String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        Pair<String, Map<String, Object>> priceTypeparamsPriceVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price", (String) null);
+        Pair<String, Map<String, Object>> priceTypeparamsPriceVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price", null);
         String priceType = priceTypeparamsPriceVariable.first();
         Map<String, Object> paramsPrice = priceTypeparamsPriceVariable.second();
         Long until = this.safeInteger(paramsPrice, "until");
@@ -2108,7 +2108,7 @@ public class Derive extends DeriveApi
 
     public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open_price", (Object) null), this.safeNumber(ohlcv, "high_price", (Object) null), this.safeNumber(ohlcv, "low_price", (Object) null), this.safeNumber(ohlcv, "close_price", (Object) null), this.safeNumber(ohlcv, "volume_contracts", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open_price", null), this.safeNumber(ohlcv, "high_price", null), this.safeNumber(ohlcv, "low_price", null), this.safeNumber(ohlcv, "close_price", null), this.safeNumber(ohlcv, "volume_contracts", null)));
     }
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
@@ -2165,7 +2165,7 @@ public class Derive extends DeriveApi
         //     ]
         //
         String marketId = this.safeString(trade, "instrument_name");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "currency", "USDC" );
@@ -2266,7 +2266,7 @@ public class Derive extends DeriveApi
             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", market.get("symbol") );
-                put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate", (Object) null) );
+                put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate", null) );
                 put( "timestamp", timestamp );
                 put( "datetime", Derive.this.iso8601(timestamp) );
             }});
@@ -2331,7 +2331,7 @@ public class Derive extends DeriveApi
         //     ]
         //
         Map<String, Object> data = this.safeDict(response, 0, null);
-        return this.parseFundingRate(data, (Map<String, Object>) null);
+        return this.parseFundingRate(data, null);
 
     }
 
@@ -2348,7 +2348,7 @@ public class Derive extends DeriveApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Derive.this.safeNumber(contract, "fundingRate", (Object) null) );
+            put( "fundingRate", Derive.this.safeNumber(contract, "fundingRate", null) );
             put( "fundingTimestamp", fundingTimestamp );
             put( "fundingDatetime", Derive.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
@@ -2379,7 +2379,7 @@ public class Derive extends DeriveApi
     public String signOrder(Object order, String privateKey)
     {
         String hashOrder = this.hashOrderMessage(order);
-        return this.signHash(hashOrder, (String) (privateKey));
+        return this.signHash(hashOrder, privateKey);
     }
 
     /**
@@ -2423,7 +2423,7 @@ public class Derive extends DeriveApi
 
     public String signMessage(String message, String privateKey)
     {
-        return this.signHash((String) (this.hashMessage((String) (message))), (String) (privateKey));
+        return this.signHash((String) (this.hashMessage(message)), privateKey);
     }
 
     public String parseUnits(String num, Object dec)
@@ -2452,12 +2452,12 @@ public class Derive extends DeriveApi
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2473,10 +2473,10 @@ public class Derive extends DeriveApi
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
-        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
-        String orderType = ((String)type).toLowerCase();
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
+        String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         String nonce = this.nonceString();
@@ -2485,7 +2485,7 @@ public class Derive extends DeriveApi
         Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
         String priceString = this.numberToString(price);
-        Object maxFeeOptionAndParams = this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", (Object) null);
+        Object maxFeeOptionAndParams = this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", null);
         String maxFeeString = this.safeString(maxFeeOptionAndParams, 0);
         if (java.util.Objects.equals(maxFeeString, null))
         {
@@ -2650,10 +2650,10 @@ public class Derive extends DeriveApi
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
-        String orderType = ((String)type).toLowerCase();
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
+        String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         String nonce = this.nonceString();
@@ -2956,7 +2956,7 @@ public class Derive extends DeriveApi
         //
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", response);
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, (Map<String, Object>) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, null)));
 
     }
 
@@ -2992,7 +2992,7 @@ public class Derive extends DeriveApi
         if (Boolean.TRUE.equals(paginate))
         {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
-            Object allOrders = (this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", (String) null, since, (Long) null, paramsPaginate, "page", 500L)).join();
+            Object allOrders = (this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", null, since, null, paramsPaginate, "page", 500L)).join();
             return this.filterBySymbolSinceLimit(allOrders, symbol, since, limit, false);
         }
         Long until = this.safeInteger(paramsPaginate, "until");
@@ -3087,7 +3087,7 @@ public class Derive extends DeriveApi
             }
         }
         List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedOrders = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
 
     }
@@ -3229,7 +3229,7 @@ public class Derive extends DeriveApi
         //
         Map<String, Object> data = this.safeDict(response, "result", null);
         List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedOrders = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
 
     }
@@ -3364,7 +3364,7 @@ public class Derive extends DeriveApi
         Long timestamp = this.safeInteger(rawOrder, "creation_timestamp"); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         String orderId = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "instrument_name");
-        Map<String, Object> marketResolved = (((!java.util.Objects.equals(marketId, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((!java.util.Objects.equals(marketId, null)))) ? this.safeMarket(marketId, market, null, null) : market;
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "limit_price");
         String average = this.safeString(order, "average_price");
@@ -3414,7 +3414,7 @@ public class Derive extends DeriveApi
         mapLiteral5.put("type", orderType);
         mapLiteral5.put("timeInForce", this.parseTimeInForce(timeInForce));
         mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);
@@ -3769,7 +3769,7 @@ public class Derive extends DeriveApi
         // }
         //
         String contract = this.safeString(position, "instrument_name");
-        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, null, null);
         String size = this.safeString(position, "amount");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -3798,14 +3798,14 @@ public class Derive extends DeriveApi
         mapLiteral6.put("initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional, 8)));
         mapLiteral6.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
         mapLiteral6.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional, 8)));
-        mapLiteral6.put("entryPrice", this.safeNumber2(position, "average_price", "average_price_excl_fees", (Object) null));
+        mapLiteral6.put("entryPrice", this.safeNumber2(position, "average_price", "average_price_excl_fees", null));
         mapLiteral6.put("notional", this.parseNumber(notional));
-        mapLiteral6.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral6.put("leverage", this.safeNumber(position, "leverage", null));
         mapLiteral6.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
         mapLiteral6.put("contracts", this.parseNumber(size));
         mapLiteral6.put("contractSize", this.parseNumber(contractSize));
         mapLiteral6.put("marginRatio", null);
-        mapLiteral6.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral6.put("liquidationPrice", this.safeNumber(position, "liquidation_price", null));
         mapLiteral6.put("markPrice", this.parseNumber(markPrice));
         mapLiteral6.put("lastPrice", null);
         mapLiteral6.put("collateral", null);
@@ -3938,8 +3938,8 @@ public class Derive extends DeriveApi
         // }
         //
         String marketId = this.safeString(income, "instrument_name");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
+        String code = this.safeCurrencyCode("USDC", null);
         Long timestamp = this.safeInteger(income, "timestamp");
         return new HashMap<String, Object>() {{
             put( "info", income );
@@ -3948,7 +3948,7 @@ public class Derive extends DeriveApi
             put( "timestamp", timestamp );
             put( "datetime", Derive.this.iso8601(timestamp) );
             put( "id", null );
-            put( "amount", Derive.this.safeNumber(income, "funding", (Object) null) );
+            put( "amount", Derive.this.safeNumber(income, "funding", null) );
         }};
     }
 
@@ -4261,7 +4261,7 @@ public class Derive extends DeriveApi
             for (var j = 0; j < collaterals.size(); j++)
             {
                 Map<String, Object> balance = this.safeDict(collaterals, j, null);
-                String code = this.safeCurrencyCode(this.safeString(balance, "currency"), (Map<String, Object>) null);
+                String code = this.safeCurrencyCode(this.safeString(balance, "currency"), null);
                 Map<String, Object> account = this.safeDict(result, code, null);
                 if (java.util.Objects.equals(account, null))
                 {
@@ -4320,7 +4320,7 @@ public class Derive extends DeriveApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
         List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
@@ -4400,7 +4400,7 @@ public class Derive extends DeriveApi
             put( "timestamp", timestamp );
             put( "datetime", Derive.this.iso8601(timestamp) );
             put( "currency", Derive.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", Derive.this.safeNumber(transfer, "amount", (Object) null) );
+            put( "amount", Derive.this.safeNumber(transfer, "amount", null) );
             put( "fromAccount", Derive.this.safeString(transfer, "from_subaccount_id") );
             put( "toAccount", Derive.this.safeString(transfer, "to_subaccount_id") );
             put( "status", Derive.this.parseTransactionStatus(Derive.this.safeString2(transfer, "batch_status", "status")) );
@@ -4478,7 +4478,7 @@ public class Derive extends DeriveApi
         List<Object> parsed = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < transfers.size(); i++)
         {
-            Map<String, Object> transfer = this.extend(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null), new HashMap<String, Object>() {{}});
+            Map<String, Object> transfer = this.extend(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), null), new HashMap<String, Object>() {{}});
             ((List<Object>)parsed).add(transfer);
         }
         List<Object> sorted = this.sortBy(parsed, "timestamp");
@@ -4512,7 +4512,7 @@ public class Derive extends DeriveApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         List<Object> riskUniverseIdparamsUniverseVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBorrowRateHistory", "risk_universe_id", 1);
         var riskUniverseId = ((List<Object>) riskUniverseIdparamsUniverseVariable).get(0);
         Map<String, Object> paramsUniverse = (Map<String, Object>) ((List<Object>) riskUniverseIdparamsUniverseVariable).get(1);
@@ -4576,8 +4576,8 @@ public class Derive extends DeriveApi
         Long timestamp = this.safeInteger(info, "timestamp");
         Map<String, Object> borrowApy = this.safeDict(info, "borrow_apy", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
-            put( "currency", Derive.this.safeCurrencyCode((String) (null), currency) );
-            put( "rate", Derive.this.safeNumber(borrowApy, "close", (Object) null) );
+            put( "currency", Derive.this.safeCurrencyCode(null, currency) );
+            put( "rate", Derive.this.safeNumber(borrowApy, "close", null) );
             put( "period", null );
             put( "timestamp", timestamp );
             put( "datetime", Derive.this.iso8601(timestamp) );
@@ -4644,7 +4644,7 @@ public class Derive extends DeriveApi
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-        List<Object> interests = this.parseBorrowInterests(events, (Map<String, Object>) null);
+        List<Object> interests = this.parseBorrowInterests(events, null);
         List<Object> sorted = this.sortBy(interests, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
 
@@ -4657,7 +4657,7 @@ public class Derive extends DeriveApi
             put( "info", info );
             put( "symbol", null );
             put( "currency", "USDC" );
-            put( "interest", Derive.this.safeNumber(info, "interest", (Object) null) );
+            put( "interest", Derive.this.safeNumber(info, "interest", null) );
             put( "interestRate", null );
             put( "amountBorrowed", null );
             put( "marginMode", "cross" );
@@ -4692,8 +4692,8 @@ public class Derive extends DeriveApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        this.checkAddress(address, (String) null, (String) null);
-        Map<String, Object> currency = this.currency((String) (code));
+        this.checkAddress(address, null, null);
+        Map<String, Object> currency = this.currency(code);
         // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
         List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
@@ -4824,7 +4824,7 @@ public class Derive extends DeriveApi
         //         }
         //     }
         //
-        Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+        Map<String, Object> currency = this.safeCurrency(code, null);
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> deposits = this.safeList(result, "deposits", new ArrayList<Object>(Arrays.asList()));
         return this.parseTransactions(deposits, currency, since, limit, paramsDeriveSubaccountId);
@@ -4889,7 +4889,7 @@ public class Derive extends DeriveApi
         //         }
         //     }
         //
-        Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+        Map<String, Object> currency = this.safeCurrency(code, null);
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> withdrawals = this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
         return this.parseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId);
@@ -4928,7 +4928,7 @@ public class Derive extends DeriveApi
         {
             txId = null;
         }
-        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "fee", null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -4955,7 +4955,7 @@ public class Derive extends DeriveApi
             h2kMap2.put("tagFrom", null);
             h2kMap2.put("tagTo", null);
             h2kMap2.put("type", (((!java.util.Objects.equals(addressTo, null)))) ? "withdrawal" : "deposit");
-            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap2.put("currency", code);
             h2kMap2.put("status", this.parseTransactionStatus(this.safeString2(transaction, "batch_status", "tx_status")));
             h2kMap2.put("updated", null);
@@ -4990,7 +4990,7 @@ public class Derive extends DeriveApi
 
     public Object handleDeriveSubaccountId(String methodName, Map<String, Object> parameters)
     {
-        List<Object> derivesubAccountIdparamsSubaccountIdVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id", (Object) null);
+        List<Object> derivesubAccountIdparamsSubaccountIdVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id", null);
         var derivesubAccountId = ((List<Object>) derivesubAccountIdparamsSubaccountIdVariable).get(0);
         Map<String, Object> paramsSubaccountId = (Map<String, Object>) ((List<Object>) derivesubAccountIdparamsSubaccountIdVariable).get(1);
         if ((!java.util.Objects.equals(derivesubAccountId, null)) && (!java.util.Objects.equals(derivesubAccountId, "")))
@@ -5015,7 +5015,7 @@ public class Derive extends DeriveApi
 
     public Object handleDeriveWalletAddress(String methodName, Map<String, Object> parameters)
     {
-        Pair<String, Map<String, Object>> deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams(parameters, (String) (methodName), "deriveWalletAddress", (String) null);
+        Pair<String, Map<String, Object>> deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress", null);
         String deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.first();
         Map<String, Object> paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.second();
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
@@ -5047,7 +5047,7 @@ public class Derive extends DeriveApi
         {
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }

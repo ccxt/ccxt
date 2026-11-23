@@ -549,7 +549,7 @@ public class Coincheck extends CoincheckApi
         String price = this.safeString(order, "rate");
         List<String> status = null;
         String marketId = this.safeString(order, "pair");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_", null);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -602,7 +602,7 @@ public class Coincheck extends CoincheckApi
             put( "pair", market.get("id") );
         }};
         Map<String, Object> response = (this.publicGetOrderBooks(this.extend(request, parameters))).join();
-        return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
+        return this.parseOrderBook(response, market.get("symbol"), null, "bids", "asks", 0, 1, 2);
 
     }
 
@@ -619,7 +619,7 @@ public class Coincheck extends CoincheckApi
         //     "timestamp":1643374115
         // }
         //
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market, null, null);
         Long timestamp = this.safeTimestamp(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -727,7 +727,7 @@ public class Coincheck extends CoincheckApi
         String id = this.safeString(trade, "id");
         String priceString = this.safeString(trade, "rate");
         String marketId = this.safeString(trade, "pair");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", null);
         String baseId = this.safeString(marketResolved, "baseId");
         String quoteId = this.safeString(marketResolved, "quoteId");
         String symbol = this.safeString(marketResolved, "symbol");
@@ -937,8 +937,8 @@ public class Coincheck extends CoincheckApi
             result.put(symbol, new HashMap<String, Object>() {{
     put( "info", fee );
     put( "symbol", symbol );
-    put( "maker", Coincheck.this.safeNumber(fee, "maker_fee", (Object) null) );
-    put( "taker", Coincheck.this.safeNumber(fee, "taker_fee", (Object) null) );
+    put( "maker", Coincheck.this.safeNumber(fee, "maker_fee", null) );
+    put( "taker", Coincheck.this.safeNumber(fee, "taker_fee", null) );
     put( "percentage", true );
     put( "tierBased", false );
 }});
@@ -960,12 +960,12 @@ public class Coincheck extends CoincheckApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -984,7 +984,7 @@ public class Coincheck extends CoincheckApi
                 request.put("amount", amount);
             } else
             {
-                Double cost = this.safeNumber(parameters, "cost", (Object) null);
+                Double cost = this.safeNumber(parameters, "cost", null);
                 if (!java.util.Objects.equals(cost, null))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
@@ -1034,7 +1034,7 @@ public class Coincheck extends CoincheckApi
         //        "id": 12345
         //    }
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(response, null);
 
     }
 
@@ -1065,7 +1065,7 @@ public class Coincheck extends CoincheckApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
         if (!java.util.Objects.equals(limit, null))
@@ -1129,7 +1129,7 @@ public class Coincheck extends CoincheckApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(limit, null))
@@ -1209,13 +1209,13 @@ public class Coincheck extends CoincheckApi
         String id = this.safeString(transaction, "id");
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         String address = this.safeString(transaction, "address");
-        Double amount = this.safeNumber(transaction, "amount", (Object) null);
+        Double amount = this.safeNumber(transaction, "amount", null);
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Long updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "fee", null);
         if (!java.util.Objects.equals(feeCost, null))
         {
             {
@@ -1332,7 +1332,7 @@ public class Coincheck extends CoincheckApi
             String error = this.safeString(response, "error");
             String feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

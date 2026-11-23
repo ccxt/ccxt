@@ -169,7 +169,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> parameters = this.safeDict(message, "params", null);
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String topic = this.safeString(parameters, "channel");
         if (!(this.orderbooks.containsKey(symbol)))
@@ -284,7 +284,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         List<String> topics = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsResolved.size(); i++)
@@ -363,7 +363,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
         String tickerSymbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(tickerSymbol, null))
@@ -373,10 +373,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             mapLiteral1.put("symbol", tickerSymbol);
             mapLiteral1.put("timestamp", this.safeInteger(ticker, "timestamp"));
             mapLiteral1.put("datetime", this.safeString(ticker, "datetime"));
-            mapLiteral1.put("bid", this.safeNumber(ticker, "bid", (Object) null));
-            mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bidVolume", (Object) null));
-            mapLiteral1.put("ask", this.safeNumber(ticker, "ask", (Object) null));
-            mapLiteral1.put("askVolume", this.safeNumber(ticker, "askVolume", (Object) null));
+            mapLiteral1.put("bid", this.safeNumber(ticker, "bid", null));
+            mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bidVolume", null));
+            mapLiteral1.put("ask", this.safeNumber(ticker, "ask", null));
+            mapLiteral1.put("askVolume", this.safeNumber(ticker, "askVolume", null));
             mapLiteral1.put("info", data);
             Ticker bidAsk = this.safeTicker(mapLiteral1, market);
             this.bidsasks.put(tickerSymbol, bidAsk);
@@ -486,35 +486,35 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public void handleOrderBookUnSubscription(Client client, String topic)
     {
-        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(topic.split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         if (this.orderbooks.containsKey(symbol))
         {
             this.orderbooks.remove(symbol);
         }
-        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
+        this.cleanUnsubscription(client, topic, ("unwatch" + topic), false);
     }
 
     public void handleTradesUnSubscription(Client client, String topic)
     {
-        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(topic.split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         if (((Map<?, ?>)this.trades).containsKey(symbol))
         {
             ((Map<String,Object>)this.trades).remove((String)symbol);
         }
-        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
+        this.cleanUnsubscription(client, topic, ("unwatch" + topic), false);
     }
 
     public void handleTickerUnSubscription(Client client, String topic)
     {
-        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(topic.split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         if (this.tickers.containsKey(symbol))
         {
@@ -531,19 +531,19 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             var error = new UnsubscribeError(((this.id + " ") + bidAskHash));
             client.reject(error, bidAskHash);
         }
-        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
+        this.cleanUnsubscription(client, topic, ("unwatch" + topic), false);
     }
 
     public void handleOrdersUnSubscription(Client client, String topic)
     {
         this.orders = null;
-        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), true);
+        this.cleanUnsubscription(client, topic, ("unwatch" + topic), true);
     }
 
     public void handleMyTradesUnSubscription(Client client, String topic)
     {
         this.myTrades = null;
-        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), true);
+        this.cleanUnsubscription(client, topic, ("unwatch" + topic), true);
     }
 
     public Map<String, Object> handleUnSubscribe(Client client, Map<String, Object> message)
@@ -644,7 +644,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         String topic = this.safeString(parameters, "channel", "");
         List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
@@ -654,7 +654,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
             tradesArray.append(trade);
         }
         this.trades.put(symbol, tradesArray);
@@ -832,7 +832,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         for (var i = 0; i < rawOrders.size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, null);
             String symbol = this.safeString(parsed, "symbol");
             String orderId = this.safeString(parsed, "id");
             if (!java.util.Objects.equals(symbol, null))
@@ -987,7 +987,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         List<Object> rawTrades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < rawTrades.size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), null);
             myTrades.append(trade);
             client.resolve(myTrades, topic);
             if (!java.util.Objects.equals(topic, null))
@@ -1132,7 +1132,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, true, false, false);
         Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
         Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
@@ -1193,7 +1193,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     public Map<String, Object> handlePositionDelta(String subaccountIdKey, Map<String, Object> entry)
     {
         String marketId = this.safeString(entry, "name");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String newSize = this.safeString(entry, "new_balance", "0");
         Object isShort = Precise.stringLt(newSize, "0");
@@ -1279,7 +1279,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }
                 continue;
             }
-            String code = this.safeCurrencyCode((String) (name), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (name), null);
             if (java.util.Objects.equals(code, null))
             {
                 continue;

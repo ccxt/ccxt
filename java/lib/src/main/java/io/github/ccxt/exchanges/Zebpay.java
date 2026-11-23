@@ -375,7 +375,7 @@ public class Zebpay extends ZebpayApi
     private Object fetchStatusCore(Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -431,7 +431,7 @@ public class Zebpay extends ZebpayApi
     private Long fetchTimeCore(Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTime", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -560,7 +560,7 @@ public class Zebpay extends ZebpayApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         String name = this.safeString(rawCurrency, "name");
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         List<Object> chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
@@ -756,7 +756,7 @@ public class Zebpay extends ZebpayApi
     private Object fetchTradingFeesCore(Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         Map<String, Object> response = null;
@@ -848,7 +848,7 @@ public class Zebpay extends ZebpayApi
             response = (this.publicSwapGetV1MarketOrderBook(this.extend(request, parameters))).join();
         }
         Map<String, Object> bookData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> orderbook = this.parseOrderBook(bookData, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
+        Map<String, Object> orderbook = this.parseOrderBook(bookData, market.get("symbol"), null, "bids", "asks", 0, 1, 2);
         orderbook.put("nonce", this.safeInteger(bookData, "nonce"));
         return orderbook;
 
@@ -910,7 +910,7 @@ public class Zebpay extends ZebpayApi
     private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         if (!java.util.Objects.equals(type, "spot"))
@@ -921,7 +921,7 @@ public class Zebpay extends ZebpayApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.publicSpotGetV2MarketAllTickers(paramsMarketType)).join();
         //
         //     [
@@ -1145,7 +1145,7 @@ public class Zebpay extends ZebpayApi
         {
             market = this.market(symbol);
         }
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         Map<String, Object> response = null;
@@ -1182,7 +1182,7 @@ public class Zebpay extends ZebpayApi
     private Object fetchOrderTradesCore(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrderTrades", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrderTrades", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         if (!java.util.Objects.equals(type, "spot"))
@@ -1216,7 +1216,7 @@ public class Zebpay extends ZebpayApi
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> trades = new ArrayList<Object>(Arrays.asList(data));
-        return this.parseTrades(trades, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.parseTrades(trades, null, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1258,7 +1258,7 @@ public class Zebpay extends ZebpayApi
         String orderId = this.safeString2(trade, "id", "order");
         Long timestamp = (Long) this.safeInteger2(trade, "timestamp", "tradeTime");
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", null);
         String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(trade, "side");
         String priceString = this.safeString(trade, "price");
@@ -1301,7 +1301,7 @@ public class Zebpay extends ZebpayApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -1354,12 +1354,12 @@ public class Zebpay extends ZebpayApi
      * @param {string} [params.positionId] PositionId of the order.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1367,19 +1367,19 @@ public class Zebpay extends ZebpayApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String upperCaseType = ((String)type).toUpperCase();
+        String upperCaseType = type.toUpperCase();
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
         this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
-            put( "side", ((String)side).toUpperCase() );
+            put( "side", side.toUpperCase() );
         }};
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            response = (this.privateSpotPostV2ExOrders(this.spotOrderBody((String) (symbol), type, amount, request, price, query))).join();
+            response = (this.privateSpotPostV2ExOrders(this.spotOrderBody(symbol, type, amount, request, price, query))).join();
         } else
         {
             String marginAsset = this.safeString(query, "marginAsset", "INR");
@@ -1426,9 +1426,9 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object spotOrderBody(String symbol, String type, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    public Object spotOrderBody(String symbol, String type, Double amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
-        String upperCaseType = ((String)type).toUpperCase();
+        String upperCaseType = type.toUpperCase();
         String triggerPrice = this.safeString(parameters, "stopLossPrice");
         String quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost");
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -1506,7 +1506,7 @@ public class Zebpay extends ZebpayApi
         //        },
         //    }
         //
-        return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+        return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), null);
 
     }
 
@@ -1528,7 +1528,7 @@ public class Zebpay extends ZebpayApi
     private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         if (!java.util.Objects.equals(type, "spot"))
@@ -1549,7 +1549,7 @@ public class Zebpay extends ZebpayApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
+        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data, null);
         return new ArrayList<Object>(Arrays.asList(parsedOrder));
 
     }
@@ -1633,7 +1633,7 @@ public class Zebpay extends ZebpayApi
         //         }
         //     }
         //
-        return this.parseOrders(orders, market, (Long) null, limit, new HashMap<String, Object>() {{}});
+        return this.parseOrders(orders, market, null, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1724,10 +1724,10 @@ public class Zebpay extends ZebpayApi
         //      }
         //
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String type = this.safeString(order, "type");
-        Double timestamp = this.safeNumber(order, "timestamp", (Object) null);
+        Double timestamp = this.safeNumber(order, "timestamp", null);
         String datetime = this.iso8601(timestamp);
         String price = this.safeString(order, "price");
         String side = this.safeString(order, "side");
@@ -1952,7 +1952,7 @@ public class Zebpay extends ZebpayApi
         //    }
         //
         List<Object> positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> result = this.parsePositions(positions, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> result = this.parsePositions(positions, null, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(result, "symbol", symbols);
 
     }
@@ -2099,8 +2099,8 @@ public class Zebpay extends ZebpayApi
             String id = this.safeString(market, "symbol");
             String baseId = this.safeString(market, "baseAsset");
             String quoteId = this.safeString(market, "quoteAsset");
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
@@ -2121,13 +2121,13 @@ public class Zebpay extends ZebpayApi
             j39v1.put("option", false);
             j39v1.put("active", null);
             j39v1.put("contract", null);
-            j39v1.put("taker", this.safeNumber(market, "takerFee", (Object) null));
-            j39v1.put("maker", this.safeNumber(market, "makerFee", (Object) null));
+            j39v1.put("taker", this.safeNumber(market, "takerFee", null));
+            j39v1.put("maker", this.safeNumber(market, "makerFee", null));
             j39v1.put("strike", null);
             j39v1.put("optionType", null);
             j39v1.put("precision", new HashMap<String, Object>() {{
-                    put( "amount", Zebpay.this.safeNumber(market, "lotSz", (Object) null) );
-                    put( "price", Zebpay.this.safeNumber(market, "tickSz", (Object) null) );
+                    put( "amount", Zebpay.this.safeNumber(market, "lotSz", null) );
+                    put( "price", Zebpay.this.safeNumber(market, "tickSz", null) );
                 }});
             j39v1.put("limits", new HashMap<String, Object>() {{
                     put( "amount", new HashMap<String, Object>() {{
@@ -2191,8 +2191,8 @@ public class Zebpay extends ZebpayApi
             String id = this.safeString(market, "symbol");
             String baseId = this.safeString(market, "baseAsset");
             String quoteId = this.safeString(market, "quoteAsset");
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
@@ -2214,18 +2214,18 @@ public class Zebpay extends ZebpayApi
             j39v2.put("option", false);
             j39v2.put("active", (java.util.Objects.equals(status, "Open")));
             j39v2.put("contract", true);
-            j39v2.put("taker", this.safeNumber(market, "takerFee", (Object) null));
-            j39v2.put("maker", this.safeNumber(market, "makerFee", (Object) null));
+            j39v2.put("taker", this.safeNumber(market, "takerFee", null));
+            j39v2.put("maker", this.safeNumber(market, "makerFee", null));
             j39v2.put("strike", null);
             j39v2.put("optionType", null);
             j39v2.put("precision", new HashMap<String, Object>() {{
-                    put( "amount", Zebpay.this.safeNumber(market, "lotSz", (Object) null) );
-                    put( "price", Zebpay.this.safeNumber(market, "tickSz", (Object) null) );
+                    put( "amount", Zebpay.this.safeNumber(market, "lotSz", null) );
+                    put( "price", Zebpay.this.safeNumber(market, "tickSz", null) );
                 }});
             j39v2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
-                        put( "min", Zebpay.this.safeNumber(market, "minLeverage", (Object) null) );
-                        put( "max", Zebpay.this.safeNumber(market, "maxLeverage", (Object) null) );
+                        put( "min", Zebpay.this.safeNumber(market, "minLeverage", null) );
+                        put( "max", Zebpay.this.safeNumber(market, "maxLeverage", null) );
                     }} );
                 }});
             j39v2.put("info", market);
@@ -2251,7 +2251,7 @@ public class Zebpay extends ZebpayApi
             account.put("free", this.safeString(entry, "free"));
             account.put("used", this.safeString(entry, "used"));
             String currencyId = this.safeString(entry, "currency");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             if (!java.util.Objects.equals(code, null))
             {
                 result.put(code, account);
@@ -2273,12 +2273,12 @@ public class Zebpay extends ZebpayApi
         //        "leverage":"1.0"
         //    }
         //
-        Double leverage = this.safeNumber(position, "leverage", (Object) null);
+        Double leverage = this.safeNumber(position, "leverage", null);
         String datetime = this.safeString(position, "datetime");
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String marginMode = this.safeStringLower(position, "marginMode", "isolated");
-        Double initialMargin = this.safeNumber(position, "initialMargin", (Object) null);
+        Double initialMargin = this.safeNumber(position, "initialMargin", null);
         // isolated positions hold exactly the initial margin posted for them
         Double positionMargin = null;
         if (java.util.Objects.equals(marginMode, "isolated"))
@@ -2295,14 +2295,14 @@ public class Zebpay extends ZebpayApi
         mapLiteral9.put("initialMarginPercentage", null);
         mapLiteral9.put("maintenanceMargin", null);
         mapLiteral9.put("maintenanceMarginPercentage", null);
-        mapLiteral9.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
-        mapLiteral9.put("notional", this.safeNumber(position, "notional", (Object) null));
+        mapLiteral9.put("entryPrice", this.safeNumber(position, "entryPrice", null));
+        mapLiteral9.put("notional", this.safeNumber(position, "notional", null));
         mapLiteral9.put("leverage", leverage);
         mapLiteral9.put("unrealizedPnl", null);
-        mapLiteral9.put("contracts", this.safeNumber(position, "contracts", (Object) null));
-        mapLiteral9.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral9.put("contracts", this.safeNumber(position, "contracts", null));
+        mapLiteral9.put("contractSize", this.safeNumber(marketResolved, "contractSize", null));
         mapLiteral9.put("marginRatio", null);
-        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", (Object) null));
+        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", null));
         mapLiteral9.put("markPrice", null);
         mapLiteral9.put("positionMargin", positionMargin);
         mapLiteral9.put("collateral", null);
@@ -2331,12 +2331,12 @@ public class Zebpay extends ZebpayApi
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
         String marketId = this.safeString(fee, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", Zebpay.this.safeNumber2(fee, "makerFeeRate", "makerFee", (Object) null) );
-            put( "taker", Zebpay.this.safeNumber2(fee, "takerFeeRate", "takerFee", (Object) null) );
+            put( "maker", Zebpay.this.safeNumber2(fee, "makerFeeRate", "makerFee", null) );
+            put( "taker", Zebpay.this.safeNumber2(fee, "takerFeeRate", "takerFee", null) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -2364,7 +2364,7 @@ public class Zebpay extends ZebpayApi
         //
         Long timestamp = (Long) this.safeInteger2(ticker, "timestamp", "ts");
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, null, null, null);
         String close = this.safeString(ticker, "close");
         String last = this.safeString(ticker, "last");
         String percentage = this.safeString(ticker, "percentage");
@@ -2411,7 +2411,7 @@ public class Zebpay extends ZebpayApi
             put( "symbol", Zebpay.this.safeString(market, "id") );
             put( "type", null );
             put( "marginMode", null );
-            put( "amount", Zebpay.this.safeNumber(info, "amount", (Object) null) );
+            put( "amount", Zebpay.this.safeNumber(info, "amount", null) );
             put( "total", null );
             put( "code", Zebpay.this.safeString(info, "code") );
             put( "status", Zebpay.this.safeString(info, "status") );
@@ -2425,7 +2425,7 @@ public class Zebpay extends ZebpayApi
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         Object paramsOmitted = this.omit(parameters, "defaultType");
-        Boolean isV1 = ((String)path).indexOf("v1/") > -1;
+        Boolean isV1 = path.indexOf("v1/") > -1;
         String marketType = "spot";
         if (Boolean.TRUE.equals(isV1))
         {
@@ -2511,7 +2511,7 @@ public class Zebpay extends ZebpayApi
     {
         if (java.util.Objects.equals(response, null))
         {
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), (String) (body));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, body);
             return null;
         }
         //

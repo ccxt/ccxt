@@ -459,15 +459,15 @@ public class Bitflyer extends BitflyerApi
                 }
                 type = "future";
             }
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
             }
             String symbol = ((base + "/") + quote);
-            Object taker = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null);
-            Object maker = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null);
+            Object taker = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", null);
+            Object maker = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", null);
             Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
             if (Boolean.TRUE.equals(contract))
             {
@@ -545,7 +545,7 @@ public class Bitflyer extends BitflyerApi
         {
             Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "currency_code");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "amount"));
             account.put("free", this.safeString(balance, "available"));
@@ -628,13 +628,13 @@ public class Bitflyer extends BitflyerApi
             put( "product_code", market.get("id") );
         }};
         Map<String, Object> orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
-        return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
+        return this.parseOrderBook(orderbook, market.get("symbol"), null, "bids", "asks", "price", "size", 2);
 
     }
 
     public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market, null, null);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "ltp");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -740,7 +740,7 @@ public class Bitflyer extends BitflyerApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         String id = this.safeString(trade, "id");
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("info", trade);
@@ -838,7 +838,7 @@ public class Bitflyer extends BitflyerApi
         //       commission_rate: '0.0020'
         //   }
         //
-        Double fee = this.safeNumber(response, "commission_rate", (Object) null);
+        Double fee = this.safeNumber(response, "commission_rate", null);
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "symbol", market.get("symbol") );
@@ -863,12 +863,12 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -876,8 +876,8 @@ public class Bitflyer extends BitflyerApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "product_code", Bitflyer.this.marketId((String) (symbol)) );
-            put( "child_order_type", ((String)type).toUpperCase() );
+            put( "product_code", Bitflyer.this.marketId(symbol) );
+            put( "child_order_type", type.toUpperCase() );
             put( "side", ((String)((String)side)).toUpperCase() );
             put( "price", price );
             put( "size", amount );
@@ -888,7 +888,7 @@ public class Bitflyer extends BitflyerApi
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", result );
-        }}, (Map<String, Object>) null);
+        }}, null);
 
     }
 
@@ -919,7 +919,7 @@ public class Bitflyer extends BitflyerApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("product_code", this.marketId((String) (symbol)));
+        request.put("product_code", this.marketId(symbol));
         request.put("child_order_acceptance_id", id);
         Map<String, Object> response = (this.privatePostCancelchildorder(this.extend(request, parameters))).join();
         //
@@ -927,7 +927,7 @@ public class Bitflyer extends BitflyerApi
         //
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", response );
-        }}, (Map<String, Object>) null);
+        }}, null);
 
     }
 
@@ -954,9 +954,9 @@ public class Bitflyer extends BitflyerApi
         String type = this.safeStringLower(order, "child_order_type");
         String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "product_code");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(order, "total_commission", (Object) null);
+        Double feeCost = this.safeNumber(order, "total_commission", null);
         if (!java.util.Objects.equals(feeCost, null))
         {
             {
@@ -1243,7 +1243,7 @@ public class Bitflyer extends BitflyerApi
     private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1252,7 +1252,7 @@ public class Bitflyer extends BitflyerApi
         {
             throw new ExchangeError((((this.id + " allows withdrawing JPY, USD, EUR only, ") + code) + " is not supported")) ;
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency_code", currency.get("id") );
             put( "amount", amount );
@@ -1294,7 +1294,7 @@ public class Bitflyer extends BitflyerApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1346,7 +1346,7 @@ public class Bitflyer extends BitflyerApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1433,7 +1433,7 @@ public class Bitflyer extends BitflyerApi
         String currencyId = this.safeString(transaction, "currency_code");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "event_date"));
-        Double amount = this.safeNumber(transaction, "amount", (Object) null);
+        Double amount = this.safeNumber(transaction, "amount", null);
         String txId = this.safeString(transaction, "tx_hash");
         String rawStatus = this.safeString(transaction, "status");
         String type = null;
@@ -1540,7 +1540,7 @@ public class Bitflyer extends BitflyerApi
             put( "fundingRate", null );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
-            put( "nextFundingRate", Bitflyer.this.safeNumber(contract, "current_funding_rate", (Object) null) );
+            put( "nextFundingRate", Bitflyer.this.safeNumber(contract, "current_funding_rate", null) );
             put( "nextFundingTimestamp", nextFundingTimestamp );
             put( "nextFundingDatetime", Bitflyer.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );

@@ -21,7 +21,7 @@ public class TestFetchTradingFee extends BaseTest {
         String method = "fetchTradingFee";
         Object fee = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFee", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, fee, symbol);
-        TestTradingFee.testTradingFee(exchange, skippedProperties, method, (String) (symbol), fee);
+        TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
         });
 

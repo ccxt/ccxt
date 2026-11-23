@@ -538,8 +538,8 @@ public class Coinmate extends CoinmateApi
             String id = this.safeString(market, "name");
             String baseId = this.safeString(market, "firstCurrency");
             String quoteId = this.safeString(market, "secondCurrency");
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
@@ -579,7 +579,7 @@ public class Coinmate extends CoinmateApi
                         put( "max", null );
                     }} );
                     put( "amount", new HashMap<String, Object>() {{
-                        put( "min", Coinmate.this.safeNumber(market, "minAmount", (Object) null) );
+                        put( "min", Coinmate.this.safeNumber(market, "minAmount", null) );
                         put( "max", null );
                     }} );
                     put( "price", new HashMap<String, Object>() {{
@@ -609,7 +609,7 @@ public class Coinmate extends CoinmateApi
         for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> balance = this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
@@ -748,7 +748,7 @@ public class Coinmate extends CoinmateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.publicGetTickerAll(parameters)).join();
         //
         //     {
@@ -802,26 +802,26 @@ public class Coinmate extends CoinmateApi
         //     }
         //
         Long timestamp = this.safeTimestamp(ticker, "timestamp");
-        Double last = this.safeNumber(ticker, "last", (Object) null);
+        Double last = this.safeNumber(ticker, "last", null);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Coinmate.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Coinmate.this.iso8601(timestamp) );
-            put( "high", Coinmate.this.safeNumber(ticker, "high", (Object) null) );
-            put( "low", Coinmate.this.safeNumber(ticker, "low", (Object) null) );
-            put( "bid", Coinmate.this.safeNumber(ticker, "bid", (Object) null) );
+            put( "high", Coinmate.this.safeNumber(ticker, "high", null) );
+            put( "low", Coinmate.this.safeNumber(ticker, "low", null) );
+            put( "bid", Coinmate.this.safeNumber(ticker, "bid", null) );
             put( "bidVolume", null );
-            put( "ask", Coinmate.this.safeNumber(ticker, "ask", (Object) null) );
+            put( "ask", Coinmate.this.safeNumber(ticker, "ask", null) );
             put( "vwap", null );
             put( "askVolume", null );
-            put( "open", Coinmate.this.safeNumber(ticker, "open", (Object) null) );
+            put( "open", Coinmate.this.safeNumber(ticker, "open", null) );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", Coinmate.this.safeNumber(ticker, "change", (Object) null) );
+            put( "percentage", Coinmate.this.safeNumber(ticker, "change", null) );
             put( "average", null );
-            put( "baseVolume", Coinmate.this.safeNumber(ticker, "amount", (Object) null) );
+            put( "baseVolume", Coinmate.this.safeNumber(ticker, "amount", null) );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -863,12 +863,12 @@ public class Coinmate extends CoinmateApi
         }
         if (!java.util.Objects.equals(code, null))
         {
-            Map<String, Object> currency = this.currency((String) (code));
+            Map<String, Object> currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
         Map<String, Object> response = (this.privatePostTransferHistory(this.extend(request, parameters))).join();
         List<Object> items = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseTransactions(items, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTransactions(items, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -938,7 +938,7 @@ public class Coinmate extends CoinmateApi
             put( "type", Coinmate.this.safeStringLower(transaction, "transferType") );
             put( "currency", code );
             put( "network", Coinmate.this.networkIdToCode(Coinmate.this.safeString(transaction, "walletType"), code) );
-            put( "amount", Coinmate.this.safeNumber(transaction, "amount", (Object) null) );
+            put( "amount", Coinmate.this.safeNumber(transaction, "amount", null) );
             put( "status", Coinmate.this.parseTransactionStatus(Coinmate.this.safeString(transaction, "transferStatus")) );
             put( "timestamp", timestamp );
             put( "datetime", Coinmate.this.iso8601(timestamp) );
@@ -952,7 +952,7 @@ public class Coinmate extends CoinmateApi
             put( "comment", null );
             put( "internal", null );
             put( "fee", new HashMap<String, Object>() {{
-                put( "cost", Coinmate.this.safeNumber(transaction, "fee", (Object) null) );
+                put( "cost", Coinmate.this.safeNumber(transaction, "fee", null) );
                 put( "currency", code );
                 put( "rate", null );
             }} );
@@ -984,7 +984,7 @@ public class Coinmate extends CoinmateApi
     private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
         this.checkAddress(address, code, tagWithdrawTag);
@@ -992,7 +992,7 @@ public class Coinmate extends CoinmateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
         Map<String, Object> methods = this.safeDict(withdrawOptions, "methods", new HashMap<String, Object>() {{}});
         String method = this.safeString(methods, code);
@@ -1002,7 +1002,7 @@ public class Coinmate extends CoinmateApi
             throw new ExchangeError(((this.id + " withdraw() only allows withdrawing the following currencies: ") + String.join(", ", (List<String>)allowedCurrencies))) ;
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "amount", Coinmate.this.currencyToPrecision((String) (code), amount, (String) null) );
+            put( "amount", Coinmate.this.currencyToPrecision(code, amount, null) );
             put( "address", address );
         }};
         if (!java.util.Objects.equals(tagWithdrawTag, null))
@@ -1105,7 +1105,7 @@ public class Coinmate extends CoinmateApi
         }
         Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseTrades(data, (Map<String, Object>) null, since, limitResolved, new HashMap<String, Object>() {{}});
+        return this.parseTrades(data, null, since, limitResolved, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1139,7 +1139,7 @@ public class Coinmate extends CoinmateApi
         //     }
         //
         String marketId = this.safeString(trade, "currencyPair");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", null);
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String side = this.safeStringLower2(trade, "type", "tradeType");
@@ -1300,7 +1300,7 @@ public class Coinmate extends CoinmateApi
             put( "status", "open" );
         }};
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseOrders(data, (Map<String, Object>) null, since, limit, extension);
+        return this.parseOrders(data, null, since, limit, extension);
 
     }
 
@@ -1427,7 +1427,7 @@ public class Coinmate extends CoinmateApi
         String type = this.parseOrderType(this.safeString(order, "orderTradeType"));
         String averageString = this.safeString(order, "avgPrice");
         String marketId = this.safeString(order, "currencyPair");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_", null);
         String clientOrderId = this.safeString(order, "clientOrderId");
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1441,7 +1441,7 @@ public class Coinmate extends CoinmateApi
             put( "postOnly", null );
             put( "side", side );
             put( "price", priceString );
-            put( "triggerPrice", Coinmate.this.safeNumber(order, "stopPrice", (Object) null) );
+            put( "triggerPrice", Coinmate.this.safeNumber(order, "stopPrice", null) );
             put( "amount", amountString );
             put( "cost", null );
             put( "average", averageString );
@@ -1470,12 +1470,12 @@ public class Coinmate extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1600,7 +1600,7 @@ public class Coinmate extends CoinmateApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, (Map<String, Object>) null);
+        return this.parseOrder(data, null);
 
     }
 

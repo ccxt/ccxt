@@ -27,11 +27,11 @@ public class TestLastPrice extends BaseTest {
             put( "side", "buy" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("timestamp", "datetime", "side", "price")); // binance sometimes provides empty prices for old pairs
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         //
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "price", "0");
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "side", new ArrayList<Object>(Arrays.asList("buy", "sell", null)));
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "price", "0");
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "side", new ArrayList<Object>(Arrays.asList("buy", "sell", null)));
     }
 
 }

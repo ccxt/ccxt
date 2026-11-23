@@ -292,7 +292,7 @@ public class Btcbox extends BtcboxApi
     {
 
         Object promise1 = this.publicGetTickers(new HashMap<String, Object>() {{}});
-        Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, (String) null, (String) null);
+        Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, null, null);
         var response1response2Variable = (CompletableFuture.allOf(((CompletableFuture<?>) promise1), ((CompletableFuture<?>) promise2)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) promise1).join(), ((CompletableFuture<?>) promise2).join())))).join();
         var response1 = ((List<Object>) response1response2Variable).get(0);
         var response2 = ((List<Object>) response1response2Variable).get(1);
@@ -373,9 +373,9 @@ public class Btcbox extends BtcboxApi
     public MarketInterface parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
         String quoteId = this.safeString(market, "quote");
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -407,8 +407,8 @@ public class Btcbox extends BtcboxApi
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount", (Object) null) );
-                    put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount", (Object) null) );
+                    put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount", null) );
+                    put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -513,13 +513,13 @@ public class Btcbox extends BtcboxApi
             request.put("coin", market.get("baseId"));
         }
         Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
-        return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
+        return this.parseOrderBook(response, market.get("symbol"), null, "bids", "asks", 0, 1, 2);
 
     }
 
     public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market, null, null);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -617,7 +617,7 @@ public class Btcbox extends BtcboxApi
         //      }
         //
         Long timestamp = this.safeTimestamp(trade, "date");
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
@@ -699,12 +699,12 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -817,7 +817,7 @@ public class Btcbox extends BtcboxApi
             }
         }
         List<String> trades = null; // todo: this.parseTrades (order['trades']);
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String side = this.safeString(order, "type");
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
@@ -890,9 +890,9 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByType(String type, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrdersByType(String type, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrdersByTypeCore(type, symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByTypeCore(type, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
     private Object fetchOrdersByTypeCore(String type, String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1046,7 +1046,7 @@ public class Btcbox extends BtcboxApi
         {
             return null;  // resort to defaultErrorHandler
         }
-        Boolean result = (Boolean) this.safeBool(response, "result", (Object) null);
+        Boolean result = (Boolean) this.safeBool(response, "result", null);
         if (java.util.Objects.equals(result, null) || Boolean.TRUE.equals(result))
         {
             return null;  // either public API (no error codes expected) or success

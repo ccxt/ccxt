@@ -173,7 +173,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<PredictionTicker> fetchTicker(String symbol, Map<String, Object> params);
     CompletableFuture<PredictionTickers> fetchTickers(List<String> symbols, Map<String, Object> params);
     CompletableFuture<PredictionOrder> fetchOrder(String id, String symbol, Map<String, Object> params);
-    CompletableFuture<PredictionOrder> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
+    CompletableFuture<PredictionOrder> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
     CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params);
     CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params);
     CompletableFuture<PredictionOrder> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params);

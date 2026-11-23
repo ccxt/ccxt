@@ -220,7 +220,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
-        (this.waitForPendingUnsubscribe((String) (url), channels)).join();
+        (this.waitForPendingUnsubscribe(url, channels)).join();
         Integer channelsLength = ((List<?>)channels).size();
         for (var attempt = 0; (channelsLength != null && attempt < channelsLength); attempt++)
         {
@@ -239,7 +239,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Integer missingLength = missing.size();
         if (java.util.Objects.equals(missingLength, 0))
         {
-            return (this.watchMultiple((String) (url), messageHashes, null, channels, null)).join();
+            return (this.watchMultiple(url, messageHashes, null, channels, null)).join();
         }
         Long index = (missing == null || 0 >= missing.size() ? null : missing.get(0));
         Map<String, Object> request = this.subscribeRequest((String) ((channels == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(index.intValue()))));
@@ -248,7 +248,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "id", request.get("id") );
             put( "messageHashes", new ArrayList<Object>(Arrays.asList((messageHashes == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(index.intValue())))) );
         }};
-        return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList((channels == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(index.intValue())))), subscription)).join();
+        return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList((channels == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(index.intValue())))), subscription)).join();
 
     }
 
@@ -644,7 +644,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < subMessageHashes.size(); j++)
         {
-            this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), (String) (unsubHash), prefix);
+            this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), unsubHash, prefix);
         }
         this.cleanCache(subscription);
         client.resolve(true, unsubHash);
@@ -719,7 +719,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         Integer symbolsLength = symbolsNormalized.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
@@ -793,7 +793,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         List<String> channels = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
@@ -858,7 +858,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //     }
         //
         String marketId = this.safeString(liquidation, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(liquidation, "created_at");
         String contracts = this.safeString(liquidation, "size");
         String price = this.safeString(liquidation, "price");
@@ -898,7 +898,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
+        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, null);
         String symbol = this.safeString(parsedTrade, "symbol");
         String messageHash = this.safeString(parameters, "channel");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -984,7 +984,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         Integer symbolsLength = symbolsNormalized.size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
@@ -1028,7 +1028,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 // arrives once the reply is in
                 Map<String, Object> unsubscribe = this.unsubscribeRequest((String) (snapshotChannel));
                 client.subscriptions.remove((String)snapshotChannel);
-                (this.sendRequest(url, unsubscribe, (String) null)).join();
+                (this.sendRequest(url, unsubscribe, null)).join();
             }
             String channel = ((Boolean.TRUE.equals(isDeltas))) ? deltasChannel : snapshotChannel;
             ((List<Object>)channels).add(channel);
@@ -1083,7 +1083,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
         Boolean deltasOption = deltasOptionparamsDeltasVariable.first();
         Map<String, Object> paramsDeltas = deltasOptionparamsDeltasVariable.second();
@@ -1170,7 +1170,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeInteger(data, "last_updated_at");
         Long nonce = this.safeInteger(data, "seq_no");
@@ -1277,8 +1277,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
         // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
         // the whole connection
-        Map<String, Object> unsubscribe = this.unsubscribeRequest((String) (channel));
-        Map<String, Object> subscribe = this.subscribeRequest((String) (channel));
+        Map<String, Object> unsubscribe = this.unsubscribeRequest(channel);
+        Map<String, Object> subscribe = this.subscribeRequest(channel);
         String unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id", ""));
         client.subscriptions.put(unsubscribeHash, new HashMap<String, Object>() {{
     put( "id", unsubscribe.get("id") );
@@ -1342,7 +1342,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Integer symbolsLength = 0;
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
@@ -1378,7 +1378,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     }
                 }
                 Map<String, Object> unsubscribe = this.unsubscribeRequest(channel);
-                (this.sendRequest(url, unsubscribe, (String) null)).join();
+                (this.sendRequest(url, unsubscribe, null)).join();
             }
             Map<String, Object> request = this.subscribeRequest(channel);
             Map<String, Object> subscription = new HashMap<String, Object>();
@@ -1442,7 +1442,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Integer symbolsLength = 0;
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
@@ -1675,7 +1675,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Integer symbolsLength = 0;
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
@@ -1731,7 +1731,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Integer symbolsLength = 0;
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
@@ -1795,7 +1795,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     public Ticker parseWsBidAsk(Map<String, Object> data, Map<String, Object> market)
     {
         String marketId = this.safeString(data, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(data, "last_updated_at");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
@@ -1889,7 +1889,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, null);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -1983,7 +1983,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(data, null);
         String symbol = this.safeString(trade, "symbol");
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -2024,7 +2024,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         // one channel carries every market
         String channel = "positions";
         String url = this.getWsUrl();
@@ -2093,13 +2093,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, null);
         String symbol = this.safeString(position, "symbol");
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         String side = this.safeString(position, "side");
-        List<Object> cached = this.filterBySymbolSinceLimit(cache, symbol, (Long) null, (Long) null, true);
+        List<Object> cached = this.filterBySymbolSinceLimit(cache, symbol, null, null, true);
         for (var i = 0; i < cached.size(); i++)
         {
             Object previous = (cached == null || i < 0 || i >= cached.size() ? null : cached.get(i));
@@ -2223,7 +2223,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
         }};
-        String code = this.safeCurrencyCode(this.safeString(data, "settlement_asset"), (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(this.safeString(data, "settlement_asset"), null);
         Map<String, Object> account = this.account();
         account.put("total", this.safeString(data, "account_value"));
         account.put("free", this.safeString(data, "free_collateral"));
@@ -2264,7 +2264,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String channel = this.safeString(parameters, "channel");
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
@@ -2358,7 +2358,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String channel = "funding_data";
         String url = this.getWsUrl();
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -2421,7 +2421,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> fundingRate = this.parseFundingRateWs(data, (Map<String, Object>) null);
+        Map<String, Object> fundingRate = this.parseFundingRateWs(data, null);
         String symbol = this.safeString(fundingRate, "symbol");
         this.fundingRates.put(symbol, fundingRate);
         // watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
@@ -2445,7 +2445,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //     }
         //
         String marketId = this.safeString(contract, "market");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         Long timestamp = this.safeInteger(contract, "created_at");
         String fundingPeriod = this.safeString(contract, "funding_period_hours");
         String interval = null;
@@ -2463,7 +2463,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             h2kMap0.put("estimatedSettlePrice", null);
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("fundingRate", this.safeNumber(contract, "funding_rate", (Object) null));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "funding_rate", null));
             h2kMap0.put("fundingTimestamp", null);
             h2kMap0.put("fundingDatetime", null);
             h2kMap0.put("nextFundingRate", null);

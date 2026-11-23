@@ -209,7 +209,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
         Map<String, Object> delta = this.safeDict(message, "data", null);
@@ -379,7 +379,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol", "");
         Long sideRaw = this.safeInteger(trade, "type");
         String side = "sell";
@@ -433,7 +433,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("trades:" + symbol);
         Map<String, Object> data = this.safeDict(message, "data", null);
@@ -508,7 +508,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, market);
@@ -744,7 +744,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol", "");
         String feeCost = this.safeString(trade, "fee");
         Map<String, Object> fee = null;
@@ -903,7 +903,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         String triggerPrice = this.safeString(order, "stop_price");
         Long timestamp = this.safeTimestamp(order, "datetime");
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol", "");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", order);
@@ -940,7 +940,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());

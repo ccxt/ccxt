@@ -746,7 +746,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
     {
         String id = this.safeString(rawCurrency, "id");
         String name = this.safeString(rawCurrency, "name");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id, null);
         Map<String, Object> details = this.safeDict(rawCurrency, "details", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> supportedNetworks = this.safeList(rawCurrency, "supported_networks", new ArrayList<Object>(Arrays.asList()));
@@ -768,8 +768,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 mapLiteral1.put("precision", null);
                 mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Coinbaseexchange.this.safeNumber(network, "min_withdrawal_amount", (Object) null) );
-            put( "max", Coinbaseexchange.this.safeNumber(network, "max_withdrawal_amount", (Object) null) );
+            put( "min", Coinbaseexchange.this.safeNumber(network, "min_withdrawal_amount", null) );
+            put( "max", Coinbaseexchange.this.safeNumber(network, "max_withdrawal_amount", null) );
         }} );
     }});
                 mapLiteral1.put("contract", this.safeString(network, "contract_address"));
@@ -787,15 +787,15 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
-            put( "precision", Coinbaseexchange.this.safeNumber(rawCurrency, "max_precision", (Object) null) );
+            put( "precision", Coinbaseexchange.this.safeNumber(rawCurrency, "max_precision", null) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Coinbaseexchange.this.safeNumber(details, "min_size", (Object) null) );
+                    put( "min", Coinbaseexchange.this.safeNumber(details, "min_size", null) );
                     put( "max", null );
                 }} );
                 put( "withdraw", new HashMap<String, Object>() {{
-                    put( "min", Coinbaseexchange.this.safeNumber(details, "min_withdrawal_amount", (Object) null) );
-                    put( "max", Coinbaseexchange.this.safeNumber(details, "max_withdrawal_amount", (Object) null) );
+                    put( "min", Coinbaseexchange.this.safeNumber(details, "min_withdrawal_amount", null) );
+                    put( "max", Coinbaseexchange.this.safeNumber(details, "max_withdrawal_amount", null) );
                 }} );
             }} );
             put( "networks", networks );
@@ -879,8 +879,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
@@ -897,7 +897,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             j39v1.put("settleId", null);
             j39v1.put("type", "spot");
             j39v1.put("spot", true);
-            j39v1.put("margin", this.safeBool(market, "margin_enabled", (Object) null));
+            j39v1.put("margin", this.safeBool(market, "margin_enabled", null));
             j39v1.put("swap", false);
             j39v1.put("future", false);
             j39v1.put("option", false);
@@ -911,8 +911,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             j39v1.put("strike", null);
             j39v1.put("optionType", null);
             j39v1.put("precision", new HashMap<String, Object>() {{
-                    put( "amount", Coinbaseexchange.this.safeNumber(market, "base_increment", (Object) null) );
-                    put( "price", Coinbaseexchange.this.safeNumber(market, "quote_increment", (Object) null) );
+                    put( "amount", Coinbaseexchange.this.safeNumber(market, "base_increment", null) );
+                    put( "price", Coinbaseexchange.this.safeNumber(market, "quote_increment", null) );
                 }});
             j39v1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
@@ -928,7 +928,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                         put( "max", null );
                     }} );
                     put( "cost", new HashMap<String, Object>() {{
-                        put( "min", Coinbaseexchange.this.safeNumber(market, "min_market_funds", (Object) null) );
+                        put( "min", Coinbaseexchange.this.safeNumber(market, "min_market_funds", null) );
                         put( "max", null );
                     }} );
                 }});
@@ -1002,7 +1002,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return new HashMap<String, Object>() {{
             put( "id", Coinbaseexchange.this.safeString(account, "id") );
             put( "type", null );
-            put( "code", Coinbaseexchange.this.safeCurrencyCode(currencyId, (Map<String, Object>) null) );
+            put( "code", Coinbaseexchange.this.safeCurrencyCode(currencyId, null) );
             put( "info", account );
         }};
     }
@@ -1017,7 +1017,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             Map<String, Object> balance = this.safeDict(rawBalances, i, null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "hold"));
@@ -1081,7 +1081,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         // level 2 - top 50 bids and asks (aggregated)
         // level 3 - full order book (non aggregated)
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "id", Coinbaseexchange.this.marketId((String) (symbol)) );
+            put( "id", Coinbaseexchange.this.marketId(symbol) );
             put( "level", 2 );
         }};
         Map<String, Object> response = (this.publicGetProductsIdBook(this.extend(request, parameters))).join();
@@ -1100,7 +1100,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         //         ]
         //     }
         //
-        Map<String, Object> orderbook = this.parseOrderBook(response, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+        Map<String, Object> orderbook = this.parseOrderBook(response, symbol, null, "bids", "asks", 0, 1, 2);
         orderbook.put("nonce", this.safeInteger(response, "sequence"));
         return orderbook;
 
@@ -1239,7 +1239,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = (this.publicGetProductsSparkLines(this.extend(request, parameters))).join();
         //
@@ -1269,7 +1269,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             List<Object> entry = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, delimiter, null);
             String symbol = this.safeString(market, "symbol", "");
             result.put(symbol, this.parseTickerList(this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList())), market));
         }
@@ -1364,7 +1364,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         //
         Long timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         String marketId = this.safeString(trade, "product_id");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", null);
         String feeRate = null;
         String takerOrMaker = null;
         String cost = null;
@@ -1554,8 +1554,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         //        "usd_volume": "43806.92"
         //    }
         //
-        Double maker = this.safeNumber(response, "maker_fee_rate", (Object) null);
-        Double taker = this.safeNumber(response, "taker_fee_rate", (Object) null);
+        Double maker = this.safeNumber(response, "maker_fee_rate", null);
+        Double taker = this.safeNumber(response, "taker_fee_rate", null);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> symbols = this.symbols;
         for (var i = 0; i < symbols.size(); i++)
@@ -1586,7 +1586,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         //         0.02816506
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 4, null), this.safeNumber(ohlcv, 5, null)));
     }
 
     /**
@@ -1740,7 +1740,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         //
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String marketId = this.safeString(order, "product_id");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", null);
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String doneReason = this.safeString(order, "done_reason");
         if ((java.util.Objects.equals(status, "closed")) && (java.util.Objects.equals(doneReason, "canceled")))
@@ -1751,7 +1751,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String filled = this.safeString(order, "filled_size");
         String amount = this.safeString(order, "size", filled);
         String cost = this.safeString(order, "executed_value");
-        Double feeCost = this.safeNumber(order, "fill_fees", (Object) null);
+        Double feeCost = this.safeNumber(order, "fill_fees", null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -1767,8 +1767,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "side");
         String timeInForce = this.safeString(order, "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
-        Double triggerPrice = this.safeNumber(order, "stop_price", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Double triggerPrice = this.safeNumber(order, "stop_price", null);
         String clientOrderId = this.safeString(order, "client_oid");
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", id);
@@ -1830,7 +1830,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid")));
             response = (this.privateGetOrdersClientClientOid(this.extend(request, paramsOmitted))).join();
         }
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(response, null);
 
     }
 
@@ -1995,12 +1995,12 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2033,7 +2033,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             request.put("post_only", true);
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice")));
-        Double costParam = this.safeNumber2(paramsOmitted, "cost", "funds", (Object) null);
+        Double costParam = this.safeNumber2(paramsOmitted, "cost", "funds", null);
         Boolean omitCost = (java.util.Objects.equals(type, "market")) && (!java.util.Objects.equals(costParam, null));
         Map<String, Object> paramsCost = paramsOmitted;
         if (Boolean.TRUE.equals(omitCost))
@@ -2129,7 +2129,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         }
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", response);
-        return this.safeOrder(mapLiteral5, (Map<String, Object>) null);
+        return this.safeOrder(mapLiteral5, null);
 
     }
 
@@ -2164,7 +2164,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         List<Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
         return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
     put( "info", response );
-}}, (Map<String, Object>) null)));
+}}, null)));
 
     }
 
@@ -2201,7 +2201,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
     private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
         this.checkAddress(address, code, tagWithdrawTag);
@@ -2209,7 +2209,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency", currency.get("id") );
             put( "amount", amount );
@@ -2294,7 +2294,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Double before = this.parseNumber(beforeString);
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        String code = this.safeCurrencyCode((String) (null), currency);
+        String code = this.safeCurrencyCode(null, currency);
         Map<String, Object> details = this.safeDict(item, "details", new HashMap<String, Object>() {{}});
         String account = null;
         String referenceAccount = null;
@@ -2358,7 +2358,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String,Object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
         Map<String, Object> account = this.safeDict(accountsByCurrencyCode, code, null);
         if (java.util.Objects.equals(account, null))
@@ -2426,7 +2426,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 Map<String,Object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
                 Map<String, Object> account = this.safeDict(accountsByCurrencyCode, code, null);
                 if (java.util.Objects.equals(account, null))
@@ -2638,7 +2638,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Double amountRaw = this.safeNumber(transaction, "amount", (Object) null);
+        Double amountRaw = this.safeNumber(transaction, "amount", null);
         Object amount = amountRaw;
         String type = this.safeString(transaction, "type");
         String address = this.safeString(details, "crypto_address");
@@ -2652,7 +2652,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             type = "withdrawal";
             address = this.safeString(details, "sent_to_address", address);
-            Double feeCost = this.safeNumber(details, "fee", (Object) null);
+            Double feeCost = this.safeNumber(details, "fee", null);
             if (!java.util.Objects.equals(feeCost, null))
             {
                 if (!java.util.Objects.equals(amountRaw, null))
@@ -2711,7 +2711,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         List<Object> accounts = this.safeList(this.options, "coinbaseAccounts", null);
         if (java.util.Objects.equals(accounts, null))
         {
@@ -2733,7 +2733,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String tag = this.safeString(response, "destination_tag");
         return new HashMap<String, Object>() {{
             put( "currency", code );
-            put( "address", Coinbaseexchange.this.checkAddress(address, (String) null, (String) null) );
+            put( "address", Coinbaseexchange.this.checkAddress(address, null, null) );
             put( "network", null );
             put( "tag", tag );
             put( "info", response );
@@ -2808,7 +2808,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
     {
         if (((code != null && code == 400)) || ((code != null && code == 404)))
         {
-            if (((String)body).startsWith("{"))
+            if (body.startsWith("{"))
             {
                 String message = this.safeString(response, "message");
                 String feedback = ((this.id + " ") + message);

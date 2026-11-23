@@ -72,7 +72,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Object symbolsRequested = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
-        List<String> symbolsNormalized = this.marketSymbols(symbolsRequested, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbolsRequested, null, true, false, false);
         List<String> marketIds = this.marketIds(symbolsNormalized);
         String url = (String) this.implodeParams(this.safeString(this.urls.get("api"), "ws"), new HashMap<String, Object>() {{
             put( "hostname", Upbit.this.hostname );
@@ -310,7 +310,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, null);
         String symbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -342,7 +342,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //        "bid_size": 5 }, ... ],
         //   "stream_type": "SNAPSHOT" }
         String marketId = this.safeString(message, "code");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
+        String symbol = this.safeSymbol(marketId, null, "-", null);
         String type = this.safeString(message, "stream_type");
         Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
@@ -362,10 +362,10 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(data, i, null);
-            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
-            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
-            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
-            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
+            Double bidPrice = this.safeNumber(entry, "bid_price", null);
+            Double bidSize = this.safeNumber(entry, "bid_size", null);
+            Double askPrice = this.safeNumber(entry, "ask_price", null);
+            Double askSize = this.safeNumber(entry, "ask_size", null);
             if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
             {
                 ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
@@ -400,7 +400,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "change_price": 27000,
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
-        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
+        Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, null);
         String symbol = this.safeString(trade, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -435,9 +435,9 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //     stream_type: 'REALTIME'
         //   }
         String marketId = this.safeString(message, "code");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         String messageHash = ("candle.1s:" + symbol);
-        List<Object> ohlcv = this.parseOHLCV(message, (Map<String, Object>) null);
+        List<Object> ohlcv = this.parseOHLCV(message, null);
         client.resolve(ohlcv, messageHash);
     }
 
@@ -540,7 +540,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         String channel = "myOrder";
         String messageHash = "myOrder";
-        List<Object> orders = (List<Object>) (this.watchPrivate((String) (symbol), channel, messageHash, new HashMap<String, Object>() {{}})).join();
+        List<Object> orders = (List<Object>) (this.watchPrivate(symbol, channel, messageHash, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -575,7 +575,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         String channel = "myOrder";
         String messageHash = "myTrades";
-        List<Object> trades = (List<Object>) (this.watchPrivate((String) (symbol), channel, messageHash, new HashMap<String, Object>() {{}})).join();
+        List<Object> trades = (List<Object>) (this.watchPrivate(symbol, channel, messageHash, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -649,7 +649,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String rawStatus = this.safeString(order, "state");
         String status = this.parseWsOrderStatus((String) (rawStatus));
         String marketId = this.safeString(order, "code");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(order, "paid_fee");
         if (!java.util.Objects.equals(feeCost, null))
@@ -690,7 +690,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         mapLiteral2.put("status", status);
         mapLiteral2.put("fee", fee);
         mapLiteral2.put("trades", null);
-        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
+        return this.safeOrder(mapLiteral2, null);
     }
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -706,7 +706,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         Long timestamp = this.safeInteger(trade, "trade_timestamp");
         String marketId = this.safeString(trade, "code");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         // price and volume describe the fill when state is trade
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "volume");
@@ -716,7 +716,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             cost = Precise.stringMul(price, amount);
         }
         String takerOrMaker = null;
-        Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -769,7 +769,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(message, null);
         myTrades.append(trade);
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -778,7 +778,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
     public void handleOrder(Client client, Map<String, Object> message)
     {
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (java.util.Objects.equals(this.orders, null))
@@ -822,12 +822,12 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String rawStatus = this.safeString(message, "state");
             if (java.util.Objects.equals(rawStatus, "trade"))
             {
-                Double cachedPrice = this.safeNumber(order, "price", (Object) null);
+                Double cachedPrice = this.safeNumber(order, "price", null);
                 if (!java.util.Objects.equals(cachedPrice, null))
                 {
                     parsed.put("price", cachedPrice);
                 }
-                Double cachedAmount = this.safeNumber(order, "amount", (Object) null);
+                Double cachedAmount = this.safeNumber(order, "amount", null);
                 if (!java.util.Objects.equals(cachedAmount, null))
                 {
                     parsed.put("amount", cachedAmount);
@@ -892,7 +892,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         {
             Map<String, Object> balance = this.safeDict(data, i, null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (currencyId), null);
             String available = this.safeString(balance, "balance");
             String frozen = this.safeString(balance, "locked");
             Map<String, Object> account = this.account();

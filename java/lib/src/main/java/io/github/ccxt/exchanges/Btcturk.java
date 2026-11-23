@@ -389,8 +389,8 @@ public class Btcturk extends BtcturkApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "numerator");
         String quoteId = this.safeString(entry, "denominator");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -407,11 +407,11 @@ public class Btcturk extends BtcturkApi
             String filterType = this.safeString(filter, "filterType");
             if (java.util.Objects.equals(filterType, "PRICE_FILTER"))
             {
-                minPrice = this.safeNumber(filter, "minPrice", (Object) null);
-                maxPrice = this.safeNumber(filter, "maxPrice", (Object) null);
-                minAmount = this.safeNumber(filter, "minAmount", (Object) null);
-                maxAmount = this.safeNumber(filter, "maxAmount", (Object) null);
-                minCost = this.safeNumber(filter, "minExchangeValue", (Object) null);
+                minPrice = this.safeNumber(filter, "minPrice", null);
+                maxPrice = this.safeNumber(filter, "maxPrice", null);
+                minAmount = this.safeNumber(filter, "minAmount", null);
+                maxAmount = this.safeNumber(filter, "maxAmount", null);
+                minCost = this.safeNumber(filter, "minExchangeValue", null);
             }
         }
         String status = this.safeString(entry, "status");
@@ -478,7 +478,7 @@ public class Btcturk extends BtcturkApi
         {
             Map<String, Object> entry = this.safeDict(data, i, null);
             String currencyId = this.safeString(entry, "asset");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(entry, "balance"));
             account.put("free", this.safeString(entry, "free"));
@@ -599,7 +599,7 @@ public class Btcturk extends BtcturkApi
         //   }
         //
         String marketId = this.safeString(ticker, "pair");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
@@ -729,7 +729,7 @@ public class Btcturk extends BtcturkApi
         String priceString = this.safeString(trade, "price");
         String amountString = Precise.stringAbs(this.safeString(trade, "amount"));
         String marketId = this.safeString(trade, "pair");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String side = this.safeString2(trade, "side", "orderType");
         Map<String, Object> fee = null;
         String feeAmountString = this.safeString(trade, "fee");
@@ -739,7 +739,7 @@ public class Btcturk extends BtcturkApi
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", Precise.stringAbs(feeAmountString));
-                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrency, null));
                 fee = hx4NewMap0;
             }
         }
@@ -832,7 +832,7 @@ public class Btcturk extends BtcturkApi
         //        "volume": 0.00035208,
         //    }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "volume", null)));
     }
 
     /**
@@ -952,11 +952,11 @@ public class Btcturk extends BtcturkApi
         {
             HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
             mapLiteral8.put("timestamp", this.safeInteger(timestamp, i));
-            mapLiteral8.put("high", this.safeNumber(high, i, (Object) null));
-            mapLiteral8.put("open", this.safeNumber(open, i, (Object) null));
-            mapLiteral8.put("low", this.safeNumber(low, i, (Object) null));
-            mapLiteral8.put("close", this.safeNumber(close, i, (Object) null));
-            mapLiteral8.put("volume", this.safeNumber(volume, i, (Object) null));
+            mapLiteral8.put("high", this.safeNumber(high, i, null));
+            mapLiteral8.put("open", this.safeNumber(open, i, null));
+            mapLiteral8.put("low", this.safeNumber(low, i, null));
+            mapLiteral8.put("close", this.safeNumber(close, i, null));
+            mapLiteral8.put("volume", this.safeNumber(volume, i, null));
             ((List<Object>)rows).add(mapLiteral8);
         }
         return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limitResolved, false);
@@ -988,12 +988,12 @@ public class Btcturk extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1054,7 +1054,7 @@ public class Btcturk extends BtcturkApi
         //
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", response );
-        }}, (Map<String, Object>) null);
+        }}, null);
 
     }
 
@@ -1210,7 +1210,7 @@ public class Btcturk extends BtcturkApi
         String amount = Precise.stringAbs(amountString);
         String remaining = this.safeString(order, "leftAmount");
         String marketId = this.safeString(order, "pairSymbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String side = this.safeString(order, "type");
         String type = this.safeString(order, "method");
         String clientOrderId = this.safeString(order, "orderClientId");

@@ -132,7 +132,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<String> assets = new ArrayList<String>(Arrays.asList());
         if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -267,16 +267,16 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("@"))));
         String interval = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-        String tf = this.findTimeframe(interval, (Object) null);
+        String tf = this.findTimeframe(interval, null);
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String s = this.safeString(data, "s");
         if (java.util.Objects.equals(s, null))
         {
             return;
         }
-        Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(s.toUpperCase(), null, null, null);
         String symbol = (String) market.get("symbol");
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", null), this.safeNumber(data, "h", null), this.safeNumber(data, "l", null), this.safeNumber(data, "c", null), this.safeNumber(data, "v", null)));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), tf);
         if (java.util.Objects.equals(stored, null))
@@ -304,10 +304,10 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 continue;
             }
-            Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(s.toUpperCase(), null, null, null);
             String symbol = (String) market.get("symbol");
             Long timestamp = this.milliseconds();
-            Double last = this.safeNumber(t, "p", (Object) null);
+            Double last = this.safeNumber(t, "p", null);
             Ticker result = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
@@ -315,7 +315,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "last", last );
                 put( "close", last );
                 put( "info", t );
-            }}, (Map<String, Object>) null);
+            }}, null);
             this.tickers.put(symbol, result);
             String messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);

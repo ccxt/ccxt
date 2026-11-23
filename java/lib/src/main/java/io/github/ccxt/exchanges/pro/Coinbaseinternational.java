@@ -169,7 +169,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 parameters = new HashMap<String, Object>() {{
                     put( "grant_type", "coinbase_cdp" );
-                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), (String) null, (String) null, Coinbaseinternational.this.isEddsaSecret()) );
+                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), null, null, Coinbaseinternational.this.isEddsaSecret()) );
                 }};
             }
             {
@@ -421,7 +421,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Long limit = this.safeInteger(this.options, "myTradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        List<Object> trades = this.parseTrades(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> trades = this.parseTrades(data, null, null, null, new HashMap<String, Object>() {{}});
         Integer tradesLength = trades.size();
         for (var i = 0; (tradesLength != null && i < tradesLength); i++)
         {
@@ -504,7 +504,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -574,11 +574,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(dataList, null))
         {
-            orders = this.parseOrders(dataList, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            orders = this.parseOrders(dataList, null, null, null, new HashMap<String, Object>() {{}});
         } else
         {
             Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-            orders = new ArrayList<Object>(Arrays.asList(this.parseOrder(data, (Map<String, Object>) null)));
+            orders = new ArrayList<Object>(Arrays.asList(this.parseOrder(data, null)));
         }
         Integer ordersLength = orders.size();
         for (var i = 0; (ordersLength != null && i < ordersLength); i++)
@@ -615,7 +615,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, true, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -668,7 +668,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, true, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -702,7 +702,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String channel = this.safeString(parameters, "channel");
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         List<Object> rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
-        List<Object> positions = this.parsePositions(rawPositions, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(rawPositions, null, new HashMap<String, Object>() {{}});
         Integer positionsLength = positions.size();
         for (var i = 0; (positionsLength != null && i < positionsLength); i++)
         {
@@ -924,7 +924,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -975,7 +975,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -1111,7 +1111,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         List<String> channels = new ArrayList<String>(Arrays.asList());
         Integer symbolsLength = symbolsResolved.size();
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
@@ -1154,7 +1154,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         List<String> channels = new ArrayList<String>(Arrays.asList());
         Integer symbolsLength = symbolsResolved.size();
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
@@ -1169,7 +1169,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     {
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, null);
         String channel = this.safeString(parameters, "channel");
         String symbol = (String) ticker.get("symbol");
         this.tickers.put(symbol, ticker);
@@ -1190,7 +1190,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     public Ticker parseWsBidAsk(Object ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "instrument_name");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", ticker );
@@ -1361,7 +1361,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String messageHash = this.safeString(parameters, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String resolution = this.safeString(parts, 3);
         Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
@@ -1383,7 +1383,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "volume", null)));
     }
 
     /**
@@ -1438,7 +1438,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -1510,7 +1510,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, false, false, false);
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
@@ -1531,7 +1531,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         List<Object> data = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         if (!java.util.Objects.equals(symbol, null) && !(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -1717,7 +1717,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String type = this.safeString(data, "type", "snapshot");
         String marketId = this.safeString(data, "instrument_name");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         Long timestamp = this.safeInteger(data, "timestamp");
         String channel = this.safeString(parameters, "channel");
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
@@ -1780,7 +1780,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     private Object resubscribeOrderBookCore(String channel)
     {
 
-        List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+        List<Object> channelParts = new ArrayList<Object>(Arrays.asList(channel.split(java.util.regex.Pattern.quote("."))));
         Integer channelPartsLength = channelParts.size();
         Boolean isPrivate = java.util.Objects.equals(this.safeString(channelParts, (((long) channelPartsLength) - 1L)), "raw");
         String url = this.getWsUrl(isPrivate);
@@ -1809,8 +1809,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         String action = this.safeString(delta, 0);
-        Double price = this.safeNumber(delta, 1, (Object) null);
-        Double amount = this.safeNumber(delta, 2, (Object) null);
+        Double price = this.safeNumber(delta, 1, null);
+        Double amount = this.safeNumber(delta, 2, null);
         if ((java.util.Objects.equals(action, "new")) || (java.util.Objects.equals(action, "change")))
         {
             bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
@@ -1970,7 +1970,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //
         Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long expiresIn = this.safeInteger(result, "expires_in", 900);
-        Double ratio = this.safeNumber(this.options, "wsAuthRefreshRatio", (Object) null);
+        Double ratio = this.safeNumber(this.options, "wsAuthRefreshRatio", null);
         Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
         Long now = this.milliseconds();
         this.options.put("wsAuthRefreshAt", this.sum(now, this.parseToInt(((expiresIn * 1000L) * refreshRatio))));
@@ -2026,7 +2026,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 paramsAuth = new HashMap<String, Object>() {{
                     put( "grant_type", "coinbase_cdp" );
-                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), (String) null, (String) null, Coinbaseinternational.this.isEddsaSecret()) );
+                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), null, null, Coinbaseinternational.this.isEddsaSecret()) );
                 }};
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -2096,12 +2096,12 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderWsCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("createOrderWs", parameters);
@@ -2128,10 +2128,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             request.put("price", this.parseNumber(this.priceToPrecision(symbol, price)));
         }
-        Boolean postOnly = (Boolean) this.safeBool2(paramsResolved, "postOnly", "post_only", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool2(paramsResolved, "postOnly", "post_only", null);
         if (java.util.Objects.equals(this.isNativeDeribitCredentials(), true))
         {
-            Boolean reduceOnly = (Boolean) this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", (Object) null);
+            Boolean reduceOnly = (Boolean) this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", null);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -2307,7 +2307,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Object result = (this.requestWs(method, paramsRequest, true)).join();
         return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
     put( "info", result );
-}}, (Map<String, Object>) null)));
+}}, null)));
 
     }
 
@@ -2539,9 +2539,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsResolved = this.marketSymbols(symbols, null, true, false, false);
         Object result = (this.requestWs("private/get_positions", paramsResolved, true)).join();
-        List<Object> positions = this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(result, null, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(positions, "symbol", symbolsResolved);
 
     }

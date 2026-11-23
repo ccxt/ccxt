@@ -58,7 +58,7 @@ public class TestWatchPositions extends BaseTest {
                 {
                     TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (null), now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
             }
             //
             // Test with specific symbol
@@ -86,9 +86,9 @@ public class TestWatchPositions extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)positionsForSymbols).size(); i++)
                 {
-                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), (String) (symbol), now);
+                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), symbol, now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), positionsForSymbols);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, positionsForSymbols);
             }
         }
         return true;

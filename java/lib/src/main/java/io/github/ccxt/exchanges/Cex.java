@@ -454,7 +454,7 @@ public class Cex extends CexApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "currency");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id, null);
         Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "fiat", false);
         String type = "crypto";
         if (Boolean.TRUE.equals(isFiat))
@@ -481,15 +481,15 @@ public class Cex extends CexApi
                 mapLiteral1.put("deposit", deposit);
                 mapLiteral1.put("withdraw", withdraw);
                 mapLiteral1.put("active", null);
-                mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawalFee", (Object) null));
+                mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawalFee", null));
                 mapLiteral1.put("precision", currencyPrecision);
                 mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
-            put( "min", Cex.this.safeNumber(rawNetwork, "minDeposit", (Object) null) );
+            put( "min", Cex.this.safeNumber(rawNetwork, "minDeposit", null) );
             put( "max", null );
         }} );
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Cex.this.safeNumber(rawNetwork, "minWithdrawal", (Object) null) );
+            put( "min", Cex.this.safeNumber(rawNetwork, "minWithdrawal", null) );
             put( "max", null );
         }} );
     }});
@@ -503,8 +503,8 @@ public class Cex extends CexApi
         mapLiteral2.put("name", null);
         mapLiteral2.put("type", type);
         mapLiteral2.put("active", null);
-        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "walletDeposit", (Object) null));
-        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "walletWithdrawal", (Object) null));
+        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "walletDeposit", null));
+        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "walletWithdrawal", null));
         mapLiteral2.put("fee", null);
         mapLiteral2.put("precision", currencyPrecision);
         mapLiteral2.put("limits", new HashMap<String, Object>() {{
@@ -568,9 +568,9 @@ public class Cex extends CexApi
     public MarketInterface parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
         String quoteId = this.safeString(market, "quote");
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -602,16 +602,16 @@ public class Cex extends CexApi
         mapLiteral3.put("optionType", null);
         mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Cex.this.safeNumber(market, "baseMin", (Object) null) );
-                    put( "max", Cex.this.safeNumber(market, "baseMax", (Object) null) );
+                    put( "min", Cex.this.safeNumber(market, "baseMin", null) );
+                    put( "max", Cex.this.safeNumber(market, "baseMax", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", Cex.this.safeNumber(market, "minPrice", (Object) null) );
-                    put( "max", Cex.this.safeNumber(market, "maxPrice", (Object) null) );
+                    put( "min", Cex.this.safeNumber(market, "minPrice", null) );
+                    put( "max", Cex.this.safeNumber(market, "maxPrice", null) );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Cex.this.safeNumber(market, "quoteMin", (Object) null) );
-                    put( "max", Cex.this.safeNumber(market, "quoteMax", (Object) null) );
+                    put( "min", Cex.this.safeNumber(market, "quoteMin", null) );
+                    put( "max", Cex.this.safeNumber(market, "quoteMax", null) );
                 }} );
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -750,23 +750,23 @@ public class Cex extends CexApi
     public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "id");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", Cex.this.safeNumber(ticker, "high", (Object) null) );
-            put( "low", Cex.this.safeNumber(ticker, "low", (Object) null) );
-            put( "bid", Cex.this.safeNumber(ticker, "bestBid", (Object) null) );
+            put( "high", Cex.this.safeNumber(ticker, "high", null) );
+            put( "low", Cex.this.safeNumber(ticker, "low", null) );
+            put( "bid", Cex.this.safeNumber(ticker, "bestBid", null) );
             put( "bidVolume", null );
-            put( "ask", Cex.this.safeNumber(ticker, "bestAsk", (Object) null) );
+            put( "ask", Cex.this.safeNumber(ticker, "bestAsk", null) );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
             put( "close", Cex.this.safeString(ticker, "last") );
             put( "previousClose", null );
-            put( "change", Cex.this.safeNumber(ticker, "priceChange", (Object) null) );
-            put( "percentage", Cex.this.safeNumber(ticker, "priceChangePercentage", (Object) null) );
+            put( "change", Cex.this.safeNumber(ticker, "priceChange", null) );
+            put( "percentage", Cex.this.safeNumber(ticker, "priceChangePercentage", null) );
             put( "average", null );
             put( "baseVolume", Cex.this.safeString(ticker, "volume") );
             put( "quoteVolume", Cex.this.safeString(ticker, "quoteVolume") );
@@ -806,7 +806,7 @@ public class Cex extends CexApi
         {
             request.put("fromDateISO", this.iso8601(since));
         }
-        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", (Long) null);
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", null);
         Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
         Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
         if (!java.util.Objects.equals(until, null))
@@ -854,7 +854,7 @@ public class Cex extends CexApi
         //
         String dateStr = this.safeString(trade, "dateISO");
         Long timestamp = this.parse8601(dateStr);
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -944,7 +944,7 @@ public class Cex extends CexApi
     private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType", (String) null);
+        Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType", null);
         String dataType = dataTypeparamsDataTypeVariable.first();
         Map<String, Object> paramsDataType = dataTypeparamsDataTypeVariable.second();
         if (java.util.Objects.equals(dataType, null))
@@ -964,7 +964,7 @@ public class Cex extends CexApi
         {
             request.put("fromISO", this.iso8601(since));
         }
-        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(paramsDataType, "until", "till", (Long) null);
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(paramsDataType, "until", "till", null);
         Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
         Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
         if (!java.util.Objects.equals(until, null))
@@ -1011,7 +1011,7 @@ public class Cex extends CexApi
 
     public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "volume", null)));
     }
 
     /**
@@ -1061,7 +1061,7 @@ public class Cex extends CexApi
             Map<String, Object> market = null;
             if (java.util.Objects.requireNonNullElse(useKeyAsId, false))
             {
-                market = this.safeMarket(key, (Map<String, Object>) null, (String) null, (String) null);
+                market = this.safeMarket(key, null, null, null);
             }
             Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), market);
             String parsedSymbol = this.safeString(parsed, "symbol");
@@ -1088,8 +1088,8 @@ public class Cex extends CexApi
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Cex.this.safeString(market, "symbol") );
-            put( "maker", Cex.this.safeNumber(fee, "percent", (Object) null) );
-            put( "taker", Cex.this.safeNumber(fee, "percent", (Object) null) );
+            put( "maker", Cex.this.safeNumber(fee, "percent", null) );
+            put( "taker", Cex.this.safeNumber(fee, "percent", null) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -1220,7 +1220,7 @@ public class Cex extends CexApi
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> balance = this.safeDict(response, key, new HashMap<String, Object>() {{}});
-            String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(key, null);
             Map<String, Object> account = new HashMap<String, Object>() {{
                 put( "used", Cex.this.safeString(balance, "balanceOnHold") );
                 put( "total", Cex.this.safeString(balance, "balance") );
@@ -1246,9 +1246,9 @@ public class Cex extends CexApi
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrdersByStatusCore(status, symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByStatusCore(status, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
     private Object fetchOrdersByStatusCore(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1282,7 +1282,7 @@ public class Cex extends CexApi
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
             request.put("serverCreateTimestampFrom", (this.milliseconds() - ((((364L * 24L) * 60L) * 60L) * 1000L)));
         }
-        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", (Long) null);
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", null);
         Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
         Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
         if (!java.util.Objects.equals(until, null))
@@ -1499,23 +1499,23 @@ public class Cex extends CexApi
         {
             marketId = ((currency1 + "-") + currency2);
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
-        Double feeAmount = this.safeNumber(order, "feeAmount", (Object) null);
+        Double feeAmount = this.safeNumber(order, "feeAmount", null);
         if (!java.util.Objects.equals(feeAmount, null))
         {
             String currencyId = this.safeString(order, "feeCurrency");
-            String feeCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String feeCode = this.safeCurrencyCode(currencyId, null);
             fee.put("currency", feeCode);
             fee.put("cost", feeAmount);
         }
         Long timestamp = this.safeInteger(order, "serverCreateTimestamp");
-        Double requestedBase = this.safeNumber(order, "requestedAmountCcy1", (Object) null);
-        Double executedBase = this.safeNumber(order, "executedAmountCcy1", (Object) null);
+        Double requestedBase = this.safeNumber(order, "requestedAmountCcy1", null);
+        Double executedBase = this.safeNumber(order, "executedAmountCcy1", null);
         // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
-        Double executedQuote = this.safeNumber(order, "executedAmountCcy2", (Object) null);
+        Double executedQuote = this.safeNumber(order, "executedAmountCcy2", null);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Cex.this.safeString(order, "orderId") );
             put( "clientOrderId", Cex.this.safeString(order, "clientOrderId") );
@@ -1528,11 +1528,11 @@ public class Cex extends CexApi
             put( "timeInForce", Cex.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
             put( "side", Cex.this.safeStringLower(order, "side") );
-            put( "price", Cex.this.safeNumber(order, "price", (Object) null) );
-            put( "triggerPrice", Cex.this.safeNumber(order, "stopPrice", (Object) null) );
+            put( "price", Cex.this.safeNumber(order, "price", null) );
+            put( "triggerPrice", Cex.this.safeNumber(order, "stopPrice", null) );
             put( "amount", requestedBase );
             put( "cost", executedQuote );
-            put( "average", Cex.this.safeNumber(order, "averagePrice", (Object) null) );
+            put( "average", Cex.this.safeNumber(order, "averagePrice", null) );
             put( "filled", executedBase );
             put( "remaining", null );
             put( "status", status );
@@ -1557,15 +1557,15 @@ public class Cex extends CexApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId", (String) null);
+        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId", null);
         String accountId = accountIdparamsAccountIdVariable.first();
         Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
         if (java.util.Objects.equals(accountId, null))
@@ -1583,8 +1583,8 @@ public class Cex extends CexApi
         request.put("currency1", market.get("baseId"));
         request.put("currency2", market.get("quoteId"));
         request.put("accountId", accountId);
-        request.put("orderType", this.capitalize(((String)type).toLowerCase()));
-        request.put("side", ((String)side).toUpperCase());
+        request.put("orderType", this.capitalize(type.toLowerCase()));
+        request.put("side", side.toUpperCase());
         request.put("timestamp", this.milliseconds());
         request.put("amountCcy1", this.amountToPrecision(symbol, amount));
         Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
@@ -1595,7 +1595,7 @@ public class Cex extends CexApi
             request.put("price", this.priceToPrecision(symbol, price));
             request.put("timeInForce", timeInForce);
         }
-        List<Object> triggerPriceparamsTriggerPriceVariable = (List<Object>) this.handleParamString(paramsTimeInForce, "triggerPrice", (String) null);
+        List<Object> triggerPriceparamsTriggerPriceVariable = (List<Object>) this.handleParamString(paramsTimeInForce, "triggerPrice", null);
         String triggerPrice = (String) ((List<Object>) triggerPriceparamsTriggerPriceVariable).get(0);
         Map<String, Object> paramsTriggerPrice = (Map<String, Object>) ((List<Object>) triggerPriceparamsTriggerPriceVariable).get(1);
         if (!java.util.Objects.equals(triggerPrice, null))
@@ -1689,7 +1689,7 @@ public class Cex extends CexApi
         //      {"ok":"ok","data":{}}
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, (Map<String, Object>) null);
+        return this.parseOrder(data, null);
 
     }
 
@@ -1735,7 +1735,7 @@ public class Cex extends CexApi
                 put( "clientOrderId", id );
             }});
         }
-        return this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.parseOrders(orders, null, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1767,7 +1767,7 @@ public class Cex extends CexApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
         if (!java.util.Objects.equals(since, null))
@@ -1778,7 +1778,7 @@ public class Cex extends CexApi
         {
             request.put("pageSize", limit);
         }
-        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", (Long) null);
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", null);
         Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
         Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
         if (!java.util.Objects.equals(until, null))
@@ -1880,7 +1880,7 @@ public class Cex extends CexApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         if (!java.util.Objects.equals(since, null))
         {
@@ -1890,7 +1890,7 @@ public class Cex extends CexApi
         {
             request.put("pageSize", limit);
         }
-        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", (Long) null);
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till", null);
         Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
         Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
         if (!java.util.Objects.equals(until, null))
@@ -1941,7 +1941,7 @@ public class Cex extends CexApi
             h2kMap0.put("type", type);
             h2kMap0.put("currency", code);
             h2kMap0.put("network", null);
-            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
@@ -1955,7 +1955,7 @@ public class Cex extends CexApi
             h2kMap0.put("comment", null);
             h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", Cex.this.safeNumber(transaction, "commissionAmount", (Object) null) );
+                put( "cost", Cex.this.safeNumber(transaction, "commissionAmount", null) );
             }});
             h2kMap0.put("internal", null);
             return h2kMap0;
@@ -1995,10 +1995,10 @@ public class Cex extends CexApi
         Object transfer = null;
         if (!java.util.Objects.equals(toAccount, "") && !java.util.Objects.equals(fromAccount, ""))
         {
-            transfer = (this.transferBetweenSubAccounts((String) (code), amount, (String) (fromAccount), (String) (toAccount), parameters)).join();
+            transfer = (this.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, parameters)).join();
         } else
         {
-            transfer = (this.transferBetweenMainAndSubAccount((String) (code), amount, (String) (fromAccount), (String) (toAccount), parameters)).join();
+            transfer = (this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters)).join();
         }
         boolean fillResponseFromRequest = Boolean.TRUE.equals(this.handleOption("transfer", "fillResponseFromRequest", true));
         Map<String, Object> filled = new HashMap<String, Object>() {{}};
@@ -2023,13 +2023,13 @@ public class Cex extends CexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
         String targetAccount = ((Boolean.TRUE.equals(fromMain))) ? toAccount : fromAccount;
         String guid = this.safeString(parameters, "guid", this.uuid());
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency", currency.get("id") );
-            put( "amount", Cex.this.currencyToPrecision((String) (code), amount, (String) null) );
+            put( "amount", Cex.this.currencyToPrecision(code, amount, null) );
             put( "accountId", targetAccount );
             put( "clientTxId", guid );
         }};
@@ -2071,10 +2071,10 @@ public class Cex extends CexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency", currency.get("id") );
-            put( "amount", Cex.this.currencyToPrecision((String) (code), amount, (String) null) );
+            put( "amount", Cex.this.currencyToPrecision(code, amount, null) );
             put( "fromAccountId", fromAccount );
             put( "toAccountId", toAccount );
         }};
@@ -2149,7 +2149,7 @@ public class Cex extends CexApi
     private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId", (String) null);
+        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId", null);
         String accountId = accountIdparamsAccountIdVariable.first();
         Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
         if (java.util.Objects.equals(accountId, null))
@@ -2163,7 +2163,7 @@ public class Cex extends CexApi
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsAccountId);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("accountId", accountId);
         request.put("currency", currency.get("id"));
@@ -2190,7 +2190,7 @@ public class Cex extends CexApi
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", currencyResolved.get("code") );
@@ -2276,7 +2276,7 @@ public class Cex extends CexApi
             if (java.util.Objects.equals(body, null))
             {
                 throw new NullResponse((this.id + " returned empty response")) ;
-            } else if (((String)body).startsWith("{"))
+            } else if (body.startsWith("{"))
             {
                 String fixedVar = this.fixStringifiedJsonMembers(body);
                 responseFixed = this.parseJson(fixedVar);
@@ -2295,7 +2295,7 @@ public class Cex extends CexApi
             throw new ExchangeError(feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
-        if (((String)url).indexOf("do_my_new_order") >= 0)
+        if (url.indexOf("do_my_new_order") >= 0)
         {
             Map<String, Object> data = this.safeDict(responseParsed, "data", new HashMap<String, Object>() {{}});
             String rejectReason = this.safeString(data, "rejectReason");

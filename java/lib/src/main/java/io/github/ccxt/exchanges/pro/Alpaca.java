@@ -132,7 +132,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, null);
         String symbol = this.safeString(ticker, "symbol");
         String tickerSymbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + tickerSymbol);
@@ -159,7 +159,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         String marketId = this.safeString(ticker, "S");
         String datetime = this.safeString(ticker, "t");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Alpaca.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Alpaca.this.safeSymbol(marketId, market, null, null) );
             put( "timestamp", Alpaca.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "high", null );
@@ -242,7 +242,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String marketId = this.safeString(message, "S");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), "1m");
         if (java.util.Objects.equals(stored, null))
@@ -251,7 +251,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             this.ohlcvs.get(symbol).put("1m", stored);
         }
-        List<Object> parsed = this.parseOHLCV(message, (Map<String, Object>) null);
+        List<Object> parsed = this.parseOHLCV(message, null);
         stored.append(parsed);
         String messageHash = ("ohlcv:" + symbol);
         client.resolve(stored, messageHash);
@@ -317,7 +317,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String marketId = this.safeString(message, "S");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         String datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
         Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
@@ -406,7 +406,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //     ]
         //
         String marketId = this.safeString(message, "S");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -414,7 +414,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(message, null);
         stored.append(parsed);
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -581,7 +581,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, null);
         orders.append(order);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
@@ -650,7 +650,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade(rawOrder, (Map<String, Object>) null);
+        Object trade = this.parseMyTrade(rawOrder, null);
         if (java.util.Objects.equals(trade, null))
         {
             return;
@@ -719,7 +719,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         mapLiteral1.put("info", trade);
         mapLiteral1.put("timestamp", this.parse8601(datetime));
         mapLiteral1.put("datetime", datetime);
-        mapLiteral1.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "/", (String) null));
+        mapLiteral1.put("symbol", this.safeSymbol(marketId, null, "/", null));
         mapLiteral1.put("order", this.safeString(trade, "id"));
         mapLiteral1.put("type", type);
         mapLiteral1.put("side", this.safeString(trade, "side"));
@@ -799,11 +799,11 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         return message;
     }
 
-    public void handleCryptoMessage(Client client, Object message)
+    public void handleCryptoMessage(Client client, List<Object> message)
     {
-        for (var i = 0; i < ((List<?>)message).size(); i++)
+        for (var i = 0; i < message.size(); i++)
         {
-            Object data = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
+            Object data = (message == null || i < 0 || i >= message.size() ? null : message.get(i));
             String T = this.safeString(data, "T");
             String msg = this.safeString(data, "msg");
             if (java.util.Objects.equals(T, "subscription"))
@@ -868,7 +868,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         this.handleTradingMessage(client, message);
     }
 
-    public void handleListMessage(Client client, Object message)
+    public void handleListMessage(Client client, List<Object> message)
     {
         this.handleCryptoMessage(client, message);
     }

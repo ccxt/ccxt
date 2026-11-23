@@ -237,7 +237,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             if ((subscription instanceof Map))
             {
                 String request = this.safeString(subscription, "request");
-                if ((!java.util.Objects.equals(request, null)) && (request.startsWith(((String)"smd+"))) && !(sent.containsKey(request)))
+                if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+") && !(sent.containsKey(request)))
                 {
                     sent.put(request, true);
                     try
@@ -357,7 +357,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             {
                 String request = this.safeString(subscription, "request");
                 String conid = this.safeString(subscription, "conid");
-                if ((!java.util.Objects.equals(request, null)) && (request.startsWith(((String)"smd+"))) && (java.util.Objects.equals(conid, marketId)))
+                if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+") && (java.util.Objects.equals(conid, marketId)))
                 {
                     return null;  // still in use
                 }
@@ -470,7 +470,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> marketSymbols = this.marketSymbols(symbols, null, false, false, false);
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -563,7 +563,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> marketSymbols = this.marketSymbols(symbols, null, false, false, false);
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
         List<String> subHashes = new ArrayList<String>(Arrays.asList());
@@ -574,7 +574,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         Map<String, Object> subscription = new HashMap<String, Object>();
         subscription.put("topic", (((java.util.Objects.equals(topic, "bidask")))) ? "bidsasks" : "ticker");
         subscription.put("symbols", marketSymbols);
-        (this.ibkrUnsubscribe(client, subHashes, (String) (null), subscription)).join();
+        (this.ibkrUnsubscribe(client, subHashes, null, subscription)).join();
         for (var i = 0; i < marketSymbols.size(); i++)
         {
             Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
@@ -602,7 +602,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String topic = this.safeString(message, "topic", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("+"))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
@@ -757,7 +757,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             put( "topic", "ohlcv" );
             put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(unifiedSymbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
         }};
-        (this.ibkrUnsubscribe(client, subHashes, (String) (null), subscription)).join();
+        (this.ibkrUnsubscribe(client, subHashes, null, subscription)).join();
         (this.ibkrUnsubscribeMarketData(client, (String) (market.get("id")))).join();
         return true;
 
@@ -795,7 +795,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             // the base watch () stores internal futures (connected/authenticated) under an undefined
             // subscription hash, which is a None dict key in python, so it cannot be assumed a string
-            if ((!java.util.Objects.equals(key, null)) && (key.startsWith(((String)(("smh::" + marketId) + "::")))))
+            if ((!java.util.Objects.equals(key, null)) && key.startsWith(((String)(("smh::" + marketId) + "::"))))
             {
                 Object candidate = (client.subscriptions == null || key == null ? null : client.subscriptions.get(key));
                 Long duration = this.safeInteger(candidate, "duration");
@@ -811,7 +811,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         }
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -978,13 +978,13 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             } else
             {
                 Double high = price;
-                Double prevHigh = this.safeNumber(candle, 2, (Object) null);
+                Double prevHigh = this.safeNumber(candle, 2, null);
                 if ((!java.util.Objects.equals(prevHigh, null)) && (!java.util.Objects.equals(price, null)) && ((prevHigh != null && (price == null || prevHigh > price))))
                 {
                     high = prevHigh;
                 }
                 Double low = price;
-                Double prevLow = this.safeNumber(candle, 3, (Object) null);
+                Double prevLow = this.safeNumber(candle, 3, null);
                 if ((!java.util.Objects.equals(prevLow, null)) && (!java.util.Objects.equals(price, null)) && ((price != null && (prevLow == null || price > prevLow))))
                 {
                     low = prevLow;
@@ -1099,7 +1099,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String topic = this.safeString(message, "topic", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("+"))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String messageHash = ("orderbook::" + symbol);
         Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, null);
@@ -1377,7 +1377,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 merged = this.extend(previous, rawOrder);
                 rawOrders.put(orderId, merged);
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, merged), (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, merged), null);
             orders.append(parsed);
             String orderSymbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(orderSymbol, null))
@@ -1536,7 +1536,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < args.size(); i++)
         {
             Object rawTrade = (args == null || i < 0 || i >= args.size() ? null : args.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(args, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(args, i, new HashMap<String, Object>() {{}}), null);
             Long tradeTimestamp = this.safeInteger(trade, "timestamp");
             if ((!java.util.Objects.equals(threshold, null)) && (!java.util.Objects.equals(tradeTimestamp, null)) && ((threshold != null && (tradeTimestamp == null || tradeTimestamp < threshold))))
             {
@@ -1681,7 +1681,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             {
                 continue;
             }
-            String code = ((String)this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null));
+            String code = ((String)this.safeCurrencyCode((String) (currencyId), null));
             Map<String, Object> account = (Map<String, Object>) this.safeDict(this.balance, code, this.account());
             account.put("total", cash);
             account.put("free", null); // recomputed from total - used
@@ -1705,7 +1705,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
         //
         Map<String, Object> args = this.safeDict(message, "args", new HashMap<String, Object>() {{}});
-        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", (Object) null);
+        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", null);
         if (java.util.Objects.equals(authenticated, null))
         {
             return;
@@ -1780,13 +1780,13 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             client.subscriptions.put("ibkrConnected", true);
             client.resolve(true, "connected");
         }
-        if ((topic.startsWith(((String)"smd+"))))
+        if (topic.startsWith("smd+"))
         {
             this.handleTicker(client, message);
-        } else if ((topic.startsWith(((String)"smh+"))))
+        } else if (topic.startsWith("smh+"))
         {
             this.handleOHLCV(client, message);
-        } else if ((topic.startsWith(((String)"sbd+"))))
+        } else if (topic.startsWith("sbd+"))
         {
             this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(topic, "sor"))
@@ -1795,7 +1795,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         } else if (java.util.Objects.equals(topic, "str"))
         {
             this.handleMyTrades(client, message);
-        } else if ((topic.startsWith(((String)"sld+"))))
+        } else if (topic.startsWith("sld+"))
         {
             this.handleBalance(client, message);
         } else if (java.util.Objects.equals(topic, "sts"))

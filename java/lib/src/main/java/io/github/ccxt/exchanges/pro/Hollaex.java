@@ -126,7 +126,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String marketId = this.safeString(message, "symbol");
         String channel = this.safeString(message, "topic");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String marketIdValue = this.safeString(market, "id", "");
         String symbol = this.safeString(market, "symbol");
         if (!java.util.Objects.equals(symbol, null))
@@ -213,7 +213,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String channel = this.safeString(message, "topic");
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String marketIdValue = this.safeString(market, "id", "");
         String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -224,7 +224,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             this.trades.put(symbol, stored);
         }
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedTrades = this.parseTrades(data, market, null, null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < parsedTrades.size(); i++)
         {
             stored.append(this.safeDict(parsedTrades, i, null));
@@ -322,7 +322,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < rawTrades.size(); i++)
         {
             Object trade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, null);
             stored.append(parsed);
             String symbol = this.safeString(trade, "symbol");
             Map<String, Object> market = this.market(symbol);
@@ -470,7 +470,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < rawOrders.size(); i++)
         {
             Map<String, Object> order = this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, null);
             stored.append(parsed);
             String symbol = this.safeString(order, "symbol");
             Map<String, Object> market = this.market(symbol);
@@ -545,7 +545,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(key.split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (currencyId), null);
             Map<String, Object> account = (Map<String, Object>) this.safeDict(this.balance, code, this.account());
             String second = this.safeString(parts, 1);
             String freeOrTotal = (((java.util.Objects.equals(second, "available")))) ? "free" : "total";

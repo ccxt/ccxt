@@ -186,7 +186,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
         }
         String marketId = this.safeStringLower(trade, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
         mapLiteral2.put("order", null);
@@ -217,7 +217,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         "side": "buy"
         //     }
         //
-        Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(message, null);
         String symbol = this.safeString(trade, "symbol");
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -274,7 +274,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //     }
         //
         String marketId = this.safeStringLower(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         List<Object> trades = this.safeList(message, "trades", null);
         if (!java.util.Objects.equals(trades, null))
         {
@@ -304,7 +304,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             Map<String, Object> rawTrade = this.safeDict(trades, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(rawTrade, "symbol", "").toLowerCase();
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String symbol = this.safeString(market, "symbol", "");
             Map<String, Object> trade = this.parseWsTrade(rawTrade, market);
             trade.put("timestamp", timestamp);
@@ -410,10 +410,10 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Integer timeframeEndIndex = ((String)timeframeIdFull).indexOf("_");
         String timeframeId = (timeframeIdFull == null ? null : timeframeIdFull.substring(0, (int) Math.min(timeframeEndIndex < 0 ? timeframeIdFull.length() + timeframeEndIndex : timeframeEndIndex, timeframeIdFull.length())));
         String marketId = this.safeString(message, "symbol", "").toLowerCase();
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         List<Object> changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
-        String timeframe = this.findTimeframe(timeframeId, (Object) null);
+        String timeframe = this.findTimeframe(timeframeId, null);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
@@ -491,7 +491,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Boolean isInitial = (message.containsKey("auction_events")) && (message.containsKey("trades")) && (message.containsKey("changes"));
         List<Object> changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeStringLower(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("orderbook:" + symbol);
         if (!(this.orderbooks.containsKey(symbol)))
@@ -507,7 +507,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             for (var i = 0; i < changes.size(); i++)
             {
                 Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
-                List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.safeNumber(delta, 1, (Object) null), this.safeNumber(delta, 2, (Object) null)));
+                List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.safeNumber(delta, 1, null), this.safeNumber(delta, 2, null)));
                 if (java.util.Objects.equals(this.safeString(delta, 0), "buy"))
                 {
                     ((List<Object>)bidsSnapshot).add(bidAsk);
@@ -519,7 +519,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
                 put( "bids", bidsSnapshot );
                 put( "asks", asksSnapshot );
-            }}, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            }}, symbol, null, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
             return;
@@ -527,8 +527,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; i < changes.size(); i++)
         {
             Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
-            Double price = this.safeNumber(delta, 1, (Object) null);
-            Double size = this.safeNumber(delta, 2, (Object) null);
+            Double price = this.safeNumber(delta, 1, null);
+            Double size = this.safeNumber(delta, 2, null);
             if (java.util.Objects.equals(this.safeString(delta, 0), "buy"))
             {
                 io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
@@ -619,7 +619,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //
         Object firstBidAsk = (rawBidAskChanges == null || 0 >= ((List<?>)rawBidAskChanges).size() ? null : ((List<?>)rawBidAskChanges).get(0));
         String marketId = this.safeString(firstBidAsk, "symbol", "").toLowerCase();
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         // read-modify-write: the cached entry is copied out, updated, and stored back whole
         Map<String, Object> currentBidAsk = new HashMap<String, Object>() {{}};
@@ -629,7 +629,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             currentBidAsk = this.extend(new HashMap<String, Object>() {{}}, cachedBidAsk);
         } else
         {
-            currentBidAsk = (Map<String, Object>) this.extend(this.parseTicker(new HashMap<String, Object>() {{}}, (Map<String, Object>) null));
+            currentBidAsk = (Map<String, Object>) this.extend(this.parseTicker(new HashMap<String, Object>() {{}}, null));
             currentBidAsk.put("symbol", symbol);
         }
         String messageHash = ("bidsasks:" + symbol);
@@ -638,7 +638,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             Map<String, Object> entry = this.safeDict(rawBidAskChanges, i, null);
             String rawSide = this.safeString(entry, "side");
-            Double price = this.safeNumber(entry, "price", (Object) null);
+            Double price = this.safeNumber(entry, "price", null);
             String sizeString = this.safeString(entry, "remaining");
             if (Precise.stringEq(sizeString, "0"))
             {
@@ -680,7 +680,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             throw new NotSupported((this.id + " watchMultiple requires at least one symbol")) ;
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
         if ((!Boolean.TRUE.equals(this.safeBool(firstMarket, "spot", false))) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "linear", false))))
         {
@@ -737,7 +737,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //
         Object firstChange = (rawOrderBookChanges == null || 0 >= ((List<?>)rawOrderBookChanges).size() ? null : ((List<?>)rawOrderBookChanges).get(0));
         String marketId = this.safeString(firstChange, "symbol", "").toLowerCase();
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("orderbook:" + symbol);
         if (!(this.orderbooks.containsKey(symbol)))
@@ -751,8 +751,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; i < rawOrderBookChanges.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(rawOrderBookChanges, i, null);
-            Double price = this.safeNumber(entry, "price", (Object) null);
-            Double size = this.safeNumber(entry, "remaining", (Object) null);
+            Double price = this.safeNumber(entry, "price", null);
+            Double size = this.safeNumber(entry, "remaining", null);
             String rawSide = this.safeString(entry, "side");
             if (java.util.Objects.equals(rawSide, "bid"))
             {
@@ -927,7 +927,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeValue(message, i)), (Map<String, Object>) null);
+            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeValue(message, i)), null);
             orders.append(order);
         }
         client.resolve(this.orders, messageHash);
@@ -982,18 +982,18 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("lastTradeTimestamp", null);
         mapLiteral4.put("status", this.parseWsOrderStatus((String) (status)));
-        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, null, null));
         mapLiteral4.put("type", this.parseWsOrderType((String) (typeId)));
         mapLiteral4.put("timeInForce", timeInForce);
         mapLiteral4.put("postOnly", postOnly);
         mapLiteral4.put("side", this.safeString(order, "side"));
-        mapLiteral4.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral4.put("price", this.safeNumber(order, "price", null));
         mapLiteral4.put("stopPrice", null);
-        mapLiteral4.put("average", this.safeNumber(order, "avg_execution_price", (Object) null));
+        mapLiteral4.put("average", this.safeNumber(order, "avg_execution_price", null));
         mapLiteral4.put("cost", null);
-        mapLiteral4.put("amount", this.safeNumber(order, "original_amount", (Object) null));
-        mapLiteral4.put("filled", this.safeNumber(order, "executed_amount", (Object) null));
-        mapLiteral4.put("remaining", this.safeNumber(order, "remaining_amount", (Object) null));
+        mapLiteral4.put("amount", this.safeNumber(order, "original_amount", null));
+        mapLiteral4.put("filled", this.safeNumber(order, "executed_amount", null));
+        mapLiteral4.put("remaining", this.safeNumber(order, "remaining_amount", null));
         mapLiteral4.put("fee", null);
         mapLiteral4.put("trades", null);
         return this.safeOrder(mapLiteral4, market);
@@ -1027,7 +1027,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         throw new ExchangeError((String)this.json(message)) ;
     }
 
-    public void handleListMessage(Client client, Object message)
+    public void handleListMessage(Client client, List<Object> message)
     {
         this.handleOrder(client, message);
     }

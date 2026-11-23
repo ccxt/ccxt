@@ -253,7 +253,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -364,17 +364,17 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String selector = this.safeString(message, "selector", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         this.tickers.put(symbol, ticker);
         client.resolve(ticker, ("ticker::" + symbol));
     }
 
-    public Ticker parseWsTicker(Object message, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> message, Map<String, Object> market)
     {
         // same dict as REST api
-        return this.parseTicker((Map<String, Object>) (message), market);
+        return this.parseTicker(message, market);
     }
 
     /**
@@ -424,7 +424,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -479,14 +479,14 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String selector = this.safeString(message, "selector", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        Map<String, Object> parsed = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(data, null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
@@ -609,11 +609,11 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String selector = this.safeString(message, "selector", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String secondPart = this.safeString(parts, 1, "");
         String timeframeId = secondPart.replaceFirst("-TRADE", "");
-        String timeframe = this.findTimeframe(timeframeId, (Object) null);
+        String timeframe = this.findTimeframe(timeframeId, null);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
@@ -711,7 +711,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         List<Object> intervalparamsIntervalVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500L);
         Long interval = (Long) ((List<Object>) intervalparamsIntervalVariable).get(0);
         Map<String, Object> paramsInterval = (Map<String, Object>) ((List<Object>) intervalparamsIntervalVariable).get(1);
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String extraPart = null;
         if (Boolean.TRUE.equals(isSnapshot))
         {
@@ -769,7 +769,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String selector = this.safeString(message, "selector", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)selector).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 0);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         String messageHash = ("orderbook::" + symbol);
@@ -939,7 +939,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseWsMyTrade(data, (Map<String, Object>) null);
+        Object trade = this.parseWsMyTrade(data, null);
         ((io.github.ccxt.ws.ArrayCache) this.myTrades).append(trade);
         client.resolve(this.myTrades, ("myTrades::" + this.safeString(trade, "symbol", "")));
         client.resolve(this.myTrades, "myTrades");
@@ -975,7 +975,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String subAccountId = this.getSubAccountId(parameters);
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -1040,7 +1040,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Map<String, Object> data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, null);
         ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         ((List<Object>)newPositions).add(position);
@@ -1171,7 +1171,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data, (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data, null);
         ((io.github.ccxt.ws.ArrayCache) this.orders).append(order);
         client.resolve(this.orders, "orders");
         client.resolve(this.orders, ("order::" + this.safeString(order, "symbol", "")));

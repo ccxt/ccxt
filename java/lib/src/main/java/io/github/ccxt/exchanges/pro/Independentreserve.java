@@ -118,7 +118,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         Map<String, Object> data = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
+        String symbol = this.safeSymbol(marketId, null, "-", null);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -127,7 +127,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, null);
         stored.append(trade);
         this.trades.put(symbol, stored);
         client.resolve(stored, messageHash);
@@ -153,7 +153,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
-            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-", (String) null) );
+            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-", null) );
             put( "side", Independentreserve.this.safeStringLower(trade, "Side") );
             put( "type", null );
             put( "takerOrMaker", null );
@@ -242,8 +242,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String depth = this.safeString(parts, 1, "");
         String baseId = this.safeString(parts, 2);
         String quoteId = this.safeString(parts, 3);
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -290,14 +290,14 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 if ((bidsLength != null && i < bidsLength))
                 {
-                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0, (Object) null))) + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1, (Object) null)));
+                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1, null)));
                 }
             }
             for (var i = 0; i < 10; i++)
             {
                 if ((asksLength != null && i < asksLength))
                 {
-                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0, (Object) null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1, (Object) null)));
+                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1, null)));
                 }
             }
             Long calculatedChecksum = this.crc32(payload, false);

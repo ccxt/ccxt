@@ -606,8 +606,8 @@ public class Bitvavo extends BitvavoApi
             String id = this.safeString(market, "market");
             String baseId = this.safeString(market, "base");
             String quoteId = this.safeString(market, "quote");
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
@@ -639,11 +639,11 @@ public class Bitvavo extends BitvavoApi
             j39v1.put("expiryDatetime", null);
             j39v1.put("strike", null);
             j39v1.put("optionType", null);
-            j39v1.put("taker", this.safeNumber(fees, "taker", (Object) null));
-            j39v1.put("maker", this.safeNumber(fees, "maker", (Object) null));
+            j39v1.put("taker", this.safeNumber(fees, "taker", null));
+            j39v1.put("maker", this.safeNumber(fees, "maker", null));
             j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "quantityDecimals"))) );
-                    put( "price", Bitvavo.this.safeNumber(market, "tickSize", (Object) null) );
+                    put( "price", Bitvavo.this.safeNumber(market, "tickSize", null) );
                     put( "cost", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "notionalDecimals"))) );
                 }});
             j39v1.put("limits", new HashMap<String, Object>() {{
@@ -652,16 +652,16 @@ public class Bitvavo extends BitvavoApi
                         put( "max", null );
                     }} );
                     put( "amount", new HashMap<String, Object>() {{
-                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInBaseAsset", (Object) null) );
-                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInBaseAsset", (Object) null) );
+                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInBaseAsset", null) );
+                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInBaseAsset", null) );
                     }} );
                     put( "price", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }} );
                     put( "cost", new HashMap<String, Object>() {{
-                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInQuoteAsset", (Object) null) );
-                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInQuoteAsset", (Object) null) );
+                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInQuoteAsset", null) );
+                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInQuoteAsset", null) );
                     }} );
                 }});
             j39v1.put("created", null);
@@ -762,16 +762,16 @@ public class Bitvavo extends BitvavoApi
         //
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String id = this.safeString(rawCurrency, "symbol");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id, null);
         boolean isFiat = this.inArray(code, fiatCurrencies);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Boolean deposit = java.util.Objects.equals(this.safeString(rawCurrency, "depositStatus"), "OK");
         Boolean withdrawal = java.util.Objects.equals(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         Boolean active = Boolean.TRUE.equals(deposit) && Boolean.TRUE.equals(withdrawal);
-        Double withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee", (Object) null);
+        Double withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee", null);
         String precision = this.safeString(rawCurrency, "decimals", "8");
-        Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount", (Object) null);
+        Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount", null);
         // btw, absolutely all of them have 1 network atm
         for (var j = 0; j < networksArray.size(); j++)
         {
@@ -893,7 +893,7 @@ public class Bitvavo extends BitvavoApi
         //     }
         //
         String marketId = this.safeString(ticker, "market");
-        String symbol = this.safeSymbol(marketId, market, "-", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "-", null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         String baseVolume = this.safeString(ticker, "volume");
@@ -998,7 +998,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
+            return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate, null, true)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", market.get("id") );
@@ -1094,8 +1094,8 @@ public class Bitvavo extends BitvavoApi
         String side = this.safeString(trade, "side");
         String id = this.safeString2(trade, "id", "fillId");
         String marketId = this.safeString(trade, "market");
-        String symbol = this.safeSymbol(marketId, market, "-", (String) null);
-        Boolean taker = (Boolean) this.safeBool(trade, "taker", (Object) null);
+        String symbol = this.safeSymbol(marketId, market, "-", null);
+        Boolean taker = (Boolean) this.safeBool(trade, "taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
@@ -1106,7 +1106,7 @@ public class Bitvavo extends BitvavoApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(trade, "feeCurrency");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCostString);
@@ -1178,8 +1178,8 @@ public class Bitvavo extends BitvavoApi
         //     }
         //
         Map<String, Object> feesValue = this.safeDict(fees, "fees", null);
-        Double maker = this.safeNumber(feesValue, "maker", (Object) null);
-        Double taker = this.safeNumber(feesValue, "taker", (Object) null);
+        Double maker = this.safeNumber(feesValue, "maker", null);
+        Double taker = this.safeNumber(feesValue, "taker", null);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
         {
@@ -1238,9 +1238,9 @@ public class Bitvavo extends BitvavoApi
     {
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", Bitvavo.this.safeSymbol(null, market, (String) null, (String) null) );
-            put( "maker", Bitvavo.this.safeNumber(fee, "maker", (Object) null) );
-            put( "taker", Bitvavo.this.safeNumber(fee, "taker", (Object) null) );
+            put( "symbol", Bitvavo.this.safeSymbol(null, market, null, null) );
+            put( "maker", Bitvavo.this.safeNumber(fee, "maker", null) );
+            put( "taker", Bitvavo.this.safeNumber(fee, "taker", null) );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -1293,7 +1293,7 @@ public class Bitvavo extends BitvavoApi
         //         ]
         //     }
         //
-        Map<String, Object> orderbook = this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
+        Map<String, Object> orderbook = this.parseOrderBook(response, market.get("symbol"), null, "bids", "asks", 0, 1, 2);
         orderbook.put("nonce", this.safeInteger(response, "nonce"));
         return orderbook;
 
@@ -1311,7 +1311,7 @@ public class Bitvavo extends BitvavoApi
         //         "0.04788623"
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 4, null), this.safeNumber(ohlcv, 5, null)));
     }
 
     public Object fetchOHLCVRequest(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -1376,7 +1376,7 @@ public class Bitvavo extends BitvavoApi
         {
             return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 1440L)).join();
         }
-        Map<String, Object> request = (Map<String, Object>) this.fetchOHLCVRequest((String) (symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsPaginate);
+        Map<String, Object> request = (Map<String, Object>) this.fetchOHLCVRequest(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, paramsPaginate);
         List<Object> response = (this.publicGetMarketCandles(request)).join();
         //
         //     [
@@ -1400,7 +1400,7 @@ public class Bitvavo extends BitvavoApi
         {
             Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "symbol");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "inOrder"));
@@ -1523,7 +1523,7 @@ public class Bitvavo extends BitvavoApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         String direction = null;
         String subaccountId = null;
         if ((java.util.Objects.equals(fromAccount, "master")) && (java.util.Objects.equals(toAccount, "master")))
@@ -1549,7 +1549,7 @@ public class Bitvavo extends BitvavoApi
         request.put("subaccountId", subaccountId);
         request.put("direction", direction);
         request.put("symbol", currency.get("id"));
-        request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+        request.put("amount", this.currencyToPrecision(code, amount, null));
         Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, this.omit(parameters, "subaccountId")))).join();
         //
         //     {
@@ -1596,7 +1596,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("symbol", currency.get("id"));
         }
         String subaccountId = this.safeString(parameters, "subaccountId");
@@ -1665,7 +1665,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "transferId", id );
@@ -1726,7 +1726,7 @@ public class Bitvavo extends BitvavoApi
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
             h2kMap0.put("currency", code);
-            h2kMap0.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(transfer, "amount", null));
             h2kMap0.put("fromAccount", fromAccount);
             h2kMap0.put("toAccount", toAccount);
             h2kMap0.put("status", this.parseTransferStatus(this.safeString(transfer, "status")));
@@ -1755,7 +1755,7 @@ public class Bitvavo extends BitvavoApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", currency.get("id") );
         }};
@@ -1768,7 +1768,7 @@ public class Bitvavo extends BitvavoApi
         //
         String address = this.safeString(response, "address");
         String tag = this.safeString(response, "paymentId");
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", code );
@@ -1818,11 +1818,11 @@ public class Bitvavo extends BitvavoApi
                 cost = this.parseNumber(quoteAmount);
             } else
             {
-                cost = this.safeNumber(paramsOmitted, "cost", (Object) null);
+                cost = this.safeNumber(paramsOmitted, "cost", null);
             }
             if (!java.util.Objects.equals(cost, null))
             {
-                Double precision = this.safeNumber(this.currency((String) (market.get("quote"))), "precision", (Object) null);
+                Double precision = this.safeNumber(this.currency((String) (market.get("quote"))), "precision", null);
                 request.put("amountQuote", this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode));
             } else
             {
@@ -1864,7 +1864,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("postOnly", true);
         }
-        List<Object> operatorIdparamsOperatorIdVariable = (List<Object>) this.handleOptionAndParams(paramsCost, "createOrder", "operatorId", (Object) null);
+        List<Object> operatorIdparamsOperatorIdVariable = (List<Object>) this.handleOptionAndParams(paramsCost, "createOrder", "operatorId", null);
         var operatorId = ((List<Object>) operatorIdparamsOperatorIdVariable).get(0);
         Map<String, Object> paramsOperatorId = (Map<String, Object>) ((List<Object>) operatorIdparamsOperatorIdVariable).get(1);
         if (!java.util.Objects.equals(operatorId, null))
@@ -1874,7 +1874,7 @@ public class Bitvavo extends BitvavoApi
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOperatorId), "createOrder", "selfTradePrevention", (String) null);
+        Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOperatorId), "createOrder", "selfTradePrevention", null);
         String selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.first();
         Map<String, Object> paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
@@ -1914,12 +1914,12 @@ public class Bitvavo extends BitvavoApi
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1927,7 +1927,7 @@ public class Bitvavo extends BitvavoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Map<String, Object> response = (this.privatePostOrder(request)).join();
         //
         //      {
@@ -1977,7 +1977,7 @@ public class Bitvavo extends BitvavoApi
     {
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = this.market(symbol);
-        Double amountRemaining = this.safeNumber(parameters, "amountRemaining", (Object) null);
+        Double amountRemaining = this.safeNumber(parameters, "amountRemaining", null);
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
         if (!java.util.Objects.equals(price, null))
@@ -2006,7 +2006,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("orderId", id);
         }
-        List<Object> operatorIdVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId", (Object) null);
+        List<Object> operatorIdVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId", null);
         var operatorId = ((List<Object>) operatorIdVariable).get(0);
         if (!java.util.Objects.equals(operatorId, null))
         {
@@ -2046,7 +2046,7 @@ public class Bitvavo extends BitvavoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         Map<String, Object> response = (this.privatePutOrder(request)).join();
         return this.parseOrder(response, market);
 
@@ -2067,7 +2067,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("orderId", id);
         }
-        List<Object> operatorIdparamsOperatorIdVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "operatorId", (Object) null);
+        List<Object> operatorIdparamsOperatorIdVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "operatorId", null);
         var operatorId = ((List<Object>) operatorIdparamsOperatorIdVariable).get(0);
         Map<String, Object> paramsOperatorId = (Map<String, Object>) ((List<Object>) operatorIdparamsOperatorIdVariable).get(1);
         if (!java.util.Objects.equals(operatorId, null))
@@ -2103,7 +2103,7 @@ public class Bitvavo extends BitvavoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = (Map<String, Object>) this.cancelOrderRequest((String) (id), symbol, parameters);
+        Map<String, Object> request = (Map<String, Object>) this.cancelOrderRequest(id, symbol, parameters);
         Map<String, Object> response = (this.privateDeleteOrder(request)).join();
         //
         //     {
@@ -2142,7 +2142,7 @@ public class Bitvavo extends BitvavoApi
             market = this.market(symbol);
             request.put("market", market.get("id"));
         }
-        List<Object> operatorIdparamsOperatorIdVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId", (Object) null);
+        List<Object> operatorIdparamsOperatorIdVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId", null);
         var operatorId = ((List<Object>) operatorIdparamsOperatorIdVariable).get(0);
         Map<String, Object> paramsOperatorId = (Map<String, Object>) ((List<Object>) operatorIdparamsOperatorIdVariable).get(1);
         if (!java.util.Objects.equals(operatorId, null))
@@ -2160,7 +2160,7 @@ public class Bitvavo extends BitvavoApi
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.parseOrders(response, market, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2340,7 +2340,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
+            return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate, null, true)).join();
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = (Map<String, Object>) this.fetchOrdersRequest(symbol, since, limit, paramsPaginate);
@@ -2526,7 +2526,7 @@ public class Bitvavo extends BitvavoApi
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "created");
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", null);
         String symbol = this.safeString(marketResolved, "symbol", "");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String side = this.safeString(order, "side");
@@ -2543,11 +2543,11 @@ public class Bitvavo extends BitvavoApi
             cost = Precise.stringSub(amountQuote, amountQuoteRemaining);
         }
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(order, "feePaid", (Object) null);
+        Double feeCost = this.safeNumber(order, "feePaid", null);
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(order, "feeCurrency");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                 hx4NewMap1.put("cost", feeCost);
@@ -2557,7 +2557,7 @@ public class Bitvavo extends BitvavoApi
         }
         List<Object> rawTrades = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
         // https://github.com/ccxt/ccxt/issues/8489
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", order);
@@ -2572,7 +2572,7 @@ public class Bitvavo extends BitvavoApi
         mapLiteral4.put("postOnly", postOnly);
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
-        mapLiteral4.put("triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null));
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "triggerPrice", null));
         mapLiteral4.put("amount", amount);
         mapLiteral4.put("cost", cost);
         mapLiteral4.put("average", null);
@@ -2638,7 +2638,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
+            return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, null, true)).join();
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = (Map<String, Object>) this.fetchMyTradesRequest(symbol, since, limit, paramsPaginate);
@@ -2693,7 +2693,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         if (!java.util.Objects.equals(since, null))
         {
@@ -2762,7 +2762,7 @@ public class Bitvavo extends BitvavoApi
             amount = this.safeString(item, "sentAmount");
             direction = "out";
         }
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(item, "executedAt"));
         Map<String, Object> fee = null;
@@ -2770,7 +2770,7 @@ public class Bitvavo extends BitvavoApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(item, "feesCurrency");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                 hx4NewMap2.put("cost", feeCost);
@@ -2799,10 +2799,10 @@ public class Bitvavo extends BitvavoApi
 
     public Object withdrawRequest(String code, Double amount, String address, String tag, Map<String, Object> parameters)
     {
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", currency.get("id") );
-            put( "amount", Bitvavo.this.currencyToPrecision((String) (code), amount, (String) null) );
+            put( "amount", Bitvavo.this.currencyToPrecision(code, amount, null) );
             put( "address", address );
         }};
         if (!java.util.Objects.equals(tag, null))
@@ -2832,7 +2832,7 @@ public class Bitvavo extends BitvavoApi
     private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
         this.checkAddress(address, code, tagWithdrawTag);
@@ -2840,8 +2840,8 @@ public class Bitvavo extends BitvavoApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
-        Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, (String) (address), tagWithdrawTag, paramsWithdrawTag);
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = (Map<String, Object>) this.withdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag);
         Map<String, Object> response = (this.privatePostWithdrawal(request)).join();
         //
         //     {
@@ -2860,7 +2860,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("symbol", currency.get("id"));
         }
         if (!java.util.Objects.equals(since, null))
@@ -2901,7 +2901,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         List<Object> response = (this.privateGetWithdrawalHistory(request)).join();
         //
@@ -2930,7 +2930,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("symbol", currency.get("id"));
         }
         if (!java.util.Objects.equals(since, null))
@@ -2971,7 +2971,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         List<Object> response = (this.privateGetDepositHistory(request)).join();
         //
@@ -3048,11 +3048,11 @@ public class Bitvavo extends BitvavoApi
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Double amount = this.safeNumber(transaction, "amount", (Object) null);
+        Double amount = this.safeNumber(transaction, "amount", null);
         String address = this.safeString(transaction, "address");
         String txid = this.safeString(transaction, "txId");
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "fee", null);
         if (!java.util.Objects.equals(feeCost, null))
         {
             {
@@ -3063,7 +3063,7 @@ public class Bitvavo extends BitvavoApi
             }
         }
         String type = null;
-        if ((!java.util.Objects.equals(this.safeBool(transaction, "success", (Object) null), null)) || (!java.util.Objects.equals(this.safeString(transaction, "address"), null)))
+        if ((!java.util.Objects.equals(this.safeBool(transaction, "success", null), null)) || (!java.util.Objects.equals(this.safeString(transaction, "address"), null)))
         {
             type = "withdrawal";
         } else
@@ -3119,11 +3119,11 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
-                put( "fee", Bitvavo.this.safeNumber(fee, "withdrawalFee", (Object) null) );
+                put( "fee", Bitvavo.this.safeNumber(fee, "withdrawalFee", null) );
                 put( "percentage", false );
             }} );
             put( "deposit", new HashMap<String, Object>() {{
-                put( "fee", Bitvavo.this.safeNumber(fee, "depositFee", (Object) null) );
+                put( "fee", Bitvavo.this.safeNumber(fee, "depositFee", null) );
                 put( "percentage", false );
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );

@@ -179,7 +179,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
         Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
         Boolean isGenerationTwo = ((generation != null && generation == 2));
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : symbolsNormalized.size();
         if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
         {
@@ -311,13 +311,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //
         Map<String, Object> content = this.safeDict(message, "content", null);
         Boolean isGenerationTwo = (java.util.Objects.equals(content, null));
-        Map<String, Object> tickerMessage = null;
-        if (Boolean.TRUE.equals(isGenerationTwo))
+        Map<String, Object> tickerMessage = message;
+        if (!Boolean.TRUE.equals(isGenerationTwo))
         {
-            tickerMessage = message;
-        } else
-        {
-            tickerMessage = content;
+            tickerMessage = this.safeDict(message, "content", new HashMap<String, Object>() {{}});
         }
         String marketId = this.safeString2(tickerMessage, "symbol", "code");
         if (java.util.Objects.equals(marketId, null))
@@ -325,7 +322,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             return;
         }
         String delimiter = ((Boolean.TRUE.equals(isGenerationTwo))) ? "-" : "_";
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, delimiter, (String) null);
+        String symbol = this.safeSymbol(marketId, null, delimiter, null);
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -336,7 +333,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -415,7 +412,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         String marketId = this.safeString(ticker, "symbol");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, "_", (String) null));
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, "_", null));
         mapLiteral3.put("timestamp", timestamp);
         mapLiteral3.put("datetime", this.iso8601(timestamp));
         mapLiteral3.put("high", this.safeString(ticker, "highPrice"));
@@ -550,7 +547,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 return;
             }
-            String legacySymbol = this.safeSymbol(legacyMarketId, (Map<String, Object>) null, "_", (String) null);
+            String legacySymbol = this.safeSymbol(legacyMarketId, null, "_", null);
             String timestampStr = this.safeString(content, "datetime");
             if (java.util.Objects.equals(timestampStr, null))
             {
@@ -572,7 +569,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             return;
         }
         String marketId = this.safeString(message, "code");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
+        String symbol = this.safeSymbol(marketId, null, "-", null);
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -596,10 +593,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         for (var i = 0; i < units.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(units, i, null);
-            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
-            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
-            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
-            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
+            Double bidPrice = this.safeNumber(entry, "bid_price", null);
+            Double bidSize = this.safeNumber(entry, "bid_size", null);
+            Double askPrice = this.safeNumber(entry, "ask_price", null);
+            Double askSize = this.safeNumber(entry, "ask_size", null);
             if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
             {
                 ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
@@ -757,12 +754,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             String fallbackSymbol = null;
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                fallbackSymbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
+                fallbackSymbol = this.safeSymbol(marketId, null, "-", null);
             } else
             {
-                fallbackSymbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
+                fallbackSymbol = this.safeSymbol(marketId, null, "_", null);
             }
-            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, null);
             String symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
             {
@@ -836,7 +833,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         mapLiteral5.put("info", trade);
         mapLiteral5.put("timestamp", timestamp);
         mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("symbol", this.safeSymbol(marketId, market, "_", (String) null));
+        mapLiteral5.put("symbol", this.safeSymbol(marketId, market, "_", null));
         mapLiteral5.put("order", null);
         mapLiteral5.put("type", null);
         mapLiteral5.put("side", (((java.util.Objects.equals(sideId, "1")))) ? "buy" : "sell");
@@ -962,7 +959,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             Map<String, Object> asset = this.safeDict(assets, i, null);
             String currencyId = this.safeString(asset, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (currencyId), null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(asset, "balance"));
             account.put("used", this.safeString(asset, "locked"));
@@ -1127,7 +1124,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myOrder";
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, null);
         // const orderId = this.safeString (parsed, 'id');
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -1167,7 +1164,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String marketId = this.safeString(order, "code");
-        String symbol = this.safeSymbol(marketId, market, "-", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "-", null);
         Long timestamp = this.safeInteger(order, "order_timestamp");
         String sideId = this.safeString(order, "ask_bid");
         String side = this.safeStringLower(order, "side");
@@ -1211,7 +1208,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Map<String, Object> marketForFee = this.safeMarket(marketId, market, (String) null, (String) null);
+            Map<String, Object> marketForFee = this.safeMarket(marketId, market, null, null);
             String feeCurrency = this.safeString(marketForFee, "quote");
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
@@ -1248,7 +1245,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     public void handleTextMessage(Client client, String message)
     {
-        String content = ((String)message).toLowerCase();
+        String content = message.toLowerCase();
         if (java.util.Objects.equals(content, "pong"))
         {
             this.handlePong(client, message);

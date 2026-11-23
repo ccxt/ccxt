@@ -53,9 +53,9 @@ public class TestWatchOrders extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
-                    TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (symbol), now);
+                    TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
             }
         }
         return true;

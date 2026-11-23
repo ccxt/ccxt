@@ -43,7 +43,7 @@ public class TestWatchPosition extends BaseTest {
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 now = exchange.milliseconds();
-                TestPosition.testPosition(exchange, skippedProperties, method, response, (String) (symbol), now);
+                TestPosition.testPosition(exchange, skippedProperties, method, response, symbol, now);
             }
         }
         return true;

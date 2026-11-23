@@ -25,9 +25,9 @@ public class TestFetchLedger extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), (String) (code), now);
+            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), code, now);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), items);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
         return true;
         });
 

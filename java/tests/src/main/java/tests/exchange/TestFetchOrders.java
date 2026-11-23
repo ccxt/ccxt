@@ -26,9 +26,9 @@ public class TestFetchOrders extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            TestOrder.testOrder(exchange, skippedProperties, method, (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), (String) (symbol), now);
+            TestOrder.testOrder(exchange, skippedProperties, method, (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), symbol, now);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), orders);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, orders);
         return true;
         });
 

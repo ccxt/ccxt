@@ -212,7 +212,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         List<String> productIds = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -266,7 +266,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<String> productIds = new ArrayList<String>(Arrays.asList());
         List<String> watchMessageHashes = new ArrayList<String>(Arrays.asList());
         List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -305,7 +305,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Map<String, Object> subscribe = new HashMap<String, Object>() {{}};
         String timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials(true);
-        Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || ((this.secret.startsWith("-----BEGIN")));
+        Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || (((String)this.secret).startsWith("-----BEGIN"));
         Boolean isV2CloudAPiKey = this.isEddsaApiKey();
         Object auth = ((timestamp + name) + String.join(",", (List<String>)productIds));
         if (!Boolean.TRUE.equals(isCloudAPiKey) && !Boolean.TRUE.equals(isV2CloudAPiKey))
@@ -315,7 +315,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         } else
         {
-            if (Boolean.TRUE.equals(isCloudAPiKey) && (this.apiKey.startsWith("-----BEGIN")))
+            if (Boolean.TRUE.equals(isCloudAPiKey) && ((String)this.apiKey).startsWith("-----BEGIN"))
             {
                 throw new ArgumentsRequired((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
@@ -326,7 +326,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
-                String token = this.createAuthToken(seconds, "", (String) null, this.isEddsaApiKey());
+                String token = this.createAuthToken(seconds, "", null, this.isEddsaApiKey());
                 this.options.put("wsToken", token);
                 this.options.put("wsTokenTimestamp", seconds);
             }
@@ -557,7 +557,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> tickers = this.safeList(tickersObj, "tickers", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < tickers.size(); j++)
             {
-                Object ticker = (tickers == null || j < 0 || j >= tickers.size() ? null : tickers.get(j));
+                Map<String, Object> ticker = this.safeDict(tickers, j, new HashMap<String, Object>() {{}});
                 String wsMarketId = this.safeString(ticker, "product_id");
                 if (java.util.Objects.equals(wsMarketId, null))
                 {
@@ -582,7 +582,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -604,10 +604,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         //
         String marketId = this.safeString(ticker, "product_id");
         List<String> timestamp = null;
-        Double last = this.safeNumber(ticker, "price", (Object) null);
+        Double last = this.safeNumber(ticker, "price", null);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", Coinbase.this.safeSymbol(marketId, market, "-", (String) null) );
+            put( "symbol", Coinbase.this.safeSymbol(marketId, market, "-", null) );
             put( "timestamp", timestamp );
             put( "datetime", Coinbase.this.iso8601(timestamp) );
             put( "high", Coinbase.this.safeString(ticker, "high_24_h") );
@@ -626,7 +626,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             put( "average", null );
             put( "baseVolume", Coinbase.this.safeString(ticker, "volume_24_h") );
             put( "quoteVolume", null );
-        }}, (Map<String, Object>) null);
+        }}, null);
     }
 
     /**
@@ -704,9 +704,9 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 Object candle = (candles == null || j < 0 || j >= candles.size() ? null : candles.get(j));
                 String marketId = this.safeString(candle, "product_id");
-                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                Map<String, Object> market = this.safeMarket(marketId, null, null, null);
                 String symbol = (String) market.get("symbol");
-                List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(candle, "start"), this.safeNumber(candle, "open", (Object) null), this.safeNumber(candle, "high", (Object) null), this.safeNumber(candle, "low", (Object) null), this.safeNumber(candle, "close", (Object) null), this.safeNumber(candle, "volume", (Object) null)));
+                List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(candle, "start"), this.safeNumber(candle, "open", null), this.safeNumber(candle, "high", null), this.safeNumber(candle, "low", null), this.safeNumber(candle, "close", null), this.safeNumber(candle, "volume", null)));
                 this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
                 io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
                 if (java.util.Objects.equals(stored, null))
@@ -1025,7 +1025,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> trades = this.safeList(eventVar, "trades", null);
         Map<String, Object> trade = this.safeDict(trades, 0, null);
         String marketId = this.safeString(trade, "product_id");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         String messageHash = ("market_trades::" + symbol);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
@@ -1046,7 +1046,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Integer tradesLength = currentTrades.size();
             for (var j = 0; (tradesLength != null && j < tradesLength); j++)
             {
-                tradesArray.append(this.parseTrade(this.safeDict(currentTrades, ((((long) tradesLength) - ((long) j)) - 1L), new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+                tradesArray.append(this.parseTrade(this.safeDict(currentTrades, ((((long) tradesLength) - ((long) j)) - 1L), new HashMap<String, Object>() {{}}), null));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -1106,7 +1106,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             for (var j = 0; j < responseOrders.size(); j++)
             {
                 Map<String, Object> responseOrder = (Map<String, Object>) (responseOrders == null || j < 0 || j >= responseOrders.size() ? null : responseOrders.get(j));
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(responseOrder, (Map<String, Object>) null);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(responseOrder, null);
                 io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
@@ -1123,7 +1123,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; i < marketIds.size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            String symbol = this.safeSymbol(marketId, null, null, null);
             String messageHash = ("user::" + symbol);
             client.resolve(this.orders, messageHash);
             this.tryResolveUsdc(client, messageHash, this.orders);
@@ -1152,7 +1152,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String clientOrderId = this.safeString(order, "client_order_id");
         String marketId = this.safeString(order, "product_id");
         String datetime = this.safeString2(order, "time", "creation_time");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
@@ -1180,7 +1180,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 put( "currency", Coinbase.this.safeString(marketResolved, "quote") );
             }} );
             put( "trades", null );
-        }}, (Map<String, Object>) null);
+        }}, null);
     }
 
     public void handleOrderBookHelper(Object orderbook, List<Object> updates)
@@ -1190,8 +1190,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Map<String, Object> trade = this.safeDict(updates, i, null);
             String sideId = this.safeString(trade, "side");
             String side = this.safeString(this.options.get("sides"), sideId);
-            Double price = this.safeNumber(trade, "price_level", (Object) null);
-            Double amount = this.safeNumber(trade, "new_quantity", (Object) null);
+            Double price = this.safeNumber(trade, "price_level", null);
+            Double amount = this.safeNumber(trade, "new_quantity", null);
             Object orderbookSide = this.safeValue(orderbook, side);
             ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
         }
@@ -1239,7 +1239,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> updates = this.safeList(eventVar, "updates", new ArrayList<Object>(Arrays.asList()));
             String marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String symbol = this.safeString(market, "symbol", "");
             String messageHash = ("level2::" + symbol);
             Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
@@ -1272,7 +1272,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     public void tryResolveUsdc(Client client, String messageHash, Object result)
     {
-        if (((String)messageHash).endsWith("/USD") || ((String)messageHash).endsWith("-USD"))
+        if (messageHash.endsWith("/USD") || messageHash.endsWith("-USD"))
         {
             client.resolve(result, (messageHash + "C")); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }

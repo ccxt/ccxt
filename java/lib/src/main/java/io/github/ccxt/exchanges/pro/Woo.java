@@ -294,7 +294,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Map<String, Object> data = this.safeDict(message, "data", null);
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String topic = this.safeString(message, "topic");
         if (java.util.Objects.equals(topic, null))
@@ -401,7 +401,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
             for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
             {
-                Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
+                Map<String, Object> messageItem = this.safeDict(messages, i, new HashMap<String, Object>() {{}});
                 Long ts = this.safeInteger(messageItem, "ts");
                 if (java.util.Objects.equals(ts, null))
                 {
@@ -413,7 +413,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     continue;
                 } else
                 {
-                    this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (io.github.ccxt.ws.WsOrderBook) (orderbook));
+                    this.handleOrderBookMessage(client, messageItem, (io.github.ccxt.ws.WsOrderBook) (orderbook));
                 }
             }
             if (!java.util.Objects.equals(symbol, null))
@@ -523,7 +523,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -538,7 +538,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Woo.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "symbol", Woo.this.safeSymbol(null, market, null, null) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "high", Woo.this.safeString(ticker, "high") );
@@ -582,7 +582,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Long timestamp = this.safeInteger(message, "ts");
         data.put("date", timestamp);
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
@@ -613,7 +613,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String name = "tickers";
         String topic = name;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -653,7 +653,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
         String topic = "ticker";
         String subHash = "tickers";
-        return (this.unwatchPublic(subHash, (String) (null), topic, parameters)).join();
+        return (this.unwatchPublic(subHash, null, topic, parameters)).join();
 
     }
 
@@ -695,7 +695,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         for (var i = 0; i < data.size(); i++)
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
@@ -726,7 +726,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String name = "bbos";
         String topic = name;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -770,7 +770,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
         String subHash = "bbos";
         String topic = "bidsasks";
-        return (this.unwatchPublic(subHash, (String) (null), topic, parameters)).join();
+        return (this.unwatchPublic(subHash, null, topic, parameters)).join();
 
     }
 
@@ -802,8 +802,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 continue;
             }
-            ticker.put("ts", timestamp);
-            Ticker parsedTicker = this.parseWsBidAsk(ticker, (Map<String, Object>) null);
+            Ticker parsedTicker = this.parseWsBidAsk(this.extend(ticker, new HashMap<String, Object>() {{
+                put( "ts", timestamp );
+            }}), (Map<String, Object>) null);
             String symbol = this.safeString(parsedTicker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -820,7 +821,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -940,10 +941,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> data = this.safeDict(message, "data", null);
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String interval = this.safeString(data, "type");
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
@@ -1050,7 +1051,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> data = this.safeDict(message, "data", null);
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> trade = this.parseWsTrade(this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
@@ -1108,14 +1109,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //   }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString2(trade, "executedPrice", "price");
         String amount = this.safeString2(trade, "executedQuantity", "size");
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
@@ -1123,13 +1124,13 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
         String type = this.safeStringLower(trade, "type");
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(trade, "fee", (Object) null);
+        Double feeCost = this.safeNumber(trade, "fee", null);
         if (!java.util.Objects.equals(feeCost, null))
         {
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
-                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), null));
                 fee = hx4NewMap0;
             }
         }
@@ -1426,8 +1427,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             put( "currency", Woo.this.safeString(order, "feeAsset") );
         }};
         String priceString = this.safeString(order, "price");
-        Double price = this.safeNumber(order, "price", (Object) null);
-        Double avgPrice = this.safeNumber(order, "avgPrice", (Object) null);
+        Double price = this.safeNumber(order, "price", null);
+        Double avgPrice = this.safeNumber(order, "avgPrice", null);
         if (Precise.stringEq(priceString, "0") && (!java.util.Objects.equals(avgPrice, null)))
         {
             price = avgPrice;
@@ -1456,7 +1457,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         mapLiteral2.put("price", price);
         mapLiteral2.put("stopPrice", triggerPrice);
         mapLiteral2.put("triggerPrice", triggerPrice);
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral2.put("amount", amount);
         mapLiteral2.put("cost", null);
         mapLiteral2.put("average", avgPrice);
@@ -1465,7 +1466,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         mapLiteral2.put("status", status);
         mapLiteral2.put("fee", fee);
         mapLiteral2.put("trades", trades);
-        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
+        return this.safeOrder(mapLiteral2, null);
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)
@@ -1528,7 +1529,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handleOrder(Client client, Map<String, Object> message, String topic)
     {
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (!java.util.Objects.equals(symbol, null))
@@ -1602,7 +1603,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(message, null);
         myTrades.append(trade);
         String tradeSymbol = this.safeString(trade, "symbol", "");
         String messageHash = ("myTrades:" + tradeSymbol);
@@ -1635,7 +1636,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         if (!this.isEmpty(symbolsNormalized))
         {
             if (java.util.Objects.equals(symbolsNormalized, null))
@@ -1766,7 +1767,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         for (var i = 0; i < postitionsIds.size(); i++)
         {
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}}), market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
@@ -1849,7 +1850,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = this.safeDict(balances, key, null);
-            String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(key, null);
             Map<String, Object> account = this.account();
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");
@@ -1912,7 +1913,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, (Map<String, Object>) null);
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, null);
         String symbol = this.safeString(fundingRate, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {

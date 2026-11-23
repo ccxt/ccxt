@@ -146,7 +146,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("orderbook:" + market.get("symbol"));
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic("order-book", (String) (symbol), messageHash, parameters)).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic("order-book", symbol, messageHash, parameters)).join();
         return orderbook.limit();
 
     }
@@ -169,7 +169,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         Long timestamp = this.safeInteger(data, "nonce");
         Map<String, Object> snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -205,7 +205,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("trades:" + market.get("symbol"));
-        List<Object> trades = (List<Object>) (this.subscribePublic("public-trades", (String) (symbol), messageHash, parameters)).join();
+        List<Object> trades = (List<Object>) (this.subscribePublic("public-trades", symbol, messageHash, parameters)).join();
         Long finalLimit = limit;
         if (this.newUpdates)
         {
@@ -230,7 +230,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade(data, market);
@@ -275,9 +275,9 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> resolvedMarket = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolvedMarket = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -296,7 +296,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", this.safeString(rawFee, "cost"));
-                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(rawFee, "currency"), (Map<String, Object>) null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(rawFee, "currency"), null));
                 hx4NewMap0.put("rate", feeRate);
                 fee = hx4NewMap0;
             }
@@ -385,7 +385,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data, (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data, null);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -424,16 +424,16 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> resolvedMarket = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolvedMarket = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(order, "timestamp");
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(order, "feeAmount", (Object) null);
+        Double feeCost = this.safeNumber(order, "feeAmount", null);
         if (!java.util.Objects.equals(feeCost, null))
         {
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                 hx4NewMap1.put("cost", feeCost);
-                hx4NewMap1.put("currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency"), (Map<String, Object>) null));
+                hx4NewMap1.put("currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency"), null));
                 fee = hx4NewMap1;
             }
         }
@@ -526,7 +526,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, null);
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -594,18 +594,18 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderWsCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> restRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> restRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         String orderType = this.safeString(restRequest, "orderType");
         if (java.util.Objects.equals(orderType, "oco"))
         {
@@ -682,13 +682,13 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, null);
         String clientOrderId = this.safeString(data, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
             this.options.put("pendingWsOrders", this.omit(pending, clientOrderId));
-            this.settleRequest(client, ("added-order:" + clientOrderId), order, (Object) null);
+            this.settleRequest(client, ("added-order:" + clientOrderId), order, null);
         }
     }
 
@@ -737,14 +737,14 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String orderId = this.safeString(data, "orderId");
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Order order = this.safeOrder(new HashMap<String, Object>() {{
             put( "info", message );
             put( "id", orderId );
             put( "symbol", market.get("symbol") );
             put( "status", Bit2me.this.parseOrderStatus(Bit2me.this.safeString(data, "status")) );
         }}, market);
-        this.settleRequest(client, ("canceled-order:" + this.safeString(data, "orderId", "")), order, (Object) null);
+        this.settleRequest(client, ("canceled-order:" + this.safeString(data, "orderId", "")), order, null);
     }
 
     /**
@@ -808,7 +808,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                 put( "info", entry );
                 put( "id", Bit2me.this.safeString(entry, "id") );
                 put( "status", Bit2me.this.parseOrderStatus(Bit2me.this.safeString(entry, "status")) );
-            }}, (Map<String, Object>) null));
+            }}, null));
         }
         for (var i = 0; i < notDeleted.size(); i++)
         {
@@ -817,9 +817,9 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                 put( "info", entry );
                 put( "id", Bit2me.this.safeString(entry, "id") );
                 put( "status", null );
-            }}, (Map<String, Object>) null));
+            }}, null));
         }
-        this.settleRequest(client, "canceled-orders", orders, (Object) null);
+        this.settleRequest(client, "canceled-orders", orders, null);
     }
 
     /**
@@ -870,7 +870,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<Object> ids = this.safeList(data, "cancelledOrders", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
@@ -883,7 +883,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             mapLiteral3.put("status", "canceled");
             ((List<Object>)orders).add(this.safeOrder(mapLiteral3, market));
         }
-        this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders, (Object) null);
+        this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders, null);
     }
 
     /**
@@ -1010,7 +1010,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             Map<String, Object> subscription = this.safeDict(message, "subscription", new HashMap<String, Object>() {{}});
             String name = this.safeString(subscription, "name");
             String marketId = this.safeString(message, "symbol");
-            String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            String symbol = this.safeSymbol(marketId, null, null, null);
             Map<String, Object> hashes = new HashMap<String, Object>() {{
                 put( "order-book", ("orderbook:" + symbol) );
                 put( "public-trades", ("trades:" + symbol) );
@@ -1030,7 +1030,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                     for (var i = 0; i < pendingHashes.size(); i++)
                     {
                         String pendingHash = (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
-                        if ((pendingHash.startsWith(((String)scopedPrefix))))
+                        if (pendingHash.startsWith(((String)scopedPrefix)))
                         {
                             client.reject(exception, pendingHash);
                         }

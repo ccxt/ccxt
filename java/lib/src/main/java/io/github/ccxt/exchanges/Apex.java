@@ -636,7 +636,7 @@ public class Apex extends ApexApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "token");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = this.safeList(this.options, "_temp_currencies_chains", new ArrayList<Object>(Arrays.asList()));
@@ -660,16 +660,16 @@ public class Apex extends ApexApi
                         mapLiteral1.put("network", networkCode);
                         mapLiteral1.put("active", null);
                         mapLiteral1.put("deposit", (!Boolean.TRUE.equals(this.safeBool(chain, "depositDisable", false))));
-                        mapLiteral1.put("withdraw", this.safeBool(token, "withdrawEnable", (Object) null));
-                        mapLiteral1.put("fee", this.safeNumber(token, "minFee", (Object) null));
+                        mapLiteral1.put("withdraw", this.safeBool(token, "withdrawEnable", null));
+                        mapLiteral1.put("fee", this.safeNumber(token, "minFee", null));
                         mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))));
                         mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Apex.this.safeNumber(token, "minWithdraw", (Object) null) );
+            put( "min", Apex.this.safeNumber(token, "minWithdraw", null) );
             put( "max", null );
         }} );
         put( "deposit", new HashMap<String, Object>() {{
-            put( "min", Apex.this.safeNumber(chain, "minDeposit", (Object) null) );
+            put( "min", Apex.this.safeNumber(chain, "minDeposit", null) );
             put( "max", null );
         }} );
     }});
@@ -796,9 +796,9 @@ public class Apex extends ApexApi
         String quoteId = this.safeString(market, "l2PairId");
         String baseId = this.safeString(market, "baseTokenId");
         String quote = this.safeString(market, "settleAssetId");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
         String settleId = this.safeString(market, "settleAssetId");
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId, null);
         if ((java.util.Objects.equals(baseId, null)) || (java.util.Objects.equals(quote, null)) || (java.util.Objects.equals(settle, null)))
         {
             return null;
@@ -823,29 +823,29 @@ public class Apex extends ApexApi
         mapLiteral2.put("swap", true);
         mapLiteral2.put("future", false);
         mapLiteral2.put("option", false);
-        mapLiteral2.put("active", this.safeBool(market, "enableTrade", (Object) null));
+        mapLiteral2.put("active", this.safeBool(market, "enableTrade", null));
         mapLiteral2.put("contract", true);
         mapLiteral2.put("linear", true);
         mapLiteral2.put("inverse", false);
         mapLiteral2.put("taker", takerFee);
         mapLiteral2.put("maker", makerFee);
-        mapLiteral2.put("contractSize", this.safeNumber(market, "minOrderSize", (Object) null));
+        mapLiteral2.put("contractSize", this.safeNumber(market, "minOrderSize", null));
         mapLiteral2.put("expiry", (((java.util.Objects.equals(expiry, 0)))) ? null : expiry);
         mapLiteral2.put("expiryDatetime", (((java.util.Objects.equals(expiry, 0)))) ? null : this.iso8601(expiry));
         mapLiteral2.put("strike", null);
         mapLiteral2.put("optionType", null);
         mapLiteral2.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Apex.this.safeNumber(market, "stepSize", (Object) null) );
-                put( "price", Apex.this.safeNumber(market, "tickSize", (Object) null) );
+                put( "amount", Apex.this.safeNumber(market, "stepSize", null) );
+                put( "price", Apex.this.safeNumber(market, "tickSize", null) );
             }});
         mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
-                    put( "min", Apex.this.safeNumber(market, "displayMinLeverage", (Object) null) );
-                    put( "max", Apex.this.safeNumber(market, "displayMaxLeverage", (Object) null) );
+                    put( "min", Apex.this.safeNumber(market, "displayMinLeverage", null) );
+                    put( "max", Apex.this.safeNumber(market, "displayMaxLeverage", null) );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Apex.this.safeNumber(market, "minOrderSize", (Object) null) );
-                    put( "max", Apex.this.safeNumber(market, "maxOrderSize", (Object) null) );
+                    put( "min", Apex.this.safeNumber(market, "minOrderSize", null) );
+                    put( "max", Apex.this.safeNumber(market, "maxOrderSize", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -882,8 +882,8 @@ public class Apex extends ApexApi
         // }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         String last = this.safeString(ticker, "lastPrice");
         String percentage = this.safeString(ticker, "price24hPcnt");
         String quoteVolume = this.safeString(ticker, "turnover24h");
@@ -1037,7 +1037,7 @@ public class Apex extends ApexApi
         //     "turnover": "3"
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o", (Object) null), this.safeNumber2(ohlcv, "high", "h", (Object) null), this.safeNumber2(ohlcv, "low", "l", (Object) null), this.safeNumber2(ohlcv, "close", "c", (Object) null), this.safeNumber2(ohlcv, "volume", "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o", null), this.safeNumber2(ohlcv, "high", "h", null), this.safeNumber2(ohlcv, "low", "l", null), this.safeNumber2(ohlcv, "close", "c", null), this.safeNumber2(ohlcv, "volume", "v", null)));
     }
 
     /**
@@ -1178,7 +1178,7 @@ public class Apex extends ApexApi
         //  ]
         //
         String marketId = this.safeString2(trade, "s", "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String id = this.safeString2(trade, "i", "id");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("t", "T", "createdAt")));
         String priceString = this.safeString2(trade, "p", "price");
@@ -1256,8 +1256,8 @@ public class Apex extends ApexApi
         // }
         //
         String marketId = this.safeString(interest, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Apex.this.safeString(interest, "openInterest") );
@@ -1343,8 +1343,8 @@ public class Apex extends ApexApi
             String marketId = this.safeString(entry, "symbol");
             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                 put( "info", entry );
-                put( "symbol", Apex.this.safeSymbol(marketId, market, (String) null, (String) null) );
-                put( "fundingRate", Apex.this.safeNumber(entry, "rate", (Object) null) );
+                put( "symbol", Apex.this.safeSymbol(marketId, market, null, null) );
+                put( "fundingRate", Apex.this.safeNumber(entry, "rate", null) );
                 put( "timestamp", timestamp );
                 put( "datetime", Apex.this.iso8601(timestamp) );
             }});
@@ -1414,7 +1414,7 @@ public class Apex extends ApexApi
         String orderId = this.safeString(order, "id");
         String clientOrderId = this.safeString(order, "clientId");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
@@ -1435,8 +1435,8 @@ public class Apex extends ApexApi
             put( "symbol", symbol );
             put( "type", Apex.this.parseOrderType(orderType) );
             put( "timeInForce", Apex.this.parseTimeInForce(Apex.this.safeString(order, "timeInForce")) );
-            put( "postOnly", Apex.this.safeBool(order, "postOnly", (Object) null) );
-            put( "reduceOnly", Apex.this.safeBool(order, "reduceOnly", (Object) null) );
+            put( "postOnly", Apex.this.safeBool(order, "postOnly", null) );
+            put( "reduceOnly", Apex.this.safeBool(order, "reduceOnly", null) );
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", Apex.this.safeString(order, "triggerPrice") );
@@ -1510,7 +1510,7 @@ public class Apex extends ApexApi
                 marketResolved = this.safeDict((marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId)), 0, null);
             } else
             {
-                String newMarketId = this.addHyphenBeforeUsdt((String) (marketId));
+                String newMarketId = this.addHyphenBeforeUsdt(marketId);
                 if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(newMarketId)))
                 {
                     List<?> markets = (List<?>) ((newMarketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(newMarketId)));
@@ -1540,7 +1540,7 @@ public class Apex extends ApexApi
 
     public String addHyphenBeforeUsdt(String symbol)
     {
-        String uppercaseSymbol = ((String)symbol).toUpperCase();
+        String uppercaseSymbol = symbol.toUpperCase();
         Integer index = ((String)uppercaseSymbol).indexOf("USDT");
         String symbolChar = this.safeString(symbol, (((long) index) - 1L));
         if ((index != null && index > 0) && !java.util.Objects.equals(symbolChar, "-"))
@@ -1598,12 +1598,12 @@ public class Apex extends ApexApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1611,9 +1611,9 @@ public class Apex extends ApexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String orderType = ((String)type).toUpperCase();
+        String orderType = type.toUpperCase();
         this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-        String orderSide = ((String)side).toUpperCase();
+        String orderSide = side.toUpperCase();
         String orderSize = this.amountToPrecision(symbol, amount);
         String orderPrice = "0";
         if (!java.util.Objects.equals(price, null))
@@ -1623,7 +1623,7 @@ public class Apex extends ApexApi
         Map<String, Object> fees = this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
         String taker = this.safeString(fees, "taker", "0.0005");
         String maker = this.safeString(fees, "maker", "0.0002");
-        Double pricePrecision = this.safeNumber(market.get("precision"), "price", (Object) null);
+        Double pricePrecision = this.safeNumber(market.get("precision"), "price", null);
         String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
         Long timeNow = this.milliseconds();
         String triggerPrice = this.safeString(parameters, "triggerPrice");
@@ -1644,7 +1644,7 @@ public class Apex extends ApexApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
         }
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
         if (java.util.Objects.equals(timeInForce, null))
         {
             timeInForce = "GOOD_TIL_CANCEL";
@@ -1753,7 +1753,7 @@ public class Apex extends ApexApi
         String ethAddress = this.safeString(accountData, "ethereumAddress", "");
         String accountId = this.safeString(accountData, "id", "");
         Map<String, Object> currency = new HashMap<String, Object>() {{}};
-        Boolean isContract = java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract");
+        Boolean isContract = java.util.Objects.equals(fromAccount.toLowerCase(), "contract");
         List<Object> assets = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
         if (Boolean.TRUE.equals(isContract))
         {
@@ -1809,7 +1809,7 @@ public class Apex extends ApexApi
             Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long currentTime = this.milliseconds();
             Double parsedAmount = this.parseNumber(amount);
-            return this.extend(this.parseTransfer(data, this.currency((String) (code))), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(data, this.currency(code)), new HashMap<String, Object>() {{
                 put( "timestamp", currentTime );
                 put( "datetime", Apex.this.iso8601(currentTime) );
                 put( "amount", parsedAmount );
@@ -1849,7 +1849,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.privatePostV3TransferOut(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long currentTime = this.milliseconds();
-            return this.extend(this.parseTransfer(data, this.currency((String) (code))), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(data, this.currency(code)), new HashMap<String, Object>() {{
                 put( "timestamp", currentTime );
                 put( "datetime", Apex.this.iso8601(currentTime) );
                 put( "amount", Apex.this.parseNumber(amount) );
@@ -1872,7 +1872,7 @@ public class Apex extends ApexApi
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );
             put( "currency", Apex.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", Apex.this.safeNumber(transfer, "amount", (Object) null) );
+            put( "amount", Apex.this.safeNumber(transfer, "amount", null) );
             put( "fromAccount", fromAccount );
             put( "toAccount", toAccount );
             put( "status", Apex.this.safeString(transfer, "status") );
@@ -1944,7 +1944,7 @@ public class Apex extends ApexApi
             response = (this.privatePostV3DeleteOrder(this.extend(request, parameters))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.safeOrder(data, (Map<String, Object>) null);
+        return this.safeOrder(data, null);
 
     }
 
@@ -1985,7 +1985,7 @@ public class Apex extends ApexApi
             response = (this.privateGetV3Order(this.extend(request, parameters))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, (Map<String, Object>) null);
+        return this.parseOrder(data, null);
 
     }
 
@@ -2014,7 +2014,7 @@ public class Apex extends ApexApi
         }
         Map<String, Object> response = (this.privateGetV3OpenOrders(parameters)).join();
         List<Object> orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseOrders(orders, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseOrders(orders, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2116,7 +2116,7 @@ public class Apex extends ApexApi
         Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, paramsOmitted))).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-        return this.parseTrades(orders, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTrades(orders, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2254,18 +2254,18 @@ public class Apex extends ApexApi
         // }
         //
         String marketId = this.safeString(income, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "contract");
         String code = "USDT";
         Long timestamp = this.safeInteger(income, "fundingTime");
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Apex.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
+            put( "symbol", Apex.this.safeSymbol(marketId, marketResolved, null, null) );
             put( "code", code );
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );
             put( "id", Apex.this.safeString(income, "id") );
-            put( "amount", Apex.this.safeNumber(income, "fundingValue", (Object) null) );
-            put( "rate", Apex.this.safeNumber(income, "rate", (Object) null) );
+            put( "amount", Apex.this.safeNumber(income, "fundingValue", null) );
+            put( "rate", Apex.this.safeNumber(income, "rate", null) );
         }};
     }
 
@@ -2354,7 +2354,7 @@ public class Apex extends ApexApi
         //     "customInitialMarginRate": "0"
         // }
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
@@ -2369,7 +2369,7 @@ public class Apex extends ApexApi
         mapLiteral3.put("info", position);
         mapLiteral3.put("id", this.safeString(position, "id"));
         mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        mapLiteral3.put("entryPrice", this.safeNumber(position, "entryPrice", null));
         mapLiteral3.put("markPrice", null);
         mapLiteral3.put("notional", null);
         mapLiteral3.put("collateral", null);

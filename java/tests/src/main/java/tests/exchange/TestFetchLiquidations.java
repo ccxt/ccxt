@@ -30,9 +30,9 @@ public class TestFetchLiquidations extends BaseTest {
         // const now = exchange.milliseconds ();
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            TestLiquidation.testLiquidation(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), (String) (code));
+            TestLiquidation.testLiquidation(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), code);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), items);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
         return true;
         });
 

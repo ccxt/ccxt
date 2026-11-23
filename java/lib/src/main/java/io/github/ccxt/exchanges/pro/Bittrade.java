@@ -144,7 +144,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
         ticker.put("timestamp", timestamp);
@@ -242,7 +242,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
@@ -343,10 +343,10 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String interval = this.safeString(parts, 3);
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -451,7 +451,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             return;
         }
         Map<String, Object> data = this.safeDict(message, "data", null);
-        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+        Map<String, Object> snapshot = this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(data, "seqNum"));
         snapshot.put("timestamp", timestamp);
         snapshot.put("datetime", this.iso8601(timestamp));
@@ -460,7 +460,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
         {
-            this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))), orderbook);
+            Map<String, Object> messageItem = this.safeDict(messages, i, new HashMap<String, Object>() {{}});
+            this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
@@ -597,7 +598,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {

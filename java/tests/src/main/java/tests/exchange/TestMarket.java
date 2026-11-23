@@ -129,25 +129,25 @@ public class TestMarket extends BaseTest {
             // deprecated 'symbol' key is intentionally absent from their structures
             format = exchange.omit(format, new ArrayList<Object>(Arrays.asList("symbol")));
         }
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), market, format, emptyAllowedFor);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
         // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
         if (!java.util.Objects.equals(market.get("type"), "prediction"))
         {
-            TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), market, "symbol");
+            TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
         }
-        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), market);
+        Object logText = TestSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
         // todo: check not all to be within 0-1.0
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "taker", "-100");
-        TestSharedMethods.AssertLess(exchange, skippedProperties, (String) (method), market, "taker", "100");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "maker", "-100");
-        TestSharedMethods.AssertLess(exchange, skippedProperties, (String) (method), market, "maker", "100");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "taker", "-100");
+        TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "taker", "100");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
+        TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
         List<String> validTypes = new ArrayList<String>(Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "type", validTypes);
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         List<String> validSubTypes = new ArrayList<String>(Arrays.asList("linear", "inverse", "quanto", null));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "subType", validSubTypes);
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<String> checkedTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; i < checkedTypes.size(); i++)
@@ -175,11 +175,11 @@ public class TestMarket extends BaseTest {
         if (spot)
         {
             // for spot market, 'margin' can be either true/false or undefined
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "margin", new ArrayList<Object>(Arrays.asList(true, false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new ArrayList<Object>(Arrays.asList(true, false, null)));
         } else
         {
             // otherwise, it must be false or undefined
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "margin", new ArrayList<Object>(Arrays.asList(false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new ArrayList<Object>(Arrays.asList(false, null)));
         }
         // check mutually exclusive fields
         Boolean isPrediction = (java.util.Objects.equals(market.get("type"), "prediction"));
@@ -245,15 +245,15 @@ public class TestMarket extends BaseTest {
             // expiry datetime should be correct
             Object isoString = exchange.iso8601(market.get("expiry"));
             Assert(java.util.Objects.equals(market.get("expiryDatetime"), isoString), ((((("expiryDatetime (\"" + market.get("expiryDatetime")) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + logText));
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "expiry", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (option)
             {
                 // strike should be defined
                 Assert(((Helpers.inOp(skippedProperties, "strike")) || !java.util.Objects.equals(market.get("strike"), null)), ("\"strike\" must be defined when \"option\" is true" + logText));
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "strike", "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "strike", "0");
                 // optionType should be defined
                 Assert(((Helpers.inOp(skippedProperties, "optionType")) || !java.util.Objects.equals(market.get("optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + logText));
-                TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "optionType", new ArrayList<Object>(Arrays.asList("put", "call")));
+                TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "optionType", new ArrayList<Object>(Arrays.asList("put", "call")));
             } else
             {
                 // if not option, then strike and optionType should be undefined
@@ -283,7 +283,7 @@ public class TestMarket extends BaseTest {
             }
             if (!(Helpers.inOp(skippedProperties, "precision")))
             {
-                TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, (String) (method), market.get("precision"), priceOrAmountKey);
+                TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, market.get("precision"), priceOrAmountKey);
             }
         }
         // check limits
@@ -301,14 +301,14 @@ public class TestMarket extends BaseTest {
             if (!(Helpers.inOp(skippedProperties, "limits")))
             {
                 // min >= 0
-                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), limitEntry, "min", "0");
+                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0");
                 // max >= 0
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), limitEntry, "max", "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
                 // max >= min
                 String minString = exchange.safeString(limitEntry, "min");
                 if (!java.util.Objects.equals(minString, null))
                 {
-                    TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), limitEntry, "max", minString);
+                    TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);
                 }
             }
         }
@@ -316,20 +316,20 @@ public class TestMarket extends BaseTest {
         // not a currency, so baseId is the market/outcome id and won't map to a currency code)
         if (!Boolean.TRUE.equals(isInactiveMarket) && !Boolean.TRUE.equals(isPrediction))
         {
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), market, (String) (market.get("baseId")), (String) (market.get("base")));
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), market, (String) (market.get("quoteId")), (String) (market.get("quote")));
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), market, (String) (market.get("settleId")), (String) (market.get("settle")));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, (String) (market.get("baseId")), (String) (market.get("base")));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, (String) (market.get("quoteId")), (String) (market.get("quote")));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, (String) (market.get("settleId")), (String) (market.get("settle")));
         }
         // check ts
-        TestSharedMethods.AssertTimestamp(exchange, skippedProperties, (String) (method), market, null, "created");
+        TestSharedMethods.AssertTimestamp(exchange, skippedProperties, method, market, null, "created");
         // margin modes
         if (!(Helpers.inOp(skippedProperties, "marginModes")))
         {
             Object marginModes = exchange.safeDict(market, "marginModes", new HashMap<String, Object>() {{}}); // in future, remove safeDict
             Assert(((Map<?, ?>)marginModes).containsKey("cross"), ("marginModes should have \"cross\" key" + logText));
             Assert(((Map<?, ?>)marginModes).containsKey("isolated"), ("marginModes should have \"isolated\" key" + logText));
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), marginModes, "cross", new ArrayList<Object>(Arrays.asList(true, false, null)));
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), marginModes, "isolated", new ArrayList<Object>(Arrays.asList(true, false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, marginModes, "cross", new ArrayList<Object>(Arrays.asList(true, false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, marginModes, "isolated", new ArrayList<Object>(Arrays.asList(true, false, null)));
         }
     }
 

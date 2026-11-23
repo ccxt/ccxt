@@ -39,15 +39,15 @@ public class TestDepositWithdrawal extends BaseTest {
             put( "fee", new HashMap<String, Object>() {{}} );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry, now);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("currency")), requestedCode);
-        TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, (String) (method), entry, (String) (exchange.safeString(entry, "network")));
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, (String) (((Map<String, Object>)entry).get("currency")), requestedCode);
+        TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, method, entry, (String) (exchange.safeString(entry, "network")));
         //
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed", "rejected", "canceled")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")));
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", "0");
-        TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, (String) (method), entry, "fee");
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed", "rejected", "canceled")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")));
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
+        TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, entry, "fee");
         if (java.util.Objects.equals(((Map<String, Object>)entry).get("type"), "deposit"))
         {
             TestSharedMethods.AssertType(exchange, skippedProperties, entry, "addressFrom", format);

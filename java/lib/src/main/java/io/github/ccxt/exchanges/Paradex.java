@@ -1061,13 +1061,13 @@ public class Paradex extends ParadexApi
             quoteId = settleId;
             settleId = null;
         }
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, null);
+        String base = this.safeCurrencyCode(baseId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId, null);
         String symbol = ((base + "/") + quote);
         if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
         {
@@ -1096,8 +1096,8 @@ public class Paradex extends ParadexApi
         // the fee an api order pays, the market falls back to the default schedule of its type
         Map<String, Object> apiFee = this.safeDict(this.safeDict(market, "fee_config", new HashMap<String, Object>() {{}}), "api_fee", new HashMap<String, Object>() {{}});
         Map<String, Object> defaultFees = this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
-        Double makerFee = this.safeNumber(this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}}), "fee", this.safeNumber(defaultFees, "maker", (Object) null));
-        Double takerFee = this.safeNumber(this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}}), "fee", this.safeNumber(defaultFees, "taker", (Object) null));
+        Double makerFee = this.safeNumber(this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}}), "fee", this.safeNumber(defaultFees, "maker", null));
+        Double takerFee = this.safeNumber(this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}}), "fee", this.safeNumber(defaultFees, "taker", null));
         // an rfq only market takes block trades and rejects orders on the book
         Long openAt = this.safeInteger(market, "open_at");
         String tradingMode = this.safeString(market, "trading_mode");
@@ -1136,8 +1136,8 @@ public class Paradex extends ParadexApi
         mapLiteral1.put("strike", this.parseNumber(strikePrice));
         mapLiteral1.put("optionType", this.safeStringLower(market, "option_type"));
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Paradex.this.safeNumber(market, "order_size_increment", (Object) null) );
-                put( "price", Paradex.this.safeNumber(market, "price_tick_size", (Object) null) );
+                put( "amount", Paradex.this.safeNumber(market, "order_size_increment", null) );
+                put( "price", Paradex.this.safeNumber(market, "price_tick_size", null) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -1146,14 +1146,14 @@ public class Paradex extends ParadexApi
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", Paradex.this.safeNumber(market, "max_order_size", (Object) null) );
+                    put( "max", Paradex.this.safeNumber(market, "max_order_size", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Paradex.this.safeNumber(market, "min_notional", (Object) null) );
+                    put( "min", Paradex.this.safeNumber(market, "min_notional", null) );
                     put( "max", null );
                 }} );
             }});
@@ -1275,12 +1275,12 @@ public class Paradex extends ParadexApi
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
         // a dated option id has five parts, BTC-USD-29MAY26-80000-C
-        if ((!java.util.Objects.equals(marketId, null)) && (((String)marketId).indexOf("/") < 0) && (((String)marketId).endsWith("-C") || ((String)marketId).endsWith("-P")))
+        if ((!java.util.Objects.equals(marketId, null)) && (marketId.indexOf("/") < 0) && (marketId.endsWith("-C") || marketId.endsWith("-P")))
         {
             Boolean isKnown = (!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId));
             if (!Boolean.TRUE.equals(isKnown))
             {
-                List<Object> marketIdParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
+                List<Object> marketIdParts = new ArrayList<Object>(Arrays.asList(marketId.split(java.util.regex.Pattern.quote("-"))));
                 Integer marketIdPartsLength = marketIdParts.size();
                 if (java.util.Objects.equals(marketIdPartsLength, 5))
                 {
@@ -1313,7 +1313,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(fee, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Map<String, Object> feeConfig = this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
         Map<String, Object> apiFee = this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
         Map<String, Object> makerFee = this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
@@ -1321,8 +1321,8 @@ public class Paradex extends ParadexApi
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", marketResolved.get("symbol") );
-            put( "maker", Paradex.this.safeNumber(makerFee, "fee", Paradex.this.safeNumber(marketResolved, "maker", (Object) null)) );
-            put( "taker", Paradex.this.safeNumber(takerFee, "fee", Paradex.this.safeNumber(marketResolved, "taker", (Object) null)) );
+            put( "maker", Paradex.this.safeNumber(makerFee, "fee", Paradex.this.safeNumber(marketResolved, "maker", null)) );
+            put( "taker", Paradex.this.safeNumber(takerFee, "fee", Paradex.this.safeNumber(marketResolved, "taker", null)) );
             put( "percentage", true );
             put( "tierBased", false );
         }};
@@ -1425,7 +1425,7 @@ public class Paradex extends ParadexApi
         //
         List<Object> fees = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // markets left out by options.fetchMarkets.types are skipped
-        List<Object> loadedFees = this.filterLoadedSummaries(fees, (String) null);
+        List<Object> loadedFees = this.filterLoadedSummaries(fees, null);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < loadedFees.size(); i++)
         {
@@ -1542,7 +1542,7 @@ public class Paradex extends ParadexApi
         //         1591
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 4, null), this.safeNumber(ohlcv, 5, null)));
     }
 
     /**
@@ -1566,7 +1566,7 @@ public class Paradex extends ParadexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", Paradex.this.summaryMarketId(symbolsNormalized) );
         }};
@@ -1595,7 +1595,7 @@ public class Paradex extends ParadexApi
         List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.safeString(request, "market"), "ALL"))
         {
-            return this.parseTickers(this.filterLoadedSummaries(data, (String) null), symbolsNormalized, new HashMap<String, Object>() {{}});
+            return this.parseTickers(this.filterLoadedSummaries(data, null), symbolsNormalized, new HashMap<String, Object>() {{}});
         }
         return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
 
@@ -1650,7 +1650,7 @@ public class Paradex extends ParadexApi
                     ((List<Object>)result).add(summary);
                 } else
                 {
-                    Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                    Map<String, Object> market = this.safeMarket(marketId, null, null, null);
                     if (java.util.Objects.equals(market.get("type"), marketType))
                     {
                         ((List<Object>)result).add(summary);
@@ -1740,7 +1740,7 @@ public class Paradex extends ParadexApi
         }
         String last = this.safeString(ticker, "last_traded_price");
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "created_at");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
@@ -1790,7 +1790,7 @@ public class Paradex extends ParadexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", Paradex.this.summaryMarketId(symbolsNormalized) );
         }};
@@ -1857,7 +1857,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(contract, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "swap");
         Long timestamp = this.safeInteger(contract, "created_at");
         // the summary answers for every product, and only a perpetual funds: an
         // option row carries an empty funding_rate and a period of zero. left
@@ -1878,13 +1878,13 @@ public class Paradex extends ParadexApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", contract);
             h2kMap1.put("symbol", ((Boolean.TRUE.equals(funds))) ? marketResolved.get("symbol") : null);
-            h2kMap1.put("markPrice", this.safeNumber(contract, "mark_price", (Object) null));
-            h2kMap1.put("indexPrice", this.safeNumber(contract, "underlying_price", (Object) null));
+            h2kMap1.put("markPrice", this.safeNumber(contract, "mark_price", null));
+            h2kMap1.put("indexPrice", this.safeNumber(contract, "underlying_price", null));
             h2kMap1.put("interestRate", null);
             h2kMap1.put("estimatedSettlePrice", null);
             h2kMap1.put("timestamp", timestamp);
             h2kMap1.put("datetime", this.iso8601(timestamp));
-            h2kMap1.put("fundingRate", this.safeNumber(contract, "funding_rate", (Object) null));
+            h2kMap1.put("fundingRate", this.safeNumber(contract, "funding_rate", null));
             h2kMap1.put("fundingTimestamp", null);
             h2kMap1.put("fundingDatetime", null);
             h2kMap1.put("nextFundingRate", null);
@@ -1986,7 +1986,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
+            return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "next", "cursor", null, 100L)).join();
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2067,7 +2067,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(trade, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String id = this.safeString(trade, "id");
         Long timestamp = this.safeInteger(trade, "created_at");
         String priceString = this.safeString(trade, "price");
@@ -2081,7 +2081,7 @@ public class Paradex extends ParadexApi
             takerOrMaker = "taker";
         }
         String currencyId = this.safeString(trade, "fee_currency");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", trade);
         mapLiteral4.put("id", id);
@@ -2181,7 +2181,7 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(interest, "created_at");
         String marketId = this.safeString(interest, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -2428,7 +2428,7 @@ public class Paradex extends ParadexApi
             clientOrderId = null;
         }
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
@@ -2580,10 +2580,10 @@ public class Paradex extends ParadexApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean reduceOnlyParam = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnlyParam = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyParam, true));
-        String orderType = ((String)type).toUpperCase();
-        String orderSide = ((String)side).toUpperCase();
+        String orderType = type.toUpperCase();
+        String orderSide = side.toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("market", market.get("id"));
         request.put("side", orderSide);
@@ -2596,7 +2596,7 @@ public class Paradex extends ParadexApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
         String instruction = "GTC";
         if (!java.util.Objects.equals(timeInForce, null))
         {
@@ -2629,7 +2629,7 @@ public class Paradex extends ParadexApi
         {
             request.put("client_id", clientOrderId);
         }
-        List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createOrder", "recvWindow", "recv_window", (Object) null);
+        List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createOrder", "recvWindow", "recv_window", null);
         var recvWindow = ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
         Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
         if (!java.util.Objects.equals(recvWindow, null))
@@ -2775,12 +2775,12 @@ public class Paradex extends ParadexApi
      * @param {int} [params.recvWindow] the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
@@ -2789,7 +2789,7 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         request = (this.signOrderRequest(request, false)).join();
         Map<String, Object> response = (this.privatePostOrders(request)).join();
         //
@@ -2866,7 +2866,7 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags", "recv_window")));
         Map<String, Object> editRequest = this.extend(request, new HashMap<String, Object>() {{
             put( "order_id", id );
@@ -2941,8 +2941,8 @@ public class Paradex extends ParadexApi
             String symbol = this.safeString(rawOrder, "symbol");
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
-            Double price = this.safeNumber(rawOrder, "price", (Object) null);
+            Double amount = this.safeNumber(rawOrder, "amount", null);
+            Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> extendedParams = this.extend(parameters, orderParams);
             Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
@@ -2983,14 +2983,14 @@ public class Paradex extends ParadexApi
             Map<String, Object> responseOrder = this.safeDict(responseOrders, i, null);
             if (!java.util.Objects.equals(responseOrder, null))
             {
-                ((List<Object>)result).add(this.parseOrder(responseOrder, (Map<String, Object>) null));
+                ((List<Object>)result).add(this.parseOrder(responseOrder, null));
             } else
             {
                 Map<String, Object> error = this.safeDict(errors, i, null);
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
-                }}, (Map<String, Object>) null));
+                }}, null));
             }
         }
         return result;
@@ -3037,7 +3037,7 @@ public class Paradex extends ParadexApi
         //
         // if success, no response...
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(response, null);
 
     }
 
@@ -3065,7 +3065,7 @@ public class Paradex extends ParadexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
+        List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
         Boolean hasOrderIds = (!java.util.Objects.equals(ids, null));
         Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null));
@@ -3113,7 +3113,7 @@ public class Paradex extends ParadexApi
         {
             Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
             String marketId = this.safeString(result, "market");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String status = this.safeString(result, "status");
             String orderStatus = null;
             if (java.util.Objects.equals(status, "QUEUED_FOR_CANCELLATION"))
@@ -3174,7 +3174,7 @@ public class Paradex extends ParadexApi
         //
         return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
     put( "info", response );
-}}, (Map<String, Object>) null)));
+}}, null)));
 
     }
 
@@ -3242,7 +3242,7 @@ public class Paradex extends ParadexApi
         //         "trigger_price": "0"
         //     }
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(response, null);
 
     }
 
@@ -3278,7 +3278,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 50L)).join();
+            return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, paramsPaginate, "next", "cursor", null, 50L)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
@@ -3463,7 +3463,7 @@ public class Paradex extends ParadexApi
         {
             Map<String, Object> balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "size"));
             if (!java.util.Objects.equals(code, null))
@@ -3505,7 +3505,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
+            return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "next", "cursor", null, 100L)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
@@ -3624,7 +3624,7 @@ public class Paradex extends ParadexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.privateGetPositions(parameters)).join();
         //
         //     {
@@ -3696,7 +3696,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(position, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(position, "side");
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
@@ -3709,12 +3709,12 @@ public class Paradex extends ParadexApi
             put( "info", position );
             put( "id", Paradex.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", Paradex.this.safeNumber(position, "average_entry_price", (Object) null) );
+            put( "entryPrice", Paradex.this.safeNumber(position, "average_entry_price", null) );
             put( "markPrice", null );
             put( "notional", Paradex.this.parseNumber(notionalString) );
             put( "collateral", null );
-            put( "unrealizedPnl", Paradex.this.safeNumber(position, "unrealized_pnl", (Object) null) );
-            put( "realizedPnl", Paradex.this.safeNumber(position, "realized_pnl", (Object) null) );
+            put( "unrealizedPnl", Paradex.this.safeNumber(position, "unrealized_pnl", null) );
+            put( "realizedPnl", Paradex.this.safeNumber(position, "realized_pnl", null) );
             put( "side", side );
             put( "contracts", Paradex.this.parseNumber(quantity) );
             put( "contractSize", null );
@@ -3726,7 +3726,7 @@ public class Paradex extends ParadexApi
             put( "maintenanceMarginPercentage", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
-            put( "leverage", Paradex.this.safeNumber(position, "leverage", (Object) null) );
+            put( "leverage", Paradex.this.safeNumber(position, "leverage", null) );
             put( "liquidationPrice", liquidationPrice );
             put( "marginRatio", null );
             put( "marginMode", "cross" );
@@ -3811,7 +3811,7 @@ public class Paradex extends ParadexApi
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null));
+        }}, null));
     }
 
     /**
@@ -3846,9 +3846,9 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(paginate))
         {
             // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            Object transactions = (this.fetchPaginatedCallCursor("fetchDeposits", code, since, (Long) null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
+            Object transactions = (this.fetchPaginatedCallCursor("fetchDeposits", code, since, null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
                 put( "allKinds", true );
-            }}), "next", "cursor", (Long) null, 100L)).join();
+            }}), "next", "cursor", null, 100L)).join();
             List<Object> transactionsOfKind = this.filterTransactionsByKind(transactions, "DEPOSIT");
             return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
         }
@@ -3902,7 +3902,7 @@ public class Paradex extends ParadexApi
                 ((List<Object>)deposits).add(withCursor);
             }
         }
-        return this.parseTransactions(deposits, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTransactions(deposits, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3938,9 +3938,9 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(paginate))
         {
             // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            Object transactions = (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, (Long) null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
+            Object transactions = (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
                 put( "allKinds", true );
-            }}), "next", "cursor", (Long) null, 100L)).join();
+            }}), "next", "cursor", null, 100L)).join();
             List<Object> transactionsOfKind = this.filterTransactionsByKind(transactions, "WITHDRAWAL");
             return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
         }
@@ -3994,7 +3994,7 @@ public class Paradex extends ParadexApi
                 ((List<Object>)deposits).add(withCursor);
             }
         }
-        return this.parseTransactions(deposits, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTransactions(deposits, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4029,13 +4029,13 @@ public class Paradex extends ParadexApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
+            return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "next", "cursor", null, 100L)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+            currency = this.safeCurrency(code, null);
         }
         if (!java.util.Objects.equals(limit, null))
         {
@@ -4123,7 +4123,7 @@ public class Paradex extends ParadexApi
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
             h2kMap2.put("currency", code);
-            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", null));
             h2kMap2.put("fromAccount", fromAccount);
             h2kMap2.put("toAccount", toAccount);
             h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transfer, "status")));
@@ -4160,7 +4160,7 @@ public class Paradex extends ParadexApi
         String type = this.safeString(transaction, "kind");
         type = (((java.util.Objects.equals(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Double amount = this.safeNumber(transaction, "amount", (Object) null);
+        Double amount = this.safeNumber(transaction, "amount", null);
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("info", transaction);
@@ -4252,14 +4252,14 @@ public class Paradex extends ParadexApi
         // }
         //
         List<Object> configs = this.safeList(response, "configs", null);
-        return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0, null)), market);
+        return this.parseMarginMode(this.safeDict(configs, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
     public Map<String, Object> parseMarginMode(Map<String, Object> rawMarginMode, Map<String, Object> market)
     {
         String marketId = this.safeString(rawMarginMode, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String marginMode = this.safeStringLower(rawMarginMode, "margin_type");
         return new HashMap<String, Object>() {{
             put( "info", rawMarginMode );
@@ -4294,7 +4294,7 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        List<Object> leverageOptionparamsLeverageVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", (Object) null);
+        List<Object> leverageOptionparamsLeverageVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", null);
         var leverageOption = ((List<Object>) leverageOptionparamsLeverageVariable).get(0);
         Map<String, Object> paramsLeverage = (Map<String, Object>) ((List<Object>) leverageOptionparamsLeverageVariable).get(1);
         Object leverage = leverageOption;
@@ -4311,7 +4311,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("market", market.get("id"));
         request.put("leverage", leverage);
-        request.put("margin_type", this.encodeMarginMode((String) (marginMode)));
+        request.put("margin_type", this.encodeMarginMode(marginMode));
         return (this.privatePostAccountMarginMarket(this.extend(request, paramsLeverage))).join();
 
     }
@@ -4363,11 +4363,11 @@ public class Paradex extends ParadexApi
     public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String marginMode = this.safeStringLower(leverage, "margin_type");
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Paradex.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );
+            put( "symbol", Paradex.this.safeSymbol(marketId, marketResolved, null, null) );
             put( "marginMode", marginMode );
             put( "longLeverage", Paradex.this.safeInteger(leverage, "leverage") );
             put( "shortLeverage", Paradex.this.safeInteger(leverage, "leverage") );
@@ -4508,7 +4508,7 @@ public class Paradex extends ParadexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", Paradex.this.summaryMarketId(symbolsNormalized) );
         }};
@@ -4590,7 +4590,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(greeks, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "option");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "option");
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
         Map<String, Object> greeksData = this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
@@ -4598,23 +4598,23 @@ public class Paradex extends ParadexApi
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "delta", Paradex.this.safeNumber(greeksData, "delta", (Object) null) );
-            put( "gamma", Paradex.this.safeNumber(greeksData, "gamma", (Object) null) );
-            put( "theta", Paradex.this.safeNumber(greeksData, "theta", (Object) null) );
-            put( "vega", Paradex.this.safeNumber(greeksData, "vega", (Object) null) );
-            put( "rho", Paradex.this.safeNumber(greeksData, "rho", (Object) null) );
-            put( "vanna", Paradex.this.safeNumber(greeksData, "vanna", (Object) null) );
-            put( "volga", Paradex.this.safeNumber(greeksData, "volga", (Object) null) );
-            put( "bidSize", Paradex.this.safeNumber(greeks, "bid_size", (Object) null) );
-            put( "askSize", Paradex.this.safeNumber(greeks, "ask_size", (Object) null) );
-            put( "bidImpliedVolatility", Paradex.this.safeNumber(greeks, "bid_iv", (Object) null) );
-            put( "askImpliedVolatility", Paradex.this.safeNumber(greeks, "ask_iv", (Object) null) );
-            put( "markImpliedVolatility", Paradex.this.safeNumber(greeks, "mark_iv", (Object) null) );
-            put( "bidPrice", Paradex.this.safeNumber(greeks, "bid", (Object) null) );
-            put( "askPrice", Paradex.this.safeNumber(greeks, "ask", (Object) null) );
-            put( "markPrice", Paradex.this.safeNumber(greeks, "mark_price", (Object) null) );
-            put( "lastPrice", Paradex.this.safeNumber(greeks, "last_traded_price", (Object) null) );
-            put( "underlyingPrice", Paradex.this.safeNumber(greeks, "underlying_price", (Object) null) );
+            put( "delta", Paradex.this.safeNumber(greeksData, "delta", null) );
+            put( "gamma", Paradex.this.safeNumber(greeksData, "gamma", null) );
+            put( "theta", Paradex.this.safeNumber(greeksData, "theta", null) );
+            put( "vega", Paradex.this.safeNumber(greeksData, "vega", null) );
+            put( "rho", Paradex.this.safeNumber(greeksData, "rho", null) );
+            put( "vanna", Paradex.this.safeNumber(greeksData, "vanna", null) );
+            put( "volga", Paradex.this.safeNumber(greeksData, "volga", null) );
+            put( "bidSize", Paradex.this.safeNumber(greeks, "bid_size", null) );
+            put( "askSize", Paradex.this.safeNumber(greeks, "ask_size", null) );
+            put( "bidImpliedVolatility", Paradex.this.safeNumber(greeks, "bid_iv", null) );
+            put( "askImpliedVolatility", Paradex.this.safeNumber(greeks, "ask_iv", null) );
+            put( "markImpliedVolatility", Paradex.this.safeNumber(greeks, "mark_iv", null) );
+            put( "bidPrice", Paradex.this.safeNumber(greeks, "bid", null) );
+            put( "askPrice", Paradex.this.safeNumber(greeks, "ask", null) );
+            put( "markPrice", Paradex.this.safeNumber(greeks, "mark_price", null) );
+            put( "lastPrice", Paradex.this.safeNumber(greeks, "last_traded_price", null) );
+            put( "underlyingPrice", Paradex.this.safeNumber(greeks, "underlying_price", null) );
             put( "info", greeks );
         }};
     }
@@ -4681,7 +4681,7 @@ public class Paradex extends ParadexApi
         //
         List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> chain = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        return this.parseOption(chain, (Map<String, Object>) null, market);
+        return this.parseOption(chain, null, market);
 
     }
 
@@ -4716,17 +4716,16 @@ public class Paradex extends ParadexApi
         String prefix = (code + "-");
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            String marketId = this.safeString(entry, "symbol", "");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol", "");
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
-            if ((marketId.startsWith(((String)prefix))))
+            if (marketId.startsWith(((String)prefix)))
             {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
-                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                Map<String, Object> market = this.safeMarket(marketId, null, null, null);
                 if (java.util.Objects.equals(market.get("option"), true))
                 {
                     String optionSymbol = this.safeString(market, "symbol", "");
-                    result.put(optionSymbol, this.parseOption(entry, (Map<String, Object>) null, market));
+                    result.put(optionSymbol, this.parseOption(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null, market));
                 }
             }
         }
@@ -4756,7 +4755,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(chain, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "option");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "option");
         Long timestamp = this.safeInteger(chain, "created_at");
         String bid = this.safeString(chain, "bid");
         String ask = this.safeString(chain, "ask");
@@ -4777,18 +4776,18 @@ public class Paradex extends ParadexApi
             h2kMap4.put("symbol", marketResolved.get("symbol"));
             h2kMap4.put("timestamp", timestamp);
             h2kMap4.put("datetime", this.iso8601(timestamp));
-            h2kMap4.put("impliedVolatility", this.safeNumber(chain, "mark_iv", (Object) null));
-            h2kMap4.put("openInterest", this.safeNumber(chain, "open_interest", (Object) null));
+            h2kMap4.put("impliedVolatility", this.safeNumber(chain, "mark_iv", null));
+            h2kMap4.put("openInterest", this.safeNumber(chain, "open_interest", null));
             h2kMap4.put("bidPrice", this.parseNumber(bid));
             h2kMap4.put("askPrice", this.parseNumber(ask));
             h2kMap4.put("midPrice", this.parseNumber(mid));
-            h2kMap4.put("markPrice", this.safeNumber(chain, "mark_price", (Object) null));
-            h2kMap4.put("lastPrice", this.safeNumber(chain, "last_traded_price", (Object) null));
-            h2kMap4.put("underlyingPrice", this.safeNumber(chain, "underlying_price", (Object) null));
+            h2kMap4.put("markPrice", this.safeNumber(chain, "mark_price", null));
+            h2kMap4.put("lastPrice", this.safeNumber(chain, "last_traded_price", null));
+            h2kMap4.put("underlyingPrice", this.safeNumber(chain, "underlying_price", null));
             h2kMap4.put("change", null);
             h2kMap4.put("percentage", this.parseNumber(percentage));
             h2kMap4.put("baseVolume", null);
-            h2kMap4.put("quoteVolume", this.safeNumber(chain, "volume_24h", (Object) null));
+            h2kMap4.put("quoteVolume", this.safeNumber(chain, "volume_24h", null));
             return h2kMap4;
         }
     }
@@ -4829,7 +4828,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
+            return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "next", "cursor", null, 100L)).join();
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4895,7 +4894,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(income, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(income, "created_at");
         return new HashMap<String, Object>() {{
             put( "info", income );
@@ -4904,7 +4903,7 @@ public class Paradex extends ParadexApi
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "id", Paradex.this.safeString(income, "id") );
-            put( "amount", Paradex.this.safeNumber(income, "payment", (Object) null) );
+            put( "amount", Paradex.this.safeNumber(income, "payment", null) );
         }};
     }
 
@@ -4968,7 +4967,7 @@ public class Paradex extends ParadexApi
             j39v3.put("end_at", endAt);
             Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), j39v3);
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
-            Object pages = (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, (Long) null, paramsEndAt, "next", "cursor", (Long) null, 5000L)).join();
+            Object pages = (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, null, paramsEndAt, "next", "cursor", null, 5000L)).join();
             List<Object> sortedPages = this.sortBy(pages, "timestamp");
             return this.filterBySinceLimit(sortedPages, since, limit, "timestamp", false);
         }
@@ -5033,7 +5032,7 @@ public class Paradex extends ParadexApi
             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                 put( "info", rate );
                 put( "symbol", market.get("symbol") );
-                put( "fundingRate", Paradex.this.safeNumber(rate, "funding_rate", (Object) null) );
+                put( "fundingRate", Paradex.this.safeNumber(rate, "funding_rate", null) );
                 put( "timestamp", timestamp );
                 put( "datetime", datetime );
             }});
@@ -5048,11 +5047,11 @@ public class Paradex extends ParadexApi
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
         String pathValue = path;
-        if ((((String)path).indexOf("v2/") == 0))
+        if ((path.indexOf("v2/") == 0))
         {
             pathValue = (path == null ? null : ((String)path).replaceFirst("v2/", ""));
         }
-        if ((((String)path).indexOf("v2/") == 0))
+        if ((path.indexOf("v2/") == 0))
         {
             version = "v2";
         }

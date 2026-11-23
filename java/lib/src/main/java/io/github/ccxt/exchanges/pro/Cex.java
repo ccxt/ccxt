@@ -150,7 +150,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(freeBalance, currencyId));
             account.put("used", this.safeString(usedBalance, currencyId));
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             if (!java.util.Objects.equals(code, null))
             {
                 this.balance.put(code, account);
@@ -388,7 +388,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String url = this.safeString(this.urls.get("api"), "ws", "");
         String messageHash = "tickers";
         Map<String, Object> message = new HashMap<String, Object>() {{
@@ -480,7 +480,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //  public
@@ -516,8 +516,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             quoteId = this.safeString(pair, 1);
         }
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -738,7 +738,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, null);
         stored.append(trade);
         String tradeSymbol = this.safeString(trade, "symbol", "");
         String messageHash = ("myTrades:" + tradeSymbol);
@@ -775,8 +775,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String datetime = this.safeString(trade, "time");
         String baseId = this.safeString(trade, "symbol");
         String quoteId = this.safeString(trade, "symbol2");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -899,14 +899,14 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             baseId = this.safeString(pair, "symbol1");
             quoteId = this.safeString(pair, "symbol2");
         }
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
         }
         String symbol = ((base + "/") + quote);
-        Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(symbol, null, null, null);
         String remains = this.currencyFromPrecision((String) (base), (String) (remainsPrecision));
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -932,7 +932,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             orderUpdate.put("status", "closed");
         }
-        Double fee = this.safeNumber(data, "fee", (Object) null);
+        Double fee = this.safeNumber(data, "fee", null);
         if (!java.util.Objects.equals(fee, null))
         {
             HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -944,7 +944,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = this.safeInteger(data, "time");
         orderUpdate.put("timestamp", timestamp);
         orderUpdate.put("datetime", this.iso8601(timestamp));
-        Order parsedOrder = this.safeOrder(this.extend(order, orderUpdate), (Map<String, Object>) null);
+        Order parsedOrder = this.safeOrder(this.extend(order, orderUpdate), null);
         storedOrders.append(parsedOrder);
         String messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
@@ -1016,14 +1016,14 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             baseId = this.safeString(order, "symbol1");
             quoteId = this.safeString(order, "symbol2");
         }
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         String symbol = null;
         if (!java.util.Objects.equals(base, null) && !java.util.Objects.equals(quote, null))
         {
             symbol = ((base + "/") + quote);
         }
-        Map<String, Object> marketResolved = this.safeMarket(symbol, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
         Long time = this.safeInteger(order, "time");
         Long timestamp = time;
         if (Boolean.TRUE.equals(isTransaction))
@@ -1052,7 +1052,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         parsedOrder.put("timeInForce", null);
         parsedOrder.put("postOnly", null);
         parsedOrder.put("side", this.safeString(order, "type"));
-        parsedOrder.put("price", this.safeNumber(order, "price", (Object) null));
+        parsedOrder.put("price", this.safeNumber(order, "price", null));
         parsedOrder.put("stopPrice", null);
         parsedOrder.put("triggerPrice", null);
         parsedOrder.put("average", null);
@@ -1061,7 +1061,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         parsedOrder.put("filled", null);
         parsedOrder.put("remaining", remaining);
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("cost", this.safeNumber2(order, "fee", "fee_amount", (Object) null));
+        mapLiteral5.put("cost", this.safeNumber2(order, "fee", "fee_amount", null));
         mapLiteral5.put("currency", quote);
         mapLiteral5.put("rate", null);
         parsedOrder.put("fee", mapLiteral5);
@@ -1088,7 +1088,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
     public String currencyFromPrecision(String currency, String amount)
     {
         Long scale = this.safeInteger((this.currencies == null || currency == null ? null : this.currencies.get(currency)), "precision", 0);
-        return this.fromPrecision((String) (amount), scale);
+        return this.fromPrecision(amount, scale);
     }
 
     public void handleOrdersSnapshot(Client client, Map<String, Object> message)
@@ -1118,7 +1118,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(symbol, null, null, null);
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), market);
             order.put("status", "open");
             myOrders.append(order);
@@ -1230,8 +1230,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)((String)pair)).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return "";
@@ -1371,14 +1371,14 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
         }
         String symbol = ((base + "/") + quote);
-        Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(symbol, null, null, null);
         String messageHash = ("ohlcv:" + symbol);
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
@@ -1441,7 +1441,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             return;
         }
         String messageHash = ("ohlcv:" + symbol);
-        List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "time"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
+        List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "time"), this.safeNumber(data, "o", null), this.safeNumber(data, "h", null), this.safeNumber(data, "l", null), this.safeNumber(data, "c", null), this.safeNumber(data, "v", null)));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown");
         stored.append(ohlcv);
         client.resolve(stored, messageHash);
@@ -1470,7 +1470,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).get("unknown");
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 0), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 1, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 2, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 3, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 4, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 5, (Object) null)));
+            List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 0), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 1, null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 2, null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 3, null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 4, null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 5, null)));
             stored.append(ohlcv);
         }
         Integer dataLength = data.size();
@@ -1581,12 +1581,12 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderWsCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(price, null))
@@ -1764,7 +1764,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //    }
         //
         List<Object> canceledOrders = this.safeList(response, "cancel-orders", null);
-        return this.parseOrders(canceledOrders, (Map<String, Object>) null, (Long) null, (Long) null, parameters);
+        return this.parseOrders(canceledOrders, null, null, null, parameters);
 
     }
 

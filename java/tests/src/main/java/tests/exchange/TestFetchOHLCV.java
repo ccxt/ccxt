@@ -45,7 +45,7 @@ public class TestFetchOHLCV extends BaseTest {
                 Object ohlcvs = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(sinceCurrent), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
                 // we can't expect array to have values, because requested period might have zero bars for valid reason
                 // TestSharedMethods.AssertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
-                helperFetchOHLCVChecker(exchange, skippedProperties, (String) (symbol), ohlcvs, (String) (chosenTimeframeKey), sinceCurrent, limit);
+                helperFetchOHLCVChecker(exchange, skippedProperties, symbol, ohlcvs, (String) (chosenTimeframeKey), sinceCurrent, limit);
             }
         }
         return true;
@@ -60,7 +60,7 @@ public class TestFetchOHLCV extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), (String) (symbol), now);
+            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
         }
         Object durationMs = Helpers.multiply(exchange.parseTimeframe(timeframe), 1000);
         Integer barsLength = ((List<?>)ohlcvs).size();

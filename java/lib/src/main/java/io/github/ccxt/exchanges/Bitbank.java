@@ -403,8 +403,8 @@ public class Bitbank extends BitbankApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
         String quoteId = this.safeString(entry, "quote_asset");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -424,12 +424,12 @@ public class Bitbank extends BitbankApi
         mapLiteral1.put("swap", false);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", false);
-        mapLiteral1.put("active", this.safeBool(entry, "is_enabled", (Object) null));
+        mapLiteral1.put("active", this.safeBool(entry, "is_enabled", null));
         mapLiteral1.put("contract", false);
         mapLiteral1.put("linear", null);
         mapLiteral1.put("inverse", null);
-        mapLiteral1.put("taker", this.safeNumber(entry, "taker_fee_rate_quote", (Object) null));
-        mapLiteral1.put("maker", this.safeNumber(entry, "maker_fee_rate_quote", (Object) null));
+        mapLiteral1.put("taker", this.safeNumber(entry, "taker_fee_rate_quote", null));
+        mapLiteral1.put("maker", this.safeNumber(entry, "maker_fee_rate_quote", null));
         mapLiteral1.put("contractSize", null);
         mapLiteral1.put("expiry", null);
         mapLiteral1.put("expiryDatetime", null);
@@ -445,8 +445,8 @@ public class Bitbank extends BitbankApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Bitbank.this.safeNumber(entry, "unit_amount", (Object) null) );
-                    put( "max", Bitbank.this.safeNumber(entry, "limit_max_amount", (Object) null) );
+                    put( "min", Bitbank.this.safeNumber(entry, "unit_amount", null) );
+                    put( "max", Bitbank.this.safeNumber(entry, "limit_max_amount", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -464,7 +464,7 @@ public class Bitbank extends BitbankApi
 
     public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market, null, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -569,7 +569,7 @@ public class Bitbank extends BitbankApi
         //    }
         //
         Long timestamp = this.safeInteger(trade, "executed_at");
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String id = this.safeString2(trade, "transaction_id", "trade_id");
@@ -695,13 +695,13 @@ public class Bitbank extends BitbankApi
         {
             Object pair = (pairs == null || i < 0 || i >= pairs.size() ? null : pairs.get(i));
             String marketId = this.safeString(pair, "name");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String symbol = this.safeString(market, "symbol", "");
             result.put(symbol, new HashMap<String, Object>() {{
     put( "info", pair );
     put( "symbol", symbol );
-    put( "maker", Bitbank.this.safeNumber(pair, "maker_fee_rate_quote", (Object) null) );
-    put( "taker", Bitbank.this.safeNumber(pair, "taker_fee_rate_quote", (Object) null) );
+    put( "maker", Bitbank.this.safeNumber(pair, "maker_fee_rate_quote", null) );
+    put( "taker", Bitbank.this.safeNumber(pair, "taker_fee_rate_quote", null) );
     put( "percentage", true );
     put( "tierBased", false );
 }});
@@ -722,7 +722,7 @@ public class Bitbank extends BitbankApi
         //         1591488000000
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 5), this.safeNumber(ohlcv, 0, (Object) null), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 5), this.safeNumber(ohlcv, 0, null), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 4, null)));
     }
 
     /**
@@ -805,7 +805,7 @@ public class Bitbank extends BitbankApi
         {
             Map<String, Object> balance = this.safeDict(assets, i, null);
             String currencyId = this.safeString(balance, "asset");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "free_amount"));
             account.put("used", this.safeString(balance, "locked_amount"));
@@ -892,7 +892,7 @@ public class Bitbank extends BitbankApi
     {
         String id = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "pair");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(order, "ordered_at");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "start_amount");
@@ -940,12 +940,12 @@ public class Bitbank extends BitbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1020,7 +1020,7 @@ public class Bitbank extends BitbankApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder(data, (Map<String, Object>) null);
+        return this.parseOrder(data, null);
 
     }
 
@@ -1187,7 +1187,7 @@ public class Bitbank extends BitbankApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "asset", currency.get("id") );
         }};
@@ -1227,7 +1227,7 @@ public class Bitbank extends BitbankApi
     private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        List<Object> tagAndParams = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        List<Object> tagAndParams = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagWithdrawTag = (String) ((List<Object>)tagAndParams).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>)tagAndParams).get(1);
         this.checkAddress(address, code, tagWithdrawTag);
@@ -1239,7 +1239,7 @@ public class Bitbank extends BitbankApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "asset", currency.get("id") );
             put( "amount", amount );
@@ -1286,7 +1286,7 @@ public class Bitbank extends BitbankApi
         //     }
         //
         String txid = this.safeString(transaction, "txid");
-        Map<String, Object> currencyResolved = this.safeCurrency((String) (null), currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(null, currency);
         return new HashMap<String, Object>() {{
             put( "id", txid );
             put( "txid", txid );

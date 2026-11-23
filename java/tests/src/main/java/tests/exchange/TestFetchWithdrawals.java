@@ -25,9 +25,9 @@ public class TestFetchWithdrawals extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)transactions).size(); i++)
         {
-            TestDepositWithdrawal.testDepositWithdrawal(exchange, skippedProperties, method, (transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), (String) (code), now);
+            TestDepositWithdrawal.testDepositWithdrawal(exchange, skippedProperties, method, (transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), code, now);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), transactions);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, code, transactions);
         return true;
         });
 

@@ -201,7 +201,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
             Object data = this.safeValue(message, i);
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), null);
             stored.append(trade);
         }
         String messageHash = ("trade:" + symbol);
@@ -244,7 +244,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         }}, market);
     }
 
-    public void handleListMessage(Client client, Object message)
+    public void handleListMessage(Client client, List<Object> message)
     {
         List<Object> data = this.safeList(message, 0, null);
         if (!(data instanceof List))

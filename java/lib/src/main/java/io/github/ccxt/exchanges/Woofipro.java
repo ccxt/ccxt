@@ -941,14 +941,14 @@ public class Woofipro extends WoofiproApi
         String marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
         String settleId = this.safeString(parts, 2);
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId, null);
         String symbol = ((((base + "/") + quote) + ":") + quote);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
@@ -975,8 +975,8 @@ public class Woofipro extends WoofiproApi
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Woofipro.this.safeNumber(market, "base_tick", (Object) null) );
-                put( "price", Woofipro.this.safeNumber(market, "quote_tick", (Object) null) );
+                put( "amount", Woofipro.this.safeNumber(market, "base_tick", null) );
+                put( "price", Woofipro.this.safeNumber(market, "quote_tick", null) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -984,15 +984,15 @@ public class Woofipro extends WoofiproApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Woofipro.this.safeNumber(market, "base_min", (Object) null) );
-                    put( "max", Woofipro.this.safeNumber(market, "base_max", (Object) null) );
+                    put( "min", Woofipro.this.safeNumber(market, "base_min", null) );
+                    put( "max", Woofipro.this.safeNumber(market, "base_max", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", Woofipro.this.safeNumber(market, "quote_min", (Object) null) );
-                    put( "max", Woofipro.this.safeNumber(market, "quote_max", (Object) null) );
+                    put( "min", Woofipro.this.safeNumber(market, "quote_min", null) );
+                    put( "max", Woofipro.this.safeNumber(market, "quote_max", null) );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Woofipro.this.safeNumber(market, "min_notional", (Object) null) );
+                    put( "min", Woofipro.this.safeNumber(market, "min_notional", null) );
                     put( "max", null );
                 }} );
             }});
@@ -1131,7 +1131,7 @@ public class Woofipro extends WoofiproApi
         Map<String, Object> token = this.safeDict(rawCurrency, "_token", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(token, "token");
         List<Object> networks = this.safeList(token, "chain_details", new ArrayList<Object>(Arrays.asList()));
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> indexedChains = this.safeDict(rawCurrency, "_indexedChains", new HashMap<String, Object>() {{}});
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networks.size(); j++)
@@ -1159,7 +1159,7 @@ public class Woofipro extends WoofiproApi
                 mapLiteral2.put("active", null);
                 mapLiteral2.put("deposit", null);
                 mapLiteral2.put("withdraw", null);
-                mapLiteral2.put("fee", this.safeNumber(networkEntry, "withdrawal_fee", (Object) null));
+                mapLiteral2.put("fee", this.safeNumber(networkEntry, "withdrawal_fee", null));
                 mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))));
                 mapLiteral2.put("info", new HashMap<String, Object>() {{
         put( "network", networkEntry );
@@ -1184,7 +1184,7 @@ public class Woofipro extends WoofiproApi
                     put( "max", null );
                 }} );
                 put( "withdraw", new HashMap<String, Object>() {{
-                    put( "min", Woofipro.this.safeNumber(token, "minimum_withdraw_amount", (Object) null) );
+                    put( "min", Woofipro.this.safeNumber(token, "minimum_withdraw_amount", null) );
                     put( "max", null );
                 }} );
             }} );
@@ -1199,7 +1199,7 @@ public class Woofipro extends WoofiproApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(item, feeTokenKey);
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
@@ -1242,7 +1242,7 @@ public class Woofipro extends WoofiproApi
         Boolean isFromFetchOrder = (!java.util.Objects.equals(this.safeString(trade, "id"), null));
         Long timestamp = this.safeInteger(trade, "executed_timestamp");
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(trade, "executed_price");
         String amount = this.safeString(trade, "executed_quantity");
@@ -1356,13 +1356,13 @@ public class Woofipro extends WoofiproApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", estFundingRateTimestamp );
             put( "datetime", Woofipro.this.iso8601(estFundingRateTimestamp) );
-            put( "fundingRate", Woofipro.this.safeNumber(fundingRate, "est_funding_rate", (Object) null) );
+            put( "fundingRate", Woofipro.this.safeNumber(fundingRate, "est_funding_rate", null) );
             put( "fundingTimestamp", nextFundingTimestamp );
             put( "fundingDatetime", Woofipro.this.iso8601(nextFundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
-            put( "previousFundingRate", Woofipro.this.safeNumber(fundingRate, "last_funding_rate", (Object) null) );
+            put( "previousFundingRate", Woofipro.this.safeNumber(fundingRate, "last_funding_rate", null) );
             put( "previousFundingTimestamp", lastFundingRateTimestamp );
             put( "previousFundingDatetime", Woofipro.this.iso8601(lastFundingRateTimestamp) );
             put( "interval", Woofipro.this.parseFundingInterval(millisecondsInterval) );
@@ -1469,7 +1469,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
         //
         // {
@@ -1515,7 +1515,7 @@ public class Woofipro extends WoofiproApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
@@ -1618,7 +1618,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
         //
         // {
@@ -1659,7 +1659,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseTicker(ticker, (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parseTicker(ticker, null));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -1682,9 +1682,9 @@ public class Woofipro extends WoofiproApi
         //     }
         //
         String marketId = this.safeString(interest, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(interest, "timestamp");
-        Double amount = this.safeNumber2(interest, "open_interest", "openInterest", (Object) null);
+        Double amount = this.safeNumber2(interest, "open_interest", "openInterest", null);
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
             put( "openInterestAmount", amount );
@@ -1762,7 +1762,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
         //
         // {
@@ -1795,7 +1795,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseOpenInterest(interest, (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parseOpenInterest(interest, null));
         }
         return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
 
@@ -1878,8 +1878,8 @@ public class Woofipro extends WoofiproApi
             Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                 put( "info", entry );
-                put( "symbol", Woofipro.this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null) );
-                put( "fundingRate", Woofipro.this.safeNumber(entry, "funding_rate", (Object) null) );
+                put( "symbol", Woofipro.this.safeSymbol(marketId, null, null, null) );
+                put( "fundingRate", Woofipro.this.safeNumber(entry, "funding_rate", null) );
                 put( "timestamp", timestamp );
                 put( "datetime", Woofipro.this.iso8601(timestamp) );
             }});
@@ -1904,11 +1904,11 @@ public class Woofipro extends WoofiproApi
         // }
         //
         String marketId = this.safeString(income, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String amount = this.safeString(income, "funding_fee");
-        String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
+        String code = this.safeCurrencyCode("USDC", null);
         Long timestamp = this.safeInteger(income, "updated_time");
-        Double rate = this.safeNumber(income, "funding_rate", (Object) null);
+        Double rate = this.safeNumber(income, "funding_rate", null);
         String paymentType = this.safeString(income, "payment_type");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
         {
@@ -2132,7 +2132,7 @@ public class Woofipro extends WoofiproApi
 
     public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "start_timestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "start_timestamp"), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "volume", null)));
     }
 
     /**
@@ -2246,14 +2246,14 @@ public class Woofipro extends WoofiproApi
         String orderId = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "orderId", "algoOrderId")));
         String clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString2(order, "order_price", "price");
         String amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
         String status = this.safeString2(order, "status", "algoStatus");
-        Boolean success = (Boolean) this.safeBool(order, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(order, "success", null);
         if (!java.util.Objects.equals(success, null))
         {
             status = ((Boolean.TRUE.equals(success))) ? "NEW" : "REJECTED";
@@ -2261,10 +2261,10 @@ public class Woofipro extends WoofiproApi
         String side = this.safeStringLower(order, "side");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
         String average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        Double fee = this.safeNumber2(order, "total_fee", "totalFee", (Object) null);
+        Double fee = this.safeNumber2(order, "total_fee", "totalFee", null);
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         List<Object> transactions = this.safeList(order, "Transactions", null);
-        Double triggerPrice = this.safeNumber(order, "triggerPrice", (Object) null);
+        Double triggerPrice = this.safeNumber(order, "triggerPrice", null);
         Double takeProfitPrice = null;
         Double stopLossPrice = null;
         List<Object> childOrders = this.safeList(order, "childOrders", null);
@@ -2277,8 +2277,8 @@ public class Woofipro extends WoofiproApi
             {
                 Map<String, Object> takeProfitOrder = this.safeDict(innerChildOrders, 0, null);
                 Map<String, Object> stopLossOrder = this.safeDict(innerChildOrders, 1, null);
-                takeProfitPrice = this.safeNumber(takeProfitOrder, "triggerPrice", (Object) null);
-                stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice", (Object) null);
+                takeProfitPrice = this.safeNumber(takeProfitOrder, "triggerPrice", null);
+                stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice", null);
             }
         }
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updated_time");
@@ -2294,7 +2294,7 @@ public class Woofipro extends WoofiproApi
         mapLiteral4.put("type", this.parseOrderType(orderType));
         mapLiteral4.put("timeInForce", this.parseTimeInForce(orderType));
         mapLiteral4.put("postOnly", null);
-        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
         mapLiteral4.put("triggerPrice", triggerPrice);
@@ -2377,14 +2377,14 @@ public class Woofipro extends WoofiproApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
-        String orderType = ((String)type).toUpperCase();
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
+        String orderType = type.toUpperCase();
         if (java.util.Objects.equals(side, null))
         {
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        String orderSide = ((String)side).toUpperCase();
+        String orderSide = side.toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", orderSide);
@@ -2398,7 +2398,7 @@ public class Woofipro extends WoofiproApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
         String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
         String typeKey = ((Boolean.TRUE.equals(isConditional))) ? "type" : "order_type";
@@ -2503,12 +2503,12 @@ public class Woofipro extends WoofiproApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2516,7 +2516,7 @@ public class Woofipro extends WoofiproApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Map<String, Object> stopLoss = this.safeDict(parameters, "stopLoss", null);
         Map<String, Object> takeProfit = this.safeDict(parameters, "takeProfit", null);
@@ -2566,8 +2566,8 @@ public class Woofipro extends WoofiproApi
             String marketId = this.safeString(rawOrder, "symbol");
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
-            Double price = this.safeNumber(rawOrder, "price", (Object) null);
+            Double amount = this.safeNumber(rawOrder, "amount", null);
+            Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = this.safeDict(orderParams, "stopLoss", null);
@@ -2604,7 +2604,7 @@ public class Woofipro extends WoofiproApi
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-        return this.parseOrders(rows, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.parseOrders(rows, null, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2668,11 +2668,11 @@ public class Woofipro extends WoofiproApi
         } else
         {
             request.put("symbol", market.get("id"));
-            request.put("side", ((String)side).toUpperCase());
-            String orderType = ((String)type).toUpperCase();
+            request.put("side", side.toUpperCase());
+            String orderType = type.toUpperCase();
             String timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-            Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsOmitted);
+            Boolean postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("order_type", "POST_ONLY");
@@ -2807,10 +2807,10 @@ public class Woofipro extends WoofiproApi
         if (Boolean.TRUE.equals(trigger))
         {
             Map<String, Object> parsedResponse = (Map<String, Object>) ((((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response);
-            return this.extend(this.parseOrder(parsedResponse, (Map<String, Object>) null), extendParams);
+            return this.extend(this.parseOrder(parsedResponse, null), extendParams);
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.extend(this.parseOrder(data, (Map<String, Object>) null), extendParams);
+        return this.extend(this.parseOrder(data, null), extendParams);
 
     }
 
@@ -2838,7 +2838,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> clientOrderIds = (List<String>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
+        List<String> clientOrderIds = (List<String>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
@@ -2862,7 +2862,7 @@ public class Woofipro extends WoofiproApi
         //
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", response);
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral5, (Map<String, Object>) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral5, null)));
 
     }
 
@@ -2889,7 +2889,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbol, null))
@@ -2922,7 +2922,7 @@ public class Woofipro extends WoofiproApi
         //
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("info", response);
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, null)));
 
     }
 
@@ -3361,7 +3361,7 @@ public class Woofipro extends WoofiproApi
         for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = this.safeDict(balances, i, null);
-            String code = this.safeCurrencyCode(this.safeString(balance, "token"), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(this.safeString(balance, "token"), null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "holding"));
             account.put("used", this.safeString(balance, "frozen"));
@@ -3430,7 +3430,7 @@ public class Woofipro extends WoofiproApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("balance_token", this.safeString(currency, "id"));
         }
         if (!java.util.Objects.equals(since, null))
@@ -3484,7 +3484,7 @@ public class Woofipro extends WoofiproApi
         String currencyId = this.safeString(item, "token");
         String code = this.safeCurrencyCode(currencyId, currency);
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        Double amount = this.safeNumber(item, "amount", (Object) null);
+        Double amount = this.safeNumber(item, "amount", null);
         String side = this.safeString(item, "token_side");
         String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
         Long timestamp = this.safeInteger(item, "created_time");
@@ -3540,7 +3540,7 @@ public class Woofipro extends WoofiproApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         return this.parseLedger(rows, currency, since, limit, parameters);
 
@@ -3573,7 +3573,7 @@ public class Woofipro extends WoofiproApi
             h2kMap2.put("tagFrom", null);
             h2kMap2.put("tagTo", null);
             h2kMap2.put("type", movementDirection);
-            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap2.put("currency", code);
             h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
             h2kMap2.put("updated", this.safeInteger(transaction, "updated_time"));
@@ -3673,7 +3673,7 @@ public class Woofipro extends WoofiproApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         //
         //     {
@@ -3709,7 +3709,7 @@ public class Woofipro extends WoofiproApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.safeNumber(data, "withdraw_nonce", (Object) null);
+        return this.safeNumber(data, "withdraw_nonce", null);
 
     }
 
@@ -3757,8 +3757,8 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        this.checkAddress(address, (String) null, (String) null);
-        String codeUpper = ((String)code).toUpperCase();
+        this.checkAddress(address, null, null);
+        String codeUpper = code.toUpperCase();
         if (!java.util.Objects.equals(codeUpper, "USDC"))
         {
             throw new NotSupported((this.id + " withdraw() only support USDC")) ;
@@ -3768,7 +3768,7 @@ public class Woofipro extends WoofiproApi
         String chainId = this.safeString(parameters, "chainId");
         Map<String, Object> currencyNetworks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         Map<String, Object> coinNetwork = this.safeDict(currencyNetworks, chainId, new HashMap<String, Object>() {{}});
-        Double coinNetworkId = this.safeNumber(coinNetwork, "id", (Object) null);
+        Double coinNetworkId = this.safeNumber(coinNetwork, "id", null);
         if (java.util.Objects.equals(coinNetworkId, null))
         {
             throw new BadRequest((this.id + " withdraw() require chainId parameter")) ;
@@ -3846,7 +3846,7 @@ public class Woofipro extends WoofiproApi
         //     }
         //
         String marketId = this.safeString(marginMode, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", marketResolved.get("symbol") );
@@ -3875,7 +3875,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> response = (this.v1PrivateGetClientMarginModes(parameters)).join();
         //
         // {
@@ -3953,7 +3953,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        String marginModeValue = ((String)marginMode).toLowerCase();
+        String marginModeValue = marginMode.toLowerCase();
         if (!java.util.Objects.equals(marginModeValue, "cross") && !java.util.Objects.equals(marginModeValue, "isolated"))
         {
             throw new BadRequest((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
@@ -4057,7 +4057,7 @@ public class Woofipro extends WoofiproApi
     private Object addMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.modifyMarginHelper((String) (symbol), amount, "ADD", parameters)).join();
+        return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
 
     }
 
@@ -4079,7 +4079,7 @@ public class Woofipro extends WoofiproApi
     private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.modifyMarginHelper((String) (symbol), amount, "REDUCE", parameters)).join();
+        return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
 
     }
 
@@ -4207,7 +4207,7 @@ public class Woofipro extends WoofiproApi
         // }
         //
         String contract = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, null, null);
         String size = this.safeString(position, "position_qty");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -4242,7 +4242,7 @@ public class Woofipro extends WoofiproApi
         mapLiteral7.put("contracts", this.parseNumber(size));
         mapLiteral7.put("contractSize", this.parseNumber(contractSize));
         mapLiteral7.put("marginRatio", null);
-        mapLiteral7.put("liquidationPrice", this.safeNumber(position, "est_liq_price", (Object) null));
+        mapLiteral7.put("liquidationPrice", this.safeNumber(position, "est_liq_price", null));
         mapLiteral7.put("markPrice", this.parseNumber(markPrice));
         mapLiteral7.put("lastPrice", null);
         mapLiteral7.put("collateral", null);
@@ -4500,7 +4500,7 @@ public class Woofipro extends WoofiproApi
         if (!Boolean.TRUE.equals(success))
         {
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }

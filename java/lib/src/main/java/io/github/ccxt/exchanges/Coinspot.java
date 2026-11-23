@@ -625,7 +625,7 @@ public class Coinspot extends CoinspotApi
                 {
                     String currencyId = (currencyIdsList == null || j < 0 || j >= currencyIdsList.size() ? null : currencyIdsList.get(j));
                     Map<String, Object> balance = this.safeDict(currencies, currencyId, null);
-                    String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                    String code = this.safeCurrencyCode(currencyId, null);
                     Map<String, Object> account = this.account();
                     account.put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
@@ -641,7 +641,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < currencyIdsMap.size(); i++)
             {
                 String currencyId = (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
-                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
@@ -729,7 +729,7 @@ public class Coinspot extends CoinspotApi
             put( "cointype", market.get("id") );
         }};
         Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
-        return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "buyorders", "sellorders", "rate", "amount", 2);
+        return this.parseOrderBook(orderbook, market.get("symbol"), null, "buyorders", "sellorders", "rate", "amount", 2);
 
     }
 
@@ -744,7 +744,7 @@ public class Coinspot extends CoinspotApi
         //         }
         //     }
         //
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market, null, null);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -858,7 +858,7 @@ public class Coinspot extends CoinspotApi
         for (var i = 0; i < ids.size(); i++)
         {
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-            Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(id, null, null, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String symbol = this.safeString(market, "symbol", "");
@@ -1020,7 +1020,7 @@ public class Coinspot extends CoinspotApi
         String side = this.safeString(trade, "side");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "market");
-        String symbol = this.safeSymbol(marketId, market, "/", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "/", null);
         Long solddate = this.safeInteger(trade, "solddate");
         if (!java.util.Objects.equals(solddate, null))
         {
@@ -1038,7 +1038,7 @@ public class Coinspot extends CoinspotApi
             String feeCurrencyId = "AUD";
             fee = new HashMap<String, Object>() {{
                 put( "cost", Coinspot.this.parseNumber(feeCost) );
-                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null) );
+                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId, null) );
             }};
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -1071,12 +1071,12 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1084,7 +1084,7 @@ public class Coinspot extends CoinspotApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-        String sideUpper = ((String)side).toUpperCase();
+        String sideUpper = side.toUpperCase();
         if (java.util.Objects.equals(type, "market"))
         {
             throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
@@ -1111,7 +1111,7 @@ public class Coinspot extends CoinspotApi
         //
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", response);
-        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
+        return this.safeOrder(mapLiteral2, null);
 
     }
 
@@ -1156,7 +1156,7 @@ public class Coinspot extends CoinspotApi
         //
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", response);
-        return this.safeOrder(mapLiteral3, (Map<String, Object>) null);
+        return this.safeOrder(mapLiteral3, null);
 
     }
 

@@ -138,8 +138,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -252,7 +252,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -283,8 +283,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String last = this.safeString(ticker, "last");
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -296,10 +296,10 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         mapLiteral1.put("datetime", this.iso8601(timestamp));
         mapLiteral1.put("high", this.safeString(ticker, "high"));
         mapLiteral1.put("low", this.safeString(ticker, "low"));
-        mapLiteral1.put("bid", this.safeNumber(ticker, "bid_best_price", (Object) null));
-        mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bid_best_qty", (Object) null));
-        mapLiteral1.put("ask", this.safeNumber(ticker, "ask_best_price", (Object) null));
-        mapLiteral1.put("askVolume", this.safeNumber(ticker, "ask_best_qty", (Object) null));
+        mapLiteral1.put("bid", this.safeNumber(ticker, "bid_best_price", null));
+        mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bid_best_qty", null));
+        mapLiteral1.put("ask", this.safeNumber(ticker, "ask_best_price", null));
+        mapLiteral1.put("askVolume", this.safeNumber(ticker, "ask_best_qty", null));
         mapLiteral1.put("vwap", null);
         mapLiteral1.put("open", this.safeString(ticker, "first"));
         mapLiteral1.put("close", last);
@@ -377,7 +377,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, null);
         String symbol = this.safeString(trade, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -406,16 +406,16 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         String baseId = this.safeStringUpper(trade, "target_currency");
         String quoteId = this.safeStringUpper(trade, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Map<String, Object> marketResolved = this.safeMarket(symbol, market, (String) null, (String) null);
-        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", (Object) null);
+        Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
+        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {

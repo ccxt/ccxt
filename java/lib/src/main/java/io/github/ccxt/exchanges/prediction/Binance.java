@@ -734,8 +734,8 @@ public class Binance extends BinanceApi
             h2kMap0.put("description", this.safeString(rawTopic, "description"));
             h2kMap0.put("markets", marketsList);
             h2kMap0.put("active", active);
-            h2kMap0.put("volume", this.safeNumber(rawTopic, "tradeVolume", (Object) null));
-            h2kMap0.put("liquidity", this.safeNumber(rawTopic, "liquidity", (Object) null));
+            h2kMap0.put("volume", this.safeNumber(rawTopic, "tradeVolume", null));
+            h2kMap0.put("liquidity", this.safeNumber(rawTopic, "liquidity", null));
             h2kMap0.put("url", null);
             h2kMap0.put("image", this.safeString(rawTopic, "imageUrl"));
             h2kMap0.put("created", created);
@@ -802,8 +802,8 @@ public class Binance extends BinanceApi
             put( "amount", 0.01 );
             put( "price", pricePrecision );
         }};
-        Double volume = this.safeNumber(rawMarket, "tradeVolume", (Object) null);
-        Double liquidity = this.safeNumber(rawMarket, "liquidity", (Object) null);
+        Double volume = this.safeNumber(rawMarket, "tradeVolume", null);
+        Double liquidity = this.safeNumber(rawMarket, "liquidity", null);
         List<Object> rawOutcomes = this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcomeRaw = null;
@@ -945,8 +945,8 @@ public class Binance extends BinanceApi
     private Object fetchTickerCore(String outcome, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "marketId", Binance.this.safeString(info, "marketId") );
@@ -1094,8 +1094,8 @@ public class Binance extends BinanceApi
     private Object fetchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "vendor", Binance.this.safeString(info, "vendor", Binance.this.safeString(Binance.this.options, "defaultVendor")) );
@@ -1113,7 +1113,7 @@ public class Binance extends BinanceApi
         //     }
         //
         Long timestamp = this.safeInteger(response, "timestamp");
-        Map<String, Object> orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
+        Map<String, Object> orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
         return this.safePredictionOrderBook(orderbook, outcomeObj);
 
     }
@@ -1214,10 +1214,10 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(order, "marketId");
             String outcome = this.safeStringUpper(order, "outcome");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String marketName = this.safeString(market, "market", marketId);
             String outcomeKey = ((marketName + ":") + outcome);
-            outcomeObjResolved = this.safeOutcome(outcomeKey, (Map<String, Object>) null);
+            outcomeObjResolved = this.safeOutcome(outcomeKey, null);
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
@@ -1238,7 +1238,7 @@ public class Binance extends BinanceApi
         mapLiteral3.put("postOnly", null);
         mapLiteral3.put("reduceOnly", null);
         mapLiteral3.put("side", side);
-        mapLiteral3.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral3.put("price", this.safeNumber(order, "price", null));
         mapLiteral3.put("triggerPrice", null);
         mapLiteral3.put("amount", null);
         mapLiteral3.put("cost", null);
@@ -1260,11 +1260,11 @@ public class Binance extends BinanceApi
         {
             return null;
         }
-        if (((String)status).endsWith("Rejected"))
+        if (status.endsWith("Rejected"))
         {
             return "rejected";
         }
-        if (((String)status).endsWith("Canceled"))
+        if (status.endsWith("Canceled"))
         {
             return "canceled";
         }
@@ -1316,8 +1316,8 @@ public class Binance extends BinanceApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
-            outcomeObj = this.outcome((String) (outcome));
+            (this.loadOutcome(outcome, false)).join();
+            outcomeObj = this.outcome(outcome);
             Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
             request.put("marketId", market.get("id"));
         }
@@ -1363,7 +1363,7 @@ public class Binance extends BinanceApi
         // }
         //
         List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-        Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, (Long) null, new HashMap<String, Object>() {{}});
+        Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, null, new HashMap<String, Object>() {{}});
         return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit, false);
 
     }
@@ -1415,8 +1415,8 @@ public class Binance extends BinanceApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
-            outcomeObj = this.outcome((String) (outcome));
+            (this.loadOutcome(outcome, false)).join();
+            outcomeObj = this.outcome(outcome);
         }
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1471,7 +1471,7 @@ public class Binance extends BinanceApi
         // }
         //
         List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-        Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, (Long) null, new HashMap<String, Object>() {{}});
+        Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, null, new HashMap<String, Object>() {{}});
         return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit, false);
 
     }
@@ -1494,14 +1494,14 @@ public class Binance extends BinanceApi
     private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
-        (this.loadOutcomes((List<String>) null, false, new HashMap<String, Object>() {{}})).join();
+        (this.loadOutcomes(null, false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> requestedOutcomeSymbols = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(outcomes, null))
         {
             for (var i = 0; i < outcomes.size(); i++)
             {
                 String requested = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
-                Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, (Map<String, Object>) null);
+                Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, null);
                 String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols.put(requestedOutcome, true);
             }
@@ -1602,8 +1602,8 @@ public class Binance extends BinanceApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
-            outcomeObj = this.outcome((String) (outcome));
+            (this.loadOutcome(outcome, false)).join();
+            outcomeObj = this.outcome(outcome);
             Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
             request.put("marketTopicId", this.safeString(market.get("info"), "marketTopicId"));
         }
@@ -1614,7 +1614,7 @@ public class Binance extends BinanceApi
         //
         List<Object> positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
-        Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, (Long) null, (Long) null, false);
+        Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null, null, false);
         return this.safeDict(filteredPositions, 0, null);
 
     }
@@ -1635,9 +1635,9 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(position, "marketId");
             String outcome = this.safeStringUpper(position, "outcomeName");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String marketName = this.safeString(market, "market", marketId);
-            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), (Map<String, Object>) null);
+            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), null);
         }
         Long timestamp = this.safeInteger(position, "createdTime");
         Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
@@ -1721,8 +1721,8 @@ public class Binance extends BinanceApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
-            outcomeObj = this.outcome((String) (outcome));
+            (this.loadOutcome(outcome, false)).join();
+            outcomeObj = this.outcome(outcome);
         }
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1777,7 +1777,7 @@ public class Binance extends BinanceApi
         // }
         //
         List<Object> trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedTrades = this.parsePredictionTrades(trades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedTrades = this.parsePredictionTrades(trades, outcomeObj, null, null, new HashMap<String, Object>() {{}});
         return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit, false);
 
     }
@@ -1825,10 +1825,10 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(trade, "marketId");
             String outcome = this.safeStringUpper(trade, "outcome");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String marketName = this.safeString(market, "market", marketId);
             String outcomeKey = ((marketName + ":") + outcome);
-            outcomeObjResolved = this.safeOutcome(outcomeKey, (Map<String, Object>) null);
+            outcomeObjResolved = this.safeOutcome(outcomeKey, null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");
         String filled = this.safeString(trade, "filledShareQty");
@@ -1888,7 +1888,7 @@ public class Binance extends BinanceApi
         {
             return cachedWallet;
         }
-        String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, (String) (methodName), "walletAddress", this.walletAddress)).get(0);
+        String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress)).get(0);
         Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();
         //
         // {
@@ -2021,22 +2021,22 @@ public class Binance extends BinanceApi
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
     }
 
-    private Object createOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        (this.loadOutcome((String) (outcome), false)).join();
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        (this.loadOutcome(outcome, false)).join();
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         String marketSymbol = this.safeString(outcomeObj, "market");
         Map<String, Object> market = this.market(marketSymbol);
-        String typeUpper = ((String)type).toUpperCase();
-        String sideUpper = ((String)side).toUpperCase();
+        String typeUpper = type.toUpperCase();
+        String sideUpper = side.toUpperCase();
         Map<String, Object> wallet = (this.fetchWallet("createOrder", parameters)).join();
         String defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         String slippage = this.safeString(parameters, "slippage", defaultSlippage);
@@ -2150,7 +2150,7 @@ public class Binance extends BinanceApi
         Map<String, Object> req = new HashMap<String, Object>() {{
             put( "cost", cost );
         }};
-        return (this.createOrder(symbol, "market", (String) (((String)side)), cost, (Object) null, this.extend(req, parameters))).join();
+        return (this.createOrder(symbol, "market", (String) (((String)side)), cost, (Double) null, this.extend(req, parameters))).join();
 
     }
 
@@ -2199,8 +2199,8 @@ public class Binance extends BinanceApi
         Map<String, Object> outcomeObj = null;
         if (!java.util.Objects.equals(outcome, null))
         {
-            (this.loadOutcome((String) (outcome), false)).join();
-            outcomeObj = this.outcome((String) (outcome));
+            (this.loadOutcome(outcome, false)).join();
+            outcomeObj = this.outcome(outcome);
         }
         Map<String, Object> wallet = (this.fetchWallet("cancelOrders", parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2259,7 +2259,7 @@ public class Binance extends BinanceApi
             order.put("market", this.safeString(outcomeObj, "market"));
             order.put("timestamp", null);
             order.put("datetime", null);
-            ((List<Object>)orders).add(this.safePredictionOrder(order, (Object) null));
+            ((List<Object>)orders).add(this.safePredictionOrder(order, null));
         }
         return orders;
 

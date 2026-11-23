@@ -1369,7 +1369,7 @@ public class Xt extends XtApi
         {
             Object entry = (currenciesData == null || i < 0 || i >= currenciesData.size() ? null : currenciesData.get(i));
             String currencyId = this.safeString(entry, "currency");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> networkEntry = this.safeDict(chainsDataIndexed, currencyId, new HashMap<String, Object>() {{}});
             List<Object> rawNetworks = this.safeList(networkEntry, "supportChains", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -1386,17 +1386,17 @@ public class Xt extends XtApi
                     mapLiteral1.put("network", networkCode);
                     mapLiteral1.put("name", null);
                     mapLiteral1.put("active", null);
-                    mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFeeAmount", (Object) null));
+                    mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFeeAmount", null));
                     mapLiteral1.put("precision", null);
-                    mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnabled", (Object) null));
-                    mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnabled", (Object) null));
+                    mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnabled", null));
+                    mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnabled", null));
                     mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
         }} );
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Xt.this.safeNumber(rawNetwork, "withdrawMinAmount", (Object) null) );
+            put( "min", Xt.this.safeNumber(rawNetwork, "withdrawMinAmount", null) );
             put( "max", null );
         }} );
         put( "deposit", new HashMap<String, Object>() {{
@@ -1759,8 +1759,8 @@ public class Xt extends XtApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString2(market, "baseCurrency", "baseCoin");
         String quoteId = this.safeString2(market, "quoteCurrency", "quoteCoin");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -1781,18 +1781,18 @@ public class Xt extends XtApi
             String filter = this.safeString(entry, "filter");
             if (java.util.Objects.equals(filter, "QUANTITY"))
             {
-                minAmount = this.safeNumber(entry, "min", (Object) null);
-                maxAmount = this.safeNumber(entry, "max", (Object) null);
-                amountPrecision = this.safeNumber(entry, "tickSize", (Object) null);
+                minAmount = this.safeNumber(entry, "min", null);
+                maxAmount = this.safeNumber(entry, "max", null);
+                amountPrecision = this.safeNumber(entry, "tickSize", null);
             }
             if (java.util.Objects.equals(filter, "QUOTE_QTY"))
             {
-                minCost = this.safeNumber(entry, "min", (Object) null);
+                minCost = this.safeNumber(entry, "min", null);
             }
             if (java.util.Objects.equals(filter, "PRICE"))
             {
-                minPrice = this.safeNumber(entry, "min", (Object) null);
-                maxPrice = this.safeNumber(entry, "max", (Object) null);
+                minPrice = this.safeNumber(entry, "min", null);
+                maxPrice = this.safeNumber(entry, "max", null);
             }
         }
         if (java.util.Objects.equals(amountPrecision, null))
@@ -1839,11 +1839,11 @@ public class Xt extends XtApi
                 type = "swap";
                 swap = true;
             }
-            minAmount = this.safeNumber(market, "minQty", (Object) null);
-            minCost = this.safeNumber(market, "minNotional", (Object) null);
-            maxCost = this.safeNumber(market, "maxNotional", (Object) null);
-            minPrice = this.safeNumber(market, "minPrice", (Object) null);
-            maxPrice = this.safeNumber(market, "maxPrice", (Object) null);
+            minAmount = this.safeNumber(market, "minQty", null);
+            minCost = this.safeNumber(market, "minNotional", null);
+            maxCost = this.safeNumber(market, "maxNotional", null);
+            minPrice = this.safeNumber(market, "minPrice", null);
+            maxPrice = this.safeNumber(market, "maxPrice", null);
             contract = true;
             spot = false;
         }
@@ -1877,9 +1877,9 @@ public class Xt extends XtApi
         mapLiteral3.put("contract", contract);
         mapLiteral3.put("linear", linear);
         mapLiteral3.put("inverse", inverse);
-        mapLiteral3.put("taker", this.safeNumber2(market, "takerFee", "takerFeeRate", (Object) null));
-        mapLiteral3.put("maker", this.safeNumber2(market, "makerFee", "makerFeeRate", (Object) null));
-        mapLiteral3.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
+        mapLiteral3.put("taker", this.safeNumber2(market, "takerFee", "takerFeeRate", null));
+        mapLiteral3.put("maker", this.safeNumber2(market, "makerFee", "makerFeeRate", null));
+        mapLiteral3.put("contractSize", this.safeNumber(market, "contractSize", null));
         mapLiteral3.put("expiry", expiry);
         mapLiteral3.put("expiryDatetime", this.iso8601(expiry));
         mapLiteral3.put("strike", null);
@@ -2067,7 +2067,7 @@ public class Xt extends XtApi
         {
             volumeIndex = "v";
         }
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber2(ohlcv, "q", volumeIndex, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", null), this.safeNumber(ohlcv, "h", null), this.safeNumber(ohlcv, "l", null), this.safeNumber(ohlcv, "c", null), this.safeNumber2(ohlcv, "q", volumeIndex, null)));
     }
 
     /**
@@ -2298,7 +2298,7 @@ public class Xt extends XtApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = null;
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
             Integer normalizedLength = symbolsNormalized.size();
@@ -2309,10 +2309,10 @@ public class Xt extends XtApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         if (java.util.Objects.equals(subType, "inverse"))
@@ -2410,7 +2410,7 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -2421,10 +2421,10 @@ public class Xt extends XtApi
                 market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
         }
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2591,12 +2591,12 @@ public class Xt extends XtApi
         mapLiteral9.put("symbol", symbol);
         mapLiteral9.put("timestamp", timestamp);
         mapLiteral9.put("datetime", this.iso8601(timestamp));
-        mapLiteral9.put("high", this.safeNumber(ticker, "h", (Object) null));
-        mapLiteral9.put("low", this.safeNumber(ticker, "l", (Object) null));
-        mapLiteral9.put("bid", this.safeNumber(ticker, "bp", (Object) null));
-        mapLiteral9.put("bidVolume", this.safeNumber(ticker, "bq", (Object) null));
-        mapLiteral9.put("ask", this.safeNumber(ticker, "ap", (Object) null));
-        mapLiteral9.put("askVolume", this.safeNumber(ticker, "aq", (Object) null));
+        mapLiteral9.put("high", this.safeNumber(ticker, "h", null));
+        mapLiteral9.put("low", this.safeNumber(ticker, "l", null));
+        mapLiteral9.put("bid", this.safeNumber(ticker, "bp", null));
+        mapLiteral9.put("bidVolume", this.safeNumber(ticker, "bq", null));
+        mapLiteral9.put("ask", this.safeNumber(ticker, "ap", null));
+        mapLiteral9.put("askVolume", this.safeNumber(ticker, "aq", null));
         mapLiteral9.put("vwap", null);
         mapLiteral9.put("open", open);
         mapLiteral9.put("close", this.safeString(ticker, "c"));
@@ -2698,7 +2698,7 @@ public class Xt extends XtApi
         //     }
         //
         List<Object> trades = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-        return this.parseTrades(trades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.parseTrades(trades, market, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2738,10 +2738,10 @@ public class Xt extends XtApi
             request.put("startTime", since);
         }
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMyTrades", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMyTrades", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         if ((!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
@@ -2759,7 +2759,7 @@ public class Xt extends XtApi
             }
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsSubType, null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -2949,7 +2949,7 @@ public class Xt extends XtApi
         //
         String marketId = this.safeString2(trade, "s", "symbol");
         String marketType = this.safeString(market, "type");
-        Boolean hasSpotKeys = (!java.util.Objects.equals(this.safeBool(trade, "b", (Object) null), null)) || (!java.util.Objects.equals(this.safeString(trade, "bizType"), null)) || (!java.util.Objects.equals(this.safeString(trade, "oi"), null));
+        Boolean hasSpotKeys = (!java.util.Objects.equals(this.safeBool(trade, "b", null), null)) || (!java.util.Objects.equals(this.safeString(trade, "bizType"), null)) || (!java.util.Objects.equals(this.safeString(trade, "oi"), null));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
@@ -2957,7 +2957,7 @@ public class Xt extends XtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String side = null;
         String takerOrMaker = null;
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b", (Object) null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b", null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
@@ -2970,7 +2970,7 @@ public class Xt extends XtApi
                 takerOrMaker = takerMaker;
             } else
             {
-                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
                 if (!java.util.Objects.equals(isMaker, null))
                 {
                     takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -3019,7 +3019,7 @@ public class Xt extends XtApi
         mapLiteral10.put("amount", amount);
         mapLiteral10.put("cost", null);
         mapLiteral10.put("fee", new HashMap<String, Object>() {{
-                put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString2(trade, "feeCurrency", "feeCoin"), (Map<String, Object>) null) );
+                put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString2(trade, "feeCurrency", "feeCoin"), null) );
                 put( "cost", Xt.this.safeString(trade, "fee") );
             }});
         return this.safeTrade(mapLiteral10, marketResolved);
@@ -3047,10 +3047,10 @@ public class Xt extends XtApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", null, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Boolean isContractWallet = ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")));
@@ -3156,7 +3156,7 @@ public class Xt extends XtApi
         {
             Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString2(balance, "currency", "coin");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             String free = this.safeString2(balance, "availableAmount", "availableBalance");
             String used = this.safeString(balance, "frozenAmount");
@@ -3204,7 +3204,7 @@ public class Xt extends XtApi
         {
             throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
+        return (this.createOrder(symbol, "market", "buy", cost, 1.0, parameters)).join();
 
     }
 
@@ -3237,12 +3237,12 @@ public class Xt extends XtApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3258,10 +3258,10 @@ public class Xt extends XtApi
             {
                 throw new NotSupported((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
             }
-            return (this.createSpotOrder(symbolValue, (String) (type), (String) (side), amount, price, parameters)).join();
+            return (this.createSpotOrder(symbolValue, type, side, amount, price, parameters)).join();
         } else
         {
-            return (this.createContractOrder(symbolValue, (String) (type), (String) (side), amount, price, parameters)).join();
+            return (this.createContractOrder(symbolValue, type, side, amount, price, parameters)).join();
         }
 
     }
@@ -3285,10 +3285,10 @@ public class Xt extends XtApi
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
-        request.put("side", ((String)side).toUpperCase());
-        request.put("type", ((String)type).toUpperCase());
+        request.put("side", side.toUpperCase());
+        request.put("type", type.toUpperCase());
         String timeInForce = null;
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String marginOrSpotRequest = "SPOT";
@@ -3418,12 +3418,12 @@ public class Xt extends XtApi
             request.put("positionSide", requestType);
         }
         Map<String, Object> response = null;
-        Double triggerPrice = this.safeNumber2(paramsOmitted4, "triggerPrice", "stopPrice", (Object) null);
-        Double stopLoss = this.safeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice", (Object) null);
-        Double takeProfit = this.safeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice", (Object) null);
+        Double triggerPrice = this.safeNumber2(paramsOmitted4, "triggerPrice", "stopPrice", null);
+        Double stopLoss = this.safeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice", null);
+        Double takeProfit = this.safeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice", null);
         String trailingPercent = this.safeString(paramsOmitted4, "trailingPercent");
         String trailingAmount = this.safeString(paramsOmitted4, "trailingAmount");
-        Double trailingTriggerPrice = this.safeNumber(paramsOmitted4, "trailingTriggerPrice", (Object) null);
+        Double trailingTriggerPrice = this.safeNumber(paramsOmitted4, "trailingTriggerPrice", null);
         Boolean isTrigger = (!java.util.Objects.equals(triggerPrice, null));
         Boolean isStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
@@ -3445,7 +3445,7 @@ public class Xt extends XtApi
         }
         if (Boolean.TRUE.equals(isTrailing))
         {
-            request.put("orderSide", ((String)side).toUpperCase());
+            request.put("orderSide", side.toUpperCase());
             request.put("triggerPriceType", this.safeString(paramsOmitted4, "triggerPriceType", "LATEST_PRICE"));
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted4, "cross");
             String marginMode = marginModeparamsMarginModeVariable.first();
@@ -3476,7 +3476,7 @@ public class Xt extends XtApi
         {
             request.put("timeInForce", (((java.util.Objects.equals(timeInForce, null)))) ? "GTC" : timeInForce);
             request.put("triggerPriceType", this.safeString(paramsOmitted4, "triggerPriceType", "LATEST_PRICE"));
-            request.put("orderSide", ((String)side).toUpperCase());
+            request.put("orderSide", side.toUpperCase());
             request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             String entrustType = "STOP";
             if (java.util.Objects.equals(type, "market"))
@@ -3511,8 +3511,8 @@ public class Xt extends XtApi
             }
         } else
         {
-            request.put("orderSide", ((String)side).toUpperCase());
-            request.put("orderType", ((String)type).toUpperCase());
+            request.put("orderSide", side.toUpperCase());
+            request.put("orderType", type.toUpperCase());
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 response = (this.privateLinearPostFutureTradeV1OrderCreate(this.extend(request, paramsOmitted4))).join();
@@ -3569,13 +3569,13 @@ public class Xt extends XtApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
         Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
         Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
@@ -3805,13 +3805,13 @@ public class Xt extends XtApi
             request.put("limit", limit);
         }
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
         Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
         {
@@ -3849,7 +3849,7 @@ public class Xt extends XtApi
             response = (this.privateLinearGetFutureTradeV1OrderListHistory(this.extend(request, paramsSubType))).join();
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrders", paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrders", paramsSubType, null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -3976,9 +3976,9 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrdersByStatusCore(status, symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByStatusCore(status, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
     private Object fetchOrdersByStatusCore(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -4004,13 +4004,13 @@ public class Xt extends XtApi
             request.put("startTime", since);
         }
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", null);
         Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
         Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
@@ -4119,7 +4119,7 @@ public class Xt extends XtApi
             }
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsSubType, null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -4337,7 +4337,7 @@ public class Xt extends XtApi
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
-            List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> parsedOrders = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
             List<Object> filteredOrders = this.filterBy(parsedOrders, "status", status);
             return this.filterBySinceLimit(filteredOrders, since, limit, "timestamp", false);
         }
@@ -4471,13 +4471,13 @@ public class Xt extends XtApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
         Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
         Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
@@ -4607,13 +4607,13 @@ public class Xt extends XtApi
             request.put("symbol", market.get("id"));
         }
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelAllOrders", market, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelAllOrders", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
         Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
         Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
@@ -4662,7 +4662,7 @@ public class Xt extends XtApi
             response = (this.privateLinearPostFutureTradeV1OrderCancelAll(this.extend(request, paramsSubType))).join();
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsSubType, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsSubType, null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -4692,7 +4692,7 @@ public class Xt extends XtApi
         //         "result": true
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(response, (Map<String, Object>) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(response, null)));
 
     }
 
@@ -4726,7 +4726,7 @@ public class Xt extends XtApi
         {
             market = this.market(symbol);
         }
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrders", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrders", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         if (!java.util.Objects.equals(subType, null))
@@ -4744,7 +4744,7 @@ public class Xt extends XtApi
         //         "result": null
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(response, (Map<String, Object>) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(response, null)));
 
     }
 
@@ -4880,8 +4880,8 @@ public class Xt extends XtApi
         String resultId = this.safeString(order, "result");
         String orderPositionSide = this.safeString(order, "positionSide");
         String marketType = (((!java.util.Objects.equals(resultId, null)) || (!java.util.Objects.equals(orderPositionSide, null)))) ? "contract" : "spot";
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, marketType);
+        String symbol = this.safeSymbol(marketId, marketResolved, null, marketType);
         Long timestamp = (Long) this.safeInteger2(order, "time", "createdTime");
         String contractSize = this.safeString(marketResolved, "contractSize");
         String quantity = this.safeString(order, "origQty");
@@ -4942,19 +4942,19 @@ public class Xt extends XtApi
         mapLiteral11.put("timeInForce", timeInForce);
         mapLiteral11.put("postOnly", postOnly);
         mapLiteral11.put("side", side);
-        mapLiteral11.put("price", this.safeNumber(order, "price", (Object) null));
-        mapLiteral11.put("triggerPrice", this.safeNumber(order, "stopPrice", (Object) null));
-        mapLiteral11.put("stopLossPrice", this.safeNumber(order, "triggerStopPrice", (Object) null));
-        mapLiteral11.put("takeProfitPrice", this.safeNumber(order, "triggerProfitPrice", (Object) null));
+        mapLiteral11.put("price", this.safeNumber(order, "price", null));
+        mapLiteral11.put("triggerPrice", this.safeNumber(order, "stopPrice", null));
+        mapLiteral11.put("stopLossPrice", this.safeNumber(order, "triggerStopPrice", null));
+        mapLiteral11.put("takeProfitPrice", this.safeNumber(order, "triggerProfitPrice", null));
         mapLiteral11.put("amount", amount);
         mapLiteral11.put("filled", filled);
         mapLiteral11.put("remaining", remaining);
         mapLiteral11.put("cost", this.safeString(order, "tradeQuote"));
-        mapLiteral11.put("average", this.safeNumber(order, "avgPrice", (Object) null));
+        mapLiteral11.put("average", this.safeNumber(order, "avgPrice", null));
         mapLiteral11.put("status", this.parseOrderStatus(this.safeString(order, "state")));
         mapLiteral11.put("fee", new HashMap<String, Object>() {{
-                put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString(order, "feeCurrency"), (Map<String, Object>) null) );
-                put( "cost", Xt.this.safeNumber(order, "fee", (Object) null) );
+                put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString(order, "feeCurrency"), null) );
+                put( "cost", Xt.this.safeNumber(order, "fee", null) );
             }});
         mapLiteral11.put("trades", null);
         return this.safeOrder(mapLiteral11, marketResolved);
@@ -5021,7 +5021,7 @@ public class Xt extends XtApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
         }
         if (!java.util.Objects.equals(since, null))
         {
@@ -5032,10 +5032,10 @@ public class Xt extends XtApi
             request.put("limit", limit);
         }
         Map<String, Object> response = null;
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLedger", null, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         if (java.util.Objects.equals(subType, "inverse"))
@@ -5109,11 +5109,11 @@ public class Xt extends XtApi
         mapLiteral12.put("referenceAccount", null);
         mapLiteral12.put("type", this.parseLedgerEntryType(this.safeString(item, "type")));
         mapLiteral12.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
-        mapLiteral12.put("amount", this.safeNumber(item, "amount", (Object) null));
+        mapLiteral12.put("amount", this.safeNumber(item, "amount", null));
         mapLiteral12.put("timestamp", timestamp);
         mapLiteral12.put("datetime", this.iso8601(timestamp));
         mapLiteral12.put("before", null);
-        mapLiteral12.put("after", this.safeNumber(item, "afterAmount", (Object) null));
+        mapLiteral12.put("after", this.safeNumber(item, "afterAmount", null));
         mapLiteral12.put("status", null);
         mapLiteral12.put("fee", new HashMap<String, Object>() {{
                 put( "currency", null );
@@ -5162,7 +5162,7 @@ public class Xt extends XtApi
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         String networkId = this.networkCodeToId(networkCode, code);
         this.checkRequiredArgument("fetchDepositAddress", networkId, "network", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5195,10 +5195,10 @@ public class Xt extends XtApi
         //     }
         //
         String address = this.safeString(depositAddress, "address");
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", Xt.this.safeCurrencyCode((String) (null), currency) );
+            put( "currency", Xt.this.safeCurrencyCode(null, currency) );
             put( "network", null );
             put( "address", address );
             put( "tag", Xt.this.safeString(depositAddress, "memo") );
@@ -5232,7 +5232,7 @@ public class Xt extends XtApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
         if (!java.util.Objects.equals(since, null))
@@ -5303,7 +5303,7 @@ public class Xt extends XtApi
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
-            currency = this.currency((String) (code));
+            currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
         if (!java.util.Objects.equals(since, null))
@@ -5371,8 +5371,8 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
-        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        Map<String, Object> currency = this.currency(code);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
         this.checkAddress(address, code, tagWithdrawTag);
@@ -5384,7 +5384,7 @@ public class Xt extends XtApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency", currency.get("id") );
             put( "chain", networkId );
-            put( "amount", Xt.this.currencyToPrecision((String) (code), amount, (String) null) );
+            put( "amount", Xt.this.currencyToPrecision(code, amount, null) );
             put( "address", address );
         }};
         if (!java.util.Objects.equals(tagWithdrawTag, null))
@@ -5453,7 +5453,7 @@ public class Xt extends XtApi
         String address = this.safeString(transaction, "address");
         String memo = this.safeString(transaction, "memo");
         String currencyCode = this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
-        Double fee = this.safeNumber(transaction, "fee", (Object) null);
+        Double fee = this.safeNumber(transaction, "fee", null);
         String feeCurrency = (((!java.util.Objects.equals(fee, null)))) ? currencyCode : null;
         String networkId = this.safeString(transaction, "chain");
         {
@@ -5471,7 +5471,7 @@ public class Xt extends XtApi
             h2kMap0.put("tagTo", null);
             h2kMap0.put("tag", memo);
             h2kMap0.put("type", type);
-            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap0.put("currency", currencyCode);
             h2kMap0.put("network", this.networkIdToCode(networkId, currencyCode));
             h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
@@ -5542,7 +5542,7 @@ public class Xt extends XtApi
         request.put("symbol", market.get("id"));
         request.put("positionSide", positionSide);
         request.put("leverage", leverage);
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setLeverage", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setLeverage", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -5584,7 +5584,7 @@ public class Xt extends XtApi
     private Object addMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.modifyMarginHelper((String) (symbol), amount, "ADD", parameters)).join();
+        return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
 
     }
 
@@ -5607,7 +5607,7 @@ public class Xt extends XtApi
     private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.modifyMarginHelper((String) (symbol), amount, "SUB", parameters)).join();
+        return (this.modifyMarginHelper(symbol, amount, "SUB", parameters)).join();
 
     }
 
@@ -5636,7 +5636,7 @@ public class Xt extends XtApi
         request.put("margin", amount);
         request.put("type", addOrReduce);
         request.put("positionSide", positionSide);
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("modifyMarginHelper", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("modifyMarginHelper", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -5666,7 +5666,7 @@ public class Xt extends XtApi
             put( "type", null );
             put( "amount", null );
             put( "code", null );
-            put( "symbol", Xt.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "symbol", Xt.this.safeSymbol(null, market, null, null) );
             put( "status", null );
             put( "marginMode", null );
             put( "total", null );
@@ -5696,7 +5696,7 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -5732,7 +5732,7 @@ public class Xt extends XtApi
         //     }
         //
         List<Object> data = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         return this.parseLeverageTiers(data, symbolsNormalized, "symbol");
 
     }
@@ -5761,8 +5761,8 @@ public class Xt extends XtApi
         {
             Map<String, Object> entry = this.safeDict(response, i, null);
             String marketId = this.safeString(entry, "symbol");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", "contract");
-            String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, "_", "contract");
+            String symbol = this.safeSymbol(marketId, market, null, null);
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (this.inArray(symbol, symbols))
@@ -5802,7 +5802,7 @@ public class Xt extends XtApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -5872,9 +5872,9 @@ public class Xt extends XtApi
                 put( "symbol", Xt.this.safeSymbol(marketId, marketResolved, "_", "contract") );
                 put( "currency", marketResolved.get("settle") );
                 put( "minNotional", minNotional );
-                put( "maxNotional", Xt.this.safeNumber(tier, "maxNominalValue", (Object) null) );
-                put( "maintenanceMarginRate", Xt.this.safeNumber(tier, "maintMarginRate", (Object) null) );
-                put( "maxLeverage", Xt.this.safeNumber(tier, "maxLeverage", (Object) null) );
+                put( "maxNotional", Xt.this.safeNumber(tier, "maxNominalValue", null) );
+                put( "maintenanceMarginRate", Xt.this.safeNumber(tier, "maintMarginRate", null) );
+                put( "maxLeverage", Xt.this.safeNumber(tier, "maxLeverage", null) );
                 put( "info", tier );
             }});
         }
@@ -5931,7 +5931,7 @@ public class Xt extends XtApi
         {
             request.put("limit", 200); // max
         }
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -5969,12 +5969,12 @@ public class Xt extends XtApi
         {
             Object entry = (items == null || i < 0 || i >= items.size() ? null : items.get(i));
             String marketId = this.safeString(entry, "symbol");
-            String symbolInner = this.safeSymbol(marketId, market, (String) null, (String) null);
+            String symbolInner = this.safeSymbol(marketId, market, null, null);
             Long timestamp = this.safeInteger(entry, "createdTime");
             ((List<Object>)rates).add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", symbolInner );
-                put( "fundingRate", Xt.this.safeNumber(entry, "fundingRate", (Object) null) );
+                put( "fundingRate", Xt.this.safeNumber(entry, "fundingRate", null) );
                 put( "timestamp", timestamp );
                 put( "datetime", Xt.this.iso8601(timestamp) );
             }});
@@ -6034,7 +6034,7 @@ public class Xt extends XtApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRate", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRate", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -6087,7 +6087,7 @@ public class Xt extends XtApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Xt.this.safeNumber(contract, "fundingRate", (Object) null) );
+            put( "fundingRate", Xt.this.safeNumber(contract, "fundingRate", null) );
             put( "fundingTimestamp", timestamp );
             put( "fundingDatetime", Xt.this.iso8601(timestamp) );
             put( "nextFundingRate", null );
@@ -6126,7 +6126,7 @@ public class Xt extends XtApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenInterest", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenInterest", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -6166,12 +6166,12 @@ public class Xt extends XtApi
         //     }
         //
         String marketId = this.safeString(interest, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(interest, "time");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
-            put( "openInterestAmount", Xt.this.safeNumber(interest, "openInterest", (Object) null) );
-            put( "openInterestValue", Xt.this.safeNumber(interest, "openInterestUsd", (Object) null) );
+            put( "openInterestAmount", Xt.this.safeNumber(interest, "openInterest", null) );
+            put( "openInterestValue", Xt.this.safeNumber(interest, "openInterestUsd", null) );
             put( "timestamp", timestamp );
             put( "datetime", Xt.this.iso8601(timestamp) );
             put( "info", interest );
@@ -6201,7 +6201,7 @@ public class Xt extends XtApi
         {
             throw new NotSupported((this.id + " fetchTradingFee() supports contract markets only")) ;
         }
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -6257,7 +6257,7 @@ public class Xt extends XtApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -6295,8 +6295,8 @@ public class Xt extends XtApi
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", Xt.this.safeNumber(fee, "makerFee", (Object) null) );
-            put( "taker", Xt.this.safeNumber(fee, "takerFee", (Object) null) );
+            put( "maker", Xt.this.safeNumber(fee, "makerFee", null) );
+            put( "taker", Xt.this.safeNumber(fee, "takerFee", null) );
             put( "percentage", null );
             put( "tierBased", true );
         }};
@@ -6341,7 +6341,7 @@ public class Xt extends XtApi
         {
             request.put("limit", limit);
         }
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -6401,7 +6401,7 @@ public class Xt extends XtApi
         String marketId = this.safeString(contract, "symbol");
         String symbol = this.safeSymbol(marketId, market, "_", "swap");
         String currencyId = this.safeString(contract, "coin");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Long timestamp = this.safeInteger(contract, "createdTime");
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -6410,7 +6410,7 @@ public class Xt extends XtApi
             put( "timestamp", timestamp );
             put( "datetime", Xt.this.iso8601(timestamp) );
             put( "id", Xt.this.safeString(contract, "id") );
-            put( "amount", Xt.this.safeNumber(contract, "cast", (Object) null) );
+            put( "amount", Xt.this.safeNumber(contract, "cast", null) );
         }};
     }
 
@@ -6479,7 +6479,7 @@ public class Xt extends XtApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
@@ -6543,7 +6543,7 @@ public class Xt extends XtApi
         {
             Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(entry, "symbol");
-            Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
+            Map<String, Object> marketInner = this.safeMarket(marketId, null, null, "contract");
             String positionSize = this.safeString(entry, "positionSize");
             if (!java.util.Objects.equals(positionSize, "0"))
             {
@@ -6577,7 +6577,7 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", (Map<String, Object>) null, parameters, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", null, parameters, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
@@ -6642,7 +6642,7 @@ public class Xt extends XtApi
         {
             Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(entry, "symbol");
-            Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
+            Map<String, Object> marketInner = this.safeMarket(marketId, null, null, "contract");
             Map<String, Object> merged = (Map<String, Object>) this.mergePositionBreakInfo(entry, breakBySymbolSide);
             ((List<Object>)result).add(this.parsePosition(merged, marketInner));
         }
@@ -6671,7 +6671,7 @@ public class Xt extends XtApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -6694,7 +6694,7 @@ public class Xt extends XtApi
         Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, paramsUntil, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, paramsUntil, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -6803,8 +6803,8 @@ public class Xt extends XtApi
         //     }
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, "contract");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "contract");
+        String symbol = this.safeSymbol(marketId, marketResolved, null, "contract");
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         String positionType = this.safeString(position, "positionType");
         Boolean isCross = (java.util.Objects.equals(positionType, "CROSSED")) || (java.util.Objects.equals(positionType, "1"));
@@ -6813,7 +6813,7 @@ public class Xt extends XtApi
         {
             marginMode = "cross";
         }
-        Double collateral = this.safeNumber(position, "isolatedMargin", (Object) null);
+        Double collateral = this.safeNumber(position, "isolatedMargin", null);
         // history entries carry the liquidation price in forceMarkPrice when force is true
         String liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
         Long timestamp = this.safeInteger(position, "closeTime");
@@ -6825,11 +6825,11 @@ public class Xt extends XtApi
         mapLiteral14.put("datetime", this.iso8601(timestamp));
         mapLiteral14.put("hedged", null);
         mapLiteral14.put("side", this.safeStringLower(position, "positionSide"));
-        mapLiteral14.put("contracts", this.safeNumber2(position, "positionSize", "closePositionSize", (Object) null));
+        mapLiteral14.put("contracts", this.safeNumber2(position, "positionSize", "closePositionSize", null));
         mapLiteral14.put("contractSize", marketResolved.get("contractSize"));
-        mapLiteral14.put("entryPrice", this.safeNumber2(position, "entryPrice", "closeOpenPrice", (Object) null));
-        mapLiteral14.put("markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice", (Object) null));
-        mapLiteral14.put("lastPrice", this.safeNumber(position, "closePrice", (Object) null));
+        mapLiteral14.put("entryPrice", this.safeNumber2(position, "entryPrice", "closeOpenPrice", null));
+        mapLiteral14.put("markPrice", this.safeNumber2(position, "markPrice", "calMarkPrice", null));
+        mapLiteral14.put("lastPrice", this.safeNumber(position, "closePrice", null));
         mapLiteral14.put("notional", null);
         mapLiteral14.put("leverage", this.safeInteger2(position, "leverage", "endLeverage"));
         mapLiteral14.put("collateral", collateral);
@@ -6838,7 +6838,7 @@ public class Xt extends XtApi
         mapLiteral14.put("initialMarginPercentage", null);
         mapLiteral14.put("maintenanceMarginPercentage", null);
         mapLiteral14.put("unrealizedPnl", null);
-        mapLiteral14.put("realizedPnl", this.safeNumber2(position, "realizedProfit", "closeProfit", (Object) null));
+        mapLiteral14.put("realizedPnl", this.safeNumber2(position, "realizedProfit", "closeProfit", null));
         mapLiteral14.put("liquidationPrice", this.parseNumber(liquidationPriceString));
         mapLiteral14.put("marginMode", marginMode);
         mapLiteral14.put("percentage", null);
@@ -6870,11 +6870,11 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> accountsByType = this.safeDict(this.options, "accountsById", null);
         String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-        String amountString = (String) this.currencyToPrecision((String) (code), amount, (String) null);
+        String amountString = (String) this.currencyToPrecision(code, amount, null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "bizId", Xt.this.uuid() );
             put( "currency", currency.get("id") );
@@ -6947,7 +6947,7 @@ public class Xt extends XtApi
         {
             throw new NotSupported((this.id + " setMarginMode() supports contract markets only")) ;
         }
-        String marginModeLower = ((String)marginMode).toLowerCase();
+        String marginModeLower = marginMode.toLowerCase();
         if (!java.util.Objects.equals(marginModeLower, "isolated") && !java.util.Objects.equals(marginModeLower, "cross"))
         {
             throw new BadRequest((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -6961,7 +6961,7 @@ public class Xt extends XtApi
             put( "positionSide", posSide );
             put( "symbol", market.get("id") );
         }};
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setMarginMode", market, paramsOmitted, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setMarginMode", market, paramsOmitted, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> response = null;
@@ -7023,8 +7023,8 @@ public class Xt extends XtApi
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice", (Object) null);
-        Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice", (Object) null);
+        Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice", null);
+        Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
         Boolean isStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
@@ -7049,7 +7049,7 @@ public class Xt extends XtApi
             {
                 request.put("origQty", this.amountToPrecision(symbol, amount));
             }
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("editOrder", market, paramsOmitted, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("editOrder", market, paramsOmitted, null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             if (java.util.Objects.equals(subType, "inverse"))

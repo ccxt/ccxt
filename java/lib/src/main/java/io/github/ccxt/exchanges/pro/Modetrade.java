@@ -194,7 +194,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String topic = this.safeString(message, "topic");
         if (!(this.orderbooks.containsKey(symbol)))
@@ -242,7 +242,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -258,7 +258,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Modetrade.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "symbol", Modetrade.this.safeSymbol(null, market, null, null) );
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
             put( "high", Modetrade.this.safeString(ticker, "high") );
@@ -302,7 +302,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
@@ -334,7 +334,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String name = "tickers";
         String topic = name;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -375,7 +375,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         for (var i = 0; i < data.size(); i++)
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}), market);
@@ -406,7 +406,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String name = "bbos";
         String topic = name;
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -458,7 +458,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
     public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -544,15 +544,15 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String interval = this.safeString(data, "type");
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
         }
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open", (Object) null), this.safeNumber(data, "high", (Object) null), this.safeNumber(data, "low", (Object) null), this.safeNumber(data, "close", (Object) null), this.safeNumber(data, "volume", (Object) null)));
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open", null), this.safeNumber(data, "high", null), this.safeNumber(data, "low", null), this.safeNumber(data, "close", null), this.safeNumber(data, "volume", null)));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -625,7 +625,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         Map<String, Object> trade = this.parseWsTrade(this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
@@ -681,7 +681,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString2(trade, "executedPrice", "price");
         String amount = this.safeString2(trade, "executedQuantity", "size");
@@ -689,7 +689,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
         if (!java.util.Objects.equals(maker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";
@@ -701,7 +701,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeValue);
-                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(trade, "feeAsset"), (Map<String, Object>) null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(trade, "feeAsset"), null));
                 fee = hx4NewMap0;
             }
         }
@@ -1026,7 +1026,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         String orderId = this.safeString(order, "orderId");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
@@ -1034,8 +1034,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "currency", Modetrade.this.safeString(order, "feeAsset") );
         }};
         String priceString = this.safeString(order, "price");
-        Double price = this.safeNumber(order, "price", (Object) null);
-        Double avgPrice = this.safeNumber(order, "avgPrice", (Object) null);
+        Double price = this.safeNumber(order, "price", null);
+        Double avgPrice = this.safeNumber(order, "avgPrice", null);
         if (Precise.stringEq(priceString, "0") && (!java.util.Objects.equals(avgPrice, null)))
         {
             price = avgPrice;
@@ -1043,7 +1043,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String amount = this.safeString(order, "quantity");
         String side = this.safeStringLower(order, "side");
         String type = this.safeStringLower(order, "type");
-        Double filled = this.safeNumber(order, "totalExecutedQuantity", (Object) null);
+        Double filled = this.safeNumber(order, "totalExecutedQuantity", null);
         String totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         String remaining = amount;
         if (Precise.stringGe(amount, totalExecQuantity))
@@ -1054,7 +1054,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String status = this.parseOrderStatus((String) (rawStatus));
         List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
-        Double triggerPrice = this.safeNumber(order, "triggerPrice", (Object) null);
+        Double triggerPrice = this.safeNumber(order, "triggerPrice", null);
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", order);
         mapLiteral2.put("symbol", symbol);
@@ -1078,7 +1078,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         mapLiteral2.put("status", status);
         mapLiteral2.put("fee", fee);
         mapLiteral2.put("trades", trades);
-        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
+        return this.safeOrder(mapLiteral2, null);
     }
 
     public void handleOrderUpdate(Client client, Map<String, Object> message)
@@ -1145,7 +1145,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     public void handleOrder(Client client, Map<String, Object> message, String topic)
     {
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (!java.util.Objects.equals(symbol, null))
@@ -1212,7 +1212,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         String messageHash = "myTrades";
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol");
         Map<String, Object> trade = this.parseWsTrade(message, market);
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
@@ -1252,7 +1252,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         if ((!java.util.Objects.equals(symbolsNormalized, null)) && !this.isEmpty(symbolsNormalized))
         {
             for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -1388,7 +1388,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             Map<String, Object> rawPosition = this.safeDict(rawPositions, i, null);
             String marketId = this.safeString(rawPosition, "symbol");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             Map<String, Object> position = this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
@@ -1426,7 +1426,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String contract = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, null, null);
         String size = this.safeString(position, "positionQty");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -1461,7 +1461,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         mapLiteral3.put("contracts", this.parseNumber(size));
         mapLiteral3.put("contractSize", this.parseNumber(contractSize));
         mapLiteral3.put("marginRatio", null);
-        mapLiteral3.put("liquidationPrice", this.safeNumber(position, "estLiqPrice", (Object) null));
+        mapLiteral3.put("liquidationPrice", this.safeNumber(position, "estLiqPrice", null));
         mapLiteral3.put("markPrice", this.parseNumber(markPrice));
         mapLiteral3.put("lastPrice", null);
         mapLiteral3.put("collateral", null);
@@ -1546,7 +1546,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = this.safeDict(balances, key, null);
-            String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(key, null);
             Map<String, Object> account = this.account();
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");

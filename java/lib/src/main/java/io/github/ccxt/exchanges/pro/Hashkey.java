@@ -188,11 +188,11 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> parameters = this.safeDict(message, "params", null);
         String klineType = this.safeString(parameters, "klineType");
-        String timeframe = this.findTimeframe(klineType, (Object) null);
+        String timeframe = this.findTimeframe(klineType, null);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
@@ -232,7 +232,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //         "v": "0"
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", null), this.safeNumber(ohlcv, "h", null), this.safeNumber(ohlcv, "l", null), this.safeNumber(ohlcv, "c", null), this.safeNumber(ohlcv, "v", null)));
     }
 
     /**
@@ -296,7 +296,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), null);
         String symbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
@@ -368,7 +368,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -454,7 +454,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, null, null, null);
         String messageHash = ("orderbook:" + symbol);
         if (!(this.orderbooks.containsKey(symbol)))
         {
@@ -552,7 +552,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, null);
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(parsed);
         String messageHash = "orders";
@@ -565,7 +565,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(order, "O");
         String rawSide = this.safeStringLower(order, "S");
         String side = this.parseOrderSideValue((String) (rawSide));
@@ -601,7 +601,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         mapLiteral1.put("cost", this.omitZero(this.safeString(order, "Z")));
         mapLiteral1.put("trades", null);
         mapLiteral1.put("fee", new HashMap<String, Object>() {{
-                put( "currency", Hashkey.this.safeCurrencyCode(Hashkey.this.safeString(order, "N"), (Map<String, Object>) null) );
+                put( "currency", Hashkey.this.safeCurrencyCode(Hashkey.this.safeString(order, "N"), null) );
                 put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "n")) );
             }});
         mapLiteral1.put("reduceOnly", this.parseOrderReduceOnlyValue((String) (rawSide)));
@@ -673,7 +673,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> parsed = this.parseWsTrade(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(message, null);
         tradesArray.append(parsed);
         this.myTrades = tradesArray;
         String messageHash = "myTrades";
@@ -712,9 +712,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "t");
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null);
         Boolean isPublicTrade = java.util.Objects.equals(this.safeString(trade, "e"), null);
         String side = null;
         String takerOrMaker = null;
@@ -771,7 +771,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String messageHash = "positions";
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         if (java.util.Objects.equals(symbolsNormalized, null))
@@ -834,29 +834,29 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, null, null, null);
         Long timestamp = this.safeInteger(position, "E");
         return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
-            put( "contracts", Hashkey.this.safeNumber(position, "P", (Object) null) );
+            put( "contracts", Hashkey.this.safeNumber(position, "P", null) );
             put( "contractSize", null );
             put( "side", Hashkey.this.safeStringLower(position, "S") );
-            put( "notional", Hashkey.this.safeNumber(position, "pv", (Object) null) );
+            put( "notional", Hashkey.this.safeNumber(position, "pv", null) );
             put( "leverage", Hashkey.this.safeInteger(position, "v") );
-            put( "unrealizedPnl", Hashkey.this.safeNumber(position, "up", (Object) null) );
-            put( "realizedPnl", Hashkey.this.safeNumber(position, "r", (Object) null) );
+            put( "unrealizedPnl", Hashkey.this.safeNumber(position, "up", null) );
+            put( "realizedPnl", Hashkey.this.safeNumber(position, "r", null) );
             put( "collateral", null );
-            put( "entryPrice", Hashkey.this.safeNumber(position, "p", (Object) null) );
+            put( "entryPrice", Hashkey.this.safeNumber(position, "p", null) );
             put( "markPrice", null );
-            put( "liquidationPrice", Hashkey.this.safeNumber(position, "f", (Object) null) );
+            put( "liquidationPrice", Hashkey.this.safeNumber(position, "f", null) );
             put( "marginMode", Hashkey.this.safeStringLower(position, "mt") );
             put( "hedged", true );
-            put( "maintenanceMargin", Hashkey.this.safeNumber(position, "mm", (Object) null) );
+            put( "maintenanceMargin", Hashkey.this.safeNumber(position, "mm", null) );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", Hashkey.this.safeNumber(position, "m", (Object) null) );
+            put( "initialMargin", Hashkey.this.safeNumber(position, "m", null) );
             put( "initialMarginPercentage", null );
             put( "marginRatio", null );
             put( "lastUpdateTimestamp", null );
@@ -891,7 +891,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String type = "spot";
-        String typeMarketType = (String) ((List<Object>)this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, type)).get(0);
+        String typeMarketType = (String) ((List<Object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type)).get(0);
         String messageHash = ("balance:" + typeMarketType);
         String url = this.getPrivateUrl(listenKey);
         Client client = this.client(url);
@@ -922,7 +922,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.loadBalanceSnapshot(client, messageHash, (String) (type));
+                this.loadBalanceSnapshot(client, messageHash, type);
             }
         }
         this.balance.put(type, new HashMap<String, Object>() {{}});
@@ -983,7 +983,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
         balance.put("info", message);
         String currencyId = this.safeString(balanceUpdate, "a");
-        String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+        String code = this.safeCurrencyCode((String) (currencyId), null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(balanceUpdate, "f"));
         account.put("used", this.safeString(balanceUpdate, "l"));
@@ -1080,10 +1080,10 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             (this.privatePutApiV1UserDataStream(this.extend(request, parameters))).join();
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
-            this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
+            this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
         } catch(Exception error)
         {
-            String url = this.getPrivateUrl((String) (listenKey));
+            String url = this.getPrivateUrl(listenKey);
             Client client = this.client(url);
             this.options.remove("listenKey");
             client.reject(error);
@@ -1093,7 +1093,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleListMessage(Client client, Object message)
+    public void handleListMessage(Client client, List<Object> message)
     {
         this.handleStreamMessage(client, this.safeDict(message, 0, new HashMap<String, Object>() {{}}));
     }

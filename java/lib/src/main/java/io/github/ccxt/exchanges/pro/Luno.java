@@ -331,8 +331,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
 
     public List<Object> customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Object thirdKey)
     {
-        Double price = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(priceKey, "price"), (Object) null);
-        Double amount = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(amountKey, "volume"), (Object) null);
+        Double price = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(priceKey, "price"), null);
+        Double amount = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(amountKey, "volume"), null);
         List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(thirdKey, 2), null))
         {
@@ -449,7 +449,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             String entryId = this.safeString(order, 2);
             if (java.util.Objects.equals(entryId, orderId))
             {
-                Double price = this.safeNumber(order, 0, (Object) null);
+                Double price = this.safeNumber(order, 0, null);
                 String currentAmount = this.safeString(order, 1);
                 String remainingAmount = Precise.stringSub(currentAmount, tradedAmount);
                 if (Precise.stringLe(remainingAmount, "0"))

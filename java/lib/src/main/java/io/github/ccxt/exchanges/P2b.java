@@ -423,8 +423,8 @@ public class P2b extends P2bApi
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -457,8 +457,8 @@ public class P2b extends P2bApi
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", P2b.this.safeNumber(limits, "step_size", (Object) null) );
-                put( "price", P2b.this.safeNumber(limits, "tick_size", (Object) null) );
+                put( "amount", P2b.this.safeNumber(limits, "step_size", null) );
+                put( "price", P2b.this.safeNumber(limits, "tick_size", null) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -466,15 +466,15 @@ public class P2b extends P2bApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", P2b.this.safeNumber(limits, "min_amount", (Object) null) );
+                    put( "min", P2b.this.safeNumber(limits, "min_amount", null) );
                     put( "max", P2b.this.parseNumber(P2b.this.omitZero(maxAmount)) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", P2b.this.safeNumber(limits, "min_price", (Object) null) );
+                    put( "min", P2b.this.safeNumber(limits, "min_price", null) );
                     put( "max", P2b.this.parseNumber(P2b.this.omitZero(maxPrice)) );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", P2b.this.safeNumber(limits, "min_total", (Object) null) );
+                    put( "min", P2b.this.safeNumber(limits, "min_total", null) );
                     put( "max", null );
                 }} );
             }});
@@ -920,7 +920,7 @@ public class P2b extends P2bApi
         //        'ADA_USDT'        // Market name
         //    ],
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, 0, 1000), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, 0, 1000), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 4, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 5, null)));
     }
 
     /**
@@ -988,7 +988,7 @@ public class P2b extends P2bApi
         {
             String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> balance = this.safeDict(response, currencyId, new HashMap<String, Object>() {{}});
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
             Map<String, Object> account = new HashMap<String, Object>() {{
@@ -1013,12 +1013,12 @@ public class P2b extends P2bApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1119,7 +1119,7 @@ public class P2b extends P2bApi
         //    }
         //
         Map<String, Object> result = this.safeDict(response, "result", null);
-        return this.parseOrder(result, (Map<String, Object>) null);
+        return this.parseOrder(result, null);
 
     }
 
@@ -1219,7 +1219,7 @@ public class P2b extends P2bApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(symbol, null, null, null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );
         }};
@@ -1517,7 +1517,7 @@ public class P2b extends P2bApi
         //
         Long timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", P2b.this.safeString2(order, "id", "orderId") );

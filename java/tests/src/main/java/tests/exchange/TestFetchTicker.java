@@ -20,7 +20,7 @@ public class TestFetchTicker extends BaseTest {
 
         String method = "fetchTicker";
         Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
-        TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (symbol));
+        TestTicker.testTicker(exchange, skippedProperties, method, ticker, symbol);
         return true;
         });
 

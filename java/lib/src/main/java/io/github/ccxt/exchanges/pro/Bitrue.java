@@ -206,7 +206,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "a");
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (currencyId), null);
             Map<String, Object> account = this.account();
             String free = this.safeString(balance, "F");
             String used = this.safeString(balance, "L");
@@ -306,7 +306,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //        "Y": "0"
         //    }
         //
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, null);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -363,7 +363,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         mapLiteral1.put("timestamp", timestamp);
         mapLiteral1.put("datetime", this.iso8601(timestamp));
         mapLiteral1.put("lastTradeTimestamp", this.safeInteger(order, "T"));
-        mapLiteral1.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral1.put("symbol", this.safeSymbol(marketId, market, null, null));
         mapLiteral1.put("type", this.parseWsOrderType((String) (typeId)));
         mapLiteral1.put("timeInForce", null);
         mapLiteral1.put("postOnly", null);
@@ -377,8 +377,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         mapLiteral1.put("remaining", null);
         mapLiteral1.put("status", this.parseWsOrderStatus((String) (statusId)));
         mapLiteral1.put("fee", new HashMap<String, Object>() {{
-                put( "currency", Bitrue.this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null) );
-                put( "cost", Bitrue.this.safeNumber(order, "n", (Object) null) );
+                put( "currency", Bitrue.this.safeCurrencyCode((String) (feeCurrencyId), null) );
+                put( "cost", Bitrue.this.safeNumber(order, "n", null) );
             }});
         return this.safeOrder(mapLiteral1, market);
     }
@@ -473,7 +473,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         } else
         {
             String marketId = this.safeStringUpper(parts, 1);
-            market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            market = this.safeMarket(marketId, null, null, null);
         }
         String symbol = this.safeString(market, "symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -542,8 +542,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
         {
             List<Object> level = this.safeList(bidsAsks, i, null);
-            Double price = this.safeNumber(level, 0, (Object) null);
-            Double rawAmount = this.safeNumber(level, 1, (Object) null);
+            Double price = this.safeNumber(level, 0, null);
+            Double rawAmount = this.safeNumber(level, 1, null);
             Object amount = this.convertFromRawQuantity(symbol, rawAmount);
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, amount)));
         }
@@ -610,7 +610,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         // bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
         // so the subscription is cleaned up as soon as the request is sent
         this.cleanCache(subscription);
-        this.cleanUnsubscription(client, (String) (subHash), ("unsubscribe:" + subHash), false);
+        this.cleanUnsubscription(client, subHash, ("unsubscribe:" + subHash), false);
         return true;
 
     }
@@ -774,7 +774,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Long timestamp = this.safeInteger(trade, "ts");
         String sideLower = this.safeStringLower(trade, "side");
         String priceString = this.safeString(trade, "price");
-        Double rawVol = this.safeNumber(trade, "vol", (Object) null);
+        Double rawVol = this.safeNumber(trade, "vol", null);
         Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
@@ -965,11 +965,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
     {
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeTimestamp(tick, "id");
-        Double open = this.safeNumber(tick, "open", (Object) null);
-        Double high = this.safeNumber(tick, "high", (Object) null);
-        Double low = this.safeNumber(tick, "low", (Object) null);
-        Double close = this.safeNumber(tick, "close", (Object) null);
-        Double rawVol = this.safeNumber(tick, "vol", (Object) null);
+        Double open = this.safeNumber(tick, "open", null);
+        Double high = this.safeNumber(tick, "high", null);
+        Double low = this.safeNumber(tick, "low", null);
+        Double close = this.safeNumber(tick, "close", null);
+        Double rawVol = this.safeNumber(tick, "vol", null);
         Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         return new ArrayList<Object>(Arrays.asList(timestamp, open, high, low, close, baseVolume));
     }
@@ -1058,29 +1058,29 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         client.resolve(parsed, messageHash);
     }
 
-    public Ticker parseWsTicker(Object tick, Object market, Long timestamp)
+    public Ticker parseWsTicker(Map<String, Object> tick, Object market, Long timestamp)
     {
         String symbol = this.safeString(market, "symbol", "");
-        Double rawVol = this.safeNumber(tick, "vol", (Object) null);
-        Double rawAmount = this.safeNumber(tick, "amount", (Object) null);
+        Double rawVol = this.safeNumber(tick, "vol", null);
+        Double rawAmount = this.safeNumber(tick, "amount", null);
         Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         Object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
-        Double close = this.safeNumber(tick, "close", (Object) null);
-        Double rose = this.safeNumber(tick, "rose", (Object) null);
+        Double close = this.safeNumber(tick, "close", null);
+        Double rose = this.safeNumber(tick, "rose", null);
         Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : Helpers.multiply(rose, 100);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", tick );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bitrue.this.iso8601(timestamp) );
-            put( "high", Bitrue.this.safeNumber(tick, "high", (Object) null) );
-            put( "low", Bitrue.this.safeNumber(tick, "low", (Object) null) );
+            put( "high", Bitrue.this.safeNumber(tick, "high", null) );
+            put( "low", Bitrue.this.safeNumber(tick, "low", null) );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", Bitrue.this.safeNumber(tick, "open", (Object) null) );
+            put( "open", Bitrue.this.safeNumber(tick, "open", null) );
             put( "close", close );
             put( "last", close );
             put( "previousClose", null );

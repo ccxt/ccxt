@@ -487,7 +487,7 @@ public class Revolutx extends RevolutxApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         String id = this.safeString2(currency, "id", "symbol", "");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id, null);
         String name = this.safeString(currency, "name");
         Long scale = this.safeInteger(currency, "scale");
         String status = this.safeString(currency, "status");
@@ -588,7 +588,7 @@ public class Revolutx extends RevolutxApi
     public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         String tickerSymbol = this.safeString(ticker, "symbol");
-        String symbol = this.safeSymbol(tickerSymbol, market, "/", (String) null);
+        String symbol = this.safeSymbol(tickerSymbol, market, "/", null);
         String bid = this.safeString(ticker, "bid");
         String ask = this.safeString(ticker, "ask");
         String last = this.safeString(ticker, "last_price");
@@ -690,7 +690,7 @@ public class Revolutx extends RevolutxApi
         {
             Map<String, Object> tickerData = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             tickerData.put("timestamp", timestamp);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, null);
             String symbol = this.safeString(ticker, "symbol", "");
             if (java.util.Objects.equals(symbol, ""))
             {
@@ -812,11 +812,11 @@ public class Revolutx extends RevolutxApi
     public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(ohlcv, "start");
-        Double open = this.safeNumber(ohlcv, "open", (Object) null);
-        Double high = this.safeNumber(ohlcv, "high", (Object) null);
-        Double low = this.safeNumber(ohlcv, "low", (Object) null);
-        Double close = this.safeNumber(ohlcv, "close", (Object) null);
-        Double volume = this.safeNumber(ohlcv, "volume", (Object) null);
+        Double open = this.safeNumber(ohlcv, "open", null);
+        Double high = this.safeNumber(ohlcv, "high", null);
+        Double low = this.safeNumber(ohlcv, "low", null);
+        Double close = this.safeNumber(ohlcv, "close", null);
+        Double volume = this.safeNumber(ohlcv, "volume", null);
         return new ArrayList<Object>(Arrays.asList(timestamp, open, high, low, close, volume));
     }
 
@@ -903,7 +903,7 @@ public class Revolutx extends RevolutxApi
     {
         String id = this.safeString(trade, "id");
         String tradeSymbol = this.safeString(trade, "symbol");
-        String symbol = this.safeSymbol(tradeSymbol, market, "/", (String) null);
+        String symbol = this.safeSymbol(tradeSymbol, market, "/", null);
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");
         Double price = this.parseNumber(priceString);
@@ -1050,7 +1050,7 @@ public class Revolutx extends RevolutxApi
         {
             Map<String, Object> balance = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             String currency = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currency, null);
             if (java.util.Objects.equals(code, null))
             {
                 continue;
@@ -1109,7 +1109,7 @@ public class Revolutx extends RevolutxApi
         String orderId = this.safeString2(order, "id", "venue_order_id");
         String clientOrderId = this.safeString(order, "client_order_id");
         String orderSymbol = this.safeString(order, "symbol");
-        String symbol = this.safeSymbol(orderSymbol, market, "/", (String) null);
+        String symbol = this.safeSymbol(orderSymbol, market, "/", null);
         String side = this.safeStringLower(order, "side");
         String orderType = this.safeStringLower(order, "type");
         String quantity = this.safeString(order, "quantity");
@@ -1242,12 +1242,12 @@ public class Revolutx extends RevolutxApi
      * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1314,11 +1314,11 @@ public class Revolutx extends RevolutxApi
             }};
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
-                tpslConfig.put("take_profit", this.createTriggerLegRequest((String) (symbol), (String) (type), price, takeProfitPrice, takeProfit, singleLeg));
+                tpslConfig.put("take_profit", this.createTriggerLegRequest(symbol, type, price, takeProfitPrice, takeProfit, singleLeg));
             }
             if (Boolean.TRUE.equals(hasStopLoss))
             {
-                tpslConfig.put("stop_loss", this.createTriggerLegRequest((String) (symbol), (String) (type), price, stopLossPrice, stopLoss, singleLeg));
+                tpslConfig.put("stop_loss", this.createTriggerLegRequest(symbol, type, price, stopLossPrice, stopLoss, singleLeg));
             }
             orderConfiguration.put("tpsl", tpslConfig);
         } else if (java.util.Objects.equals(type, "limit"))
@@ -1461,7 +1461,7 @@ public class Revolutx extends RevolutxApi
             put( "info", response );
             put( "id", id );
             put( "status", "canceled" );
-        }}, (Map<String, Object>) null);
+        }}, null);
 
     }
 
@@ -1583,13 +1583,13 @@ public class Revolutx extends RevolutxApi
         {
             request.put("cursor", cursor);
         }
-        List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", (Object) null);
+        List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", null);
         if (!java.util.Objects.equals(orderStates, null))
         {
             request.put("order_states", String.join(",", orderStates));
         }
         Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-        Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
+        Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", null);
         if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
         {
             orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
@@ -1615,7 +1615,7 @@ public class Revolutx extends RevolutxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.parseOrder(order, (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parseOrder(order, null));
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
@@ -1682,13 +1682,13 @@ public class Revolutx extends RevolutxApi
         {
             request.put("cursor", cursor);
         }
-        List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", (Object) null);
+        List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", null);
         if (!java.util.Objects.equals(orderStates, null))
         {
             request.put("order_states", String.join(",", orderStates));
         }
         Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-        Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
+        Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", null);
         if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
         {
             orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
@@ -1703,7 +1703,7 @@ public class Revolutx extends RevolutxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.parseOrder(order, (Map<String, Object>) null));
+            ((List<Object>)result).add(this.parseOrder(order, null));
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
@@ -1762,7 +1762,7 @@ public class Revolutx extends RevolutxApi
         {
             cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market, null, null);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", trade);

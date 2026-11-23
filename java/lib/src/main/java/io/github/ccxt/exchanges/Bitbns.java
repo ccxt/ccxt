@@ -412,8 +412,8 @@ public class Bitbns extends BitbnsApi
             String id = this.safeString(market, "id");
             String baseId = this.safeString(market, "base");
             String quoteId = this.safeString(market, "quote");
-            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(baseId, null)) || (java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;
@@ -446,7 +446,7 @@ public class Bitbns extends BitbnsApi
             j39v1.put("swap", false);
             j39v1.put("future", false);
             j39v1.put("option", false);
-            j39v1.put("active", this.safeBool(market, "active", (Object) null));
+            j39v1.put("active", this.safeBool(market, "active", null));
             j39v1.put("contract", false);
             j39v1.put("linear", null);
             j39v1.put("inverse", null);
@@ -465,16 +465,16 @@ public class Bitbns extends BitbnsApi
                         put( "max", null );
                     }} );
                     put( "amount", new HashMap<String, Object>() {{
-                        put( "min", Bitbns.this.safeNumber(amountLimits, "min", (Object) null) );
-                        put( "max", Bitbns.this.safeNumber(amountLimits, "max", (Object) null) );
+                        put( "min", Bitbns.this.safeNumber(amountLimits, "min", null) );
+                        put( "max", Bitbns.this.safeNumber(amountLimits, "max", null) );
                     }} );
                     put( "price", new HashMap<String, Object>() {{
-                        put( "min", Bitbns.this.safeNumber(priceLimits, "min", (Object) null) );
-                        put( "max", Bitbns.this.safeNumber(priceLimits, "max", (Object) null) );
+                        put( "min", Bitbns.this.safeNumber(priceLimits, "min", null) );
+                        put( "max", Bitbns.this.safeNumber(priceLimits, "max", null) );
                     }} );
                     put( "cost", new HashMap<String, Object>() {{
-                        put( "min", Bitbns.this.safeNumber(costLimits, "min", (Object) null) );
-                        put( "max", Bitbns.this.safeNumber(costLimits, "max", (Object) null) );
+                        put( "min", Bitbns.this.safeNumber(costLimits, "min", null) );
+                        put( "max", Bitbns.this.safeNumber(costLimits, "max", null) );
                     }} );
                 }});
             j39v1.put("created", null);
@@ -571,7 +571,7 @@ public class Bitbns extends BitbnsApi
         //
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -681,7 +681,7 @@ public class Bitbns extends BitbnsApi
                 {
                     currencyId = "INR";
                 }
-                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 if (!java.util.Objects.equals(code, null))
                 {
                     result.put(code, account);
@@ -845,12 +845,12 @@ public class Bitbns extends BitbnsApi
      * @param {float} [params.trail_rate] *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -864,7 +864,7 @@ public class Bitbns extends BitbnsApi
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate")));
         this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "side", ((String)side).toUpperCase() );
+            put( "side", side.toUpperCase() );
             put( "symbol", market.get("uppercaseId") );
             put( "quantity", Bitbns.this.amountToPrecision(symbol, amount) );
         }};
@@ -938,7 +938,7 @@ public class Bitbns extends BitbnsApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
+        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "entry_id", id );
@@ -986,7 +986,7 @@ public class Bitbns extends BitbnsApi
             put( "symbol", market.get("id") );
             put( "entry_id", id );
         }};
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
+        Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
         if (java.util.Objects.equals(trigger, true))
         {
             throw new BadRequest((this.id + " fetchOrder cannot fetch stop orders")) ;
@@ -1053,7 +1053,7 @@ public class Bitbns extends BitbnsApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
+        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         String quoteSide = "listOpen";
         if (java.util.Objects.equals(market.get("quoteId"), "USDT"))
@@ -1123,7 +1123,7 @@ public class Bitbns extends BitbnsApi
         //         "type":"buy"
         //     }
         //
-        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String orderId = this.safeString2(trade, "id", "tradeId");
         Long timestamp = this.parse8601(this.safeString(trade, "date"));
         timestamp = (Long) this.safeInteger(trade, "timestamp", timestamp);
@@ -1331,7 +1331,7 @@ public class Bitbns extends BitbnsApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", currency.get("id") );
             put( "page", 0 );
@@ -1391,7 +1391,7 @@ public class Bitbns extends BitbnsApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", currency.get("id") );
             put( "page", 0 );
@@ -1468,8 +1468,8 @@ public class Bitbns extends BitbnsApi
             }
         }
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        Double amount = this.safeNumber(transaction, "amount", (Object) null);
-        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Double amount = this.safeNumber(transaction, "amount", null);
+        Double feeCost = this.safeNumber(transaction, "fee", null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -1526,7 +1526,7 @@ public class Bitbns extends BitbnsApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> currency = this.currency((String) (code));
+        Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", currency.get("id") );
         }};
@@ -1544,7 +1544,7 @@ public class Bitbns extends BitbnsApi
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String address = this.safeString(data, "token");
         String tag = this.safeString(data, "tag");
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         return new HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", code );

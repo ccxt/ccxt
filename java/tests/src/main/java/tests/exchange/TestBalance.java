@@ -23,15 +23,15 @@ public class TestBalance extends BaseTest {
             put( "total", new HashMap<String, Object>() {{}} );
             put( "info", new HashMap<String, Object>() {{}} );
         }};
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format);
-        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
+        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         //
         List<Object> codesTotal = Helpers.objectKeys(((Map<String, Object>)entry).get("total"));
         List<Object> codesFree = Helpers.objectKeys(((Map<String, Object>)entry).get("free"));
         List<Object> codesUsed = Helpers.objectKeys(((Map<String, Object>)entry).get("used"));
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, (String) (method), codesTotal, "total");
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, (String) (method), codesFree, "free");
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, (String) (method), codesUsed, "used");
+        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
+        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
+        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
         Object allCodes = exchange.arrayConcat(codesTotal, codesFree);
         allCodes = exchange.arrayConcat(allCodes, codesUsed);
         Integer codesLength = codesTotal.size();

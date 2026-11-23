@@ -170,7 +170,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Map<String, Object> market = this.market(symbol);
         String symbolResolved = this.safeString(market, "symbol", "");
         String messageHash = ("orderbook:" + symbolResolved);
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(("book::" + this.safeString(market, "id", "")))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(("book::" + this.safeString(market, "id", "")))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
         return orderbook.limit();
@@ -204,7 +204,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "topic", "orderbook" );
             put( "symbol", symbolResolved );
         }};
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         return (this.watch(url, messageHash, request, messageHash, null)).join();
 
@@ -229,7 +229,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         String ch = this.safeString(message, "ch", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("::"))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "ts");
@@ -267,7 +267,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Map<String, Object> market = this.market(symbol);
         String symbolResolved = this.safeString(market, "symbol", "");
         String messageHash = ("ticker:" + symbolResolved);
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(("tickers::" + this.safeString(market, "id", "")))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(("tickers::" + this.safeString(market, "id", "")))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         return (this.watch(url, messageHash, request, messageHash, null)).join();
 
@@ -300,7 +300,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "topic", "ticker" );
             put( "symbol", symbolResolved );
         }};
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         return (this.watch(url, messageHash, request, messageHash, null)).join();
 
@@ -324,7 +324,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String url = this.safeString(this.urls.get("api"), "ws");
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -341,7 +341,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 channels.add(("tickers::" + this.safeString(market, "id", "")));
             }
         }
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, null);
         Map<String, Object> newTicker = (this.<Map<String, Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         if (this.newUpdates)
         {
@@ -375,7 +375,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "iid");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeInteger(message, "ts");
         Ticker ticker = this.safeTicker(new HashMap<String, Object>() {{
@@ -411,7 +411,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         String url = this.safeString(this.urls.get("api"), "ws");
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -421,7 +421,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             messageHashes.add(("bidask:" + this.safeString(market, "symbol", "")));
             channels.add(("bbo::" + this.safeString(market, "id", "")));
         }
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, null);
         Map<String, Object> ticker = (this.<Map<String, Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         if (this.newUpdates)
         {
@@ -452,7 +452,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "iid");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeInteger(message, "ts");
         Ticker ticker = this.safeTicker(new HashMap<String, Object>() {{
@@ -492,7 +492,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Map<String, Object> market = this.market(symbol);
         String symbolResolved = this.safeString(market, "symbol", "");
         String messageHash = ("trade:" + symbolResolved);
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(("trades::" + this.safeString(market, "id", "")))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(("trades::" + this.safeString(market, "id", "")))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
         Long limitResolved = limit;
@@ -531,7 +531,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "topic", "trades" );
             put( "symbol", symbolResolved );
         }};
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         return (this.watch(url, messageHash, request, messageHash, null)).join();
 
@@ -575,7 +575,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         Map<String, Object> first = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(first, "iid");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -608,7 +608,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //     }
         //
         String marketId = this.safeString(trade, "iid");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "ts");
         String side = this.safeStringLower(trade, "side");
         if (java.util.Objects.equals(side, "long"))
@@ -666,7 +666,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         String messageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolResolved);
         String channel = ((("klines::" + this.safeString(market, "id", "")) + "::") + interval);
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(messageHash)), new HashMap<String, Object>() {{}}, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
         Long limitResolved = limit;
@@ -709,7 +709,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             put( "symbol", symbolResolved );
             put( "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m") );
         }};
-        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, (Object) null);
+        Map<String, Object> request = (Map<String, Object>) this.sendSubscription("unsub", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), context, parameters, null);
         String url = this.safeString(this.urls.get("api"), "ws");
         return (this.watch(url, messageHash, request, messageHash, null)).join();
 
@@ -734,9 +734,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("::"))));
         String marketId = this.safeString(parts, 1);
         String interval = this.safeString(parts, 2);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
@@ -903,7 +903,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Map<String, Object> row = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(row, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(row, null);
             stored.append(parsed);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1015,7 +1015,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Map<String, Object> row = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(row, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(row, null);
             stored.append(parsed);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1053,7 +1053,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         String url = this.safeString(this.urls.get("api"), "ws");
         Client client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);
@@ -1253,7 +1253,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             Map<String, Object> extended = this.extend(row, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }});
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(extended, (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(extended, null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }

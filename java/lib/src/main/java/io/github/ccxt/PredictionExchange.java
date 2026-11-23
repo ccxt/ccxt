@@ -263,7 +263,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
             Map<String, Object> eventVar = this.safeDict(events, i, null);
-            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", (Object) null);
+            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
             {
@@ -609,11 +609,11 @@ public Map<String, Object> describe()
     {
         // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
         // handing it to safeOutcome (whose fallback slot is a Market)
-        if (!this.hasOutcome((String) (outcomeIdOrSymbol)) && (!java.util.Objects.equals(outcomeObj, null)))
+        if (!this.hasOutcome(outcomeIdOrSymbol) && (!java.util.Objects.equals(outcomeObj, null)))
         {
             return this.safeString(outcomeObj, "outcome");
         }
-        Map<String, Object> outcomeObjValue = this.safeOutcome((String) (outcomeIdOrSymbol), (Map<String, Object>) null);
+        Map<String, Object> outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, null);
         return (String) outcomeObjValue.get("outcome");
     }
 
@@ -647,7 +647,7 @@ public Map<String, Object> describe()
             put( "percent", "pct" );
         }};
         List<String> stopWords = new ArrayList<String>(Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
-        String lower = (((java.util.Objects.equals(slug, null)))) ? "" : ((String)slug).toLowerCase();
+        String lower = (((java.util.Objects.equals(slug, null)))) ? "" : slug.toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         List<String> chars = this.stringToCharsArray(lower);
         String s = "";
@@ -700,8 +700,8 @@ public Map<String, Object> describe()
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
         // already-unique handles stay clean.
-        String marketPart = this.shortenSlug((String) (marketSlug));
-        String eventPart = this.shortenSlug((String) (eventSlug));
+        String marketPart = this.shortenSlug(marketSlug);
+        String eventPart = this.shortenSlug(eventSlug);
         if ((java.util.Objects.equals(eventPart, null)) || (java.util.Objects.equals(eventPart, "")) || (java.util.Objects.equals(eventPart, marketPart)))
         {
             return marketPart;
@@ -717,7 +717,7 @@ public Map<String, Object> describe()
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        String upper = (((java.util.Objects.equals(outcome, null)))) ? "" : ((String)outcome).toUpperCase();
+        String upper = (((java.util.Objects.equals(outcome, null)))) ? "" : outcome.toUpperCase();
         String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         List<String> chars = this.stringToCharsArray(upper);
         String label = "";
@@ -743,7 +743,7 @@ public Map<String, Object> describe()
             // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
             label = upper;
         }
-        return ((this.slugToMarketSymbol((String) (eventSlug), (String) (marketSlug)) + ":") + label);
+        return ((this.slugToMarketSymbol(eventSlug, marketSlug) + ":") + label);
     }
 
     public Map<String, Object> setMarkets(Object markets, Object currencies)
@@ -898,36 +898,37 @@ public Map<String, Object> describe()
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if (!java.util.Objects.equals(outcomes, null))
         {
-            List<Object> missing = new ArrayList<Object>(Arrays.asList());
+            Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
+            Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+            if (Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
+            {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                Boolean coldMiss = false;
+                for (var i = 0; i < outcomes.size(); i++)
+                {
+                    if (!this.hasOutcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)))))
+                    {
+                        coldMiss = true;
+                    }
+                }
+                if (Boolean.TRUE.equals(coldMiss))
+                {
+                    (this.loadOutcomes(null, false, new HashMap<String, Object>() {{}})).join();
+                }
+            }
+            List<String> missing = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < outcomes.size(); i++)
             {
                 if (java.util.Objects.requireNonNullElse(reload, false) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)))))
                 {
-                    ((List<Object>)missing).add((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)));
+                    missing.add((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)));
                 }
             }
             Integer missingLength = missing.size();
-            Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
-            Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-            if (((missingLength != null && missingLength > 0)) && Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
-            {
-                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                (this.loadOutcomes((List<String>) null, false, new HashMap<String, Object>() {{}})).join();
-                List<Object> stillMissing = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; (missingLength != null && i < missingLength); i++)
-                {
-                    if (!this.hasOutcome((String) ((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)))))
-                    {
-                        ((List<Object>)stillMissing).add((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)));
-                    }
-                }
-                missing = stillMissing;
-                missingLength = missing.size();
-            }
             if ((missingLength != null && missingLength > 0))
             {
-                (this.fetchOutcomes(((List<String>) (switch ((Object) (missing)) { case null -> (List<String>) null; case List<?> hx4J40v3 -> (List<String>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v3.getClass().getName()); })))).join();
+                (this.fetchOutcomes(missing)).join();
             }
             return this.outcomes;
         }
@@ -986,9 +987,9 @@ public Map<String, Object> describe()
         }
         if (!java.util.Objects.requireNonNullElse(reload, false))
         {
-            if (this.hasOutcome((String) (outcomeSymbol)))
+            if (this.hasOutcome(outcomeSymbol))
             {
-                return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+                return this.safeOutcome(outcomeSymbol, null);
             }
             Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
@@ -997,9 +998,9 @@ public Map<String, Object> describe()
             if (!Boolean.TRUE.equals(wasWarm) && (!java.util.Objects.equals(this.markets, null)) && !this.isEmpty(this.markets))
             {
                 this.populateOutcomes();
-                if (this.hasOutcome((String) (outcomeSymbol)))
+                if (this.hasOutcome(outcomeSymbol))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+                    return this.safeOutcome(outcomeSymbol, null);
                 }
             }
             Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
@@ -1009,10 +1010,10 @@ public Map<String, Object> describe()
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
-                (this.loadOutcomes((List<String>) null, false, new HashMap<String, Object>() {{}})).join();
-                if (this.hasOutcome((String) (outcomeSymbol)))
+                (this.loadOutcomes(null, false, new HashMap<String, Object>() {{}})).join();
+                if (this.hasOutcome(outcomeSymbol))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+                    return this.safeOutcome(outcomeSymbol, null);
                 }
             }
         }
@@ -1113,7 +1114,7 @@ public Map<String, Object> describe()
             }
             if (this.hasOutcome((String) (outcomeSymbol)))
             {
-                return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+                return this.safeOutcome((String) (outcomeSymbol), null);
             }
         }
         throw new BadSymbol((((this.id + " could not resolve outcome ") + outcomeSymbol) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
@@ -1218,7 +1219,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrder() is not supported yet"))).thenApply(PredictionOrder::new);
@@ -1487,7 +1488,7 @@ public Map<String, Object> describe()
         // when the option is undeclared (it is for every prediction exchange)
         if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketBuyOrderWithCost", false)))
         {
-            return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
+            return (this.createOrder(outcome, "market", "buy", cost, 1.0, parameters)).join();
         }
         throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
 
@@ -1512,7 +1513,7 @@ public Map<String, Object> describe()
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketSellOrderWithCost", false)))
         {
-            return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
+            return (this.createOrder(outcome, "market", "sell", cost, 1.0, parameters)).join();
         }
         throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
 
@@ -1619,7 +1620,7 @@ public Map<String, Object> describe()
         Long lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         List<Object> rawTrades = this.safeList(outcomeOrder, "trades", new ArrayList<Object>(Arrays.asList()));
-        List<Object> trades = this.parsePredictionTrades(rawTrades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> trades = this.parsePredictionTrades(rawTrades, outcomeObj, null, null, new HashMap<String, Object>() {{}});
         Integer tradesLength = trades.size();
         List<Object> feeList = new ArrayList<Object>(Arrays.asList());
         if ((tradesLength != null && tradesLength > 0))
@@ -1704,7 +1705,7 @@ public Map<String, Object> describe()
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
         // the venue flag and the derived one are each written once, so neither local widens
-        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", null);
         Boolean derivedPostOnly = null;
         if (java.util.Objects.equals(timeInForce, null))
         {
@@ -1744,7 +1745,7 @@ public Map<String, Object> describe()
         result.put("remaining", this.parseNumber(remaining));
         result.put("cost", this.parseNumber(cost));
         result.put("fee", fee);
-        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null));
+        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", null));
         result.put("postOnly", (((!java.util.Objects.equals(postOnlyValue, null)))) ? postOnlyValue : derivedPostOnly);
         result.put("trades", trades);
         result.put("outcome", this.safeString(outcomeOrder, "outcome"));
@@ -1784,7 +1785,7 @@ public Map<String, Object> describe()
         result.put("amount", this.parseNumber(amount));
         result.put("cost", this.parseNumber(cost));
         result.put("fee", this.safeDict(trade, "fee", null));
-        result.put("realizedPnl", this.safeNumber(trade, "realizedPnl", (Object) null));
+        result.put("realizedPnl", this.safeNumber(trade, "realizedPnl", null));
         result.put("outcome", this.safeString(trade, "outcome"));
         result.put("outcomeId", this.safeString(trade, "outcomeId"));
         result.put("label", this.safeString(trade, "label"));
@@ -1825,21 +1826,21 @@ public Map<String, Object> describe()
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("timestamp", timestamp);
         result.put("datetime", datetime);
-        result.put("high", this.safeNumber(ticker, "high", (Object) null));
-        result.put("low", this.safeNumber(ticker, "low", (Object) null));
+        result.put("high", this.safeNumber(ticker, "high", null));
+        result.put("low", this.safeNumber(ticker, "low", null));
         result.put("bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))));
-        result.put("bidVolume", this.safeNumber(ticker, "bidVolume", (Object) null));
+        result.put("bidVolume", this.safeNumber(ticker, "bidVolume", null));
         result.put("ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))));
-        result.put("askVolume", this.safeNumber(ticker, "askVolume", (Object) null));
+        result.put("askVolume", this.safeNumber(ticker, "askVolume", null));
         result.put("open", this.parseNumber(open));
         result.put("close", this.parseNumber(close));
         result.put("last", this.parseNumber(last));
         result.put("change", this.parseNumber(change));
         result.put("percentage", this.parseNumber(percentage));
         result.put("average", this.parseNumber(average));
-        result.put("baseVolume", this.safeNumber(ticker, "baseVolume", (Object) null));
-        result.put("quoteVolume", this.safeNumber(ticker, "quoteVolume", (Object) null));
-        result.put("openInterest", this.safeNumber(ticker, "openInterest", (Object) null));
+        result.put("baseVolume", this.safeNumber(ticker, "baseVolume", null));
+        result.put("quoteVolume", this.safeNumber(ticker, "quoteVolume", null));
+        result.put("openInterest", this.safeNumber(ticker, "openInterest", null));
         result.put("outcome", this.safeString(ticker, "outcome"));
         result.put("outcomeId", this.safeString(ticker, "outcomeId"));
         result.put("label", this.safeString(ticker, "label"));
@@ -1863,21 +1864,21 @@ public Map<String, Object> describe()
         result.put("id", this.safeString(position, "id"));
         result.put("timestamp", timestamp);
         result.put("datetime", datetime);
-        result.put("contracts", this.safeNumber(position, "contracts", (Object) null));
-        result.put("contractSize", this.safeNumber(position, "contractSize", (Object) null));
+        result.put("contracts", this.safeNumber(position, "contracts", null));
+        result.put("contractSize", this.safeNumber(position, "contractSize", null));
         result.put("side", this.safeString(position, "side"));
-        result.put("notional", this.safeNumber(position, "notional", (Object) null));
-        result.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
-        result.put("realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null));
-        result.put("collateral", this.safeNumber(position, "collateral", (Object) null));
-        result.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
-        result.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
-        result.put("lastPrice", this.safeNumber(position, "lastPrice", (Object) null));
-        result.put("percentage", this.safeNumber(position, "percentage", (Object) null));
-        result.put("resolved", this.safeBool(position, "resolved", (Object) null));
-        result.put("won", this.safeBool(position, "won", (Object) null));
-        result.put("settleFraction", this.safeNumber(position, "settleFraction", (Object) null));
-        result.put("payout", this.safeNumber(position, "payout", (Object) null));
+        result.put("notional", this.safeNumber(position, "notional", null));
+        result.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", null));
+        result.put("realizedPnl", this.safeNumber(position, "realizedPnl", null));
+        result.put("collateral", this.safeNumber(position, "collateral", null));
+        result.put("entryPrice", this.safeNumber(position, "entryPrice", null));
+        result.put("markPrice", this.safeNumber(position, "markPrice", null));
+        result.put("lastPrice", this.safeNumber(position, "lastPrice", null));
+        result.put("percentage", this.safeNumber(position, "percentage", null));
+        result.put("resolved", this.safeBool(position, "resolved", null));
+        result.put("won", this.safeBool(position, "won", null));
+        result.put("settleFraction", this.safeNumber(position, "settleFraction", null));
+        result.put("payout", this.safeNumber(position, "payout", null));
         result.put("outcome", this.safeString(position, "outcome"));
         result.put("outcomeId", this.safeString(position, "outcomeId"));
         result.put("label", this.safeString(position, "label"));
@@ -1948,7 +1949,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)results).add(trade);
         }
@@ -2004,7 +2005,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = this.parsePredictionPosition((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parsePredictionPosition(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), null);
             Map<String, Object> position = this.extend(parsed, parameters);
             ((List<Object>)results).add(position);
         }
@@ -2024,21 +2025,21 @@ public Map<String, Object> describe()
 
     public String amountToPredictionPrecision(String outcome, Object amount)
     {
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.amountToPrecision(marketSymbol, amount);
     }
 
     public String priceToPredictionPrecision(String outcome, Object price)
     {
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.priceToPrecision(marketSymbol, price);
     }
 
     public String costToPredictionPrecision(String outcome, Object cost)
     {
-        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome(outcome);
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.costToPrecision(marketSymbol, cost);
     }
@@ -2057,7 +2058,7 @@ public Map<String, Object> describe()
             return "";
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
-        Integer hexLength = ((String)hex).length();
+        Integer hexLength = hex.length();
         if ((((((double) hexLength) % ((double) 2))) != 0))
         {
             return ("0" + hex);
@@ -2083,7 +2084,7 @@ public Map<String, Object> describe()
             return "";
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Long byteLength = this.parseToInt((((double) ((String)hex).length()) / ((double) 2)));
+        Long byteLength = this.parseToInt((((double) hex.length()) / ((double) 2)));
         if (java.util.Objects.equals(byteLength, null))
         {
             return "";
@@ -2220,8 +2221,8 @@ public Map<String, Object> describe()
     private Object sendEvmTransactionCore(String rpcUrl, Object chainId, String fromAddress, String to, String value, String data, String gasLimit)
     {
 
-        Object nonce = (this.ethRpc((String) (rpcUrl), "eth_getTransactionCount", new ArrayList<Object>(Arrays.asList(fromAddress, "pending")))).join();
-        Object gasPrice = (this.ethRpc((String) (rpcUrl), "eth_gasPrice", new ArrayList<Object>(Arrays.asList()))).join();
+        Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new ArrayList<Object>(Arrays.asList(fromAddress, "pending")))).join();
+        Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new ArrayList<Object>(Arrays.asList()))).join();
         Map<String, Object> tx = new HashMap<String, Object>() {{
             put( "chainId", chainId );
             put( "nonce", nonce );
@@ -2233,7 +2234,7 @@ public Map<String, Object> describe()
             put( "data", data );
         }};
         Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction(tx, this.privateKey);
-        return (this.ethRpc((String) (rpcUrl), "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
+        return (this.ethRpc(rpcUrl, "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
 
     }
 
@@ -2248,7 +2249,7 @@ public Map<String, Object> describe()
         Long start = this.milliseconds();
         while ((((this.milliseconds() - start)) < java.util.Objects.requireNonNullElse(timeout, 60000L)))
         {
-            Object receipt = (this.ethRpc((String) (rpcUrl), "eth_getTransactionReceipt", new ArrayList<Object>(Arrays.asList(txHash)))).join();
+            Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new ArrayList<Object>(Arrays.asList(txHash)))).join();
             if ((!java.util.Objects.equals(receipt, null)) && (!java.util.Objects.equals(receipt, null)))
             {
                 return receipt;
@@ -2268,7 +2269,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
     {
 
         (this.cancelOrder(id, symbol, new HashMap<String, Object>() {{}})).join();
-        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        return (this.createOrder(symbol, type, side, (Double) (amount), price, parameters)).join();
 
     }
 
@@ -2331,7 +2332,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
          */
         if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false))))
         {
-            return (this.createOrder(symbol, "market", (String) (side), cost, 1, parameters)).join();
+            return (this.createOrder(symbol, "market", side, cost, 1.0, parameters)).join();
         }
         throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
 

@@ -23,7 +23,7 @@ public class TestUnWatchPositions extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         (exchange.sleep(3000)).join();
-        ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001, (Object) null, new HashMap<String, Object>() {{}}})).join();
+        ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", (Double) (0.001), (Double) null, new HashMap<String, Object>() {{}}})).join();
             return null;
         });
 

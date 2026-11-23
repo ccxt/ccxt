@@ -530,7 +530,7 @@ public class Onetrading extends OnetradingApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "code");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id, null);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -654,8 +654,8 @@ public class Onetrading extends OnetradingApi
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -730,7 +730,7 @@ public class Onetrading extends OnetradingApi
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Onetrading.this.safeNumber(market, "min_size", (Object) null) );
+                    put( "min", Onetrading.this.safeNumber(market, "min_size", null) );
                     put( "max", null );
                 }} );
             }});
@@ -836,8 +836,8 @@ public class Onetrading extends OnetradingApi
         Map<String, Object> futuresFees = this.safeDict(response, 1, new HashMap<String, Object>() {{}});
         List<Object> spotFeeTiers = this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
         List<Object> futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers, (Map<String, Object>) null);
-        Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers, (Map<String, Object>) null);
+        Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers, null);
+        Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers, null);
         Map<String, Object> firstSpotTier = this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> firstFuturesTier = this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -850,8 +850,8 @@ public class Onetrading extends OnetradingApi
             result.put(symbol, new HashMap<String, Object>() {{
     put( "info", spotFees );
     put( "symbol", symbol );
-    put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee", (Object) null) );
-    put( "taker", Onetrading.this.safeNumber(tierObject, "taker_fee", (Object) null) );
+    put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee", null) );
+    put( "taker", Onetrading.this.safeNumber(tierObject, "taker_fee", null) );
     put( "percentage", true );
     put( "tierBased", true );
     put( "tiers", spotTiers );
@@ -947,7 +947,7 @@ public class Onetrading extends OnetradingApi
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
             Map<String, Object> tier = this.safeDict(feeTiers, i, null);
-            Double volume = this.safeNumber(tier, "volume", (Object) null);
+            Double volume = this.safeNumber(tier, "volume", null);
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
@@ -985,7 +985,7 @@ public class Onetrading extends OnetradingApi
         //
         Long timestamp = this.parse8601(this.safeString(ticker, "time"));
         String marketId = this.safeString(ticker, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_", null);
         String last = this.safeString(ticker, "last_price");
         String percentage = this.safeString(ticker, "price_change_percentage");
         String change = this.safeString(ticker, "price_change");
@@ -1084,7 +1084,7 @@ public class Onetrading extends OnetradingApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<Object> response = (this.publicGetMarketTicker(parameters)).join();
         //
         //     [
@@ -1110,7 +1110,7 @@ public class Onetrading extends OnetradingApi
         List<Object> rawTickers = this.toArray(response);
         for (var i = 0; i < rawTickers.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(rawTickers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(rawTickers, i, new HashMap<String, Object>() {{}}), null);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1255,7 +1255,7 @@ public class Onetrading extends OnetradingApi
         Long alignedTimestamp = (duration * periods);
         Map<String, Object> options = this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
-        return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, volumeField, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, volumeField, null)));
     }
 
     /**
@@ -1374,14 +1374,14 @@ public class Onetrading extends OnetradingApi
         String amountString = this.safeString(tradeValue, "amount");
         String costString = this.safeString(tradeValue, "volume");
         String marketId = this.safeString(tradeValue, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_", null);
         String feeCostString = this.safeString(feeInfo, "fee_amount");
         String takerOrMaker = null;
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             String feeRateString = this.safeString(feeInfo, "fee_percentage");
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
@@ -1419,7 +1419,7 @@ public class Onetrading extends OnetradingApi
         {
             Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "currency_code");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "locked"));
@@ -1564,14 +1564,14 @@ public class Onetrading extends OnetradingApi
         Long timestamp = this.parse8601(this.safeString(rawOrder, "time"));
         String status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
         String marketId = this.safeString(rawOrder, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_", null);
         String price = this.safeString(rawOrder, "price");
         String amount = this.safeString(rawOrder, "amount");
         String filled = this.safeString(rawOrder, "filled_amount");
         String side = this.safeStringLower(rawOrder, "side");
         String type = this.safeStringLower(rawOrder, "type");
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
-        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only", null);
         List<Object> rawTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1586,7 +1586,7 @@ public class Onetrading extends OnetradingApi
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", Onetrading.this.safeNumber(rawOrder, "trigger_price", (Object) null) );
+            put( "triggerPrice", Onetrading.this.safeNumber(rawOrder, "trigger_price", null) );
             put( "amount", amount );
             put( "cost", null );
             put( "average", null );
@@ -1623,12 +1623,12 @@ public class Onetrading extends OnetradingApi
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
     }
 
-    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1636,12 +1636,12 @@ public class Onetrading extends OnetradingApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = type.toUpperCase();
         this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("instrument_code", market.get("id"));
         request.put("type", uppercaseType);
-        request.put("side", ((String)side).toUpperCase());
+        request.put("side", side.toUpperCase());
         request.put("amount", this.amountToPrecision(symbol, amount));
         Boolean priceIsRequired = false;
         if (java.util.Objects.equals(uppercaseType, "LIMIT") || java.util.Objects.equals(uppercaseType, "STOP"))
@@ -1741,7 +1741,7 @@ public class Onetrading extends OnetradingApi
         //
         // responds with an empty body
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(response, null);
 
     }
 
@@ -1780,7 +1780,7 @@ public class Onetrading extends OnetradingApi
         //
         return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
     put( "info", response );
-}}, (Map<String, Object>) null)));
+}}, null)));
 
     }
 
@@ -1817,7 +1817,7 @@ public class Onetrading extends OnetradingApi
         //
         Order order = this.safeOrder(new HashMap<String, Object>() {{
             put( "info", response );
-        }}, (Map<String, Object>) null);
+        }}, null);
         return new ArrayList<Object>(Arrays.asList(order));
 
     }
@@ -1889,7 +1889,7 @@ public class Onetrading extends OnetradingApi
         //         ]
         //     }
         //
-        return this.parseOrder(response, (Map<String, Object>) null);
+        return this.parseOrder(response, null);
 
     }
 

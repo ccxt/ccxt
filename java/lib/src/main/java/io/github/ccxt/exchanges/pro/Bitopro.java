@@ -156,7 +156,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, "_", null);
         String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -232,11 +232,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, "_", null);
         String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         List<Object> rawData = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> trades = this.parseTrades(rawData, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> trades = this.parseTrades(rawData, market, null, null, new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
         {
@@ -332,8 +332,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -346,7 +346,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> parsed = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(data, null);
         trades.append(parsed);
         client.resolve(trades, messageHash);
         if (!java.util.Objects.equals(messageHash, null))
@@ -380,14 +380,14 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         String baseId = this.safeString(trade, "base");
         String quoteId = this.safeString(trade, "quote");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode((String) (baseId), null);
+        String quote = this.safeCurrencyCode((String) (quoteId), null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = this.symbol(((base + "/") + quote));
         }
-        Map<String, Object> marketResolved = this.safeMarket(symbol, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
         String price = this.safeString(trade, "price");
         String type = this.safeStringLower(trade, "orderType");
         String side = this.safeString(trade, "side");
@@ -404,7 +404,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String amount = this.safeString(trade, "volume");
         Map<String, Object> fee = null;
         String feeAmount = this.safeString(trade, "fee");
-        String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null);
+        String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), null);
         if (!java.util.Objects.equals(feeAmount, null))
         {
             {
@@ -415,7 +415,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -498,7 +498,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against
         }
         // market-ids are lowercase in REST API and uppercase in WS API
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, "_", null);
         String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
@@ -626,7 +626,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             String currency = this.safeString(currencies, i);
             Map<String, Object> balance = this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode((String) (currencyId), null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("total", this.safeString(balance, "amount"));
