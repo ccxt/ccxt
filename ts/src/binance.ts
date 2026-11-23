@@ -786,7 +786,7 @@ export default class binance extends Exchange {
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 } as Endpoint<List>,
                         'constituents': { 'cost': 2 } as Endpoint<Dict>,
@@ -4755,7 +4755,9 @@ export default class binance extends Exchange {
         } else if (this.safeBool (market, 'linear', false)) {
             response = await this.fapiPublicGetTicker24hr (this.extend (request, params));
         } else if (this.safeBool (market, 'inverse', false)) {
-            response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
+            // coin-m returns a list of one ticker
+            const inverseResponse: List = await this.dapiPublicGetTicker24hr (this.extend (request, params));
+            response = this.safeDict (inverseResponse, 0, {});
         } else {
             const stock = this.safeBool (market, 'stock', false);
             if (stock) {
@@ -5045,7 +5047,9 @@ export default class binance extends Exchange {
         } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (this.extend (request, paramsSubType));
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPublicGetPremiumIndex (this.extend (request, paramsSubType));
+            // coin-m returns a list of one entry
+            const inverseResponse: List = await this.dapiPublicGetPremiumIndex (this.extend (request, paramsSubType));
+            return this.parseTicker (this.safeDict (inverseResponse, 0, {}), market);
         } else {
             throw new NotSupported (this.id + ' fetchMarkPrice() does not support ' + type + ' markets yet');
         }

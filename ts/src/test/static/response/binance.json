@@ -10210,6 +10210,76 @@
                         "askSize": 90
                     }
                 }
+            },
+            {
+                "description": "coin-m inverse ticker returns a list",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSD_PERP",
+                        "pair": "BTCUSD",
+                        "priceChange": "-301.6",
+                        "priceChangePercent": "-0.346",
+                        "weightedAvgPrice": "87012.53604412",
+                        "lastPrice": "86876.5",
+                        "lastQty": "3",
+                        "openPrice": "87178.1",
+                        "highPrice": "87977.2",
+                        "lowPrice": "86001.0",
+                        "volume": "2146733",
+                        "baseVolume": "2467.18451327",
+                        "openTime": 1763798400000,
+                        "closeTime": 1763884799999,
+                        "firstId": 1179431091,
+                        "lastId": 1179712260,
+                        "count": 281170
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1763884799999,
+                    "datetime": "2025-11-23T07:59:59.999Z",
+                    "high": 87977.2,
+                    "low": 86001,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 87012.53604412,
+                    "open": 87178.1,
+                    "close": 86876.5,
+                    "last": 86876.5,
+                    "previousClose": null,
+                    "change": -301.6,
+                    "percentage": -0.346,
+                    "average": 87027.3,
+                    "baseVolume": 2467.18451327,
+                    "quoteVolume": 214675981.38840052,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTCUSD_PERP",
+                        "pair": "BTCUSD",
+                        "priceChange": "-301.6",
+                        "priceChangePercent": "-0.346",
+                        "weightedAvgPrice": "87012.53604412",
+                        "lastPrice": "86876.5",
+                        "lastQty": "3",
+                        "openPrice": "87178.1",
+                        "highPrice": "87977.2",
+                        "lowPrice": "86001.0",
+                        "volume": "2146733",
+                        "baseVolume": "2467.18451327",
+                        "openTime": 1763798400000,
+                        "closeTime": 1763884799999,
+                        "firstId": 1179431091,
+                        "lastId": 1179712260,
+                        "count": 281170
+                    }
+                }
             }
         ],
         "fetchMarginAdjustmentHistory": [

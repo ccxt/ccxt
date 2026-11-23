@@ -1829,7 +1829,7 @@ abstract class binance extends _binance {
         return this.request ('premiumIndexKlines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
     }
 
-    override dapiPublicGetTicker24hr (params = {}): Promise<Dict | List> {
+    override dapiPublicGetTicker24hr (params = {}): Promise<List> {
         return this.request ('ticker/24hr', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
 

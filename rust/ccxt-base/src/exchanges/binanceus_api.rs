@@ -2548,8 +2548,8 @@ impl Binanceus {
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetTicker24hr` implicit endpoint.
-    pub async fn dapi_public_get_ticker24hr(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_public_get_ticker24hr".into()), optional_args).await
+    pub async fn dapi_public_get_ticker24hr(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        self.call_method_as("dapi_public_get_ticker24hr", optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetTickerPrice` implicit endpoint.
