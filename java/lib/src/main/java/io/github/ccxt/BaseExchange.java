@@ -2389,7 +2389,7 @@ public class BaseExchange {
         // Base implementation — overridden by pro exchange classes
     }
 
-    public void handleTextMessage(Client client, Object message) {
+    public void handleTextMessage(Client client, String message) {
         // Base implementation — overridden by exchanges that receive text frames
     }
 
@@ -2404,8 +2404,8 @@ public class BaseExchange {
     /** Hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object. */
     @SuppressWarnings("unchecked")
     public void routeMessage(Client client, Object message) {
-        if (message instanceof String) {
-            this.handleTextMessage(client, message);
+        if (message instanceof String text) {
+            this.handleTextMessage(client, text);
         } else if (message instanceof List<?>) {
             this.handleListMessage(client, message);
         } else if (message instanceof byte[]) {

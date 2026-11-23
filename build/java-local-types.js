@@ -8948,6 +8948,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'fromSandboxMarketId': [0],
     'futuresTransfer': [0],
     'handleErrors': [1, 2, 3, 5],
+    'handleTextMessage': [1],
     'handleUnSubscriptionTrades': [1],
     'handleUnsubscriptionOHLCV': [1],
     'handleUnsubscriptionOrderBook': [1],
