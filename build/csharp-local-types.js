@@ -17624,6 +17624,10 @@ function csharpArgumentType (csharp, argument, expected) {
     if (argument.kind === ts.SyntaxKind.NullKeyword) {
         return 'null';
     }
+    // `x as Dict` prints the bare operand (printAsExpression casts only any / string / any[])
+    if (ts.isAsExpression (argument) && (argument.type?.kind === ts.SyntaxKind.TypeReference) && ts.isIdentifier (argument.expression)) {
+        return csharpArgumentType (csharp, argument.expression, expected);
+    }
     if (ts.isIdentifier (argument)) {
         if (argument.text === 'undefined') {
             return 'null';
@@ -17675,6 +17679,11 @@ function printedSignatureParameterType (csharp, declaration) {
     }
     printedSignatureParameterInProgress.add (declaration);
     try {
+        // a ws handler `message: Dict` printed `Dictionary<string, object>` by the printer's handler rule
+        const handler = (typeof csharp.csharpHandlerMessageType === 'function') ? csharp.csharpHandlerMessageType (declaration) : undefined;
+        if (handler === 'Dictionary<string, object>') {
+            return handler;
+        }
         const printed = csharp.printParameterType (declaration);
         return [ 'string', 'string?', 'IDictionary<string, object>' ].includes (printed) ? printed : undefined;
     } catch (e) {
