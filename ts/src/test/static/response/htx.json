@@ -2621,6 +2621,92 @@
                 ]
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "linear swap tickers, bid present and null",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "ticks": [
+                        {
+                            "contract_code": "BTC-USDT",
+                            "business_type": "swap",
+                            "pair": "BTC-USDT",
+                            "contract_type": "swap",
+                            "amount": "6041.178",
+                            "ask": [
+                                82420,
+                                297
+                            ],
+                            "bid": null,
+                            "close": "82403.3",
+                            "count": 65947,
+                            "high": "83622.6",
+                            "id": 1791461606,
+                            "low": "82164.5",
+                            "open": "83412.2",
+                            "trade_turnover": "501448269.116",
+                            "ts": 1791461606047,
+                            "vol": "6041178",
+                            "number_of": 65947
+                        }
+                    ],
+                    "ts": 1791461606047
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1791461606047,
+                        "datetime": "2026-10-08T12:13:26.047Z",
+                        "high": 83622.6,
+                        "low": 82164.5,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": 82420,
+                        "askVolume": 297,
+                        "vwap": 83005.04787576199,
+                        "open": 83412.2,
+                        "close": 82403.3,
+                        "last": 82403.3,
+                        "previousClose": null,
+                        "change": -1008.9,
+                        "percentage": -1.2095352957960586,
+                        "average": 82907.75,
+                        "baseVolume": 6041.178,
+                        "quoteVolume": 501448269.116,
+                        "info": {
+                            "contract_code": "BTC-USDT",
+                            "business_type": "swap",
+                            "pair": "BTC-USDT",
+                            "contract_type": "swap",
+                            "amount": "6041.178",
+                            "ask": [
+                                82420,
+                                297
+                            ],
+                            "bid": null,
+                            "close": "82403.3",
+                            "count": 65947,
+                            "high": "83622.6",
+                            "id": 1791461606,
+                            "low": "82164.5",
+                            "open": "83412.2",
+                            "trade_turnover": "501448269.116",
+                            "ts": 1791461606047,
+                            "vol": "6041178",
+                            "number_of": 65947
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "public spot ticker",

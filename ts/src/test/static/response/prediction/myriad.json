@@ -1553,6 +1553,21 @@
 				]
 			}
 		],
+		"fetchEvents": [
+			{
+				"description": "query search, both endpoints empty",
+				"method": "fetchEvents",
+				"input": [
+					{
+						"query": "zzzz-no-match"
+					}
+				],
+				"httpResponse": {
+					"data": []
+				},
+				"parsedResponse": []
+			}
+		],
 		"fetchEvent": [
 			{
 				"description": "fetchEvent parses a single market into one event",
