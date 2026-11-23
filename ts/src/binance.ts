@@ -15145,12 +15145,11 @@ export default class binance extends Exchange {
         }
         const market = this.market (symbol);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
-        let response: NullableDict = undefined;
         if (subType === 'linear') {
             const request: Dict = {
                 'symbol': market['id'],
             };
-            response = await this.fapiPrivateGetSymbolConfig (this.extend (request, paramsSubType));
+            const response: List = await this.fapiPrivateGetSymbolConfig (this.extend (request, paramsSubType));
             //
             // [
             //     {
@@ -15162,6 +15161,10 @@ export default class binance extends Exchange {
             //     }
             // ]
             //
+            if (response === undefined) {
+                throw new NullResponse (this.id + ' fetchMarginMode() returned empty response');
+            }
+            return this.parseMarginMode (this.safeDict (response, 0, {}), market);
         } else if (subType === 'inverse') {
             const fetchMarginModesResponse = await this.fetchMarginModes ([ symbol ], paramsSubType);
             const marginMode = this.safeDict (fetchMarginModesResponse, symbol);
@@ -15169,10 +15172,6 @@ export default class binance extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
         }
-        if (response === undefined) {
-            throw new NullResponse (this.id + ' fetchMarginMode() returned empty response');
-        }
-        return this.parseMarginMode (this.safeValue (response, 0), market);
     }
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {

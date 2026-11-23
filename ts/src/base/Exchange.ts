@@ -9320,7 +9320,7 @@ export class BaseExchange {
             const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketTypeResolved);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
-                marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
+                marginModeStructures[market['symbol']] = this.parseMarginMode (this.safeDict (response, i, {}), market);
             }
         }
         return marginModeStructures;

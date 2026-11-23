@@ -466,9 +466,9 @@ type IDerivedExchange interface {
 	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
 	ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any
 	ParseIncome(info map[string]any, optionalArgs ...any) map[string]any
-	ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode
+	ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode
 	ParseBorrowInterest(info map[string]any, optionalArgs ...any) BorrowInterest
-	ParseOption(chain any, optionalArgs ...any) Option
+	ParseOption(chain map[string]any, optionalArgs ...any) Option
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]MarginMode]

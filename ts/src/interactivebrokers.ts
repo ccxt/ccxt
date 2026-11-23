@@ -2741,48 +2741,47 @@ export default class interactivebrokers extends Exchange {
     async fetchPortfolioAccounts (params: Dict = {}): Promise<List> {
         await this.authenticate ();
         const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
-        let response: List| undefined = undefined;
         if (method === 'privateGetPortfolioSubaccounts') {
-            response = await this.webapiGetV1ApiPortfolioSubaccounts (query);
-        } else {
-            response = await this.webapiGetV1ApiPortfolioAccounts (query);
-            //
-            //    [
-            //        {
-            //            "id": "U3448646",
-            //            "PrepaidCrypto-Z": false,
-            //            "PrepaidCrypto-P": true,
-            //            "brokerageAccess": true,
-            //            "accountId": "U3448646",
-            //            "accountVan": "U3448646",
-            //            "accountTitle": "Toma Todua",
-            //            "displayName": "Toma Todua",
-            //            "accountAlias": null,
-            //            "accountStatus": 1646607600000,
-            //            "currency": "USD",
-            //            "type": "INDIVIDUAL",
-            //            "tradingType": "STKNOPT",
-            //            "businessType": "INDEPENDENT",
-            //            "category": "",
-            //            "ibEntity": "IBLLC-US",
-            //            "faclient": false,
-            //            "clearingStatus": "O",
-            //            "covestor": false,
-            //            "noClientTrading": false,
-            //            "trackVirtualFXPortfolio": true,
-            //            "acctCustType": "INDIVIDUAL",
-            //            "parent": {
-            //                "mmc": [],
-            //                "accountId": "",
-            //                "isMParent": false,
-            //                "isMChild": false,
-            //                "isMultiplex": false
-            //            },
-            //            "desc": "U3448646"
-            //        }
-            //    ]
-            //
+            const subaccounts: List = await this.webapiGetV1ApiPortfolioSubaccounts (query);
+            return subaccounts;
         }
+        const response: List = await this.webapiGetV1ApiPortfolioAccounts (query);
+        //
+        //    [
+        //        {
+        //            "id": "U3448646",
+        //            "PrepaidCrypto-Z": false,
+        //            "PrepaidCrypto-P": true,
+        //            "brokerageAccess": true,
+        //            "accountId": "U3448646",
+        //            "accountVan": "U3448646",
+        //            "accountTitle": "Toma Todua",
+        //            "displayName": "Toma Todua",
+        //            "accountAlias": null,
+        //            "accountStatus": 1646607600000,
+        //            "currency": "USD",
+        //            "type": "INDIVIDUAL",
+        //            "tradingType": "STKNOPT",
+        //            "businessType": "INDEPENDENT",
+        //            "category": "",
+        //            "ibEntity": "IBLLC-US",
+        //            "faclient": false,
+        //            "clearingStatus": "O",
+        //            "covestor": false,
+        //            "noClientTrading": false,
+        //            "trackVirtualFXPortfolio": true,
+        //            "acctCustType": "INDIVIDUAL",
+        //            "parent": {
+        //                "mmc": [],
+        //                "accountId": "",
+        //                "isMParent": false,
+        //                "isMChild": false,
+        //                "isMultiplex": false
+        //            },
+        //            "desc": "U3448646"
+        //        }
+        //    ]
+        //
         return response;
     }
 
