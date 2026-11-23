@@ -3282,7 +3282,10 @@ class NewTranspiler {
         content = this.rewriteDelayWithStringCallback(content);
 
         // ── CompletableFuture<Void> → <Object> ──
-        content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
+        // a declaration the method index marks as returning no value keeps the Void the printer gave it
+        const voidIndex = javaRepoMethodUsesIndex ();
+        content = content.replace(/CompletableFuture<Void>(?=(\s+(\w+)\()?)/gm, (m: string, _d: string, name: string) =>
+            (name !== undefined && voidIndex.asyncVoid.get (name) === true && voidIndex.handWritten !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (voidIndex.handWritten)) ? m : 'CompletableFuture<Object>');
 
         // ── this.lockId()/this.unlockId() → synchronized with scoping fix ──
         content = this.fixSynchronizedScoping(content);
