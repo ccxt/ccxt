@@ -267,7 +267,7 @@ pub trait DerivedExchange {
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_prediction_trade(p, trade, market)) }
     fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_prediction_order(p, order, market)) }
-    fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_prediction_position(p, position, market)) }
+    fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_prediction_position(p, position, market)) }
     // ── signers / error handlers ─────────────────────────────────────────
     /// `nonce()` — the request timestamp. The base default is `seconds()`, but
     /// 47 venues override it (binance: `milliseconds() - timeDifference`), and

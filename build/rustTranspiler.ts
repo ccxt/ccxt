@@ -5235,6 +5235,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     // `safePredictionOrder` returns one object literal: `Dict`; every venue `parsePredictionOrder` returns it
     content = rustTypedSafeDict (content, 'safe_prediction_order', 'mut outcomeOrder: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new(');
     content = rustTypedParseFamily (content, 'prediction_order', 'order');
+    content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_position', 'mut position: Value', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_position', 'position');
     // `safeMarketStructure` answers `extend (cleanStructure, market)` or `extend (cleanStructure)`: a map on every input
     const sms = 'fn safe_market_structure(&self, optional_args: &[Value]) -> Value {', smsAt = content.indexOf (sms);
     if (smsAt >= 0) {
