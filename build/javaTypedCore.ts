@@ -107,11 +107,15 @@ const BASE_ASYNC_HELPERS: MethodInfo[] = [
     { name: 'fetchDepositAddressesByNetwork', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
     // Promise<{}> on the base stub: every venue body returns a response dict, a parse* dict or { 'info': .. }
     ...[ 'setLeverage', 'setMarginMode', 'setPositionMode', 'cancelAllOrdersAfter' ].map(name => ({ name, javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false })),
+    // Promise<{}> / Promise<Dict> declarations: every body returns a fee / limit / response dict
+    ...[ 'fetchTransactionFees', 'fetchTradingLimits', 'createSubAccount' ].map(name => ({ name, javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false })),
+    // Promise<Dict[]> on every declaration: bodies return filterBy*SinceLimit, sortBy or parseBorrowRateHistory rows
+    ...[ 'fetchSettlementHistory', 'fetchMySettlementHistory', 'fetchBorrowRateHistory' ].map(name => ({ name, javaReturnType: 'List<Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false })),
 ];
 // Promise<Market[]> / Promise<Currencies> on every tier: the raw rows setMarkets reads; TypedSurface wraps them
 const LOAD_SOURCE_CORES: Record<string, string> = { fetchMarkets: 'List<Object>', fetchCurrencies: 'Map<String, Object>' };
 // ral-84j7: base stubs of these typed cores take a type witness on failedFuture (no cast lambda)
-const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork', 'setLeverage', 'setMarginMode', 'setPositionMode', 'cancelAllOrdersAfter' ]);
+const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork', 'setLeverage', 'setMarginMode', 'setPositionMode', 'cancelAllOrdersAfter', 'fetchTransactionFees', 'fetchTradingLimits', 'createSubAccount' ]);
 // loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path
 const PREDICTION_BASE_ASYNC_HELPERS: MethodInfo[] = [
     { name: 'loadOutcome', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
