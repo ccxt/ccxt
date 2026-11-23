@@ -1976,8 +1976,7 @@ export default class okx extends Exchange {
             const optionsUnderlying = this.safeList (this.options, 'defaultUnderlying', [ 'BTC-USD', 'ETH-USD' ]) as List;
             const promises: List = [];
             for (let i = 0; i < optionsUnderlying.length; i++) {
-                const underlying = optionsUnderlying[i];
-                request['uly'] = underlying;
+                request['uly'] = this.safeString (optionsUnderlying, i);
                 promises.push (this.publicGetPublicInstruments (this.extend (request, params)));
             }
             const promisesResult = await Promise.all (promises);

@@ -109,7 +109,7 @@ export default class okx extends okxRest {
 
     getUrl (channel: string, access: string = 'public'): string {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        const isSandbox: Bool = this.options['sandboxMode'];
+        const isSandbox: boolean = this.safeBool (this.options, 'sandboxMode', false);
         let sandboxSuffix: Str = '';
         if (isSandbox === true) {
             sandboxSuffix = '?brokerId=9999';
@@ -915,8 +915,7 @@ export default class okx extends okxRest {
         //
         const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
-            const rawLiquidation = rawLiquidations[i];
-            const liquidation = this.parseWsLiquidation (rawLiquidation);
+            const liquidation = this.parseWsLiquidation (rawLiquidations[i]);
             const symbol = this.safeString (liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
