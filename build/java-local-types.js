@@ -13,10 +13,9 @@ import { shortenJavaReferences } from './javaUtilImports.js';
 
 // every name whose every generated return expression is already a Java String
 export const JAVA_STRING_RETURN_METHODS = new Set ([
-    'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'handleTimeInForce', 'outcomeSearchQuery', 'priceToPrecision',
+    'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'outcomeSearchQuery', 'priceToPrecision',
     'walletAddressOrUndefined',
-    'createAuthToken', 'currencyFromPrecision', 'encodeTriggerPriceType', 'fromEn', 'fromPrecision',
-    'futuresRequestId', 'parseUnits',
+    'createAuthToken', 'encodeTriggerPriceType', 'futuresRequestId', 'parseUnits',
 ]);
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
@@ -18986,7 +18985,8 @@ function javaBaseHeaderStringField (name) {
 function javaBaseHeaderStringMethod (name) {
     javaBaseHeaderStringField ('');
     const all = javaBaseHeaderText.match (new RegExp (`^    public (static )?[\\w.<>, ]+ ${name}\\(`, 'gm')) ?? [];
-    return /^\w+$/.test (name) && all.length === 1 && new RegExp (`^    public (static )?String ${name}\\(`, 'm').test (all[0]);
+    // overloads are fine when every one is declared String (jwt)
+    return /^\w+$/.test (name) && all.length >= 1 && all.every ((d) => new RegExp (`^    public (static )?String ${name}\\(`).test (d));
 }
 
 // a `this.m (..)` call into a base-tier PredictionExchange.ts method whose own printed signature the
@@ -19027,7 +19027,9 @@ function javaBaseStringCoreCall (printer, node) {
         // `x.toString ()` on a TS string prints `String.valueOf(x)`
         if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
             && node.expression.name.text === 'toString' && node.arguments.length === 0) {
-            return (printer.getChecker ().getTypeAtLocation (node.expression.expression).flags & ts.TypeFlags.StringLike) !== 0;
+            // String.valueOf (Object) never answers null, whatever the receiver
+            return (printer.getChecker ().getTypeAtLocation (node.expression.expression).flags & ts.TypeFlags.StringLike) !== 0
+                || String (printer.printNode (node, 0)).startsWith ('String.valueOf(');
         }
         if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
             && ts.isIdentifier (node.expression.expression) && node.expression.expression.text === 'Precise') {
