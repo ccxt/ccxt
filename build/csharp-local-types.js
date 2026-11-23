@@ -17853,7 +17853,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
         || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true)
-            && !proAsyncListParameterFeedsToArray (owner, parameter, mapped))
+            && !proAsyncListParameterFeedsToArray (owner, parameter, mapped) && (mapped.type !== 'IList<object>'))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
