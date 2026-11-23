@@ -19335,7 +19335,7 @@ export function installJavaBaseProducerLocals (transpiler) {
 
 // these members keep an int TS parameter as `Object p` (a Number box or null at runtime); a compare / divide /
 // mod of that unwritten parameter against an integer literal prints the double form with the helper's null arm.
-const JAVA_INT_PARAM_COMPARE_MEMBER = /^    (?:public|private) \S+(?:<[^>]*>)? (?:(?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)(?:Core)?\(Object (\w+)[,)]|buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object (\w+)[,)])/;
+const JAVA_INT_PARAM_COMPARE_MEMBER = /^    (?:public|private) \S+(?:<[^>]*>)? (?:(?:cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)(?:Core)?\(Object (\w+)[,)]|buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object (\w+)[,)])/;
 // Opinion.opinionOutcomeByMarketIdSide(marketId, outcomeSide): both callers pass safeInteger (Long/null); 2nd param.
 const JAVA_INT_PARAM_COMPARE_MEMBER_PAIR = /^    public \S+ opinionOutcomeByMarketIdSide\(Object (\w+), Object (\w+)\)/;
 
@@ -19357,7 +19357,7 @@ function javaIntParamCompareRewrite (line, p) {
 }
 
 export function nativeJavaParamCompare (content) {
-    if (!/ (?:(?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)(?:Core)?\(Object |buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object )|opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
+    if (!/ (?:(?:cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)(?:Core)?\(Object |buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object )|opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
