@@ -4741,11 +4741,11 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency', p0: string | undefined = undefined): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee', p0: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
-    const arg2 = (fam === 'balance' || fam === 'account' || fam === 'currency') ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' || fam === 'deposit_address' || fam === 'ledger_entry' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = p0 ?? (fam === 'balance' ? 'response' : fam);
+    const arg2 = (fam === 'balance' || fam === 'account' || fam === 'currency') ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' || fam === 'deposit_address' || fam === 'ledger_entry' || fam === 'deposit_withdraw_fee' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = p0 ?? (fam === 'balance' ? 'response' : fam);
     const arg2Re = arg2.replace (/[()<>&]/g, '\\$&');
     // `parseCurrency` takes `&mut self` and builds through `safeCurrencyStructure`
     const me = fam === 'currency' ? '&mut self' : '&self';
@@ -4802,6 +4802,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
             body = body.split ('return self.' + m[1] + '(').join ('return \u0000self.' + m[1] + '(');
         }
         body = unbox (body, 'Some');
+        // `assignDefaultDepositWithdrawFees` already returns `Dict`
+        if (fam === 'deposit_withdraw_fee') body = body.split ('return self.assign_default_deposit_withdraw_fees(').join ('return \u0000self.assign_default_deposit_withdraw_fees(');
         // `safeBalance` already returns `Dict`
         if (fam === 'balance') body = body.split ('return self.safe_balance(').join ('return \u0000self.safe_balance(');
         let out = '', last = 0, r: RegExpExecArray | null;
@@ -4934,6 +4936,89 @@ function rustTypedParseOhlcv (content: string): string {
         if (/^\s*(?:\/\/|\*)/.test (content.slice (content.lastIndexOf ('\n', s) + 1, s))) continue;
         if (after.startsWith ('.into_list()')) content = content.slice (0, close + 1) + after.slice ('.into_list()'.length);
         else if (after.startsWith (copy)) content = content.slice (0, close + 1) + '.to_vec()' + after.slice (copy.length);
+        else content = content.slice (0, s) + 'Value::Arr(' + pre + ')' + after;
+    }
+    return content;
+}
+
+// `parseMarketLeverageTiers` builds a fresh tier list on every path: a venue override returns `Some(..)` through the
+// `DerivedExchange` slot (`None` = not overridden), the base a `List`. A body with any other return is left as it is.
+function rustTypedParseLeverageTiers (content: string): string {
+    const sigTail = '(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {\n';
+    const nullTail = '\n\n    Value::Null\n';
+    const subs = new Set<string> ();
+    const typeRets = (body: string, wrap: (x: string) => string): string | undefined => {
+        let out = '', last = 0, r: RegExpExecArray | null;
+        const ret = /(?<=^ *)return ([^\n]*)/gm;
+        while ((r = ret.exec (body)) !== null) {
+            const sub = /^self\.(parse_\w+_leverage_tiers)\(/.exec (r[1]);
+            if (sub) {
+                subs.add (sub[1]);
+                const close = balancedCloseIndex (body, r.index + 'return '.length + sub[0].length);
+                out += body.slice (last, r.index) + 'return ' + wrap (body.slice (r.index + 'return '.length, close + 1));
+                last = close + 1;
+                ret.lastIndex = last;
+                continue;
+            }
+            if (sub) { subs.add (sub[1]); out += body.slice (last, r.index) + 'return ' + wrap (''); last = r.index + 'return '.length; continue; }
+            if (!r[1].startsWith ('Value::from(')) return undefined;
+            const open = r.index + 'return Value::from('.length, close = balancedCloseIndex (body, open);
+            const inner = body.slice (open, close);
+            if (!inner.startsWith ('vec![') && !new RegExp ('\\blet mut ' + inner + ': Vec<Value> = ').test (body)) return undefined;
+            out += body.slice (last, r.index) + 'return ' + wrap ('std::sync::Arc::new(' + inner + ')');
+            last = close + 1;
+            ret.lastIndex = last;
+        }
+        return out + body.slice (last);
+    };
+    const derived = '\n    fn parse_market_leverage_tiers' + sigTail;
+    const at = content.indexOf (derived);
+    let typed = false;
+    if (at >= 0 && content.startsWith ('\nimpl crate::exchange::DerivedExchange for ', content.lastIndexOf ('\nimpl ', at))) {
+        const open = at + derived.length, end = content.indexOf (nullTail + '}', open);
+        const fixed = end < 0 ? undefined : typeRets (content.slice (open, end), (x) => 'Some(' + x + ')');
+        if (fixed === undefined) return content;
+        const subSig = (name: string) => '\n    pub fn ' + name + '(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {\n';
+        const subBodies = new Map<string, string> ();
+        for (const name of subs) {
+            const s = content.indexOf (subSig (name)), e = s < 0 ? -1 : content.indexOf (nullTail + '}', s);
+            const b = e < 0 ? undefined : typeRets (content.slice (s + subSig (name).length, e), (x) => x);
+            if (b === undefined || subs.size > 1) return content;
+            subBodies.set (name, b);
+        }
+        content = content.slice (0, at) + derived.replace ('-> Value {', '-> Option<crate::value::List> {') + fixed + '\n\n    None\n' + content.slice (end + nullTail.length);
+        for (const [ name, b ] of subBodies) {
+            const s = content.indexOf (subSig (name)), e = content.indexOf (nullTail + '}', s);
+            content = content.slice (0, s) + subSig (name).replace ('-> Value {', '-> crate::value::List {') + b + '\n\n    Default::default()\n' + content.slice (e + nullTail.length);
+        }
+        typed = true;
+    }
+    const probe = '{ let __v = crate::exchange::DerivedExchange::parse_market_leverage_tiers(self, info, market); if !matches!(__v, crate::Value::Null) { return __v; } }';
+    const b = content.indexOf (probe);
+    if (b >= 0) {
+        const s = content.lastIndexOf (derived, b), end = content.indexOf (nullTail + '}', b);
+        content = content.slice (0, s) + derived.replace ('-> Value {', '-> crate::value::List {') + content.slice (s + derived.length, b)
+            + 'if let Some(__v) = crate::exchange::DerivedExchange::parse_market_leverage_tiers(self, info, market) { return __v; }'
+            + content.slice (b + probe.length, end) + '\n\n    Default::default()\n' + content.slice (end + nullTail.length);
+        typed = true;
+    }
+    if (!typed) return content;
+    const call = new RegExp ('(?<![\\w.])(?:self(?:\\.parent)?\\.|<Self as crate::exchange_generated::ExchangeBase>::|<Self as crate::exchange::DerivedExchange>::)(parse_market_leverage_tiers' + [ ...subs ].map ((x) => '|' + x).join ('') + ')\\(', 'g');
+    const starts: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', content.indexOf ('parse_', s)) + 1);
+        if (close >= content.length) continue;
+        const pre = content.slice (s, close + 1), after = content.slice (close + 1);
+        const line = content.slice (content.lastIndexOf ('\n', s), s);
+        if (/\breturn Some\($/.test (line) || /\bfn \w*$/.test (line) || /^\s*(?:\/\/|\*)/.test (line.slice (1))) continue;
+        if (/^\s*if let Some\(__v\) = crate::exchange::DerivedExchange::$/.test (line)) continue;
+        if (/^\s*return $/.test (line) && subs.has (pre.slice (pre.indexOf ('parse_'), pre.indexOf ('(')))) continue;
+        const copy = '.as_array().cloned().unwrap_or_default()';
+        if (pre.startsWith ('<Self as crate::exchange::DerivedExchange>::')) {
+            content = content.slice (0, close + 1) + (after.startsWith (copy) ? '.map(std::sync::Arc::unwrap_or_clone).unwrap_or_default()' + after.slice (copy.length) : '.map_or(Value::Null, Value::Arr)' + after);
+        } else if (after.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + pre + ')' + after.slice (copy.length);
         else content = content.slice (0, s) + 'Value::Arr(' + pre + ')' + after;
     }
     return content;
@@ -5128,6 +5213,8 @@ function rustTypedParsePositionFamilies (content: string): string {
     }
     box ('safe_currency_structure');
     content = rustTypedParseFamily (content, 'currency', 'rawCurrency');
+    content = rustTypedParseFamily (content, 'deposit_withdraw_fee', 'fee');
+    content = rustTypedParseLeverageTiers (content);
     content = rustBorrowedParseRows (content);
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
     const typeAll = (name: string) => {
@@ -9028,6 +9115,10 @@ function rustBaseTypedHead(content: string, fn: string, ret: string): boolean {
 function rustBaseTypedDictFns(content: string, dict: string[]): string[] {
     return dict.filter((fn) => rustBaseTypedHead(content, fn, 'crate::value::Dict'));
 }
+function rustEnclosingHead(content: string, at: number): string {
+    const h = content.lastIndexOf('\n    fn ', at), p = content.lastIndexOf('\n    pub fn ', at), i = Math.max(h, p);
+    return i < 0 ? '' : content.slice(i, content.indexOf('\n', i + 1));
+}
 function typeBaseDeclaredReturns(content: string): string {
     const { dict, trigger } = rustBaseDeclaredReturns();
     const tail = '\n\n    Value::Null\n}';
@@ -9046,6 +9137,8 @@ function typeBaseDeclaredReturns(content: string): string {
             const close = balancedCloseIndex(content, content.indexOf('(', s) + 1);
             if (close >= content.length) continue;
             const call = content.slice(s, close + 1), rest = content.slice(close + 1);
+            // already the `Dict` of an `Option<Dict>` return (a typed parse family override)
+            if (content.slice(s - 'return Some('.length, s) === 'return Some(' && rest.startsWith(');') && rustEnclosingHead(content, s).endsWith(') -> Option<crate::value::Dict> {')) continue;
             content = rest.startsWith('.into_dict()') ? content.slice(0, s) + call + rest.slice('.into_dict()'.length) : content.slice(0, s) + `Value::Dict(${call})` + rest;
         }
     }

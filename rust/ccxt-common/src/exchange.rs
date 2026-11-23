@@ -257,8 +257,8 @@ pub trait DerivedExchange {
     fn parse_conversion(&self, conversion: impl Into<Value>, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_conversion(p, conversion, from_currency, to_currency)) }
     fn parse_borrow_rate(&self, info: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_borrow_rate(p, info, currency)) }
     fn parse_leverage(&self, leverage: impl Into<Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_leverage(p, leverage, market)) }
-    fn parse_market_leverage_tiers(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_market_leverage_tiers(p, info, market)) }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_deposit_withdraw_fee(p, fee, currency)) }
+    fn parse_market_leverage_tiers(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> { self.derived_parent().and_then(|p| DerivedExchange::parse_market_leverage_tiers(p, info, market)) }
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_deposit_withdraw_fee(p, fee, currency)) }
     fn create_expired_option_market(&self, symbol: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::create_expired_option_market(p, symbol)) }
     /// Typed like `ExchangeBase::market`, whose dispatch hands the call here unchanged; the default is the parent's, else the base lookup.
     fn market(&self, symbol: &str) -> Result<crate::types::Market> where Self: crate::exchange_generated::ExchangeBase {
