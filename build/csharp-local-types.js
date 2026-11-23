@@ -18178,6 +18178,7 @@ export const CORE_LIST_ARGS = {
     'watchFundingRatesForSymbols': { 0: 'IList<object>' },  // WatchFundingRatesForSymbols
     'watchLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchLiquidationsForSymbols
     'watchMarkPrices': { 0: 'IList<object>' },  // WatchMarkPrices
+    'watchTickers': { 0: 'IList<object>' },
     'watchMyLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchMyLiquidationsForSymbols
     'watchMyTradesForSymbols': { 0: 'IList<object>' },  // WatchMyTradesForSymbols
     'watchOHLCVForSymbols': { 0: 'IList<object>' },
