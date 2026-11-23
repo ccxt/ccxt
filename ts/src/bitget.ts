@@ -8958,7 +8958,6 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let result: NullableList = undefined;
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchPosition', false);
         if (uta === true) {
             request['category'] = productType;
@@ -9002,7 +9001,8 @@ export default class bitget extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data', {});
-            result = this.safeList (data, 'list', []);
+            const utaPositionRows = this.safeList (data, 'list', []);
+            return this.parsePosition (this.safeDict (utaPositionRows, 0, {}), market);
         } else {
             request['marginCoin'] = market['settleId'];
             request['productType'] = productType;
@@ -9037,9 +9037,9 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            result = this.safeList (response, 'data', []);
+            const singlePositionRows = this.safeList (response, 'data', []);
+            return this.parsePosition (this.safeDict (singlePositionRows, 0, {}), market);
         }
-        return this.parsePosition (this.safeDict (result, 0, {}), market);
     }
 
     /**
