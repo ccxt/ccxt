@@ -15801,7 +15801,9 @@ function mapLocalIsMap (printer, declaration) {
         noCastAssertions: true,
         writeOnly: true,
         writeOk: (right) => mapLocalValueIsMap (printer, right, declaration),
-        destructureOk: (assignment, index) => mapLocalDestructureOk (printer, assignment, index),
+        // slot 1 of an audited handle* / venue tuple producer is the caller's Dict: the write takes the Map checkcast
+        destructureOk: (assignment, index) => mapLocalDestructureOk (printer, assignment, index)
+            || (index === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined),
     });
 }
 
@@ -15834,6 +15836,7 @@ export function installJavaMapLocals (transpiler) {
             return printed;
         }
         typed.set (declaration, JAVA_MAP_TYPE);
+        OMIT_TUPLE_TARGETS.add (declaration);
         const head = marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `);
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
