@@ -89,23 +89,23 @@ type Client struct {
 	ConnectionTimeout     any  // e.g. *time.Timer or context.CancelFunc
 	Verbose               bool // default false
 	DecompressBinary      bool
-	IsMock                bool                          // static ws tests: transport is stubbed, sends are recorded
-	MockSentMessages      []any                         // frames recorded in mock mode; read via MockSent
-	mockSentMu            sync.Mutex                    // guards MockSentMessages: each send records on its own goroutine
-	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
-	MaxPingPongMisses     any                           // int or counter type
-	PingInterval          any                           // time.Duration recommended
-	ConnectionEstablished any                           // signal or state variable
-	Gunzip                any                           // gzip decompressor (e.g. io.Reader)
-	Inflate               any                           // zlib inflater or similar
-	URL                   string                        // URL string
-	IsConnected           any                           // bool or state variable
+	IsMock                bool                                      // static ws tests: transport is stubbed, sends are recorded
+	MockSentMessages      []any                                     // frames recorded in mock mode; read via MockSent
+	mockSentMu            sync.Mutex                                // guards MockSentMessages: each send records on its own goroutine
+	ConnectionTimer       any                                       // e.g. *time.Timer or custom timer
+	MaxPingPongMisses     any                                       // int or counter type
+	PingInterval          any                                       // time.Duration recommended
+	ConnectionEstablished any                                       // signal or state variable
+	Gunzip                any                                       // gzip decompressor (e.g. io.Reader)
+	Inflate               any                                       // zlib inflater or similar
+	URL                   string                                    // URL string
+	IsConnected           any                                       // bool or state variable
 	OnConnectedCallback   func(client ClientInterface, message any) // callback function signature - adjust as needed
-	OnMessageCallback     func(client any, message any) // example callback with message
-	OnErrorCallback       func(client ClientInterface, err any) // error callback
-	OnCloseCallback       func(client ClientInterface, err any) // connection closed callback
-	Ping                  any                           // e.g. timer or pong/ping state
-	Throttle              any                           // throttling mechanism (rate limiter, etc.)
+	OnMessageCallback     func(client any, message any)             // example callback with message
+	OnErrorCallback       func(client ClientInterface, err any)     // error callback
+	OnCloseCallback       func(client ClientInterface, err any)     // connection closed callback
+	Ping                  any                                       // e.g. timer or pong/ping state
+	Throttle              any                                       // throttling mechanism (rate limiter, etc.)
 	// Owner any 											// pointer to the exchange that created the client
 }
 
