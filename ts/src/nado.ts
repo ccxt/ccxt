@@ -2057,7 +2057,7 @@ export default class nado extends Exchange {
         //     }
         //
         const fundingPayments = this.safeList (response, 'funding_payments', []);
-        const result: FundingHistory[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < fundingPayments.length; i++) {
             result.push (this.parseFundingHistory (fundingPayments[i], market));
         }
@@ -2517,7 +2517,7 @@ export default class nado extends Exchange {
         };
     }
 
-    parseFundingHistory (funding: Dict, market: Market = undefined) {
+    parseFundingHistory (funding: Dict, market: Market = undefined): Dict {
         //
         //     {
         //         "product_id": 2,

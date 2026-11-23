@@ -1036,6 +1036,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     'parseLeverage': 'Dictionary<string, object>',
     'parseMarginModification': 'Dictionary<string, object>',
     'parseIncome': 'Dictionary<string, object>',
+    'parseFundingHistory': 'Dictionary<string, object>',
     // backpack stockDataRequest: single declaration, `return request` (the extend() local)
     'stockDataRequest': 'Dictionary<string, object>',
 };

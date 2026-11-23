@@ -1130,7 +1130,7 @@ export default class extended extends Exchange {
         return this.parseFundingHistories (result, market, since, limit);
     }
 
-    parseFundingHistory (history: Dict, market: Market = undefined) {
+    parseFundingHistory (history: Dict, market: Market = undefined): Dict {
         //
         //     {
         //         "id": 8341,
