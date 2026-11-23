@@ -18704,19 +18704,35 @@ function javaNumericUseHazard (call) {
 }
 
 // a String result on the left of `+` moves Helpers.add to its (String, Object) overload, which prints
-// "null" where add(Object, Object) answers null; omitZero has a String overload too
+// "null" where add(Object, Object) answers null (omitZero (String) returns Generic.omitZero's own answer)
 function javaStringUseHazard (call) {
+    return !plusUsesAreSafe (call) && !javaPlusRightIsTsString (call) && !plusChainStartsWithStringLiteral (call)
+        && !javaPlusPathIsTsStringJoin (call);
+}
+
+// every sibling operand on the call's `+` path is a non-null TS string: each level is a String join
+// (native concat and both Helpers.add overloads give the same text, a null call result included)
+function javaPlusPathIsTsStringJoin (call) {
+    const scope = enclosingFunction (call);
     let child = call;
-    let parent = call.parent;
-    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+    while (ts.isParenthesizedExpression (child.parent)) {
+        child = child.parent;
+    }
+    let parent = child.parent;
+    let levels = 0;
+    while (ts.isBinaryExpression (parent) && parent.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        const sibling = parent.left === child ? parent.right : parent.left;
+        if (!javaTsStringOperand (unwrapParens (sibling), scope, 0)) {
+            return false;
+        }
+        levels++;
         child = parent;
-        parent = parent.parent;
+        while (ts.isParenthesizedExpression (child.parent)) {
+            child = child.parent;
+        }
+        parent = child.parent;
     }
-    if (parent !== undefined && ts.isCallExpression (parent) && parent.arguments.includes (child)
-        && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'omitZero') {
-        return true;
-    }
-    return !plusUsesAreSafe (call) && !javaPlusRightIsTsString (call) && !plusChainStartsWithStringLiteral (call);
+    return levels > 0;
 }
 
 // `<call> + s` where s is a literal or a local the TS declaration types `string` (an annotation, a literal,
@@ -18743,10 +18759,19 @@ function javaTsStringOperand (node, scope, depth) {
     if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
         return javaTsStringOperand (unwrapParens (node.left), scope, depth + 1);
     }
+    if (isThisCall (node) && javaSameClassStringMethod (node)) {
+        return true;
+    }
     if (!ts.isIdentifier (node) || scope === undefined) {
         return false;
     }
     const declarations = (identifierIndex (scope).get (node.text) ?? []).filter ((n) => ts.isVariableDeclaration (n.parent) && n.parent.name === n);
+    if (declarations.length === 0 && ts.isMethodDeclaration (scope)) {
+        // a parameter declared `string` with no `?` (a `= ''` default keeps it non-null)
+        const parameter = scope.parameters.find ((p) => ts.isIdentifier (p.name) && p.name.text === node.text);
+        return parameter !== undefined && parameter.questionToken === undefined && parameter.type?.kind === ts.SyntaxKind.StringKeyword
+            && (parameter.initializer === undefined || isProvablyStringOperand (parameter.initializer));
+    }
     if (declarations.length !== 1) {
         return false;
     }
@@ -18755,6 +18780,17 @@ function javaTsStringOperand (node, scope, depth) {
         return declaration.type.kind === ts.SyntaxKind.StringKeyword;
     }
     return javaTsStringOperand (unwrapParens (declaration.initializer), scope, depth + 1);
+}
+
+// `this.m (..)` where the enclosing class declares every `m` with the return annotation `string` (not `Str`)
+function javaSameClassStringMethod (call) {
+    let cls = call.parent;
+    while (cls !== undefined && !ts.isClassDeclaration (cls)) {
+        cls = cls.parent;
+    }
+    const name = call.expression.name.text;
+    const members = (cls?.members ?? []).filter ((m) => ts.isMethodDeclaration (m) && m.name !== undefined && ts.isIdentifier (m.name) && m.name.text === name);
+    return members.length > 0 && members.every ((m) => m.type?.kind === ts.SyntaxKind.StringKeyword);
 }
 
 // the call sits inside a `+` chain whose leftmost operand is a string literal: every level is a String concat (JLS 15.18.1)
