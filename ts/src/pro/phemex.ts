@@ -51,7 +51,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    override fromEn (en: any, scale: any): Str {
+    override fromEn (en: Str, scale: Int): Str {
         if (en === undefined) {
             return undefined;
         }
@@ -59,27 +59,6 @@ export default class phemex extends phemexRest {
         precise.decimals = this.sum (precise.decimals, this.safeInteger ([ scale ], 0, 0));
         precise.reduce ();
         return precise.toString ();
-    }
-
-    override fromEp (ep: Str, market: Market = undefined): Str {
-        if ((ep === undefined) || (market === undefined)) {
-            return ep;
-        }
-        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
-    }
-
-    override fromEv (ev: Str, market: Market = undefined): Str {
-        if ((ev === undefined) || (market === undefined)) {
-            return ev;
-        }
-        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
-    }
-
-    override fromEr (er: Str, market: Market = undefined): Str {
-        if ((er === undefined) || (market === undefined)) {
-            return er;
-        }
-        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
     requestId (): int {
