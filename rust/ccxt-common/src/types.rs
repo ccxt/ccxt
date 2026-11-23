@@ -2212,6 +2212,9 @@ impl FromRaw for Option<Market> { fn from_raw(v: Value) -> Self { if matches!(v,
 /// An optional currency argument: `Null` is `None`, any other value decodes the record once.
 impl FromRaw for Option<Currency> { fn from_raw(v: Value) -> Self { if matches!(v, Value::Null) { None } else { Some(Currency::from_value(v)) } } }
 impl IntoRaw for Option<String> { fn into_raw(self) -> Value { self.map(Value::from).unwrap_or_default() } }
+/// A dict return (`cancelAllOrdersAfter`): any other shape reads `None`, which boxes back as `Null`.
+impl FromRaw for Option<crate::value::Dict> { fn from_raw(v: Value) -> Self { if let Value::Dict(m) = v { Some(m) } else { None } } }
+impl IntoRaw for Option<crate::value::Dict> { fn into_raw(self) -> Value { self.map_or(Value::Null, Value::Dict) } }
 
 /// One entry of a `cancel_orders_for_symbols` batch (TS `CancellationRequest`); `raw` keeps any other key.
 #[derive(Debug, Clone, Default)]
