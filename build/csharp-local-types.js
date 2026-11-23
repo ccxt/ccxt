@@ -17057,6 +17057,9 @@ export const SIGNATURE_ARG_TYPES = {
     'parseBalance': { 0: 'IDictionary<string, object>' },
     'parseDepositAddress': { 0: 'IDictionary<string, object>' },
     'parseLeverage': { 0: 'IDictionary<string, object>' },
+    // every caller passes a typed book side (`orderbook.asks` / `.bids`) or forwards its own `bookside`
+    'handleDeltas': { 0: 'ccxt.pro.IOrderBookSide' },
+    'handleDelta': { 0: 'ccxt.pro.IOrderBookSide' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every

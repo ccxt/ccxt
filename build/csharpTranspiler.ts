@@ -3731,6 +3731,11 @@ class NewTranspiler {
         const table: Record<string, Record<number, string>> = {};
         for (const name of names) {
             table[name] = Object.assign ({}, this.coreArgTypes (name), SIGNATURE_ARG_TYPES[name]);
+            for (const pos of Object.keys (table[name])) {
+                if (table[name][pos].startsWith ('ccxt.pro.')) {
+                    delete table[name][pos]; // a book side is passed as typed, never converted
+                }
+            }
         }
         return table;
     }
