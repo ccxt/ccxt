@@ -7355,6 +7355,9 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'urlEncoderForProxyUrl': [ 0 ],
     // prediction `fetchEvent (id: string)`: base and every override; the only callers are the typed FetchEvent(id string) wrappers
     'fetchEvent': [ 0 ],
+    // required `id` / `code` / `symbol: string` declared by every override (blofin fetchWithdrawal takes `Str`)
+    'fetchDeposit': [ 0 ], 'verifyGiftCode': [ 0 ], 'fetchDepositMethodId': [ 0 ], 'fetchCurrency': [ 0 ],
+    'fetchMarket': [ 0 ], 'fetchTicker2': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
