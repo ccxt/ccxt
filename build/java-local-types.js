@@ -331,6 +331,11 @@ const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency'
 // PredictionExchange safePredictionTrade returns its own Map `result` (no override)
 const H30T07_MAP_RETURN_METHODS = [ 'parsePosition', 'safePredictionTrade' ];
 H30T07_MAP_RETURN_METHODS.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
+// row parsers whose every declaration returns a literal, a Map local or a same-table call (census
+// of base + venue + pro + prediction); safeOpenInterest returns this.extend (interest, {..})
+const ROW_PARSER_MAP_RETURN_METHODS = [ 'parseTransfer', 'parseFundingRate', 'parseTransaction', 'parseDepositAddress',
+    'parseLedgerEntry', 'safeLedgerEntry', 'parseOpenInterest', 'safeOpenInterest' ];
+ROW_PARSER_MAP_RETURN_METHODS.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
