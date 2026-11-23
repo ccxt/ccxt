@@ -27145,6 +27145,15 @@ const JAVA_LIST_PARAM_SLOTS = {
     'handleBookDeltas': [ 1 ],
     'parseBorrowRateHistory': [ 0 ],
 };
+// unified list parameters: the typed surface hands List<Map<String, Object>> rows (OrderRequest[]) and
+// venues hand ArrayList<Object> literals, so the core takes List<?> (string[][] rows likewise)
+const JAVA_WILDCARD_LIST_PARAM_SLOTS = {
+    'createOrders': [ 0 ],
+    'createOrdersWs': [ 0 ],
+    'watchOHLCVForSymbols': [ 0 ],
+    'unWatchOHLCVForSymbols': [ 0 ],
+};
+const JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE = 'java.util.List<?>';
 // dictionary slots: every caller hands a checker-proven string-indexed object
 // (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
 const JAVA_MAP_PARAM_SLOTS = {
@@ -27187,6 +27196,9 @@ function javaParamSlotTypeAt (name, index, fileName) {
     if (JAVA_LIST_PARAM_SLOTS[name]?.includes (index)) {
         return JAVA_LIST_PARAM_SLOT_TYPE;
     }
+    if (JAVA_WILDCARD_LIST_PARAM_SLOTS[name]?.includes (index)) {
+        return JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE;
+    }
     return JAVA_MAP_PARAM_SLOTS[name]?.includes (index) ? JAVA_MAP_PARAM_SLOT_TYPE : undefined;
 }
 
@@ -27225,11 +27237,18 @@ export function installJavaListParamSlots (transpiler) {
             const isList = (t) => (checker.isArrayType (t) || checker.isTupleType (t))
                 && !checker.isTupleType (t) && ((checker.getTypeArguments (t)?.[0]?.flags ?? 0) & ts.TypeFlags.StringLike) === 0;
             const isMap = (t) => printer.isJavaMapType (t) && checker.getIndexInfosOfType?.(t)?.length !== 0;
-            const ok = slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
+            const isAnyList = (t) => checker.isArrayType (t) && !checker.isTupleType (t);
+            const ok = slot === JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE ? isAnyList (argType) || printer.isJavaNullishUnion (argType, isAnyList)
+                : slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
                 : isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
             if (!ok) {
                 throw new Error (`java param slot: argument ${arg.getText ()} is not a proven ${slot}`);
             }
+        }
+        // an array literal prints a fresh ArrayList, a List-declared local already is one
+        if (slot === JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE && slot === type && (ts.isArrayLiteralExpression (arg)
+            || (ts.isIdentifier (arg) && /^(java\.util\.)?(Array)?List<.*>$/.test (String (printer.javaDeclaredTypeOf (arg) ?? ''))))) {
+            return true;
         }
         return upstreamTyped (arg, type);
     };
