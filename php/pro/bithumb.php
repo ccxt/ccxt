@@ -259,11 +259,9 @@ class bithumb extends \ccxt\async\bithumb {
         //
         $content = $this->safe_dict($message, 'content');
         $isGenerationTwo = ($content === null);
-        $tickerMessage = null;
-        if ($isGenerationTwo) {
-            $tickerMessage = $message;
-        } else {
-            $tickerMessage = $content;
+        $tickerMessage = $message;
+        if (!$isGenerationTwo) {
+            $tickerMessage = $this->safe_dict($message, 'content', array());
         }
         $marketId = $this->safe_string_2($tickerMessage, 'symbol', 'code');
         if ($marketId === null) {

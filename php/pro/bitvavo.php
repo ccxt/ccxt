@@ -239,8 +239,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $tickers = $this->safe_list($message, 'data', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $data = $tickers[$i];
-            $ticker = $this->parse_ws_bid_ask($data);
+            $ticker = $this->parse_ws_bid_ask($this->safe_dict($tickers, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->bidsasks[$symbol] = $ticker;
             $result[] = $ticker;
@@ -518,8 +517,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         for ($i = 0; $i < count($candles); $i++) {
-            $candle = $candles[$i];
-            $parsed = $this->parse_ohlcv($candle, $market);
+            $parsed = $this->parse_ohlcv($candles[$i], $market);
             $stored->append($parsed);
         }
         $client->resolve($stored, $messageHash);
@@ -949,7 +947,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
-            $messageItem = $messages[$i];
+            $messageItem = $this->safe_dict($messages, $i, array());
             $this->handle_order_book_message($client, $messageItem, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;

@@ -643,7 +643,8 @@ class htx extends \ccxt\async\htx {
                 $orderbook->reset($snapshot);
                 // unroll the accumulated deltas
                 for ($i = 0; $i < count($messages); $i++) {
-                    $this->handle_order_book_message($client, $messages[$i]);
+                    $messageItem = $this->safe_dict($messages, $i, array());
+                    $this->handle_order_book_message($client, $messageItem);
                 }
                 $orderbook->cache = array();
                 if ($symbol !== null) {

@@ -1084,7 +1084,7 @@ class binance extends \ccxt\async\binance {
             $messages = $orderbook->cache;
             $orderbook->cache = array();
             for ($i = 0; $i < count($messages); $i++) {
-                $messageItem = $this->safe_value($messages, $i);
+                $messageItem = $this->safe_dict($messages, $i, array());
                 $U = $this->safe_integer($messageItem, 'U');
                 $u = $this->safe_integer($messageItem, 'u');
                 if (($U === null) || ($u === null)) {

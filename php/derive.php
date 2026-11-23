@@ -1321,7 +1321,7 @@ class derive extends Exchange {
     public function parse_settlements(array $settlements, ?array $market = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($settlements[$i], $market);
+            $result[] = $this->parse_settlement($this->extend(array(), $settlements[$i]), $market);
         }
         return $result;
     }

@@ -1740,7 +1740,7 @@ class aster extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $marketId = $this->safe_string($rows[$i], 'symbol');
             $safeMarket = $this->safe_market($marketId, null, null, $marketType);
-            $priceData = $this->extend($this->parse_last_price($rows[$i], $safeMarket), $paramsMarketType);
+            $priceData = $this->extend($this->parse_last_price($this->extend(array(), $rows[$i]), $safeMarket), $paramsMarketType);
             $results[] = $priceData;
         }
         $symbolsNormalized2 = $this->market_symbols($symbolsNormalized);

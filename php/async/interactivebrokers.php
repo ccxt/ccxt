@@ -2837,7 +2837,7 @@ class interactivebrokers extends Exchange {
          * fetch the accounts for which the user can view position and account information
          *
          * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-accounts
-         * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-subaccounts
+         * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-$subaccounts
          *
          * @ignore
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2846,48 +2846,47 @@ class interactivebrokers extends Exchange {
          */
         Async\await($this->authenticate());
         list($method, $query) = $this->handle_option_and_params($params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
-        $response = null;
         if ($method === 'privateGetPortfolioSubaccounts') {
-            $response = Async\await($this->webapiGetV1ApiPortfolioSubaccounts($query));
-        } else {
-            $response = Async\await($this->webapiGetV1ApiPortfolioAccounts($query));
-            //
-            //    [
-            //        {
-            //            "id": "U3448646",
-            //            "PrepaidCrypto-Z": false,
-            //            "PrepaidCrypto-P": true,
-            //            "brokerageAccess": true,
-            //            "accountId": "U3448646",
-            //            "accountVan": "U3448646",
-            //            "accountTitle": "Toma Todua",
-            //            "displayName": "Toma Todua",
-            //            "accountAlias": null,
-            //            "accountStatus": 1646607600000,
-            //            "currency": "USD",
-            //            "type": "INDIVIDUAL",
-            //            "tradingType": "STKNOPT",
-            //            "businessType": "INDEPENDENT",
-            //            "category": "",
-            //            "ibEntity": "IBLLC-US",
-            //            "faclient": false,
-            //            "clearingStatus": "O",
-            //            "covestor": false,
-            //            "noClientTrading": false,
-            //            "trackVirtualFXPortfolio": true,
-            //            "acctCustType": "INDIVIDUAL",
-            //            "parent": {
-            //                "mmc": [],
-            //                "accountId": "",
-            //                "isMParent": false,
-            //                "isMChild": false,
-            //                "isMultiplex": false
-            //            },
-            //            "desc": "U3448646"
-            //        }
-            //    ]
-            //
+            $subaccounts = Async\await($this->webapiGetV1ApiPortfolioSubaccounts($query));
+            return $subaccounts;
         }
+        $response = Async\await($this->webapiGetV1ApiPortfolioAccounts($query));
+        //
+        //    [
+        //        {
+        //            "id": "U3448646",
+        //            "PrepaidCrypto-Z": false,
+        //            "PrepaidCrypto-P": true,
+        //            "brokerageAccess": true,
+        //            "accountId": "U3448646",
+        //            "accountVan": "U3448646",
+        //            "accountTitle": "Toma Todua",
+        //            "displayName": "Toma Todua",
+        //            "accountAlias": null,
+        //            "accountStatus": 1646607600000,
+        //            "currency": "USD",
+        //            "type": "INDIVIDUAL",
+        //            "tradingType": "STKNOPT",
+        //            "businessType": "INDEPENDENT",
+        //            "category": "",
+        //            "ibEntity": "IBLLC-US",
+        //            "faclient": false,
+        //            "clearingStatus": "O",
+        //            "covestor": false,
+        //            "noClientTrading": false,
+        //            "trackVirtualFXPortfolio": true,
+        //            "acctCustType": "INDIVIDUAL",
+        //            "parent": {
+        //                "mmc": [],
+        //                "accountId": "",
+        //                "isMParent": false,
+        //                "isMChild": false,
+        //                "isMultiplex": false
+        //            },
+        //            "desc": "U3448646"
+        //        }
+        //    ]
+        //
         return $response;
     }
 

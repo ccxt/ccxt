@@ -880,7 +880,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $orderbook->reset($snapshot);
         $cachedMessages = $orderbook->cache;
         for ($j = 0; $j < count($cachedMessages); $j++) {
-            $cachedMessage = $cachedMessages[$j];
+            $cachedMessage = $this->safe_dict($cachedMessages, $j, array());
             $this->handle_order_book_message($client, $cachedMessage, $orderbook);
         }
         $orderbook->cache = array();

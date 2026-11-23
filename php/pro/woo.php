@@ -334,7 +334,7 @@ class woo extends \ccxt\async\woo {
             $orderbook->reset($snapshot);
             $messages = $orderbook->cache;
             for ($i = 0; $i < count($messages); $i++) {
-                $messageItem = $messages[$i];
+                $messageItem = $this->safe_dict($messages, $i, array());
                 $ts = $this->safe_integer($messageItem, 'ts');
                 if ($ts === null) {
                     continue;
@@ -675,8 +675,7 @@ class woo extends \ccxt\async\woo {
             if ($ticker === null) {
                 continue;
             }
-            $ticker['ts'] = $timestamp;
-            $parsedTicker = $this->parse_ws_bid_ask($ticker);
+            $parsedTicker = $this->parse_ws_bid_ask($this->extend($ticker, array( 'ts' => $timestamp )));
             $symbol = $this->safe_string($parsedTicker, 'symbol');
             if ($symbol !== null) {
                 $this->bidsasks[$symbol] = $parsedTicker;

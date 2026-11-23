@@ -3387,7 +3387,7 @@ class paradex extends Exchange {
         // }
         //
         $configs = $this->safe_list($response, 'configs');
-        return $this->parse_margin_mode($this->safe_dict($configs, 0), $market);
+        return $this->parse_margin_mode($this->safe_dict($configs, 0, array()), $market);
     }
 
     public function parse_margin_mode(array $rawMarginMode, ?array $market = null): array {
@@ -3776,15 +3776,14 @@ class paradex extends Exchange {
         $result = array();
         $prefix = $code . '-';
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $marketId = $this->safe_string($entry, 'symbol', '');
+            $marketId = $this->safe_string($data[$i], 'symbol', '');
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if (str_starts_with($marketId, $prefix)) {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 $market = $this->safe_market($marketId);
                 if ($market['option'] === true) {
                     $optionSymbol = $this->safe_string($market, 'symbol', '');
-                    $result[$optionSymbol] = $this->parse_option($entry, null, $market);
+                    $result[$optionSymbol] = $this->parse_option($this->safe_dict($data, $i, array()), null, $market);
                 }
             }
         }

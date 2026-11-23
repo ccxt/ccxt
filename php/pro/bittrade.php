@@ -393,7 +393,8 @@ class bittrade extends \ccxt\async\bittrade {
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
-            $this->handle_order_book_message($client, $messages[$i], $orderbook);
+            $messageItem = $this->safe_dict($messages, $i, array());
+            $this->handle_order_book_message($client, $messageItem, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve($orderbook, $messageHash);

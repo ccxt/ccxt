@@ -5719,7 +5719,7 @@ class phemex extends Exchange {
         $ranks = $this->safe_list($data, 'positions', array());
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $result[] = $this->parse_adl_rank($ranks[$i]);
+            $result[] = $this->parse_adl_rank($this->extend(array(), $ranks[$i]));
         }
         return $this->filter_by_array_adl_ranks($result, 'symbol', $symbolsNormalized, false);
     }

@@ -604,7 +604,7 @@ class myriad extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_prediction_position($data[$i]);
+            $position = $this->parse_prediction_position($this->safe_dict($data, $i, array()));
             if (($outcomes === null) || $this->in_array($position['outcome'], $outcomes)) {
                 $result[] = $position;
             }

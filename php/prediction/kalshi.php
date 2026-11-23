@@ -1677,7 +1677,7 @@ class kalshi extends Exchange {
         $rawSettlementsLength = count($rawSettlements);
         $parsed = array();
         for ($i = 0; $i < $rawSettlementsLength; $i++) {
-            $parsed[] = $this->parse_settlement($rawSettlements[$i]);
+            $parsed[] = $this->parse_settlement($this->extend(array(), $rawSettlements[$i]));
         }
         $wantedOutcomeObj = ($outcome !== null) ? $this->outcome($outcome) : array();
         $wantedOutcome = $this->safe_string($wantedOutcomeObj, 'outcome');

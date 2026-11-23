@@ -3525,7 +3525,7 @@ class polymarket extends Exchange {
             $this->myTrades = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->myTrades;
-        $parsed = $this->parse_prediction_trade($event);
+        $parsed = $this->parse_prediction_trade($this->extend(array(), $event));
         $stored->append($parsed);
         $client->resolve($stored, 'myTrades');
         $outcome = $this->safe_string($parsed, 'outcome');

@@ -674,7 +674,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $market = $this->safe_market($marketId);
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $data[$i];
+            $ticker = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_ticker($ticker, $market);
             $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {

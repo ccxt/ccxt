@@ -490,7 +490,7 @@ class coinbase extends \ccxt\async\coinbase {
             $tickersObj = $this->safe_dict($events, $i);
             $tickers = $this->safe_list($tickersObj, 'tickers', array());
             for ($j = 0; $j < count($tickers); $j++) {
-                $ticker = $tickers[$j];
+                $ticker = $this->safe_dict($tickers, $j, array());
                 $wsMarketId = $this->safe_string($ticker, 'product_id');
                 if ($wsMarketId === null) {
                     continue;

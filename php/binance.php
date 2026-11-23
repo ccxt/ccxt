@@ -4746,7 +4746,9 @@ class binance extends Exchange {
         } elseif ($this->safe_bool($market, 'linear', false)) {
             $response = $this->fapiPublicGetTicker24hr($this->extend($request, $params));
         } elseif ($this->safe_bool($market, 'inverse', false)) {
-            $response = $this->dapiPublicGetTicker24hr($this->extend($request, $params));
+            // coin-m returns a list of one ticker
+            $inverseResponse = $this->dapiPublicGetTicker24hr($this->extend($request, $params));
+            $response = $this->safe_dict($inverseResponse, 0, array());
         } else {
             $stock = $this->safe_bool($market, 'stock', false);
             if ($stock) {
@@ -5036,7 +5038,9 @@ class binance extends Exchange {
         } elseif ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetPremiumIndex($this->extend($request, $paramsSubType));
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetPremiumIndex($this->extend($request, $paramsSubType));
+            // coin-m returns a list of one entry
+            $inverseResponse = $this->dapiPublicGetPremiumIndex($this->extend($request, $paramsSubType));
+            return $this->parse_ticker($this->safe_dict($inverseResponse, 0, array()), $market);
         } else {
             throw new NotSupported($this->id . ' fetchMarkPrice() does not support ' . $type . ' markets yet');
         }
@@ -13086,7 +13090,7 @@ class binance extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($this->safe_value($settlements, $i), $market);
+            $result[] = $this->parse_settlement($this->extend(array(), $settlements[$i]), $market);
         }
         return $result;
     }
@@ -15120,7 +15124,6 @@ class binance extends Exchange {
         }
         $market = $this->market($symbol);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
-        $response = null;
         if ($subType === 'linear') {
             $request = array(
                 'symbol' => $market['id'],
@@ -15137,6 +15140,10 @@ class binance extends Exchange {
             //     }
             // ]
             //
+            if ($response === null) {
+                throw new NullResponse($this->id . ' fetchMarginMode() returned empty response');
+            }
+            return $this->parse_margin_mode($this->safe_dict($response, 0, array()), $market);
         } elseif ($subType === 'inverse') {
             $fetchMarginModesResponse = $this->fetch_margin_modes(array( $symbol ), $paramsSubType);
             $marginMode = $this->safe_dict($fetchMarginModesResponse, $symbol);
@@ -15144,10 +15151,6 @@ class binance extends Exchange {
         } else {
             throw new BadRequest($this->id . ' fetchMarginMode () supports linear and inverse subTypes only');
         }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' fetchMarginMode() returned empty response');
-        }
-        return $this->parse_margin_mode($this->safe_value($response, 0), $market);
     }
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {

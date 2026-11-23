@@ -734,6 +734,21 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if ($outcomes !== null) {
+            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
+            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
+            if ($loadAll && !$wasWarm && !$reload) {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                $coldMiss = false;
+                for ($i = 0; $i < count($outcomes); $i++) {
+                    if (!$this->has_outcome($outcomes[$i])) {
+                        $coldMiss = true;
+                    }
+                }
+                if ($coldMiss) {
+                    Async\await($this->load_outcomes());
+                }
+            }
             $missing = array();
             for ($i = 0; $i < count($outcomes); $i++) {
                 if ($reload || !$this->has_outcome($outcomes[$i])) {
@@ -741,21 +756,6 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             $missingLength = count($missing);
-            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
-            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($missingLength > 0) && ($loadAll) && !$wasWarm && !$reload) {
-                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                Async\await($this->load_outcomes());
-                $stillMissing = array();
-                for ($i = 0; $i < $missingLength; $i++) {
-                    if (!$this->has_outcome($missing[$i])) {
-                        $stillMissing[] = $missing[$i];
-                    }
-                }
-                $missing = $stillMissing;
-                $missingLength = count($missing);
-            }
             if ($missingLength > 0) {
                 Async\await($this->fetch_outcomes($missing));
             }
@@ -1553,7 +1553,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $rows = $this->to_array($trades);
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $parsed = $this->parse_prediction_trade($rows[$i], $outcomeObj);
+            $parsed = $this->parse_prediction_trade($this->safe_dict($rows, $i, array()), $outcomeObj);
             $trade = $this->extend($parsed, $params);
             $results[] = $trade;
         }
@@ -1601,7 +1601,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $rows = $this->to_array($positions);
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $parsed = $this->parse_prediction_position($rows[$i]);
+            $parsed = $this->parse_prediction_position($this->safe_dict($rows, $i, array()));
             $position = $this->extend($parsed, $params);
             $results[] = $position;
         }

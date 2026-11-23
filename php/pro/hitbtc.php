@@ -550,7 +550,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_symbol($marketId, $market);
-            $ticker = $this->parse_ws_ticker($data[$marketId], $market);
+            $ticker = $this->parse_ws_ticker($this->safe_dict($data, $marketId, array()), $market);
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
             $messageHash = $topic . '::' . $symbol;
@@ -684,7 +684,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_symbol($marketId, $market);
-            $ticker = $this->parse_ws_bid_ask($data[$marketId], $market);
+            $ticker = $this->parse_ws_bid_ask($this->safe_dict($data, $marketId, array()), $market);
             $this->bidsasks[$symbol] = $ticker;
             $result[] = $ticker;
             $messageHash = $topic . '::' . $symbol;

@@ -1764,7 +1764,7 @@ class okx extends \ccxt\async\okx {
             if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 $updatedBook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
-                    $update = $data[$i];
+                    $update = $this->safe_dict($data, $i, array());
                     $this->handle_order_book_message($client, $update, $updatedBook, $messageHash, $market);
                     if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it

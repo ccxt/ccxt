@@ -9029,7 +9029,7 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_settlement($data[$i], $market);
+            $result[] = $this->parse_settlement($this->extend(array(), $data[$i]), $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
@@ -9088,7 +9088,7 @@ class okx extends Exchange {
             $timestamp = $this->safe_integer($entry, 'ts');
             $details = $this->safe_list($entry, 'details', array());
             for ($j = 0; $j < count($details); $j++) {
-                $settlement = $this->parse_settlement($details[$j], $market);
+                $settlement = $this->parse_settlement($this->extend(array(), $details[$j]), $market);
                 $result[] = $this->extend($settlement, array(
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),

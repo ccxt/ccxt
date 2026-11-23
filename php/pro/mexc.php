@@ -195,7 +195,7 @@ class mexc extends \ccxt\async\mexc {
         $symbol = $this->safe_string($market, 'symbol', '');
         if ($this->safe_bool($market, 'spot', false)) {
             $this->handle_bid_ask($client, $message); // the bids-asks channel is spot only
-            $ticker = $this->parse_ws_ticker($rawTicker, $market);
+            $ticker = $this->parse_ws_ticker($this->safe_dict_n($message, array( 'd', 'data', 'publicAggreBookTicker' ), array()), $market);
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
         } elseif ($rawTicker !== null) {
@@ -357,7 +357,7 @@ class mexc extends \ccxt\async\mexc {
         $topic = $messageHashPrefix . 'ticker';
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             if ($isSpot === true) {
                 $ticker = $this->parse_ws_ticker($entry, $market);
             } else {

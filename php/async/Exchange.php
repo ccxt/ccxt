@@ -2284,13 +2284,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $this->safe_dict($marketValues, $i, array());
-            if (is_array($marketsById) && array_key_exists($value['id'] ?? '', $marketsById)) {
-                $marketsByIdArray = $marketsById[$value['id']];
-                $marketsByIdArray[] = $value;
-                $marketsById[$value['id']] = $marketsByIdArray;
-            } else {
-                $marketsById[$value['id']] = array( $value );
+            $id = $this->safe_string($value, 'id', '');
+            if (!(is_array($marketsById) && array_key_exists($id ?? '', $marketsById))) {
+                $marketsById[$id] = array();
             }
+            $marketsById[$id][] = $value;
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
@@ -5658,7 +5656,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $results[] = $this->extend($this->parse_last_price($pricesData[$marketId], $market), $params);
+            $results[] = $this->extend($this->parse_last_price($this->extend(array(), $pricesData[$marketId]), $market), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
@@ -6882,7 +6880,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketTypeResolved);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
-                $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($info, $market);
+                $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($this->safe_dict($response, $i, array()), $market);
             }
         }
         return $marginModeStructures;
