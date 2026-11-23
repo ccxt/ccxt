@@ -7430,6 +7430,7 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
     'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
     'addMargin': [ 1 ], 'reduceMargin': [ 1 ], 'setMargin': [ 1 ], 'borrowCrossMargin': [ 1 ], 'repayCrossMargin': [ 1 ],
     'borrowIsolatedMargin': [ 2 ], 'repayIsolatedMargin': [ 2 ],
+    'repayMargin': [ 1 ],
 };
 
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
