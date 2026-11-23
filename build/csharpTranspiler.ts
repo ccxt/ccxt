@@ -5776,7 +5776,9 @@ class NewTranspiler {
                     const close = csharpMatchingClose (content, open, '(', ')', '"');
                     const spans = (close === -1) ? [] : this.wsArgSpans (content, open + 1, close);
                     const arg = (spans.length === 2) ? spans[1].text.trim () : '';
-                    if (spans.length !== 2 || spans[0].text.trim () !== 'client' || !/^[A-Za-z_]\w*$/.test (arg) || !dictTyped (body (call.index), arg)) {
+                    // base safeDict is declared IDictionary<string, object>: a whole-argument call is dict-typed
+                    const safeDictArg = arg.startsWith ('this.safeDict(') && (csharpMatchingClose (arg, 'this.safeDict'.length, '(', ')', '"') === arg.length - 1);
+                    if (spans.length !== 2 || spans[0].text.trim () !== 'client' || (!safeDictArg && (!/^[A-Za-z_]\w*$/.test (arg) || !dictTyped (body (call.index), arg)))) {
                         ok = false;
                         break;
                     }
