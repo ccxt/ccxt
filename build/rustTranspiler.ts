@@ -5091,6 +5091,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     }
     box ('safe_currency_structure');
     content = rustTypedParseFamily (content, 'currency', 'rawCurrency');
+    content = rustBorrowedParseRows (content);
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
     const typeAll = (name: string) => {
         const head = new RegExp ('\\n    pub fn ' + name + '\\([^\\n]*\\) -> Value \\{\\n');
@@ -5117,6 +5118,42 @@ function rustTypedParsePositionFamilies (content: string): string {
     typeAll ('parse_ws_position');
     typeAll ('parse_event');
     return content.split (Q).join ('');
+}
+
+// The `parseLeverage` / `parseIncome` / `parseAccount` / `parseMarginMode` slots borrow their `Dict` row (the TypeScript
+// declaration; every caller passes a dict). A boxed argument hands the map it holds, an empty one for a non-map value.
+function rustBorrowedParseRows (content: string): string {
+    const fns = 'parse_leverage|parse_income|parse_account|parse_margin_mode';
+    content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), '\n    fn $1(&self, $2: &crate::value::Dict$3');
+    content = content.replace (new RegExp ('(\\n    fn (?:' + fns + ')\\(&self, (\\w+): &crate::value::Dict[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Value::from($2);');
+    const fromBody = (v: string) => '&<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').unwrap_or_default()';
+    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(?:' + fns + ')\\(self, ', 'g');
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) {
+        const open = m.index + m[0].length;
+        let close = open, depth = 0;
+        for (; close < content.length; close++) {
+            const c = content[close];
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') { if (depth === 0) break; depth--; }
+            else if (c === ',' && depth === 0) break;
+        }
+        const arg = content.slice (open, close).trim ();
+        let lent = arg;
+        const ref = /^&(\w+)$/.exec (arg);
+        if (ref !== null) {
+            const fnAt = content.lastIndexOf ('\n    fn ', m.index), pubAt = content.lastIndexOf ('\n    pub ', m.index);
+            const decl = content.slice (Math.max (fnAt, pubAt), m.index).match (new RegExp ('\\blet (?:mut )?' + ref[1] + ': ([^=\\n]+?) =', 'g'));
+            const ty = decl === null ? '' : decl[decl.length - 1];
+            if (ty.includes ('Option<crate::value::Dict>')) lent = ref[1] + '.as_ref().unwrap_or(&Default::default())';
+            else if (!ty.includes ('crate::value::Dict')) lent = fromBody (ref[1] + '.clone()');
+        } else if (/^Value::Dict\(\w+\)$/.test (arg)) lent = '&' + arg.slice ('Value::Dict('.length, -1);
+        else if (!/^\w+$/.test (arg) || !content.slice (Math.max (content.lastIndexOf ('\n    fn ', m.index), 0), m.index).includes (arg + ': &crate::value::Dict')) lent = fromBody (arg);
+        out += content.slice (last, open) + lent;
+        last = close;
+        head.lastIndex = close;
+    }
+    return out + content.slice (last);
 }
 
 // the printer already returns Dict from this method (and no declaration of it returns Value): its callers are typed too
@@ -14143,7 +14180,7 @@ export class RustTranspilerBuilder {
             const src = fs.existsSync(`${RUST_CORE}/exchange.rs`) ? fs.readFileSync(`${RUST_CORE}/exchange.rs`, 'utf8') : '';
             const at = src.indexOf('pub trait DerivedExchange {');
             const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}\n', at));
-            this._lentTraitSlots = new Set([...body.matchAll(/^\s*fn (\w+)\(&(?:mut )?self, \w+: impl Into<Value>/gm)].map(m => m[1]));
+            this._lentTraitSlots = new Set([...body.matchAll(/^\s*fn (\w+)\(&(?:mut )?self, \w+: (?:impl Into<Value>|&crate::value::Dict)/gm)].map(m => m[1]));
         }
         return this._lentTraitSlots;
     }
