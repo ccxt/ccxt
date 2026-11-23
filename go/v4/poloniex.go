@@ -3875,12 +3875,16 @@ func (this *Poloniex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
-func (this *Poloniex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Poloniex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//    {
 	//        "s": "BTC_USDT_PERP",
