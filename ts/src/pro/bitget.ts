@@ -566,7 +566,7 @@ export default class bitget extends bitgetRest {
             args['instId'] = market['id'];
             messageHash = 'candles:' + timeframe + ':' + symbolValue;
         }
-        const ohlcv = await this.watchPublic (isStockOrUta, messageHash, args, paramsRequest);
+        const ohlcv: ArrayCacheByTimestamp = await this.watchPublic (isStockOrUta, messageHash, args, paramsRequest);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1799,7 +1799,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = instId;
         }
-        const orders = await this.watchPrivate (uta, messageHash, subscriptionHashInst, args, paramsRequest);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (uta, messageHash, subscriptionHashInst, args, paramsRequest);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -2293,7 +2293,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = 'default';
         }
-        const trades = await this.watchPrivate (uta, messageHash, subscriptionHash, args, paramsRequest);
+        const trades: ArrayCache = await this.watchPrivate (uta, messageHash, subscriptionHash, args, paramsRequest);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

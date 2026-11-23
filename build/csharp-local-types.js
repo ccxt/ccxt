@@ -24233,6 +24233,7 @@ function h28c01AnnotatedCache (declaration) {
 // a venue method name other venue classes also declare: C# binds every `this.<name>` call to the
 // receiver's own class, so the wrapper may turn generic when no base / hand-written member, no
 // subclass declaration, no non-`this` call and no string-named call of it exists in its lineage
+// (a `'name':` object key, such as a message-handler table entry, names no method)
 function h28c01LineageOwnsName (source, name, handWritten) {
     const rel = path.relative (process.cwd (), source.fileName);
     const corpus = csharpCorpus ();
@@ -24252,11 +24253,101 @@ function h28c01LineageOwnsName (source, name, handWritten) {
         } catch (e) {
             return false;
         }
-        if (new RegExp ('(?<!this)\\.' + name + '\\s*\\(').test (text) || new RegExp ("[(,]\\s*'" + name + "'").test (text)) {
+        if (new RegExp ('(?<!this)\\.' + name + '\\s*\\(').test (text) || h28c01StringNamedCall (text, name, lineage)) {
             return false;
         }
     }
     return true;
+}
+
+// `'name'` as a call argument, unless each is `this.m (.., 'name', ..)` and no transitive `this.` / `super.`
+// callee of m (lineage and base Exchange.ts) holds a `x[k] (..)` call, the only by-name dispatch
+function h28c01StringNamedCall (text, name, lineage) {
+    const re = new RegExp ("\\bthis\\.(\\w+)\\s*\\([^()]*?'" + name + "'(?!\\s*:)", 'g');
+    const all = (text.match (new RegExp ("[(,]\\s*'" + name + "'(?!\\s*:)", 'g')) ?? []).length;
+    let inert = 0;
+    let match;
+    while ((match = re.exec (text)) !== null) {
+        const memo = match[1] + '@' + lineage[0];
+        if (!h28c01NeverDispatchMemo.has (memo)) {
+            h28c01NeverDispatchMemo.set (memo, h28c01NeverDispatches (match[1], lineage, new Set ()));
+        }
+        if (!h28c01NeverDispatchMemo.get (memo)) {
+            return true;
+        }
+        inert++;
+    }
+    return inert !== all;
+}
+
+const h28c01DispatchSources = new Map ();
+const h28c01NeverDispatchMemo = new Map ();
+
+function h28c01MethodsNamed (name, lineage) {
+    const found = [];
+    for (const rel of [ ...lineage, 'ts/src/base/Exchange.ts' ]) {
+        if (!h28c01DispatchSources.has (rel)) {
+            let file;
+            try {
+                file = ts.createSourceFile (rel, fs.readFileSync (path.join (process.cwd (), rel), 'utf8'), ts.ScriptTarget.Latest, true);
+            } catch (e) {
+                file = undefined;
+            }
+            h28c01DispatchSources.set (rel, file);
+        }
+        const file = h28c01DispatchSources.get (rel);
+        if (file === undefined) {
+            return undefined;
+        }
+        found.push (...sourceFileMethods (file, name));
+        if (rel === 'ts/src/base/Exchange.ts' && found.length === 0) {
+            // a base field: an imported module function or a user callback (no generated dispatch)
+            const bound = file.statements.some ((st) => ts.isClassDeclaration (st) && st.members.some ((m) => ts.isPropertyDeclaration (m)
+                && m.name?.text === name));
+            return bound ? [] : undefined;
+        }
+    }
+    return found;
+}
+
+function h28c01NeverDispatches (name, lineage, seen) {
+    if (seen.has (name)) {
+        return true;
+    }
+    seen.add (name);
+    if (seen.size > 400) {
+        return false;
+    }
+    const methods = h28c01MethodsNamed (name, lineage);
+    if (methods === undefined) {
+        return false;
+    }
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.CallExpression) {
+            const callee = n.expression;
+            if (callee?.kind === ts.SyntaxKind.ElementAccessExpression) {
+                ok = false;
+                return;
+            }
+            if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+                    || callee.expression?.kind === ts.SyntaxKind.SuperKeyword) && !h28c01NeverDispatches (callee.name.text, lineage, seen)) {
+                ok = false;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    for (const m of methods) {
+        if (m.body === undefined) {
+            continue;
+        }
+        m.body.forEachChild (visit);
+    }
+    return ok;
 }
 
 function h28c01SettledCache (csharp, source, watched) {
