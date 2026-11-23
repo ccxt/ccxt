@@ -2890,7 +2890,7 @@ public class BaseExchange {
             responseBody = result;
         }
 
-        Object res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, requestHeaders, body);
+        Object res = handleErrors((long) httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, requestHeaders, body);
         if (res == null) {
             handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);
         }
