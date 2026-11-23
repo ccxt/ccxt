@@ -1061,7 +1061,7 @@ public class Dydx extends DydxApi
         Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, (String) (methodName), "user", (String) null);
         String userAux = userAuxparamsUserVariable.first();
         Map<String, Object> paramsUser = userAuxparamsUserVariable.second();
-        Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUser), (String) (methodName), "address", userAux);
+        Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, (String) (methodName), "address", userAux);
         String user = userparamsAddressVariable.first();
         Map<String, Object> paramsAddress = userparamsAddressVariable.second();
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
@@ -1521,7 +1521,7 @@ public class Dydx extends DydxApi
         return signature;
     }
 
-    public String signDydxTx(String privateKey, Object message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
+    public String signDydxTx(String privateKey, Map<String, Object> message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
@@ -1886,7 +1886,7 @@ public class Dydx extends DydxApi
         Object orderId = ((List<Object>)orderRequestRes).get(0);
         Object orderRequest = ((List<Object>)orderRequestRes).get(1);
         String chainName = this.safeString(this.options, "chainName");
-        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), orderRequest, "", chainName, account, null, (Object) null);
+        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), (Map<String, Object>) (orderRequest), "", chainName, account, null, (Object) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -3094,7 +3094,7 @@ public class Dydx extends DydxApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

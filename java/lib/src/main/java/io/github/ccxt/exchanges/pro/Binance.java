@@ -931,7 +931,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String watchOrderBookRateOption = watchOrderBookRateOptionparamsRateVariable.first();
         Map<String, Object> paramsRate = watchOrderBookRateOptionparamsRateVariable.second();
         String watchOrderBookRate = watchOrderBookRateOption;
-        Pair<Boolean, Map<String, Object>> rpiparamsRpiVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRate), "watchOrderBookForSymbols", "rpi", false);
+        Pair<Boolean, Map<String, Object>> rpiparamsRpiVariable = this.handleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false);
         Boolean rpi = rpiparamsRpiVariable.first();
         Map<String, Object> paramsRpi = rpiparamsRpiVariable.second();
         if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "linear"))
@@ -1187,7 +1187,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(orderbook, messageHash);
     }
 
-    public CompletableFuture<Object> fetchOrderBookSnapshot(Client client, Object message, Object subscription)
+    public CompletableFuture<Void> fetchOrderBookSnapshot(Client client, Object message, Object subscription)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookSnapshotCore(client, message, subscription));
     }
@@ -2739,7 +2739,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }
-        Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsStock), methodName, "name", "miniTicker");
+        Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams(paramsStock, methodName, "name", "miniTicker");
         var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
         Map<String, Object> paramsName = channelNameparamsNameVariable.second();
         if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -3563,7 +3563,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
-    public CompletableFuture<Object> ensureUserDataStreamWsSubscribeSignature(Object marketType)
+    public CompletableFuture<Void> ensureUserDataStreamWsSubscribeSignature(Object marketType)
     {
         return BaseExchange.supplyAsync(() -> this.ensureUserDataStreamWsSubscribeSignatureCore(marketType));
     }
@@ -3666,7 +3666,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public CompletableFuture<Object> ensureUserDataStreamWsSubscribeListenToken(String marketType, Map<String, Object> parameters)
+    public CompletableFuture<Void> ensureUserDataStreamWsSubscribeListenToken(String marketType, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.ensureUserDataStreamWsSubscribeListenTokenCore(marketType, parameters));
     }
@@ -3778,7 +3778,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public CompletableFuture<Object> renewListenToken(Map<String, Object> parameters)
+    public CompletableFuture<Void> renewListenToken(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.renewListenTokenCore(parameters));
     }
@@ -3947,7 +3947,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
@@ -4125,7 +4125,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type, Object isPortfolioMargin)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type, Object isPortfolioMargin)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type, isPortfolioMargin));
     }
@@ -4199,7 +4199,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "returnRateLimits", returnRateLimits );
         }};
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsReturnRateLimits), "fetchBalanceWs", "method", "account.status");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsReturnRateLimits, "fetchBalanceWs", "method", "account.status");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> message = new HashMap<String, Object>();
@@ -4371,7 +4371,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
         Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
         payload.put("returnRateLimits", returnRateLimits);
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsReturnRateLimits), "fetchPositionsWs", "method", "account.position");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsReturnRateLimits, "fetchPositionsWs", "method", "account.position");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> message = new HashMap<String, Object>() {{
@@ -5556,7 +5556,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             urlType = "spot"; // spot-margin shares the same stream as regular spot
         }
-        Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarginMode), "watchOrders", "papi", "portfolioMargin", false)).get(0);
+        Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2(paramsMarginMode, "watchOrders", "papi", "portfolioMargin", false)).get(0);
         String url = "";
         if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
         {
@@ -6328,7 +6328,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type, Object isPortfolioMargin)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash, String type, Object isPortfolioMargin)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type, isPortfolioMargin));
     }

@@ -194,7 +194,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             ((List<Object>)markets).add(market);
             messageHashes.add(("trade:" + market.get("symbol")));
         }
-        List<Object> trades = (List<Object>) (this.watchPublicMultiple("trade", markets, messageHashes, parameters, (Object) null)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublicMultiple("trade", markets, messageHashes, parameters, (Object) null)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -1117,7 +1117,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             throw new NotSupported((this.id + " createOrderWs() does not support trigger orders, use createOrder() instead")) ;
         }
-        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
+        Map<String, Object> response = (this.watchExecuteRequest(requestIdString, request)).join();
         //
         //     {
         //         "status": "success",
@@ -1181,7 +1181,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
         }
         Map<String, Object> request = (this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsExtended)).join();
-        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
+        Map<String, Object> response = (this.watchExecuteRequest(requestIdString, request)).join();
         //
         //     {
         //         "status": "success",
@@ -1271,7 +1271,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
         }
         Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, paramsExtended)).join();
-        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
+        Map<String, Object> response = (this.watchExecuteRequest(requestIdString, request)).join();
         //
         //     {
         //         "status": "success",
@@ -1337,7 +1337,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
         }
         Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, paramsExtended)).join();
-        Object response = (this.watchExecuteRequest(requestIdString, request)).join();
+        Map<String, Object> response = (this.watchExecuteRequest(requestIdString, request)).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -1351,9 +1351,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> watchExecuteRequest(String requestIdString, Map<String, Object> request)
+    public CompletableFuture<Map<String, Object>> watchExecuteRequest(String requestIdString, Map<String, Object> request)
     {
-        return BaseExchange.supplyAsync(() -> this.watchExecuteRequestCore(requestIdString, request));
+        return BaseExchange.supplyAsync(() -> this.watchExecuteRequestCore(requestIdString, request)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object watchExecuteRequestCore(String requestIdString, Map<String, Object> request)

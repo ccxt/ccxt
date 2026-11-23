@@ -3239,7 +3239,7 @@ public class Okx extends OkxApi
         Pair<Boolean, Map<String, Object>> rpiparamsRpiVariable = this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "rpi", false);
         Boolean rpi = rpiparamsRpiVariable.first();
         Map<String, Object> paramsRpi = rpiparamsRpiVariable.second();
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRpi), "fetchOrderBook", "method", "publicGetMarketBooks");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsRpi, "fetchOrderBook", "method", "publicGetMarketBooks");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Integer defaultLimit = (((java.util.Objects.equals(method, "publicGetMarketBooksFull")))) ? 5000 : 100;
@@ -3735,7 +3735,7 @@ public class Okx extends OkxApi
             {
                 request.put("limit", limit); // default 100
             }
-            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "method", "publicGetMarketTrades");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             if (java.util.Objects.equals(method, "publicGetMarketTrades"))
@@ -4347,7 +4347,7 @@ public class Okx extends OkxApi
         //         "msg": ""
         //     }
         //
-        return this.parseBalanceByType(marketType, (Map<String, Object>) (response));
+        return this.parseBalanceByType(marketType, response);
 
     }
 
@@ -6741,7 +6741,7 @@ public class Okx extends OkxApi
         {
             request.put("begin", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, (String) null);
@@ -6882,7 +6882,7 @@ public class Okx extends OkxApi
             currency = this.currency((String) (code));
             request.put("ccy", currency.get("id"));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsMarginMode), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilVariable = this.handleUntilOption("end", request, paramsMarginMode, 1);
         Map<String, Object> requestUntil = requestUntilVariable.first();
         Map<String, Object> response = null;
         if (java.util.Objects.equals(method, "privateGetAccountBillsArchive"))
@@ -7381,7 +7381,7 @@ public class Okx extends OkxApi
         {
             request.put("limit", limit); // default 100, max 100
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -7513,7 +7513,7 @@ public class Okx extends OkxApi
         {
             request.put("limit", limit); // default 100, max 100
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -8080,7 +8080,8 @@ public class Okx extends OkxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            ((List<Object>)result).add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
 
@@ -10628,10 +10629,10 @@ public class Okx extends OkxApi
      */
     public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -10704,10 +10705,10 @@ public class Okx extends OkxApi
      */
     public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11753,7 +11754,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

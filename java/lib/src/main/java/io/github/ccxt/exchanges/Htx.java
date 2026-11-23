@@ -3849,7 +3849,7 @@ public class Htx extends HtxApi
             {
                 request.put("start-time", since); // a date within 120 days from today
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", request, (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", request, paramsMarketType, 1);
             request = requestparamsUntilVariable.first();
             paramsUntil = requestparamsUntilVariable.second();
             response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, paramsUntil))).join();
@@ -3863,7 +3863,7 @@ public class Htx extends HtxApi
             {
                 request.put("start_time", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, paramsMarketType, 1);
             request = requestparamsUntilVariable.first();
             paramsUntil = requestparamsUntilVariable.second();
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
@@ -4680,10 +4680,10 @@ public class Htx extends HtxApi
         Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUnified, (String) null);
         String type = typeparamsTypeVariable.first();
         Map<String, Object> paramsType = typeparamsTypeVariable.second();
-        Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsType), "fetchBalance", "defaultSubType", "subType", (String) null);
+        Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType", (String) null);
         String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
         Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "multiAssetMode", false);
+        Pair<Boolean, Map<String, Object>> isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false);
         Boolean isMultiAssetMode = isMultiAssetModeparamsMultiAssetVariable.first();
         Map<String, Object> paramsMultiAsset = isMultiAssetModeparamsMultiAssetVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -6640,7 +6640,7 @@ public class Htx extends HtxApi
             request.put("source", "c2c-margin-api");
         }
         Boolean isMarketBuy = (java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(sideStr, "buy"));
-        Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricerequiresPriceParamsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricerequiresPriceParamsVariable = this.handleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true);
         Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricerequiresPriceParamsVariable.first();
         Map<String, Object> requiresPriceParams = createMarketBuyOrderRequiresPricerequiresPriceParamsVariable.second();
         Double cost = this.safeNumber(requiresPriceParams, "cost", (Object) null);
@@ -9015,7 +9015,7 @@ public class Htx extends HtxApi
             response = (this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, paramsPaginate))).join();
         } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, paramsPaginate, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             response = (this.contractPublicGetV5MarketFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -9621,7 +9621,7 @@ public class Htx extends HtxApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -9700,7 +9700,7 @@ public class Htx extends HtxApi
         Map<String, Object> initialRequest = new HashMap<String, Object>() {{
             put( "type", "30,31" );
         }};
-        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", initialRequest, (Map<String, Object>) (paramsMarketType), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", initialRequest, paramsMarketType, 1);
         Map<String, Object> request = requestparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestparamsUntilVariable.second();
         if (!java.util.Objects.equals(since, null))
@@ -10174,7 +10174,9 @@ public class Htx extends HtxApi
         Object data = this.safeValue(response, "data");
         if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
-            return this.parsePosition(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
+            List<Object> positionRows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> positionRow = this.safeDict(positionRows, 0, new HashMap<String, Object>() {{}});
+            return this.parsePosition(positionRow, market);
         }
         Object account = null;
         if ((java.util.Objects.equals(marginModeOption, null)) || (java.util.Objects.equals(marginModeOption, "cross")))
@@ -10323,7 +10325,7 @@ public class Htx extends HtxApi
         {
             request.put("limit", limit); // max 500
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(requestUntil, paramsUntil))).join();

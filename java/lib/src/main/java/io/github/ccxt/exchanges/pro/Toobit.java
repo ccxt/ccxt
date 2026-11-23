@@ -1002,7 +1002,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String marketType)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String marketType)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, marketType));
     }
@@ -1353,7 +1353,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type));
     }
@@ -1538,7 +1538,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         this.options.put("ws", this.extend(this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}}), entry));
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }

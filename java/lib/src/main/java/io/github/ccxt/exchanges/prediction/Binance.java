@@ -1325,7 +1325,7 @@ public class Binance extends BinanceApi
         {
             request.put("limit", limit);
         }
-        Object wallet = (this.fetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest)).join();
+        Map<String, Object> wallet = (this.fetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest)).join();
         request.put("walletAddress", this.safeString(wallet, "walletAddress"));
         Map<String, Object> response = (this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest))).join();
         //
@@ -1432,7 +1432,7 @@ public class Binance extends BinanceApi
         {
             request.put("endDate", this.yyyymmdd(until));
         }
-        Object wallet = (this.fetchWallet("fetchOrders", paramsOmitted)).join();
+        Map<String, Object> wallet = (this.fetchWallet("fetchOrders", paramsOmitted)).join();
         request.put("walletAddress", this.safeString(wallet, "walletAddress"));
         Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
         //
@@ -1506,7 +1506,7 @@ public class Binance extends BinanceApi
                 requestedOutcomeSymbols.put(requestedOutcome, true);
             }
         }
-        Object wallet = (this.fetchWallet("fetchPositions", parameters)).join();
+        Map<String, Object> wallet = (this.fetchWallet("fetchPositions", parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
         }};
@@ -1607,7 +1607,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
             request.put("marketTopicId", this.safeString(market.get("info"), "marketTopicId"));
         }
-        Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
+        Map<String, Object> wallet = (this.fetchWallet("fetchOrders", parameters)).join();
         request.put("walletAddress", this.safeString(wallet, "walletAddress"));
         Map<String, Object> response = (this.sapiPrivateGetPositionFilter(this.extend(request, parameters))).join();
         //
@@ -1738,7 +1738,7 @@ public class Binance extends BinanceApi
         {
             request.put("endDate", this.yyyymmdd(until));
         }
-        Object wallet = (this.fetchWallet("fetchMyTrades", paramsOmitted)).join();
+        Map<String, Object> wallet = (this.fetchWallet("fetchMyTrades", paramsOmitted)).join();
         request.put("walletAddress", this.safeString(wallet, "walletAddress"));
         Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
         //
@@ -1875,9 +1875,9 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public CompletableFuture<Object> fetchWallet(String methodName, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchWallet(String methodName, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchWalletCore(methodName, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchWalletCore(methodName, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
     private Object fetchWalletCore(String methodName, Map<String, Object> parameters)
@@ -2037,7 +2037,7 @@ public class Binance extends BinanceApi
         Map<String, Object> market = this.market(marketSymbol);
         String typeUpper = ((String)type).toUpperCase();
         String sideUpper = ((String)side).toUpperCase();
-        Object wallet = (this.fetchWallet("createOrder", parameters)).join();
+        Map<String, Object> wallet = (this.fetchWallet("createOrder", parameters)).join();
         String defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         String slippage = this.safeString(parameters, "slippage", defaultSlippage);
         String cost = this.safeString(parameters, "cost");
@@ -2202,7 +2202,7 @@ public class Binance extends BinanceApi
             (this.loadOutcome((String) (outcome), false)).join();
             outcomeObj = this.outcome((String) (outcome));
         }
-        Object wallet = (this.fetchWallet("cancelOrders", parameters)).join();
+        Map<String, Object> wallet = (this.fetchWallet("cancelOrders", parameters)).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
             put( "walletId", Binance.this.safeString(wallet, "walletId") );
@@ -2265,7 +2265,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

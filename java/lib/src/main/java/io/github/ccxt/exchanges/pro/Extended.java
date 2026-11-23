@@ -553,13 +553,12 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            String marketId = this.safeString(rawPosition, "market");
+            String marketId = this.safeString((rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i)), "market");
             if (java.util.Objects.equals(marketId, null))
             {
                 continue;
             }
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             stored.append(position);
         }

@@ -2734,7 +2734,7 @@ public class Sxbet extends SxbetApi
 
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Void> pong(Client client, Object message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
@@ -3381,7 +3381,7 @@ public class Sxbet extends SxbetApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a

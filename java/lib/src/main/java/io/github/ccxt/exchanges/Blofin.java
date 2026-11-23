@@ -1731,7 +1731,7 @@ public class Blofin extends BlofinApi
         {
             response = (this.privateGetAccountBalance(this.extend(request, paramsAccountType))).join();
         }
-        return this.parseBalanceByType((Map<String, Object>) (response));
+        return this.parseBalanceByType(response);
 
     }
 
@@ -2357,7 +2357,7 @@ public class Blofin extends BlofinApi
         }
         Boolean isTrigger = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")), false);
         Boolean isTpSl = (Boolean) this.safeBool2(paramsPaginate, "tpsl", "TPSL", false);
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
@@ -2423,7 +2423,7 @@ public class Blofin extends BlofinApi
         {
             request.put("begin", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(limit, null))
@@ -2516,7 +2516,7 @@ public class Blofin extends BlofinApi
         {
             request.put("limit", limit); // default 100, max 100
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2572,7 +2572,7 @@ public class Blofin extends BlofinApi
         {
             request.put("limit", limit); // default 100, max 100
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("after", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3078,10 +3078,10 @@ public class Blofin extends BlofinApi
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
         String tagValue = null;
-        Object query = null;
+        Map<String, Object> query = null;
         List<Object> tagValuequeryVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
         tagValue = (String) ((List<Object>) tagValuequeryVariable).get(0);
-        query = ((List<Object>) tagValuequeryVariable).get(1);
+        query = (Map<String, Object>) ((List<Object>) tagValuequeryVariable).get(1);
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> currency = this.currency((String) (code));
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3109,9 +3109,9 @@ public class Blofin extends BlofinApi
         // consume the unified network key unconditionally so it never leaks
         // onto the wire; an explicit raw params['chain'] takes precedence
         String networkCode = null;
-        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (query));
+        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(query);
         networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
-        query = ((List<Object>) networkCodequeryVariable).get(1);
+        query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
         String chain = this.safeString(query, "chain");
         if (java.util.Objects.equals(chain, null))
         {
@@ -3187,7 +3187,7 @@ public class Blofin extends BlofinApi
             currency = this.currency((String) (code));
             request.put("currency", currency.get("id"));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAssetBills(this.extend(requestUntil, paramsUntil))).join();
@@ -4132,7 +4132,7 @@ public class Blofin extends BlofinApi
             request.put("begin", since);
         }
         Boolean isTrigger = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
@@ -4410,7 +4410,7 @@ public class Blofin extends BlofinApi
         }};
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

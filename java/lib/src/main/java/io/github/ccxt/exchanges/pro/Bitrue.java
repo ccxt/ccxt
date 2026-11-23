@@ -1120,7 +1120,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         this.pong(client, message);
     }
 
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
@@ -1269,7 +1269,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }

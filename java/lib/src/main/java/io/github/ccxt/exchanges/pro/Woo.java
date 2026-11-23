@@ -375,7 +375,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         this.fetchOrderBookSnapshot(client, message, subscription);
     }
 
-    public CompletableFuture<Object> fetchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
+    public CompletableFuture<Void> fetchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrderBookSnapshotCore(client, message, subscription));
     }
@@ -1696,7 +1696,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }
@@ -2257,7 +2257,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }};
     }
 
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

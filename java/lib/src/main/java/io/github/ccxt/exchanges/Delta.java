@@ -3672,10 +3672,10 @@ public class Delta extends DeltaApi
      */
     public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4018,7 +4018,8 @@ public class Delta extends DeltaApi
         //
         // {"result":{},"success":true}
         //
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(response, "result", new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+        Map<String, Object> positionRow = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> position = (Map<String, Object>) this.parsePosition(positionRow, (Map<String, Object>) null);
         return new ArrayList<Object>(Arrays.asList(position));
 
     }
@@ -4750,7 +4751,7 @@ public class Delta extends DeltaApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

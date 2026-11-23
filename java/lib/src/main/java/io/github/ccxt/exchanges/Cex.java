@@ -1587,7 +1587,7 @@ public class Cex extends CexApi
         request.put("side", ((String)side).toUpperCase());
         request.put("timestamp", this.milliseconds());
         request.put("amountCcy1", this.amountToPrecision(symbol, amount));
-        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsAccountId), "createOrder", "timeInForce", "GTC");
+        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
         String timeInForce = timeInForceparamsTimeInForceVariable.first();
         Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
         if (java.util.Objects.equals(type, "limit"))
@@ -2160,7 +2160,7 @@ public class Cex extends CexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsAccountId));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsAccountId);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         Map<String, Object> currency = this.currency((String) (code));
@@ -2265,7 +2265,7 @@ public class Cex extends CexApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }

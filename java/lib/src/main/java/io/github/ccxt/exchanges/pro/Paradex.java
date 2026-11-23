@@ -477,7 +477,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public CompletableFuture<Object> expirePendingUnsubscribe(Client client, String unsubHash, String requestId)
+    public CompletableFuture<Void> expirePendingUnsubscribe(Client client, String unsubHash, String requestId)
     {
         return BaseExchange.supplyAsync(() -> this.expirePendingUnsubscribeCore(client, unsubHash, requestId));
     }

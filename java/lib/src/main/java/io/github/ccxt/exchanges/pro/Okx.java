@@ -2775,7 +2775,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel");
         List<Object> rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> filteredOrders = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> filteredOrders = new ArrayList<Map<String, Object>>();
         // filter orders with no last trade id
         for (var i = 0; i < rawOrders.size(); i++)
         {
@@ -2784,7 +2784,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (tradeId.length() > 0)
             {
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
-                ((List<Object>)filteredOrders).add(order);
+                filteredOrders.add(order);
             }
         }
         Integer tradesLength = filteredOrders.size();
@@ -2801,7 +2801,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < filteredOrders.size(); i++)
         {
-            Map<String, Object> rawTrade = (Map<String, Object>) (filteredOrders == null || i < 0 || i >= filteredOrders.size() ? null : filteredOrders.get(i));
+            Map<String, Object> rawTrade = (filteredOrders == null || i < 0 || i >= filteredOrders.size() ? null : filteredOrders.get(i));
             Map<String, Object> trade = this.orderToTrade(rawTrade, (Map<String, Object>) null);
             myTrades.append(trade);
             String symbol = this.safeString(trade, "symbol");

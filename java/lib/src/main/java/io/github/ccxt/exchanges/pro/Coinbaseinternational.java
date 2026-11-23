@@ -1607,17 +1607,17 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
         Boolean isPrivate = java.util.Objects.equals(interval, "raw");
-        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         Boolean useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.first();
         Map<String, Object> paramsDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.second();
         Map<String, Object> paramsChannel = paramsDepthEndpoint;
         String descriptor = ("." + interval);
         if (Boolean.TRUE.equals(useDepthEndpoint))
         {
-            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             String depth = depthparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
-            Pair<String, Map<String, Object>> groupKeyparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+            Pair<String, Map<String, Object>> groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
             String groupKey = groupKeyparamsGroupVariable.first();
             Map<String, Object> paramsGroup = groupKeyparamsGroupVariable.second();
             paramsChannel = paramsGroup;
@@ -1686,17 +1686,17 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
-        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         Boolean useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.first();
         Map<String, Object> paramsDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.second();
         Map<String, Object> paramsChannel = paramsDepthEndpoint;
         String descriptor = ("." + interval);
         if (Boolean.TRUE.equals(useDepthEndpoint))
         {
-            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             String depth = depthparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
-            Pair<String, Map<String, Object>> groupKeyparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+            Pair<String, Map<String, Object>> groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
             String groupKey = groupKeyparamsGroupVariable.first();
             Map<String, Object> paramsGroup = groupKeyparamsGroupVariable.second();
             paramsChannel = paramsGroup;

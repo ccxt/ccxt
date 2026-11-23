@@ -1710,7 +1710,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
@@ -1834,7 +1834,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
@@ -2024,7 +2024,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }

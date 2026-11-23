@@ -1474,7 +1474,7 @@ public class Modetrade extends ModetradeApi
         {
             request.put("start_t", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, paramsPaginate, 0.001);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2745,7 +2745,7 @@ public class Modetrade extends ModetradeApi
         }
         if (Boolean.TRUE.equals(trigger))
         {
-            return this.extend(this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null), extendParams);
+            return this.extend(this.parseOrder(response, (Map<String, Object>) null), extendParams);
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         return this.extend(this.parseOrder(data, (Map<String, Object>) null), extendParams);
@@ -3250,7 +3250,7 @@ public class Modetrade extends ModetradeApi
         {
             request.put("size", 500);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -4241,7 +4241,7 @@ public class Modetrade extends ModetradeApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

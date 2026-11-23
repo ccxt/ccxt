@@ -1726,10 +1726,10 @@ public class Hitbtc extends HitbtcApi
 
     public CompletableFuture<List<Object>> fetchTransactionsHelper(String types, String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchTransactionsHelperCore(types, code, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchTransactionsHelperCore(types, code, since, limit, parameters));
     }
 
-    private Object fetchTransactionsHelperCore(String types, String code, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchTransactionsHelperCore(String types, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2115,7 +2115,7 @@ public class Hitbtc extends HitbtcApi
         //         "make_rate":"0.0009"
         //     }
         //
-        return this.parseTradingFee((Map<String, Object>) (response), market);
+        return this.parseTradingFee(response, market);
 
     }
 
@@ -2226,7 +2226,7 @@ public class Hitbtc extends HitbtcApi
         {
             request.put("limit", Math.min(limit, 1000));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         String price = this.safeString(paramsUntil, "price");
@@ -2722,7 +2722,7 @@ public class Hitbtc extends HitbtcApi
                 throw new NotSupported((this.id + " fetchOpenOrder() not support this market type")) ;
             }
         }
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -2850,7 +2850,7 @@ public class Hitbtc extends HitbtcApi
                 throw new NotSupported((this.id + " cancelOrder() not support this market type")) ;
             }
         }
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -2909,7 +2909,7 @@ public class Hitbtc extends HitbtcApi
                 throw new NotSupported((this.id + " editOrder() not support this market type")) ;
             }
         }
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -2966,7 +2966,7 @@ public class Hitbtc extends HitbtcApi
         {
             response = (this.privatePostSpotOrder(this.extend(request, paramsValue))).join();
         }
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -3543,7 +3543,7 @@ public class Hitbtc extends HitbtcApi
         }
         Map<String, Object> market = null;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("till", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("till", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(symbol, null))
@@ -3640,7 +3640,7 @@ public class Hitbtc extends HitbtcApi
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
-        List<Object> response = null;
+        List<Object> response = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(marginMode, null))
         {
             response = (this.privateGetMarginAccount(this.extend(request, paramsOmitted))).join();
@@ -3690,9 +3690,10 @@ public class Hitbtc extends HitbtcApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < response.size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            ((List<Object>)result).add(position);
         }
         return result;
 
@@ -3782,7 +3783,7 @@ public class Hitbtc extends HitbtcApi
         //         },
         //     ]
         //
-        return this.parsePosition((Map<String, Object>) (response), market);
+        return this.parsePosition(response, market);
 
     }
 
@@ -4170,7 +4171,7 @@ public class Hitbtc extends HitbtcApi
         //     }
         //
         Double parsedAmount = this.parseNumber(amountValue);
-        return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+        return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
             put( "amount", parsedAmount );
             put( "type", type );
         }});
@@ -4352,7 +4353,7 @@ public class Hitbtc extends HitbtcApi
         //         ]
         //     }
         //
-        return this.parseLeverage((Map<String, Object>) (response), market);
+        return this.parseLeverage(response, market);
 
     }
 
@@ -4608,7 +4609,7 @@ public class Hitbtc extends HitbtcApi
         return new Pair<>(marginMode, paramsMarginMode);
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         //
         //     {

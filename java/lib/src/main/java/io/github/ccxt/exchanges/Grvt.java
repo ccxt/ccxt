@@ -2285,7 +2285,7 @@ public class Grvt extends GrvtApi
             Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId", (String) null);
             String tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
             Map<String, Object> paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
-            Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTradingAccountId), "transfer", "fundingAccountId", (String) null);
+            Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId", (String) null);
             String fundingAccountId = fundingAccountIdparamsFundingVariable.first();
             Map<String, Object> paramsFunding = fundingAccountIdparamsFundingVariable.second();
             if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
@@ -2865,7 +2865,7 @@ public class Grvt extends GrvtApi
             return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (paramsPaginate)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(paramsPaginate) );
         }};
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
@@ -3261,7 +3261,7 @@ public class Grvt extends GrvtApi
             return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (paramsPaginate)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(paramsPaginate) );
         }};
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
@@ -4117,7 +4117,7 @@ public class Grvt extends GrvtApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((String)url).endsWith("auth/api_key/login") || ((String)url).endsWith("auth/wallet/login"))
         {

@@ -9901,7 +9901,7 @@ public class Binance extends BinanceApi
             request.put("positionSide", (((java.util.Objects.equals(positionSide, "buy")))) ? "LONG" : "SHORT");
         }
         // unified stp
-        Pair<String, Map<String, Object>> selfTradePreventionparamsStpVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPapi), "createOrder", "selfTradePrevention", (String) null);
+        Pair<String, Map<String, Object>> selfTradePreventionparamsStpVariable = this.handleOptionStringAndParams(paramsPapi, "createOrder", "selfTradePrevention", (String) null);
         String selfTradePrevention = selfTradePreventionparamsStpVariable.first();
         Map<String, Object> paramsStp = selfTradePreventionparamsStpVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
@@ -13460,7 +13460,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchTradingFee", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchTradingFee", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         Boolean isLinear = this.isLinear(type, subType);
@@ -14763,7 +14763,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverageTiers", (Map<String, Object>) null, paramsMarketType, "linear");
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverageTiers", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchLeverageTiers", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         List<Object> response = null;
@@ -15175,7 +15175,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchAccountPositions", (Map<String, Object>) null, paramsOmitted, "linear");
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchAccountPositions", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchAccountPositions", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         Map<String, Object> response = null;
@@ -15186,7 +15186,7 @@ public class Binance extends BinanceApi
                 response = (this.papiV2GetUmAccount(paramsPapi)).join();
             } else
             {
-                Pair<Boolean, Map<String, Object>> useV2paramsUseV2Variable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "useV2", false);
+                Pair<Boolean, Map<String, Object>> useV2paramsUseV2Variable = this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "useV2", false);
                 Boolean useV2 = useV2paramsUseV2Variable.first();
                 Map<String, Object> paramsUseV2 = useV2paramsUseV2Variable.second();
                 if (!Boolean.TRUE.equals(useV2))
@@ -15210,7 +15210,7 @@ public class Binance extends BinanceApi
         {
             throw new NotSupported((this.id + " fetchPositions() supports linear and inverse contracts only")) ;
         }
-        Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (paramsPapi), "fetchAccountPositions", "filterClosed", false)).get(0);
+        Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "filterClosed", false)).get(0);
         List<Object> result = this.parseAccountPositions(response, filterClosed);
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -15448,10 +15448,10 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchFundingHistory", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchFundingHistory", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPapi), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPapi, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(since, null))
@@ -15693,7 +15693,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setPositionMode", market, paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "setPositionMode", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "setPositionMode", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         String dualSidePosition = null;
@@ -15775,7 +15775,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLeverages", (Map<String, Object>) null, paramsMarketType, "linear");
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverages", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchLeverages", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         List<Object> leverages = new ArrayList<Object>(Arrays.asList());
@@ -15861,10 +15861,10 @@ public class Binance extends BinanceApi
      */
     public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -15924,10 +15924,10 @@ public class Binance extends BinanceApi
      */
     public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -16594,7 +16594,7 @@ public class Binance extends BinanceApi
         return new HashMap<String, Object>() {{}};
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
@@ -16725,7 +16725,7 @@ public class Binance extends BinanceApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(List<String> api, String method, String path, Object parameters, Map<String, Object> config)
     {
         if ((config.containsKey("noCoin")) && !(((Map<?, ?>)parameters).containsKey("coin")))
         {
@@ -17338,7 +17338,7 @@ public class Binance extends BinanceApi
         {
             request.put("size", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPapi), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPapi, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = null;
@@ -17927,7 +17927,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsMarketType, "linear");
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchMyLiquidations", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchMyLiquidations", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -17961,7 +17961,7 @@ public class Binance extends BinanceApi
                 request.put("limit", limit);
             }
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPapi), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPapi, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = null;
@@ -19355,7 +19355,7 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchPositionsADLRank", "papi", "portfolioMargin", false);
+        Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
         List<Object> response = null;

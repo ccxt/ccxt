@@ -367,7 +367,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> trades = (List<Object>) (this.subscribe("trades", (String) (symbol), parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe("trades", (String) (symbol), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

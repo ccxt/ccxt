@@ -1000,7 +1000,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //     ],
         // }
         //
-        List<Object> parsedTickers = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> parsedTickers = new ArrayList<Map<String, Object>>();
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
@@ -1010,7 +1010,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = this.safeString(market, "symbol", "");
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, market);
             this.tickers.put(symbol, ticker);
-            ((List<Object>)parsedTickers).add(ticker);
+            parsedTickers.add(ticker);
         }
         Map<String,Object> tickers = this.indexBy(parsedTickers, "symbol");
         client.resolve(tickers, "tickers");

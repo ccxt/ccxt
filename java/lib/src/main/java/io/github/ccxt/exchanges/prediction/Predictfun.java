@@ -3043,7 +3043,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4387,7 +4387,7 @@ public class Predictfun extends PredictfunApi
      * @param {Client} client the websocket client
      * @param {object} message the raw probe
      */
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

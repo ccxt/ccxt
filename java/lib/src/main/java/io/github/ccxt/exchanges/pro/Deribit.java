@@ -708,13 +708,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
         }
         // for more info on useDepthEndpoint, see comment in .options
-        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         Boolean useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.first();
         Map<String, Object> paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.second();
-        Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+        Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams(paramsUseDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
         String depth = depthparamsDepthVariable.first();
         Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
-        Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+        Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
         String group = groupparamsGroupVariable.first();
         Map<String, Object> paramsGroup = groupparamsGroupVariable.second();
         String descriptor = interval;

@@ -1003,7 +1003,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, (String) (methodName), "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
-        Pair<Boolean, Map<String, Object>> privateChannelparamsPrivateChannelVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUta), (String) (methodName), "privateChannel", false);
+        Pair<Boolean, Map<String, Object>> privateChannelparamsPrivateChannelVariable = this.handleOptionBoolAndParams(paramsUta, (String) (methodName), "privateChannel", false);
         Boolean privateChannel = privateChannelparamsPrivateChannelVariable.first();
         Map<String, Object> paramsPrivateChannel = privateChannelparamsPrivateChannelVariable.second();
         Pair<String, Map<String, Object>> instTypeparamsInstTypeVariable = this.getInstType((String) (methodName), market, uta, paramsPrivateChannel);
@@ -1296,7 +1296,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
-    public CompletableFuture<Object> handleCheckSumError(Client client, String symbol, String messageHash, String checksumMessage)
+    public CompletableFuture<Void> handleCheckSumError(Client client, String symbol, String messageHash, String checksumMessage)
     {
         return BaseExchange.supplyAsync(() -> this.handleCheckSumErrorCore(client, symbol, messageHash, checksumMessage));
     }
@@ -2665,7 +2665,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchMyTrades", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchMyTrades", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Boolean useSpotInstType = (java.util.Objects.equals(symbol, null) && java.util.Objects.equals(type, "spot"));
@@ -2888,7 +2888,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "uta", false);
         Boolean uta = utaparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
-        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUta), "watchBalance", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams(paramsUta, "watchBalance", "stock", false);
         Boolean stock = stockparamsStockVariable.first();
         Map<String, Object> paramsStock = stockparamsStockVariable.second();
         Object isStockOrUta = (Boolean.TRUE.equals(stock) || Boolean.TRUE.equals(uta));
@@ -2920,7 +2920,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             instTypeDefault = "SPOT";
         }
-        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarginMode), "watchBalance", "instType", instTypeDefault);
+        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams(paramsMarginMode, "watchBalance", "instType", instTypeDefault);
         String instTypeOption = instTypeOptionparamsInstTypeVariable.first();
         Map<String, Object> paramsInstType = instTypeOptionparamsInstTypeVariable.second();
         String instType = instTypeOption;

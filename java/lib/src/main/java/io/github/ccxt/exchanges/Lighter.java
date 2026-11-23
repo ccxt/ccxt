@@ -3336,7 +3336,7 @@ public class Lighter extends LighterApi
         {
             return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
         }
-        Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPaginate), "fetchDeposits", "address", "l1_address", (String) null);
+        Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address", (String) null);
         String address = addressparamsAddressVariable.first();
         Map<String, Object> paramsAddress = addressparamsAddressVariable.second();
         if (java.util.Objects.equals(address, null))
@@ -4389,7 +4389,7 @@ public class Lighter extends LighterApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

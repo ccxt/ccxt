@@ -1937,7 +1937,7 @@ public class Bithumb extends BithumbApi
             {
                 throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a side")) ;
             }
-            Object amount = this.safeValue(rawOrder, "amount");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
             Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
@@ -4000,7 +4000,7 @@ public class Bithumb extends BithumbApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

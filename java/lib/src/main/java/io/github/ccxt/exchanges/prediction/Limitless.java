@@ -2554,7 +2554,7 @@ public class Limitless extends LimitlessApi
         if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
         {
             Boolean createMarketBuyOrderRequiresPrice = true;
-            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.first();
             paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.second();
             Double cost = this.safeNumber(paramsValue, "cost", (Object) null);
@@ -3833,7 +3833,7 @@ public class Limitless extends LimitlessApi
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

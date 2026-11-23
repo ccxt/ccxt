@@ -1262,7 +1262,7 @@ public class Btse extends BtseApi
             response = (List<Object>) this.safeList(walletResponse, "data", new ArrayList<Object>(Arrays.asList()));
         } else
         {
-            Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchBalance", "wallet", "CROSS@");
+            Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
             String wallet = walletparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4361,7 +4361,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

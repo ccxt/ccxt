@@ -1021,7 +1021,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }

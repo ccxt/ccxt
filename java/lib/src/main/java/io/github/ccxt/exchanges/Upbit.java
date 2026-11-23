@@ -1724,7 +1724,7 @@ public class Upbit extends UpbitApi
         //         "trades_count": 0
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -2948,7 +2948,7 @@ public class Upbit extends UpbitApi
         //         "krw_amount": "80420.0"
         //     }
         //
-        return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseTransaction(response, (Map<String, Object>) null);
 
     }
 
@@ -3021,7 +3021,7 @@ public class Upbit extends UpbitApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -2435,7 +2435,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(String listenKey, Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(String listenKey, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(listenKey, parameters));
     }

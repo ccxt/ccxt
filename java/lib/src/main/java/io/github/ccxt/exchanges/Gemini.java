@@ -814,10 +814,10 @@ public class Gemini extends GeminiApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         String method = this.safeString(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
@@ -968,9 +968,9 @@ public class Gemini extends GeminiApi
         return this.safeBool(statuses, status, true);
     }
 
-    public CompletableFuture<Object> fetchUSDTMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchUSDTMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchUSDTMarketsCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchUSDTMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchUSDTMarketsCore(Map<String, Object> parameters)
@@ -1002,12 +1002,12 @@ public class Gemini extends GeminiApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsFromAPI(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsFromAPI(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsFromAPICore(parameters));
     }
 
-    private Object fetchMarketsFromAPICore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsFromAPICore(Map<String, Object> parameters)
     {
 
         List<Object> marketIdsRaw = (this.publicGetV1Symbols(parameters)).join();
@@ -2657,7 +2657,7 @@ public class Gemini extends GeminiApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

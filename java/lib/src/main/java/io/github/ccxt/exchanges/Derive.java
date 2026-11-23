@@ -1602,10 +1602,10 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1657,10 +1657,10 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3559,7 +3559,7 @@ public class Derive extends DeriveApi
         {
             return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500L)).join();
         }
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", paramsPaginate);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3850,7 +3850,7 @@ public class Derive extends DeriveApi
         {
             return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500L)).join();
         }
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", paramsPaginate);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4502,10 +4502,10 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Object>> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters));
     }
 
-    private Object fetchBorrowRateHistoryCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchBorrowRateHistoryCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5036,7 +5036,7 @@ public class Derive extends DeriveApi
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

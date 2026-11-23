@@ -846,7 +846,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         }
         List<Object> sorted = this.sortBy(bars, 0);
         Long ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
+        this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         for (var i = 0; i < sorted.size(); i++)
         {

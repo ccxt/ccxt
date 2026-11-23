@@ -937,7 +937,7 @@ public class Poloniex extends PoloniexApi
             // limit should in between 100 and 500
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(keyEnd, request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(keyEnd, request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(this.safeInteger(requestUntil, keyEnd), null)))
@@ -1955,7 +1955,7 @@ public class Poloniex extends PoloniexApi
         {
             request.put("symbol", this.safeString(market, "id"));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(endKey, request, (Map<String, Object>) (paramsMarketType), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption(endKey, request, paramsMarketType, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (isContract)
@@ -2420,7 +2420,7 @@ public class Poloniex extends PoloniexApi
         {
             request.put("sTime", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("eTime", request, (Map<String, Object>) (paramsMarketType), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("eTime", request, paramsMarketType, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.swapPrivateGetV3TradeOrderHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4897,7 +4897,7 @@ public class Poloniex extends PoloniexApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

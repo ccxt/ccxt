@@ -1493,7 +1493,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
-        List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> parsedOrders = new ArrayList<Map<String, Object>>();
         Map<String, Object> ordersDict = (Map<String, Object>) this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
         if ((ordersDict.containsKey("closed")) || (ordersDict.containsKey("fills")) || (ordersDict.containsKey("open")))
         {
@@ -1509,7 +1509,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             for (var i = 0; i < orders.size(); i++)
             {
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(this.safeDict(orders, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
-                ((List<Object>)parsedOrders).add(parsedOrder);
+                parsedOrders.add(parsedOrder);
             }
         } else
         {
@@ -1529,7 +1529,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     ((List<Object>)trades).add(update);
                 }
                 Order parsedOrder = this.parseWSSwapOrder((Map<String, Object>) (update), (Map<String, Object>) null);
-                ((List<Object>)parsedOrders).add(parsedOrder);
+                parsedOrders.add(parsedOrder);
             }
         }
         this.handleMyTrades(client, trades);
@@ -1543,7 +1543,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < parsedOrders.size(); i++)
         {
-            Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
+            Map<String, Object> parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             stored.append(parsed);
             String symbol = this.safeString(parsed, "symbol", "");
             Map<String, Object> market = this.market(symbol);

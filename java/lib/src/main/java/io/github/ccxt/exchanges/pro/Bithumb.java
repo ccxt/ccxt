@@ -65,7 +65,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }});
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Void> pong(Client client, Object message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

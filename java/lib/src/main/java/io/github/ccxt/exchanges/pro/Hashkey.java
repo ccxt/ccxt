@@ -928,7 +928,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         this.balance.put(type, new HashMap<String, Object>() {{}});
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
@@ -1062,7 +1062,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(String listenKey, Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(String listenKey, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(listenKey, parameters));
     }

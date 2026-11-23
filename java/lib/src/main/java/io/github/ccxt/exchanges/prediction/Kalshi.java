@@ -698,7 +698,7 @@ public class Kalshi extends KalshiApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
@@ -2552,7 +2552,7 @@ public class Kalshi extends KalshiApi
         Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
         String timeInForce = timeInForceparamsTimeInForceVariable.first();
         Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
-        Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTimeInForce), "createOrder", "self_trade_prevention_type", "taker_at_cross");
+        Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
         String stp = stpparamsSelfTradePreventionTypeVariable.first();
         Map<String, Object> paramsSelfTradePreventionType = stpparamsSelfTradePreventionTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>();

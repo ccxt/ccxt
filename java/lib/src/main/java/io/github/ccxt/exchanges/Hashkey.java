@@ -2791,7 +2791,7 @@ public class Hashkey extends HashkeyApi
         {
             request.put("flowType", this.encodeFlowType(flowType));
         }
-        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsFlowType), methodName, "accountType", (String) null);
+        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType", (String) null);
         String accountType = accountTypeparamsAccountTypeVariable.first();
         Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
         if (!java.util.Objects.equals(accountType, null))
@@ -3109,13 +3109,13 @@ public class Hashkey extends HashkeyApi
             request.put("type", "LIMIT_MAKER");
         }
         String clientOrderId = null;
-        Object paramsClientOrderId = new HashMap<String, Object>() {{}};
+        Map<String, Object> paramsClientOrderId = new HashMap<String, Object>() {{}};
         List<Object> clientOrderIdparamsClientOrderIdVariable = (List<Object>) this.handleParamString(paramsPostOnly, "clientOrderId", (String) null);
         clientOrderId = (String) ((List<Object>) clientOrderIdparamsClientOrderIdVariable).get(0);
-        paramsClientOrderId = ((List<Object>) clientOrderIdparamsClientOrderIdVariable).get(1);
+        paramsClientOrderId = (Map<String, Object>) ((List<Object>) clientOrderIdparamsClientOrderIdVariable).get(1);
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            ((Map<String, Object>)paramsClientOrderId).put("newClientOrderId", clientOrderId);
+            paramsClientOrderId.put("newClientOrderId", clientOrderId);
         }
         return (Map<String, Object>) (this.extend(request, paramsClientOrderId));
     }
@@ -3372,7 +3372,7 @@ public class Hashkey extends HashkeyApi
             response = (this.privateDeleteApiV1SpotOrder(this.extend(request, paramsMarketType))).join();
         } else if (java.util.Objects.equals(marketType, "swap"))
         {
-            Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarketType), methodName, "stop", "trigger", false);
+            Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
             Boolean isTrigger = isTriggerparamsTriggerVariable.first();
             Map<String, Object> paramsTrigger = isTriggerparamsTriggerVariable.second();
             if (Boolean.TRUE.equals(isTrigger))
@@ -3445,7 +3445,7 @@ public class Hashkey extends HashkeyApi
             String marketTypeValue = this.safeString(market, "type", "");
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeValue) + " type of markets")) ;
         }
-        Order order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        Order order = this.safeOrder(response, (Map<String, Object>) null);
         order.put("info", response);
         return new ArrayList<Object>(Arrays.asList(order));
 
@@ -3498,7 +3498,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketTypeOption) + " type of markets")) ;
         }
-        Order order = this.safeOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        Order order = this.safeOrder(response, (Map<String, Object>) null);
         order.put("info", response);
         return new ArrayList<Object>(Arrays.asList(order));
 
@@ -3560,7 +3560,7 @@ public class Hashkey extends HashkeyApi
             response = (this.privateGetApiV1SpotOrder(this.extend(request, paramsMarketType))).join();
         } else if (java.util.Objects.equals(marketType, "swap"))
         {
-            Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarketType), methodName, "stop", "trigger", false);
+            Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
             Boolean isTrigger = isTriggerparamsTriggerVariable.first();
             Map<String, Object> paramsTrigger = isTriggerparamsTriggerVariable.second();
             if (Boolean.TRUE.equals(isTrigger))
@@ -3746,7 +3746,7 @@ public class Hashkey extends HashkeyApi
             request.put("limit", limit);
         }
         List<Object> response = null;
-        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTrigger), methodNameOption, "accountId", (String) null);
+        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId", (String) null);
         String accountId = accountIdparamsAccountIdVariable.first();
         Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
         if (!java.util.Objects.equals(accountId, null))
@@ -3842,7 +3842,7 @@ public class Hashkey extends HashkeyApi
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument for swap markets")) ;
             }
             request.put("symbol", this.safeString(market, "id"));
-            Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarketType), methodName, "stop", "trigger", false);
+            Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
             Boolean isTrigger = isTriggerparamsTriggerVariable.first();
             Map<String, Object> paramsTrigger = isTriggerparamsTriggerVariable.second();
             if (Boolean.TRUE.equals(isTrigger))
@@ -5068,7 +5068,7 @@ public class Hashkey extends HashkeyApi
         return result;
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

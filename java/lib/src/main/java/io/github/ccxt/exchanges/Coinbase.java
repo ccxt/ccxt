@@ -1702,10 +1702,10 @@ public class Coinbase extends CoinbaseApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -1721,12 +1721,12 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsV2(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsV2(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsV2Core(parameters));
     }
 
-    private Object fetchMarketsV2Core(Map<String, Object> parameters)
+    private List<Object> fetchMarketsV2Core(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.fetchCurrenciesFromCache(parameters)).join();
@@ -1817,12 +1817,12 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsV3(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsV3(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsV3Core(parameters));
     }
 
-    private Object fetchMarketsV3Core(Map<String, Object> parameters)
+    private List<Object> fetchMarketsV3Core(Map<String, Object> parameters)
     {
 
         Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "usePrivate", false);
@@ -2611,7 +2611,7 @@ public class Coinbase extends CoinbaseApi
             request.put("product_type", (((java.util.Objects.equals(marketType, "swap")))) ? "FUTURE" : "SPOT");
         }
         Map<String, Object> response = null;
-        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "fetchTickers", "usePrivate", false);
+        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false);
         Boolean usePrivate = usePrivateparamsUsePrivateVariable.first();
         Map<String, Object> paramsUsePrivate = usePrivateparamsUsePrivateVariable.second();
         if (Boolean.TRUE.equals(usePrivate))
@@ -6474,7 +6474,7 @@ public class Coinbase extends CoinbaseApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

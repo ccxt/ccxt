@@ -3820,7 +3820,7 @@ public class Bitrue extends BitrueApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
@@ -3896,7 +3896,7 @@ public class Bitrue extends BitrueApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(List<String> api, String method, String path, Object parameters, Map<String, Object> config)
     {
         String paramsSymbol = this.safeString(parameters, "symbol");
         String paramsLimit = this.safeString(parameters, "limit");

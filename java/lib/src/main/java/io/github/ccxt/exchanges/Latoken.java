@@ -1865,7 +1865,7 @@ public class Latoken extends LatokenApi
         //         "timestamp":1635920767648
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -1939,7 +1939,7 @@ public class Latoken extends LatokenApi
         //        "timestamp": 1568185507
         //    }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -1989,7 +1989,7 @@ public class Latoken extends LatokenApi
         //         "errors": { }
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -2332,7 +2332,7 @@ public class Latoken extends LatokenApi
         //         "fee": 0
         //     }
         //
-        return this.parseTransfer((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseTransfer(response, (Map<String, Object>) null);
 
     }
 
@@ -2436,7 +2436,7 @@ public class Latoken extends LatokenApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

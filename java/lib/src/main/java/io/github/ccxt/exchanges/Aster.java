@@ -1838,7 +1838,7 @@ public class Aster extends AsterApi
         {
             request.put("limit", Math.min(limit, 1000));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsMarketType, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = null;
@@ -2789,7 +2789,7 @@ public class Aster extends AsterApi
         //         "takerCommissionRate": "0.0004"
         //     }
         //
-        return this.parseTradingFee((Map<String, Object>) (response), market);
+        return this.parseTradingFee(response, market);
 
     }
 
@@ -2990,7 +2990,7 @@ public class Aster extends AsterApi
         //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         //    }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -3068,7 +3068,7 @@ public class Aster extends AsterApi
         //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         //    }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -3316,7 +3316,7 @@ public class Aster extends AsterApi
         //        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
         //    }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -3705,7 +3705,7 @@ public class Aster extends AsterApi
         {
             response = (this.sapiPrivateDeleteV3Order(this.extend(request, paramsOmitted))).join();
         }
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -5535,7 +5535,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

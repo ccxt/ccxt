@@ -1689,7 +1689,7 @@ public class Bullish extends BullishApi
             put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             put( "_pageSize", maxLimit );
         }};
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Long untilParam = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -2218,7 +2218,7 @@ public class Bullish extends BullishApi
         {
             orderType = "POST_ONLY";
         }
-        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceRawVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
+        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceRawVariable = this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
         String timeInForce = timeInForceparamsTimeInForceRawVariable.first();
         Map<String, Object> paramsTimeInForceRaw = timeInForceparamsTimeInForceRawVariable.second(); // is mandatory
         Map<String, Object> paramsTimeInForce = this.extend(paramsTimeInForceRaw, new HashMap<String, Object>() {{
@@ -3747,7 +3747,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -2031,7 +2031,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         this.pong(client, message);
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Void> pong(Client client, Object message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

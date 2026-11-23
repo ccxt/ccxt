@@ -2375,9 +2375,9 @@ public class Gate extends GateApi
 
     }
 
-    public CompletableFuture<Object> fetchFutureMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchFutureMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchFutureMarketsCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchFutureMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchFutureMarketsCore(Map<String, Object> parameters)
@@ -4371,7 +4371,7 @@ public class Gate extends GateApi
         Pair<Map<String, Object>, Map<String, Object>> requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
         Map<String, Object> request = requestrequestParamsVariable.first();
         Map<String, Object> requestParams = requestrequestParamsVariable.second();
-        var marginModerequestQueryVariable = this.getMarginMode(false, (Map<String, Object>) (requestParams));
+        var marginModerequestQueryVariable = this.getMarginMode(false, requestParams);
         String marginMode = (String) ((List<Object>) marginModerequestQueryVariable).get(0);
         Map<String, Object> requestQuery = (Map<String, Object>) ((List<Object>) marginModerequestQueryVariable).get(1);
         if (!java.util.Objects.equals(symbol, null))
@@ -5167,7 +5167,7 @@ public class Gate extends GateApi
             {
                 request.put("currency_pair", market.get("id")); // Should always be set for non-trigger
             }
-            var marginModequeryVariable = this.getMarginMode(false, (Map<String, Object>) (paramsMarketType));
+            var marginModequeryVariable = this.getMarginMode(false, paramsMarketType);
             marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             query = ((List<Object>) marginModequeryVariable).get(1);
             request.put("account", marginMode);
@@ -5500,7 +5500,7 @@ public class Gate extends GateApi
             request.put("from", start);
             request.put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (paramsPaginate), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, paramsPaginate, 0.001);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.privateWalletGetDeposits(this.extend(requestUntil, paramsUntil))).join();
@@ -5557,7 +5557,7 @@ public class Gate extends GateApi
             request.put("from", start);
             request.put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (paramsPaginate), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, paramsPaginate, 0.001);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.privateWalletGetWithdrawals(this.extend(requestUntil, paramsUntil))).join();
@@ -5929,7 +5929,7 @@ public class Gate extends GateApi
         //
         //     {"id": 7615567}
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -6412,7 +6412,7 @@ public class Gate extends GateApi
         {
             accountParsed = this.convertTypeToAccount(marketType);
         }
-        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "editOrder", "unifiedAccount", false);
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
         String account = ((Boolean.TRUE.equals(isUnifiedAccount))) ? "unified" : accountParsed;
@@ -6526,7 +6526,7 @@ public class Gate extends GateApi
         //         "rebated_fee_currency": "ADA"
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -7053,7 +7053,7 @@ public class Gate extends GateApi
         {
             throw new NotSupported((this.id + " fetchOrder() not support this market type")) ;
         }
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -7137,7 +7137,7 @@ public class Gate extends GateApi
         }
         String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
         String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, (String) null)).get(0);
-        Pair<Boolean, Map<String, Object>> useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchClosedOrders", "historical", false);
+        Pair<Boolean, Map<String, Object>> useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
         Boolean useHistorical = useHistoricalparamsHistoricalVariable.first();
         Map<String, Object> paramsHistorical = useHistoricalparamsHistoricalVariable.second();
         if (!Boolean.TRUE.equals(useHistorical) && ((java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(type, "swap"))))
@@ -7613,7 +7613,7 @@ public class Gate extends GateApi
         //         "iceberg": "0",
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -8966,7 +8966,7 @@ public class Gate extends GateApi
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (paramsUnifiedAccount), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, paramsUnifiedAccount, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> currency = null;
@@ -9211,7 +9211,7 @@ public class Gate extends GateApi
         {
             throw new NotSupported((this.id + " modifyMarginHelper() not support this market type")) ;
         }
-        return this.parseMarginModification((Map<String, Object>) (response), market);
+        return this.parseMarginModification(response, market);
 
     }
 
@@ -9427,10 +9427,10 @@ public class Gate extends GateApi
      */
     public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(symbol, null))
@@ -9495,10 +9495,10 @@ public class Gate extends GateApi
      */
     public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10503,7 +10503,7 @@ public class Gate extends GateApi
         {
             throw new NotSupported((((this.id + " fetchLeverage() does not support ") + this.safeString(market, "type")) + " markets")) ;
         }
-        return this.parseLeverage((Map<String, Object>) (response), market);
+        return this.parseLeverage(response, market);
 
     }
 
@@ -10868,7 +10868,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

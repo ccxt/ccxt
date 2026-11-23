@@ -1915,7 +1915,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             type = (((java.util.Objects.equals(marketType, "spot")))) ? "future" : marketType;
-            Pair<String, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "watchPositions", "subType", subType);
+            Pair<String, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType);
             subType = subTypeparamsSubTypeVariable.first();
             paramsSubType = subTypeparamsSubTypeVariable.second();
         }
@@ -2772,7 +2772,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
     }
 
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

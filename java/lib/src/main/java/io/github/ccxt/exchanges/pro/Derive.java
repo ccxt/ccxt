@@ -1065,7 +1065,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
         Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchBalance", (Map<String, Object>) (paramsSnapshot));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchBalance", paramsSnapshot);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         if (java.util.Objects.equals(this.balance, null))
@@ -1136,7 +1136,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
         Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchPositions", (Map<String, Object>) (paramsSnapshot));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchPositions", paramsSnapshot);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         if (this.isEmpty(this.positionsByType))

@@ -914,10 +914,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String url = this.safeString(this.urls.get("api"), "ws");
         Client client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
-        Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchBalance", "fetchBalanceSnapshot", true);
+        Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
         Boolean fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.first();
         Map<String, Object> paramsFetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.second();
-        Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsFetchBalanceSnapshot), "watchBalance", "awaitBalanceSnapshot", true);
+        Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true);
         Boolean awaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.first();
         Map<String, Object> paramsAwaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.second();
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
@@ -948,7 +948,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type, String subscriptionHash)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type, String subscriptionHash)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type, subscriptionHash));
     }

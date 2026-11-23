@@ -1428,11 +1428,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         String url = ((baseUrl + "?listenKey=") + userStreamKey);
         Client client = this.client(url);
-        this.setBalanceCache(client, type, subType, subscriptionHash, (Map<String, Object>) (paramsSubType));
-        Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "watchBalance", "fetchBalanceSnapshot", true);
+        this.setBalanceCache(client, type, subType, subscriptionHash, paramsSubType);
+        Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true);
         Boolean fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.first();
         Map<String, Object> paramsFetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.second();
-        Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsFetchBalanceSnapshot), "watchBalance", "awaitBalanceSnapshot", false);
+        Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false);
         Boolean awaitBalanceSnapshot = awaitBalanceSnapshotVariable.first();
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
         {
@@ -1468,7 +1468,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type, String subType)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type, String subType)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type, subType));
     }
@@ -1549,10 +1549,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String url = ((baseUrl + "?listenKey=") + userStreamKey);
         Client client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
-        Pair<Boolean, Map<String, Object>> fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "watchPositions", "fetchPositionsSnapshot", true);
+        Pair<Boolean, Map<String, Object>> fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true);
         Boolean fetchPositionsSnapshot = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.first();
         Map<String, Object> paramsFetchPositionsSnapshot = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.second();
-        Pair<Boolean, Map<String, Object>> awaitPositionsSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsFetchPositionsSnapshot), "watchPositions", "awaitPositionsSnapshot", false);
+        Pair<Boolean, Map<String, Object>> awaitPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false);
         Boolean awaitPositionsSnapshot = awaitPositionsSnapshotVariable.first();
         String uuid = this.uuid();
         Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -1594,7 +1594,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type));
     }
@@ -1781,7 +1781,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return true;
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
+    public CompletableFuture<Void> keepAliveListenKey(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.keepAliveListenKeyCore(parameters));
     }
@@ -1891,7 +1891,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Void> pong(Client client, Object message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

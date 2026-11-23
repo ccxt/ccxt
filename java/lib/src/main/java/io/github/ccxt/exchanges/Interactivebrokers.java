@@ -1512,10 +1512,10 @@ public class Interactivebrokers extends InteractivebrokersApi
     private Object loadAccountIdCore(Map<String, Object> parameters)
     {
 
-        List<Object> accountIdFromParamsqueryVariable = (List<Object>) this.handleOptionAndParams(parameters, "loadAccountId", "accountId", (Object) null);
-        var accountIdFromParams = ((List<Object>) accountIdFromParamsqueryVariable).get(0);
-        Map<String, Object> query = (Map<String, Object>) ((List<Object>) accountIdFromParamsqueryVariable).get(1);
-        Object accountId = accountIdFromParams;
+        Pair<String, Map<String, Object>> accountIdFromParamsqueryVariable = this.handleOptionStringAndParams(parameters, "loadAccountId", "accountId", (String) null);
+        String accountIdFromParams = accountIdFromParamsqueryVariable.first();
+        Map<String, Object> query = accountIdFromParamsqueryVariable.second();
+        String accountId = accountIdFromParams;
         if (java.util.Objects.equals(accountId, null))
         {
             (this.fetchAccounts(new HashMap<String, Object>() {{}})).join();
@@ -1558,7 +1558,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         Pair<Boolean, Map<String, Object>> withPositionspositionsQueryVariable = this.handleOptionBoolAndParams(accountParams, "fetchBalance", "positions", true);
         Boolean withPositions = withPositionspositionsQueryVariable.first();
         Map<String, Object> positionsQuery = withPositionspositionsQueryVariable.second();
-        Pair<Boolean, Map<String, Object>> withOpenOrdersqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (positionsQuery), "fetchBalance", "openOrders", true);
+        Pair<Boolean, Map<String, Object>> withOpenOrdersqueryVariable = this.handleOptionBoolAndParams(positionsQuery, "fetchBalance", "openOrders", true);
         Boolean withOpenOrders = withOpenOrdersqueryVariable.first();
         Map<String, Object> query = withOpenOrdersqueryVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1839,10 +1839,10 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
@@ -4543,7 +4543,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var accountQuery = ((List<Object>) accountIdaccountQueryVariable).get(1);
         List<Object> currencyqueryVariable = (List<Object>) this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
         var currency = ((List<Object>) currencyqueryVariable).get(0);
-        var query = ((List<Object>) currencyqueryVariable).get(1);
+        Map<String, Object> query = (Map<String, Object>) ((List<Object>) currencyqueryVariable).get(1);
         Object days = this.safeInteger(options, "transactionsDays", 90);
         if (!java.util.Objects.equals(since, null))
         {
@@ -5220,7 +5220,7 @@ public class Interactivebrokers extends InteractivebrokersApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((code != null && code == 401)) && Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
         {

@@ -82,7 +82,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }});
     }
 
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
@@ -192,7 +192,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         String bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.first();
         Map<String, Object> paramsBookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.second();
-        Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         String bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.first();
         Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
         Map<String, Object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new HashMap<String, Object>() {{}});
@@ -203,7 +203,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency", (String) null);
         String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
         Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
-        Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
         Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
         Map<String, Object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new HashMap<String, Object>() {{}});
@@ -264,7 +264,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         String bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.first();
         Map<String, Object> paramsBookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.second();
-        Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         String bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.first();
         Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
         Map<String, Object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new HashMap<String, Object>() {{}});
@@ -275,7 +275,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency", (String) null);
         String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
         Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
-        Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
         Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
         Map<String, Object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new HashMap<String, Object>() {{}});
@@ -1245,7 +1245,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash));
     }

@@ -2749,9 +2749,9 @@ public class Phemex extends PhemexApi
         //
         if (java.util.Objects.equals(type, "swap"))
         {
-            return this.parseSwapBalance((Map<String, Object>) (response));
+            return this.parseSwapBalance(response);
         }
-        return this.parseSpotBalance((Map<String, Object>) (response));
+        return this.parseSpotBalance(response);
 
     }
 
@@ -4628,7 +4628,7 @@ public class Phemex extends PhemexApi
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(isUSDTSettled))
         {
-            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubType), "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
@@ -6004,7 +6004,7 @@ public class Phemex extends PhemexApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = null;
@@ -6566,7 +6566,7 @@ public class Phemex extends PhemexApi
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(isUSDTSettled))
         {
-            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubType), "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
@@ -6721,7 +6721,7 @@ public class Phemex extends PhemexApi
         }};
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

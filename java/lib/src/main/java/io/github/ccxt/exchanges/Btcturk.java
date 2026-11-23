@@ -1356,7 +1356,7 @@ public class Btcturk extends BtcturkApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         String errorCode = this.safeString(response, "code", "0");
         String message = this.safeString(response, "message");

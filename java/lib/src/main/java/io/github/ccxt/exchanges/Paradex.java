@@ -1484,7 +1484,7 @@ public class Paradex extends ParadexApi
             // the exchange names the index price "underlying" and rejects "index"
             request.put("price_kind", (((java.util.Objects.equals(price, "index")))) ? "underlying" : price);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Boolean hasEnd = (!java.util.Objects.equals(this.safeInteger(requestUntil, "end_at"), null));
@@ -2000,7 +2000,7 @@ public class Paradex extends ParadexApi
         {
             request.put("start_at", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.publicGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -3037,7 +3037,7 @@ public class Paradex extends ParadexApi
         //
         // if success, no response...
         //
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -3242,7 +3242,7 @@ public class Paradex extends ParadexApi
         //         "trigger_price": "0"
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -3295,7 +3295,7 @@ public class Paradex extends ParadexApi
         {
             request.put("page_size", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3522,7 +3522,7 @@ public class Paradex extends ParadexApi
         {
             request.put("start_at", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetFills(this.extend(requestUntil, paramsUntil))).join();
@@ -4045,7 +4045,7 @@ public class Paradex extends ParadexApi
         {
             request.put("start_at", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -4846,7 +4846,7 @@ public class Paradex extends ParadexApi
         {
             request.put("start_at", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetFundingPayments(this.extend(requestUntil, paramsUntil))).join();
@@ -4982,7 +4982,7 @@ public class Paradex extends ParadexApi
             pageSize = Math.min(limit, 5000); // api maximum 5000
         }
         request.put("page_size", pageSize);
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(since, null))
@@ -5142,7 +5142,7 @@ public class Paradex extends ParadexApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

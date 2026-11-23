@@ -3887,7 +3887,7 @@ public class Myriad extends MyriadApi
 
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Void> pong(Client client, Object message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }
@@ -4047,7 +4047,7 @@ public class Myriad extends MyriadApi
 
     }
 
-    public CompletableFuture<Object> seedOrderBook(String outcome, String sym, Long limit)
+    public CompletableFuture<Void> seedOrderBook(String outcome, String sym, Long limit)
     {
         return BaseExchange.supplyAsync(() -> this.seedOrderBookCore(outcome, sym, limit));
     }
@@ -4240,11 +4240,11 @@ public class Myriad extends MyriadApi
         String myWallet = this.walletAddressOrUndefined();
         if (!java.util.Objects.equals(myWallet, null))
         {
-            List<Object> myLegs = new ArrayList<Object>(Arrays.asList());
+            List<Map<String, Object>> myLegs = new ArrayList<Map<String, Object>>();
             String takerTrader = this.safeStringLower(taker, "trader");
             if (java.util.Objects.equals(takerTrader, myWallet))
             {
-                ((List<Object>)myLegs).add(trade);
+                myLegs.add(trade);
             }
             List<Object> makers = this.safeList(data, "makers", new ArrayList<Object>(Arrays.asList()));
             Integer makersLength = makers.size();
@@ -4279,7 +4279,7 @@ public class Myriad extends MyriadApi
                             put( "currency", Myriad.this.safeString(makerMarket, "quote") );
                         }} );
                     }}, makerMarket);
-                    ((List<Object>)myLegs).add(makerTrade);
+                    myLegs.add(makerTrade);
                 }
             }
             Integer myLegsLength = myLegs.size();
@@ -4606,7 +4606,7 @@ public class Myriad extends MyriadApi
 
     }
 
-    public CompletableFuture<Object> seedPositionBalances(String trader)
+    public CompletableFuture<Void> seedPositionBalances(String trader)
     {
         return BaseExchange.supplyAsync(() -> this.seedPositionBalancesCore(trader));
     }
@@ -4708,7 +4708,7 @@ public class Myriad extends MyriadApi
         return ((String)this.ethGetAddressFromPrivateKey(this.privateKey)).toLowerCase();
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if (java.util.Objects.equals(response, null))

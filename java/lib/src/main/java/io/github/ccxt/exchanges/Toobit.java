@@ -2237,7 +2237,7 @@ public class Toobit extends ToobitApi
         {
             request.put("timeInForce", "LIMIT_MAKER");
         }
-        List<Object> values = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (paramsPostOnly), true);
+        List<Object> values = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsPostOnly, true);
         String triggerPrice = (String) ((List<Object>)values).get(0);
         Object paramsTrigger = ((List<Object>)values).get(3);
         if (!java.util.Objects.equals(triggerPrice, null))
@@ -2874,7 +2874,7 @@ public class Toobit extends ToobitApi
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsMarketType, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -3826,7 +3826,7 @@ public class Toobit extends ToobitApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

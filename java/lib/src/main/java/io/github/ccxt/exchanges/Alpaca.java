@@ -1856,7 +1856,7 @@ public class Alpaca extends AlpacaApi
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request.put("time_in_force", ((String)timeInForce).toLowerCase());
         }
-        request.put("client_order_id", this.generateClientOrderId((Map<String, Object>) (paramsTimeInForce)));
+        request.put("client_order_id", this.generateClientOrderId(paramsTimeInForce));
         Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
         return this.parseOrder(response, market);
 
@@ -2257,10 +2257,10 @@ public class Alpaca extends AlpacaApi
 
     public CompletableFuture<List<Object>> fetchTransactionsHelper(String type, String code, Long since, Long limit, Object parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchTransactionsHelperCore(type, code, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchTransactionsHelperCore(type, code, since, limit, parameters));
     }
 
-    private Object fetchTransactionsHelperCore(String type, String code, Long since, Long limit, Object parameters)
+    private List<Object> fetchTransactionsHelperCore(String type, String code, Long since, Long limit, Object parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2774,7 +2774,7 @@ public class Alpaca extends AlpacaApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

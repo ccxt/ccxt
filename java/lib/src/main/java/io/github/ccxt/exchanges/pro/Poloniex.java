@@ -923,7 +923,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }

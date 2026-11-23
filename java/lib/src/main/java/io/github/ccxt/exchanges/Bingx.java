@@ -2525,7 +2525,7 @@ public class Bingx extends BingxApi
         {
             request.put("limit", Math.min(limit, 1000)); // api maximum 1000
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.swapV2PublicGetQuoteFundingRate(this.extend(requestUntil, paramsUntil))).join();
@@ -2605,7 +2605,7 @@ public class Bingx extends BingxApi
         {
             throw new NotSupported((this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchFundingHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3334,7 +3334,7 @@ public class Bingx extends BingxApi
                 response = (this.swapV3PrivateGetUserBalance(marketTypeQuery)).join();
             }
         }
-        return this.parseBalance((Map<String, Object>) (response));
+        return this.parseBalance(response);
 
     }
 
@@ -5482,7 +5482,7 @@ public class Bingx extends BingxApi
         {
             request.put("startTime", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsSubType), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsSubType, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil))).join();
@@ -5858,7 +5858,7 @@ public class Bingx extends BingxApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Pair<Boolean, Map<String, Object>> standardparamsStandardVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchCanceledAndClosedOrders", "standard", false);
+        Pair<Boolean, Map<String, Object>> standardparamsStandardVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
         Boolean standard = standardparamsStandardVariable.first();
         Map<String, Object> paramsStandard = standardparamsStandardVariable.second();
         if (Boolean.TRUE.equals(standard))
@@ -8019,7 +8019,7 @@ public class Bingx extends BingxApi
         this.options.put("sandboxMode", enable);
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

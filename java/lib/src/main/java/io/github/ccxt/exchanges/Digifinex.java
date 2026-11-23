@@ -795,10 +795,10 @@ public class Digifinex extends DigifinexApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
@@ -811,12 +811,12 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsV2(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsV2(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsV2Core(parameters));
     }
 
-    private Object fetchMarketsV2Core(Map<String, Object> parameters)
+    private List<Object> fetchMarketsV2Core(Map<String, Object> parameters)
     {
 
         String defaultType = this.safeString(this.options, "defaultType");
@@ -991,12 +991,12 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsV1(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsV1(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsV1Core(parameters));
     }
 
-    private Object fetchMarketsV1Core(Map<String, Object> parameters)
+    private List<Object> fetchMarketsV1Core(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicSpotGetMarkets(parameters)).join();
@@ -2362,7 +2362,7 @@ public class Digifinex extends DigifinexApi
             request.put("type", (side + suffix));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             String quantity = null;
-            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
             Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
             Boolean isMarketBuy = Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy"));
@@ -4742,7 +4742,8 @@ public class Digifinex extends DigifinexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            ((List<Object>)result).add(this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market));
+            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
+            ((List<Object>)result).add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -5787,7 +5788,7 @@ public class Digifinex extends DigifinexApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

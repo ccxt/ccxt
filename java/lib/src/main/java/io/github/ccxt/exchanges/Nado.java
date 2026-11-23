@@ -597,7 +597,7 @@ public class Nado extends NadoApi
         Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "createOrder", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
-        Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "createOrder", "expiration", "4294967295");
+        Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams(paramsSubaccount, "createOrder", "expiration", "4294967295");
         String expiration = expirationparamsExpirationVariable.first();
         Map<String, Object> paramsExpiration = expirationparamsExpirationVariable.second();
         List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "createOrder", "recvWindow", 5000L);
@@ -808,7 +808,7 @@ public class Nado extends NadoApi
         Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "editOrder", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
-        Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "editOrder", "expiration", "4294967295");
+        Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams(paramsSubaccount, "editOrder", "expiration", "4294967295");
         String expiration = expirationparamsExpirationVariable.first();
         Map<String, Object> paramsExpiration = expirationparamsExpirationVariable.second();
         List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsExpiration, "editOrder", "recvWindow", 5000L);
@@ -1429,7 +1429,7 @@ public class Nado extends NadoApi
         {
             ordersRequest.put("limit", Math.min(limit, 500));
         }
-        Pair<Map<String, Object>, Map<String, Object>> ordersRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", ordersRequest, (Map<String, Object>) (paramsSubaccount), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> ordersRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001);
         Map<String, Object> ordersRequestUntil = ordersRequestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = ordersRequestUntilparamsUntilVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1568,7 +1568,7 @@ public class Nado extends NadoApi
         {
             matchesRequest.put("limit", Math.min(limit, 500));
         }
-        Pair<Map<String, Object>, Map<String, Object>> matchesRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", matchesRequest, (Map<String, Object>) (paramsSubaccount), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> matchesRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001);
         Map<String, Object> matchesRequestUntil = matchesRequestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = matchesRequestUntilparamsUntilVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1759,7 +1759,7 @@ public class Nado extends NadoApi
         {
             eventsRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(currency.get("id")))));
         }
-        Pair<Map<String, Object>, Map<String, Object>> eventsRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", eventsRequest, (Map<String, Object>) (paramsSubaccount), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> eventsRequestUntilparamsUntilVariable = this.handleUntilOption("max_time", eventsRequest, paramsSubaccount, 0.001);
         Map<String, Object> eventsRequestUntil = eventsRequestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = eventsRequestUntilparamsUntilVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3770,7 +3770,7 @@ public class Nado extends NadoApi
         return marketId;
     }
 
-    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(List<String> api, String method, String path, Object parameters, Map<String, Object> config)
     {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
@@ -3869,7 +3869,7 @@ public class Nado extends NadoApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {

@@ -2016,7 +2016,7 @@ public class Whitebit extends WhitebitApi
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchTickers", "method", (String) null);
+        Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchTickers", "method", (String) null);
         String methodOption = methodOptionparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodOptionparamsMethodVariable.second();
         String method = methodOption;
@@ -2755,7 +2755,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
         }
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -2936,7 +2936,7 @@ public class Whitebit extends WhitebitApi
         Map<String, Object> requestParams = paramsMarketType;
         if (java.util.Objects.equals(marketType, "spot"))
         {
-            Pair<Boolean, Map<String, Object>> isMarginparamsIsMarginVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "cancelAllOrders", "isMargin", false);
+            Pair<Boolean, Map<String, Object>> isMarginparamsIsMarginVariable = this.handleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false);
             Boolean isMargin = isMarginparamsIsMarginVariable.first();
             Map<String, Object> paramsIsMargin = isMarginparamsIsMarginVariable.second();
             requestParams = paramsIsMargin;
@@ -3158,7 +3158,7 @@ public class Whitebit extends WhitebitApi
         //          "USDT": 1000
         //     }
         //
-        return this.parseBalance((Map<String, Object>) (response));
+        return this.parseBalance(response);
 
     }
 
@@ -5256,7 +5256,7 @@ public class Whitebit extends WhitebitApi
         {
             request.put("startDate", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, (Map<String, Object>) (paramsPaginate), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, paramsPaginate, 0.001);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(limit, null))
@@ -5361,7 +5361,7 @@ public class Whitebit extends WhitebitApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((code != null && code == 418)) || ((code != null && code == 429)))
         {

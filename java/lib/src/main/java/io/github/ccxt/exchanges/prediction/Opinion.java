@@ -2255,7 +2255,7 @@ public class Opinion extends OpinionApi
 
     }
 
-    public CompletableFuture<Object> seedOrderBook(String outcome, String sym, Long limit)
+    public CompletableFuture<Void> seedOrderBook(String outcome, String sym, Long limit)
     {
         return BaseExchange.supplyAsync(() -> this.seedOrderBookCore(outcome, sym, limit));
     }
@@ -2684,7 +2684,7 @@ public class Opinion extends OpinionApi
         client.resolve(stored, "myTrades");
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

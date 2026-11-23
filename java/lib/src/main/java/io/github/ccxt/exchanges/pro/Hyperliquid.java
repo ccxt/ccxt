@@ -2115,7 +2115,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
     }
 
-    public CompletableFuture<Object> expirePendingUnsubscribe(Client client, String subHash, String unsubHash)
+    public CompletableFuture<Void> expirePendingUnsubscribe(Client client, String subHash, String unsubHash)
     {
         return BaseExchange.supplyAsync(() -> this.expirePendingUnsubscribeCore(client, subHash, unsubHash));
     }

@@ -3168,7 +3168,7 @@ public class Tokocrypto extends TokocryptoApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (((code != null && code == 418)) || ((code != null && code == 429)))
         {
@@ -3253,7 +3253,7 @@ public class Tokocrypto extends TokocryptoApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(List<String> api, String method, String path, Object parameters, Map<String, Object> config)
     {
         Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);
         List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

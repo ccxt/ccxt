@@ -550,7 +550,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> events = this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
         String datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
-        List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> newTickers = new ArrayList<Map<String, Object>>();
         for (var i = 0; i < events.size(); i++)
         {
             Map<String, Object> tickersObj = this.safeDict(events, i, null);
@@ -571,7 +571,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 {
                     this.tickers.put(symbol, result);
                 }
-                ((List<Object>)newTickers).add(result);
+                newTickers.add(result);
                 if (!java.util.Objects.equals(channel, null))
                 {
                     String messageHash = ((channel + "::") + symbol);

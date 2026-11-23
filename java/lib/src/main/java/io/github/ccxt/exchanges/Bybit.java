@@ -3136,12 +3136,12 @@ public class Bybit extends BybitApi
 
     }
 
-    public CompletableFuture<Object> fetchFutureMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchFutureMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchFutureMarketsCore(parameters));
     }
 
-    private Object fetchFutureMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchFutureMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{}});
@@ -3999,7 +3999,7 @@ public class Bybit extends BybitApi
         }
         request.put("limit", limitResolved); // max 1000, default 1000
         Map<String, Object> paramsUntil = null;
-        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end", request, paramsPaginate, 1);
         request = requestparamsUntilVariable.first();
         paramsUntil = requestparamsUntilVariable.second();
         request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
@@ -5173,7 +5173,7 @@ public class Bybit extends BybitApi
         //         "time": 1672125441042
         //     }
         //
-        return this.parseBalance((Map<String, Object>) (response));
+        return this.parseBalance(response);
 
     }
 
@@ -7629,7 +7629,7 @@ public class Bybit extends BybitApi
         {
             request.put("startTime", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsValue), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsValue, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
@@ -7844,7 +7844,7 @@ public class Bybit extends BybitApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetV5AssetDepositQueryRecord(this.extend(requestUntil, paramsUntil))).join();
@@ -7927,7 +7927,7 @@ public class Bybit extends BybitApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetV5AssetWithdrawQueryRecord(this.extend(requestUntil, paramsUntil))).join();
@@ -8268,7 +8268,7 @@ public class Bybit extends BybitApi
         //         "time": 1672132481405
         //     }
         //
-        List<Object> data = this.addPaginationCursorToResult((Map<String, Object>) (response));
+        List<Object> data = this.addPaginationCursorToResult(response);
         return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
@@ -8439,7 +8439,7 @@ public class Bybit extends BybitApi
         {
             request.put("tag", tagWithdrawTag);
         }
-        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsAccountType));
+        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsAccountType);
         String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
         String networkId = this.networkCodeToId(networkCode, code);
@@ -8682,10 +8682,13 @@ public class Bybit extends BybitApi
             if (((switch ((Object)(rawPosition)) { case List<?> j39v9 -> j39v9.contains("data"); case Map<?, ?> j39v8 -> j39v8.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v7 -> j39v7.contains("is_valid"); case Map<?, ?> j39v6 -> j39v6.containsKey("is_valid"); case null, default -> false; })))
             {
                 // futures only
-                ((List<Object>)results).add(this.parsePosition(this.safeDict(rawPosition, "data", new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+                Map<String, Object> futuresData = this.safeDict(rawPosition, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> futuresPosition = (Map<String, Object>) this.parsePosition(futuresData, (Map<String, Object>) null);
+                ((List<Object>)results).add(futuresPosition);
             } else
             {
-                ((List<Object>)results).add(this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+                Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+                ((List<Object>)results).add(parsedPosition);
             }
         }
         return this.filterByArrayPositions(results, "symbol", symbolsNormalized);
@@ -9881,7 +9884,7 @@ public class Bybit extends BybitApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPaginate, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetV5AssetTransferQueryInterTransferList(this.extend(requestUntil, paramsUntil))).join();
@@ -10455,10 +10458,10 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10528,10 +10531,10 @@ public class Bybit extends BybitApi
      */
     public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
     }
 
-    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11006,7 +11009,7 @@ public class Bybit extends BybitApi
         {
             request.put("startTime", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsValue), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsValue, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
@@ -11337,7 +11340,7 @@ public class Bybit extends BybitApi
         {
             request.put("size", 100);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsValue), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsValue, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(requestUntil, paramsUntil))).join();
@@ -12599,7 +12602,7 @@ public class Bybit extends BybitApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

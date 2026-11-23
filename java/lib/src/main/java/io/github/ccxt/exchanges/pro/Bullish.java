@@ -500,7 +500,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             request.put("tradingAccountId", tradingAccountId);
         }
-        List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -639,7 +639,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             request.put("tradingAccountId", tradingAccountId);
         }
-        List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

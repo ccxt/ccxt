@@ -2078,7 +2078,7 @@ public class Deepcoin extends DeepcoinApi
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             request.put("tdMode", marginMode);
-            Pair<String, Map<String, Object>> mrgPositionparamsMrgPositionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarginMode), "createOrder", "mrgPosition", "merge");
+            Pair<String, Map<String, Object>> mrgPositionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge");
             String mrgPosition = mrgPositionparamsMrgPositionVariable.first();
             Map<String, Object> paramsMrgPosition = mrgPositionparamsMrgPositionVariable.second();
             paramsRequest = paramsMrgPosition;
@@ -3365,7 +3365,7 @@ public class Deepcoin extends DeepcoinApi
             throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         String mrgPosition = "merge";
-        Pair<String, Map<String, Object>> mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarginMode), "setLeverage", "mrgPosition", mrgPosition);
+        Pair<String, Map<String, Object>> mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition);
         String mrgPositionOption = mrgPositionOptionparamsMrgPositionVariable.first();
         Map<String, Object> paramsMrgPosition = mrgPositionOptionparamsMrgPositionVariable.second();
         if (!java.util.Objects.equals(mrgPositionOption, "merge") && !java.util.Objects.equals(mrgPositionOption, "split"))
@@ -3874,7 +3874,7 @@ public class Deepcoin extends DeepcoinApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String msg = this.safeString(response, "msg");

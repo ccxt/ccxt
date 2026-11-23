@@ -3519,7 +3519,7 @@ public class Polymarket extends PolymarketApi
         return result;
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
@@ -3886,7 +3886,7 @@ public class Polymarket extends PolymarketApi
      * @name polymarket#loadApiCredentials
      * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
      */
-    public CompletableFuture<Object> loadApiCredentials()
+    public CompletableFuture<Void> loadApiCredentials()
     {
         return BaseExchange.supplyAsync(() -> this.loadApiCredentialsCore());
     }

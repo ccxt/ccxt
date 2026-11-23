@@ -1943,7 +1943,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, type));
     }
@@ -2157,7 +2157,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String url = this.getUrlByMarketType(type, isInverse);
         // uid required for non spot markets
         Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
-        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(url, messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(url, messageHash, payload, channel, query, requiresUid)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

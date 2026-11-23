@@ -747,7 +747,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
     }
 
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

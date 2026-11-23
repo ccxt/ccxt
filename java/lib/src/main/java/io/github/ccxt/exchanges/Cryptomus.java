@@ -946,7 +946,7 @@ public class Cryptomus extends CryptomusApi
         //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -1444,7 +1444,7 @@ public class Cryptomus extends CryptomusApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

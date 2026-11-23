@@ -1215,7 +1215,7 @@ public class Bigone extends BigoneApi
             //        from: '0'
             //    }
             //
-            return this.parseContractOrderBook((Map<String, Object>) (response), (String) (market.get("symbol")), limit);
+            return this.parseContractOrderBook(response, (String) (market.get("symbol")), limit);
         } else
         {
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1670,7 +1670,7 @@ public class Bigone extends BigoneApi
         //         ],
         //     }
         //
-        return this.parseBalance((Map<String, Object>) (response));
+        return this.parseBalance(response);
 
     }
 
@@ -2793,7 +2793,7 @@ public class Bigone extends BigoneApi
 
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

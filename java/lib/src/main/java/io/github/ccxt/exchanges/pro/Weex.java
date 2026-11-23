@@ -2038,7 +2038,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, String messageHash, String type)
+    public CompletableFuture<Void> loadBalanceSnapshot(Client client, String messageHash, String type)
     {
         return BaseExchange.supplyAsync(() -> this.loadBalanceSnapshotCore(client, messageHash, type));
     }
@@ -2220,7 +2220,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Void> loadPositionsSnapshot(Client client, String messageHash, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.loadPositionsSnapshotCore(client, messageHash, parameters));
     }
@@ -2368,7 +2368,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return market;
     }
 
-    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
+    public CompletableFuture<Void> pong(Client client, Map<String, Object> message)
     {
         return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
     }

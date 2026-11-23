@@ -3029,7 +3029,7 @@ public class Mexc extends MexcApi
         //         "transactTime": 1661992652132
         //     }
         //
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
         order.put("side", side);
         order.put("type", type);
         if (java.util.Objects.equals(this.safeString(order, "price"), null))
@@ -4514,12 +4514,12 @@ public class Mexc extends MexcApi
         return this.safeString(statuses, ((String)orderType), orderType);
     }
 
-    public CompletableFuture<Object> fetchAccountHelper(String type, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchAccountHelper(String type, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchAccountHelperCore(type, parameters));
     }
 
-    private Object fetchAccountHelperCore(String type, Map<String, Object> parameters)
+    private Map<String, Object> fetchAccountHelperCore(String type, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(type, "spot"))
@@ -4581,7 +4581,7 @@ public class Mexc extends MexcApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Object response = (this.fetchAccountHelper(marketType, (Map<String, Object>) (query))).join();
+        Map<String, Object> response = (this.fetchAccountHelper(marketType, query)).join();
         List<Object> data = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
@@ -4946,7 +4946,7 @@ public class Mexc extends MexcApi
         //         ]
         //     }
         //
-        return this.customParseBalance((Map<String, Object>) (response), marketType);
+        return this.customParseBalance(response, marketType);
 
     }
 
@@ -6520,7 +6520,7 @@ public class Mexc extends MexcApi
         {
             currency = this.currency((String) (code));
         }
-        Pair<String, Map<String, Object>> fromAccountTypeparamsFromAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchTransfers", "fromAccountType", (String) null);
+        Pair<String, Map<String, Object>> fromAccountTypeparamsFromAccountTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchTransfers", "fromAccountType", (String) null);
         String fromAccountType = fromAccountTypeparamsFromAccountTypeVariable.first();
         Map<String, Object> paramsFromAccountType = fromAccountTypeparamsFromAccountTypeVariable.second();
         Map<String, Object> accountTypes = new HashMap<String, Object>() {{
@@ -6537,7 +6537,7 @@ public class Mexc extends MexcApi
         {
             throw new ArgumentsRequired((this.id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
-        Pair<String, Map<String, Object>> toAccountTypeparamsToAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsFromAccountType), "fetchTransfers", "toAccountType", (String) null);
+        Pair<String, Map<String, Object>> toAccountTypeparamsToAccountTypeVariable = this.handleOptionStringAndParams(paramsFromAccountType, "fetchTransfers", "toAccountType", (String) null);
         String toAccountType = toAccountTypeparamsToAccountTypeVariable.first();
         Map<String, Object> paramsToAccountType = toAccountTypeparamsToAccountTypeVariable.second();
         if (!java.util.Objects.equals(toAccountType, null))
@@ -7551,7 +7551,7 @@ public class Mexc extends MexcApi
         }
     }
 
-    public Object handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
