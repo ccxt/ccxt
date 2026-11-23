@@ -18947,6 +18947,10 @@ export const CSHARP_STRING_PARAMS = {
     'derive.hashMessage': { 0: 'string?' },
     'derive.signMessage': { 0: 'string?' },
     'hibachi.signMessage': { 1: 'string?' },
+    'hyperliquid.signHash': { 0: 'string?' },
+    'prediction/hyperliquid.signHash': { 0: 'string?' },
+    'polymarket.signHash': { 0: 'string?' },
+    'prediction/polymarket.signHash': { 0: 'string?' },
 };
 
 // the table type for a parameter of a listed generated method whose checker type is string-ish
