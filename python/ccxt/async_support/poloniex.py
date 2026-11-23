@@ -8,7 +8,7 @@ from ccxt.abstract.poloniex import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -77,7 +77,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': None,  # has but not implemented
                 'fetchGreeks': False,
@@ -2775,6 +2775,87 @@ class poloniex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
+
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+        """
+        fetch the current funding rate
+
+        https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not self.safe_bool(market, 'swap', False):
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.swapPublicGetV3MarketFundingRate(self.extend(request, params))
+        #
+        #    {
+        #        "code": 200,
+        #        "msg": "Success",
+        #        "data": {
+        #            "s": "BTC_USDT_PERP",
+        #            "fR": "0.0001",
+        #            "fT": "1795276800000",
+        #            "nFR": "0.0001",
+        #            "nFT": "1795305600000"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
+        #
+        #    {
+        #        "s": "BTC_USDT_PERP",
+        #        "fR": "0.0001",
+        #        "fT": "1795276800000",
+        #        "nFR": "0.0001",
+        #        "nFT": "1795305600000"
+        #    }
+        #
+        marketId = self.safe_string(contract, 's')
+        # fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        previousFundingTimestamp = self.safe_integer(contract, 'fT')
+        fundingTimestamp = self.safe_integer(contract, 'nFT')
+        intervalMilliseconds = Precise.string_sub(self.safe_string(contract, 'nFT'), self.safe_string(contract, 'fT'))
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(contract, 'nFR'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': self.safe_number(contract, 'fR'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'interval': self.parse_funding_interval(intervalMilliseconds),
+        }
+
+    def parse_funding_interval(self, interval: Str) -> Str:
+        intervals = {
+            '3600000': '1h',
+            '7200000': '2h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
 
     async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
