@@ -17080,6 +17080,15 @@ export const SIGNATURE_ARG_TYPES = {
     'handleErrorMessage': { 1: 'IDictionary<string, object>' },
     // TS declares `response: Dict` on the base; no override writes it and every caller passes a dictionary
     'parseBalance': { 0: 'IDictionary<string, object>' },
+    // small parse cores: TS declares the row `Dict` on the base and on every override
+    'parseBorrowInterest': { 0: 'IDictionary<string, object>' },
+    'parseConversion': { 0: 'IDictionary<string, object>' },
+    'parseADLRank': { 0: 'IDictionary<string, object>' },
+    'parseGreeks': { 0: 'IDictionary<string, object>' },
+    'parseOption': { 0: 'IDictionary<string, object>' },
+    'parseLastPrice': { 0: 'IDictionary<string, object>' },
+    'parseTradingFee': { 0: 'IDictionary<string, object>' },
+    'parseSettlement': { 0: 'IDictionary<string, object>' },
     'parseDepositAddress': { 0: 'IDictionary<string, object>' },
     'parseLeverage': { 0: 'IDictionary<string, object>' },
     // TS declares the row `Dict` on every declaration; no body writes it or reads it as a list
