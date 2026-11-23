@@ -172,7 +172,6 @@ export default class pacifica extends pacificaRest {
      */
     unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
     handleWsTickers(client: Client, message: Dict): boolean;
-    parseWsTicker(rawTicker: Dict, market?: Market): Ticker;
     handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method

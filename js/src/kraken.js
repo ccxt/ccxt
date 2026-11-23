@@ -1164,8 +1164,7 @@ export default class kraken extends Exchange {
         };
         const response = await this.publicGetTicker(this.extend(request, params));
         const tickerResult = this.safeDict(response, 'result', {});
-        const ticker = this.safeValue(tickerResult, market['id']);
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.safeDict(tickerResult, market['id'], {}), market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1275,9 +1274,7 @@ export default class kraken extends Exchange {
         //
         const id = this.safeString(item, 'id');
         let direction = undefined;
-        const account = undefined;
         const referenceId = this.safeString(item, 'refid');
-        const referenceAccount = undefined;
         const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
         const currencyId = this.safeString(item, 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -1295,9 +1292,9 @@ export default class kraken extends Exchange {
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': undefined,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber(amount),
@@ -3774,7 +3771,7 @@ export default class kraken extends Exchange {
                 const numErrors = errors.length;
                 if (numErrors > 0) {
                     for (let i = 0; i < numErrors; i++) {
-                        const error = errors[i];
+                        const error = this.safeString(errors, i);
                         this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                         this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                     }

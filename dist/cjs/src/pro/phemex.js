@@ -497,8 +497,7 @@ class phemex extends phemex$1["default"] {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < ohlcvs.length; i++) {
-                const candle = ohlcvs[i];
-                stored.append(candle);
+                stored.append(ohlcvs[i]);
             }
             client.resolve(stored, messageHash);
         }
@@ -1311,8 +1310,7 @@ class phemex extends phemex$1["default"] {
             }
             trades = this.safeList(ordersDict, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
-                const rawOrder = orders[i];
-                const parsedOrder = this.parseOrder(rawOrder);
+                const parsedOrder = this.parseOrder(this.safeDict(orders, i, {}));
                 parsedOrders.push(parsedOrder);
             }
         }

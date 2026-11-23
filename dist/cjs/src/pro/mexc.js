@@ -188,7 +188,7 @@ class mexc extends mexc$1["default"] {
             ticker['datetime'] = this.iso8601(timestamp);
         }
         else if (rawTicker !== undefined) {
-            ticker = this.parseTicker(rawTicker, market);
+            ticker = this.parseTicker(this.extend({}, rawTicker), market);
         }
         else {
             return;
@@ -348,7 +348,7 @@ class mexc extends mexc$1["default"] {
                 ticker = this.parseWsTicker(entry, market);
             }
             else {
-                ticker = this.parseTicker(entry);
+                ticker = this.parseTicker(this.safeDict(data, i, {}));
             }
             const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
@@ -1112,7 +1112,7 @@ class mexc extends mexc$1["default"] {
                 parsedTrade = this.parseWsTrade(trades[j], market);
             }
             else {
-                parsedTrade = this.parseTrade(trades[j], market);
+                parsedTrade = this.parseTrade(this.safeDict(trades, j, {}), market);
             }
             stored.append(parsedTrade);
         }
@@ -1205,7 +1205,7 @@ class mexc extends mexc$1["default"] {
             trade = this.parseWsTrade(data, market);
         }
         else if (data !== undefined) {
-            trade = this.parseTrade(data, market);
+            trade = this.parseTrade(this.extend({}, data), market);
         }
         else {
             return;
@@ -1718,12 +1718,11 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
-        let url = undefined;
         const channel = 'unsub.funding.rate';
         const requestParams = {
             'symbol': market['id'],
         };
-        url = this.urls['api']['ws']['swap'];
+        const url = this.urls['api']['ws']['swap'];
         this.spawn(this.watchSwapPublic, channel, messageHash, requestParams, params);
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);

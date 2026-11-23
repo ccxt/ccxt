@@ -519,7 +519,7 @@ export default class derive extends deriveRest {
             tradesArray = new ArrayCache(limit);
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i]);
+            const trade = this.parseTrade(this.safeDict(data, i, {}));
             tradesArray.append(trade);
         }
         this.trades[symbol] = tradesArray;
@@ -786,7 +786,7 @@ export default class derive extends deriveRest {
         const topic = this.safeString(params, 'channel');
         const rawTrades = this.safeList(params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade(rawTrades[i]);
+            const trade = this.parseTrade(this.safeDict(rawTrades, i, {}));
             myTrades.append(trade);
             client.resolve(myTrades, topic);
             if (topic !== undefined) {

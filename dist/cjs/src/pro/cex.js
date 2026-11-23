@@ -952,9 +952,8 @@ class cex extends cex$1["default"] {
         }
         const myOrders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
-            const rawOrder = rawOrders[i];
             const market = this.safeMarket(symbol);
-            const order = this.parseOrder(rawOrder, market);
+            const order = this.parseOrder(this.safeDict(rawOrders, i, {}), market);
             order['status'] = 'open';
             myOrders.append(order);
         }

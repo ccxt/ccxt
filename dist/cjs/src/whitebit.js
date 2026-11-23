@@ -1491,7 +1491,7 @@ class whitebit extends whitebit$1["default"] {
                     if (orderId === id) {
                         const marketId = this.safeString(order, 'market');
                         const marketNew = this.safeMarket(marketId, undefined, '_');
-                        return this.parseOrder(order, marketNew);
+                        return this.parseOrder(this.safeDict(orders, i, {}), marketNew);
                     }
                 }
             }
@@ -1516,7 +1516,7 @@ class whitebit extends whitebit$1["default"] {
                         const order = marketOrders[j];
                         const orderId = this.safeString(order, 'id', '');
                         if (orderId === id) {
-                            return this.parseOrder(order, marketNew);
+                            return this.parseOrder(this.safeDict(marketOrders, j, {}), marketNew);
                         }
                     }
                 }
@@ -1641,7 +1641,7 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const ticker = this.parseTicker(this.safeValue(response, marketId), market);
+            const ticker = this.parseTicker(this.safeDict(response, marketId, {}), market);
             const symbol = this.safeString(ticker, 'symbol');
             result[symbol] = ticker;
         }

@@ -9177,8 +9177,7 @@ export default class bitget extends Exchange {
             //
             result = this.safeList(response, 'data', []);
         }
-        const first = this.safeDict(result, 0, {});
-        return this.parsePosition(first, market);
+        return this.parsePosition(this.safeDict(result, 0, {}), market);
     }
     /**
      * @method
@@ -11745,7 +11744,7 @@ export default class bitget extends Exchange {
         }
         const data = this.safeDict(response, 'data', {});
         const order = this.safeList2(data, 'successList', 'list', []);
-        return this.parseOrder(order[0], market);
+        return this.parseOrder(this.safeDict(order, 0, {}), market);
     }
     /**
      * @method

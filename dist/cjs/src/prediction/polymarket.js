@@ -2668,8 +2668,7 @@ class polymarket extends polymarket$1["default"] {
     parseEvents(rawEvents) {
         const result = [];
         for (let i = 0; i < rawEvents.length; i++) {
-            const rawEvent = rawEvents[i];
-            result.push(this.parseEvent(rawEvent));
+            result.push(this.parseEvent(rawEvents[i]));
         }
         return result;
     }

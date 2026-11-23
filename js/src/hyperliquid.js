@@ -2461,9 +2461,8 @@ export default class hyperliquid extends Exchange {
                 orderReq.push(mainOrderObj);
             }
         }
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'createOrder', 'vaultAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams(params2, 'createOrder', 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
@@ -2682,9 +2681,8 @@ export default class hyperliquid extends Exchange {
             // "f" must be omitted when false, actions hashed with "f": false are rejected
             cancelAction['f'] = true;
         }
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -2803,9 +2801,8 @@ export default class hyperliquid extends Exchange {
             'type': 'scheduleCancel',
             'time': nonce + this.parseToInt(timeout),
         };
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams2(params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -2844,7 +2841,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        let params2 = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
+        const params2 = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
         const modifies = [];
         for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -2938,9 +2935,8 @@ export default class hyperliquid extends Exchange {
             'type': 'batchModify',
             'modifies': modifies,
         };
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'editOrder', 'vaultAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams(params2, 'editOrder', 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(modifyAction, nonce, vaultAddress);
         const request = {
             'action': modifyAction,
@@ -3413,8 +3409,7 @@ export default class hyperliquid extends Exchange {
         //         "status": "order"
         //     }
         //
-        const data = this.safeDict(response, 'order');
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.safeDict(response, 'order', {}), market);
     }
     parseOrder(order, market = undefined) {
         //
@@ -4082,16 +4077,15 @@ export default class hyperliquid extends Exchange {
         const asset = this.parseToInt(market['baseId']);
         const isCross = (marginMode === 'cross');
         const nonce = this.incrementingNonce();
-        let params2 = this.omit(params, ['leverage']);
+        const params2 = this.omit(params, ['leverage']);
         const updateAction = {
             'type': 'updateLeverage',
             'asset': asset,
             'isCross': isCross,
             'leverage': leverage,
         };
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -4142,9 +4136,8 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'setLeverage', 'vaultAddress', 'subAccountAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams2(params2, 'setLeverage', 'vaultAddress', 'subAccountAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -4836,9 +4829,8 @@ export default class hyperliquid extends Exchange {
         // ]
         //
         const records = this.extractTypeFromDelta(depositLedger);
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         if (vaultAddress === undefined) {
             const filtered = this.filterByArray(records, 'type', ['deposit'], false);
             return this.parseTransactions(filtered, undefined, since, limit);
@@ -4903,9 +4895,8 @@ export default class hyperliquid extends Exchange {
         // ]
         //
         const records = this.extractTypeFromDelta(withdrawalLedger);
-        let vaultAddress = undefined;
-        [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const [vaultAddressOption] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         if (vaultAddress === undefined) {
             const filtered = this.filterByArray(records, 'type', ['withdraw'], false);
             return this.parseTransactions(filtered, undefined, since, limit);

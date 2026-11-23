@@ -1705,15 +1705,15 @@ export default class backpack extends backpackRest {
         const markPrice = this.safeString(position, 'M');
         const netQuantity = this.safeNumber(position, 'q');
         let hedged = false;
-        let side = 'long';
+        let side = undefined;
         if (netQuantity !== undefined) {
+            side = 'long';
             if (0 > netQuantity) {
                 side = 'short';
             }
         }
         else {
             hedged = undefined;
-            side = undefined;
         }
         const microseconds = this.safeInteger(position, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);

@@ -5785,8 +5785,7 @@ export default class phemex extends Exchange {
         const ranks = this.safeList(data, 'positions', []);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = ranks[i];
-            result.push(this.parseADLRank(rank));
+            result.push(this.parseADLRank(ranks[i]));
         }
         return this.filterByArrayADLRanks(result, 'symbol', symbolsNormalized, false);
     }

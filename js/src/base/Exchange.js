@@ -4590,7 +4590,7 @@ export class BaseExchange {
         let results = [];
         if (Array.isArray(orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const parsed = this.parseOrder(orders[i], market); // don't inline this call
+                const parsed = this.parseOrder(this.safeDict(orders, i, {}), market); // don't inline this call
                 const order = this.extend(parsed, params);
                 results.push(order);
             }
@@ -5298,7 +5298,14 @@ export class BaseExchange {
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
-        return ohlcv;
+        return [
+            this.safeInteger(ohlcv, 'timestamp'),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
+        ];
     }
     safeNetwork(network) {
         const withdrawEnabled = this.safeBool(network, 'withdraw');
@@ -7081,9 +7088,10 @@ export class BaseExchange {
         }
         const market = this.market(symbol);
         const marketSymbol = this.safeString(market, 'symbol', '');
-        const result = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const precision = this.safeDict(market, 'precision', {});
+        const result = this.decimalToPrecision(price, ROUND, precision['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            const pricePrecision = this.numberToString(market['precision']['price']);
+            const pricePrecision = this.numberToString(precision['price']);
             if (pricePrecision === undefined) {
                 throw new BadSymbol(this.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision');
             }
@@ -7097,9 +7105,10 @@ export class BaseExchange {
         }
         const market = this.market(symbol);
         const marketSymbol = this.safeString(market, 'symbol', '');
-        const result = this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const precision = this.safeDict(market, 'precision', {});
+        const result = this.decimalToPrecision(amount, TRUNCATE, precision['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            const amountPrecision = this.numberToString(market['precision']['amount']);
+            const amountPrecision = this.numberToString(precision['amount']);
             if (amountPrecision === undefined) {
                 throw new BadSymbol(this.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision');
             }
@@ -7112,7 +7121,8 @@ export class BaseExchange {
             return undefined;
         }
         const market = this.market(symbol);
-        return this.decimalToPrecision(fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const precision = this.safeDict(market, 'precision', {});
+        return this.decimalToPrecision(fee, ROUND, precision['price'], this.precisionMode, this.paddingMode);
     }
     currencyToPrecision(code, fee, networkCode = undefined) {
         if (code === undefined) {
@@ -7330,18 +7340,23 @@ export class BaseExchange {
     }
     parseTickersList(tickers, symbols = undefined, params = {}) {
         const results = [];
-        for (let i = 0; i < tickers.length; i++) {
-            results.push(this.extend(this.parseTicker(tickers[i]), params));
+        const tickersArray = this.toArray(tickers);
+        for (let i = 0; i < tickersArray.length; i++) {
+            const ticker = this.extend(this.parseTicker(this.safeDict(tickersArray, i, {})), params);
+            results.push(ticker);
         }
         return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
     }
     parseTickersDict(tickers, symbols = undefined, params = {}) {
         const results = [];
-        const marketIds = Object.keys(tickers);
+        const tickersDict = this.extend({}, tickers);
+        const marketIds = Object.keys(tickersDict);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            results.push(this.extend(this.parseTicker(tickers[marketId], market), params));
+            const rawTicker = this.safeDict(tickersDict, marketId, {});
+            const ticker = this.extend(this.parseTicker(rawTicker, market), params);
+            results.push(ticker);
         }
         return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
     }

@@ -73,7 +73,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision(price: number, amountPrecision: int, maxDecimals: int): number;
+    calculatePricePrecision(price: number, amountPrecision: int, maxDecimals: int): int;
     /**
      * @method
      * @name hyperliquid#fetchSpotMarkets

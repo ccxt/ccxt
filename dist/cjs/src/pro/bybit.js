@@ -619,7 +619,7 @@ class bybit extends bybit$1["default"] {
             const rawTicker = this.safeDict(ticker, 'info', {});
             tickerInput = this.extend(rawTicker, data);
         }
-        const parsed = this.parseTicker(tickerInput);
+        const parsed = this.parseTicker(this.extend({}, tickerInput));
         if (updateType === 'snapshot') {
             symbol = this.safeString(parsed, 'symbol');
         }
@@ -1289,7 +1289,7 @@ class bybit extends bybit$1["default"] {
             marketType = 'contract';
         }
         if (market !== undefined) {
-            marketType = this.safeString(market, 'type');
+            marketType = this.safeString(market, 'type', marketType);
         }
         const marketId = this.safeString(trade, 's');
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);

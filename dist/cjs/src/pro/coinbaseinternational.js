@@ -1108,7 +1108,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const tradesArray = this.trades[symbol];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const trade = this.parseTrade(data[i], market);
+            const trade = this.parseTrade(this.safeDict(data, i, {}), market);
             tradesArray.append(trade);
         }
         this.trades[symbol] = tradesArray;

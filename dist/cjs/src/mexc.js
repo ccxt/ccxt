@@ -2156,7 +2156,7 @@ class mexc extends mexc$1["default"] {
             ticker = this.safeDict(response, 'data', {});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'symbol');

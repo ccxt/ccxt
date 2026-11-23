@@ -175,7 +175,7 @@ class blofin extends blofin$1["default"] {
         }
     }
     parseWsTrade(trade, market = undefined) {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend({}, trade), market);
     }
     /**
      * @method
@@ -322,7 +322,7 @@ class blofin extends blofin$1["default"] {
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseWsTicker(this.safeDict(data, i, {}));
+            const ticker = this.parseTicker(this.safeDict(data, i, {}));
             const symbol = this.safeString(ticker, 'symbol', '');
             this.tickers[symbol] = ticker;
             if (channelName !== undefined) {
@@ -330,9 +330,6 @@ class blofin extends blofin$1["default"] {
                 client.resolve(this.tickers[symbol], messageHash);
             }
         }
-    }
-    parseWsTicker(ticker, market = undefined) {
-        return this.parseTicker(ticker, market);
     }
     /**
      * @method

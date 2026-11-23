@@ -1250,13 +1250,14 @@ class bingx extends bingx$1["default"] {
         const until = this.safeInteger2(paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
         if (until !== undefined) {
-            let endTime = until;
             if (since !== undefined) {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 const duration = this.parseTimeframe(timeframe) * 1000;
-                endTime = Math.min(until, this.sum(since, duration * requestLimit));
+                request['endTime'] = Math.min(until, this.sum(since, duration * requestLimit));
             }
-            request['endTime'] = endTime;
+            else {
+                request['endTime'] = until;
+            }
         }
         else if ((this.safeBool(market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe(timeframe) * 1000;
@@ -2246,7 +2247,7 @@ class bingx extends bingx$1["default"] {
         const rowMarket = (symbolsLength === 1) ? market : undefined;
         const results = [];
         for (let i = 0; i < rows.length; i++) {
-            results.push(this.parseTicker(rows[i], rowMarket));
+            results.push(this.parseTicker(this.safeDict(rows, i, {}), rowMarket));
         }
         return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
     }
@@ -2375,7 +2376,7 @@ class bingx extends bingx$1["default"] {
             // }
             //
         }
-        return this.parseTicker(response['data'], market);
+        return this.parseTicker(this.safeDict(response, 'data', {}), market);
     }
     /**
      * @method
@@ -2498,7 +2499,7 @@ class bingx extends bingx$1["default"] {
             type = 'spot';
         }
         if (market !== undefined) {
-            type = this.safeString(market, 'type');
+            type = this.safeString(market, 'type', type);
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, type);
         const symbol = this.safeString(marketResolved, 'symbol');
@@ -5661,7 +5662,7 @@ class bingx extends bingx$1["default"] {
         //     }
         //
         const data = this.safeList(this.safeDict(response, 'data'), 'data', []);
-        const parsed = this.parseDepositAddresses(data, [currency['code']], false);
+        const parsed = this.parseDepositAddresses(data, [this.safeString(currency, 'code', '')], false);
         return this.indexBy(parsed, 'network');
     }
     /**

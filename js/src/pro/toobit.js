@@ -262,7 +262,7 @@ export default class toobit extends toobitRest {
         client.resolve(stored, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend({}, trade), market);
     }
     /**
      * @method

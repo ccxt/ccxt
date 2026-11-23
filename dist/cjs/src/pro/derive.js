@@ -518,7 +518,7 @@ class derive extends derive$1["default"] {
             tradesArray = new Cache.ArrayCache(limit);
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i]);
+            const trade = this.parseTrade(this.safeDict(data, i, {}));
             tradesArray.append(trade);
         }
         this.trades[symbol] = tradesArray;
@@ -785,7 +785,7 @@ class derive extends derive$1["default"] {
         const topic = this.safeString(params, 'channel');
         const rawTrades = this.safeList(params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade(rawTrades[i]);
+            const trade = this.parseTrade(this.safeDict(rawTrades, i, {}));
             myTrades.append(trade);
             client.resolve(myTrades, topic);
             if (topic !== undefined) {

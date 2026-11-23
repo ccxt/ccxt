@@ -560,7 +560,10 @@ export default class extended extends Exchange {
         const maxCost = this.safeNumber(tradingConfig, 'maxLimitOrderValue');
         const created = this.safeInteger(market, 'createdAt');
         const category = this.safeStringLower(market, 'category');
-        const takerFees = (category === 'rwa') ? this.safeDict(this.fees, 'rwa', {}) : this.fees;
+        let takerFees = this.fees;
+        if (category === 'rwa') {
+            takerFees = this.safeDict(this.fees, 'rwa', {});
+        }
         let settleId = undefined;
         let settle = undefined;
         let symbol = base + '/' + quote;
@@ -2483,10 +2486,8 @@ export default class extended extends Exchange {
         const syntheticResolution = this.safeInteger(params, 'syntheticResolution');
         const collateralResolution = this.safeInteger(params, 'collateralResolution');
         const quoteAmount = Precise.stringMul(amountString, priceString);
-        const baseRoundUp = isBuy;
-        const quoteRoundUp = isBuy;
-        let baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        let collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
+        let baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, isBuy);
+        let collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, isBuy);
         if (isBuy) {
             collateralAmount = Precise.stringNeg(collateralAmount);
         }

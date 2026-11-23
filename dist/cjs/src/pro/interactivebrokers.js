@@ -1184,7 +1184,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const symbols = {};
         for (let i = 0; i < args.length; i++) {
             const rawTrade = args[i];
-            const trade = this.parseTrade(rawTrade);
+            const trade = this.parseTrade(this.safeDict(args, i, {}));
             const tradeTimestamp = this.safeInteger(trade, 'timestamp');
             if ((threshold !== undefined) && (tradeTimestamp !== undefined) && (tradeTimestamp < threshold)) {
                 continue;

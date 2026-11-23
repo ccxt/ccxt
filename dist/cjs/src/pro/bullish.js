@@ -573,7 +573,7 @@ class bullish extends bullish$1["default"] {
             const trades = this.myTrades;
             const symbols = {};
             for (let i = 0; i < rawTrades.length; i++) {
-                const parsedTrade = this.parseTrade(rawTrades[i]);
+                const parsedTrade = this.parseTrade(this.safeDict(rawTrades, i, {}));
                 trades.append(parsedTrade);
                 const symbol = this.safeString(parsedTrade, 'symbol');
                 if (symbol !== undefined) {

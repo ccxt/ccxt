@@ -752,7 +752,7 @@ class onetrading extends onetrading$1["default"] {
             client.resolve(this.orders, 'orders:' + symbol);
             const rawTrades = this.safeList(rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
-                const trade = this.parseTrade(rawTrades[ii]);
+                const trade = this.parseTrade(this.safeDict(rawTrades, ii, {}));
                 symbol = this.safeString(trade, 'symbol', symbol);
                 this.myTrades.append(trade);
                 client.resolve(this.myTrades, 'myTrades:' + symbol);

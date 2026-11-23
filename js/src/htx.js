@@ -3011,7 +3011,7 @@ export default class htx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade(trades[j], market);
+                const trade = this.parseTrade(this.safeDict(trades, j, {}), market);
                 result.push(trade);
             }
         }
@@ -5097,7 +5097,12 @@ export default class htx extends Exchange {
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             }
             else {
-                feeCurrency = (side === 'sell') ? marketResolved['quote'] : marketResolved['base'];
+                if (side === 'sell') {
+                    feeCurrency = this.safeString(marketResolved, 'quote');
+                }
+                else {
+                    feeCurrency = this.safeString(marketResolved, 'base');
+                }
             }
             fee = {
                 'cost': feeCost,
@@ -5372,7 +5377,10 @@ export default class htx extends Exchange {
             'volume': this.amountToPrecision(symbol, amount),
         };
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 'post_only', params);
-        let orderType = (postOnly) ? 'post_only' : type;
+        let orderType = type;
+        if (postOnly) {
+            orderType = 'post_only';
+        }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('createOrder', market, paramsPostOnly);
         let query = paramsSubType;
         const isLinear = (subType === 'linear');
@@ -6625,7 +6633,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const parsed = this.parseDepositAddresses(data, [currency['code']], false);
+        const parsed = this.parseDepositAddresses(data, [this.safeString(currency, 'code', '')], false);
         return this.indexBy(parsed, 'network');
     }
     /**
@@ -6671,7 +6679,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const allAddresses = this.parseDepositAddresses(data, [currency['code']], false);
+        const allAddresses = this.parseDepositAddresses(data, [this.safeString(currency, 'code', '')], false);
         const addresses = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
@@ -8637,8 +8645,7 @@ export default class htx extends Exchange {
         }
         const data = this.safeValue(response, 'data');
         if (this.safeBool(market, 'linear', false)) {
-            const linearPosition = this.safeDict(data, 0, {});
-            return this.parsePosition(linearPosition, market);
+            return this.parsePosition(this.safeDict(data, 0, {}), market);
         }
         let account = undefined;
         if ((marginModeOption === undefined) || (marginModeOption === 'cross')) {

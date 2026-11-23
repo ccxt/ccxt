@@ -372,7 +372,7 @@ export default class grvt extends grvtRest {
     }
     parseWsTrade(trade, market = undefined) {
         // same as REST api
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend({}, trade), market);
     }
     /**
      * @method

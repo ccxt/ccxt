@@ -3029,7 +3029,7 @@ export default class gate extends Exchange {
         if (ticker === undefined) {
             throw new NullResponse(this.id + ' fetchTicker() returned empty response');
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         //

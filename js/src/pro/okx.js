@@ -107,7 +107,7 @@ export default class okx extends okxRest {
     }
     getUrl(channel, access = 'public') {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        const isSandbox = this.options['sandboxMode'];
+        const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
         let sandboxSuffix = '';
         if (isSandbox === true) {
             sandboxSuffix = '?brokerId=9999';
@@ -340,7 +340,7 @@ export default class okx extends okxRest {
         const data = this.safeList(message, 'data', []);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i]);
+            const trade = this.parseTrade(this.safeDict(data, i, {}));
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache(tradesLimit);
@@ -892,8 +892,7 @@ export default class okx extends okxRest {
         //
         const rawLiquidations = this.safeList(message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
-            const rawLiquidation = rawLiquidations[i];
-            const liquidation = this.parseWsLiquidation(rawLiquidation);
+            const liquidation = this.parseWsLiquidation(rawLiquidations[i]);
             const symbol = this.safeString(liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);

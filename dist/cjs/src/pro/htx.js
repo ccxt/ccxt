@@ -330,7 +330,7 @@ class htx extends htx$1["default"] {
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i], market);
+            const trade = this.parseTrade(this.safeDict(data, i, {}), market);
             tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
@@ -1595,7 +1595,7 @@ class htx extends htx$1["default"] {
         let side = undefined;
         if (type !== undefined) {
             const typeParts = type.split('-');
-            side = typeParts[0];
+            side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
         const aggressor = this.safeBool(trade, 'aggressor');
@@ -2771,8 +2771,7 @@ class htx extends htx$1["default"] {
                 const marketId = this.safeString(message, 'symbol');
                 const market = this.market(marketId);
                 for (let i = 0; i < rawTrades.length; i++) {
-                    const trade = rawTrades[i];
-                    let parsedTrade = this.parseTrade(trade, market);
+                    let parsedTrade = this.parseTrade(this.safeDict(rawTrades, i, {}), market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
                     cachedTrades.append(parsedTrade);

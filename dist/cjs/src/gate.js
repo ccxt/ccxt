@@ -3028,7 +3028,7 @@ class gate extends gate$1["default"] {
         if (ticker === undefined) {
             throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         //

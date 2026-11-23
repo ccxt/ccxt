@@ -95,7 +95,6 @@ export default class blofin extends blofinRest {
      */
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
-    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name blofin#watchBidsAsks

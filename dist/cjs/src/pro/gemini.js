@@ -361,8 +361,7 @@ class gemini extends gemini$1["default"] {
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
         for (let i = 0; i < changesLength; i++) {
-            const parsed = this.parseOHLCV(this.safeValue(changes, changesLength - i - 1), market);
-            stored.append(parsed);
+            stored.append(this.parseOHLCV(this.safeValue(changes, changesLength - i - 1), market));
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
         client.resolve(stored, messageHash);

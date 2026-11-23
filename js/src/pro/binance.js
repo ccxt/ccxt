@@ -639,8 +639,7 @@ export default class binance extends binanceRest {
         const optionsType = this.safeDict(this.options, type, {});
         const listenKey = this.safeString(optionsType, 'listenKey');
         const url = this.getPrivateWsUrl(type, listenKey);
-        const message = undefined;
-        const newLiquidations = await this.watchMultiple(url, messageHashes, message, [type]);
+        const newLiquidations = await this.watchMultiple(url, messageHashes, undefined, [type]);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -1587,7 +1586,7 @@ export default class binance extends binanceRest {
         const executionType = this.safeString(trade, 'x');
         const isTradeExecution = (executionType === 'TRADE');
         if (!isTradeExecution) {
-            return this.parseTrade(trade, market);
+            return this.parseTrade(this.extend({}, trade), market);
         }
         const id = this.safeString2(trade, 't', 'a');
         const timestamp = this.safeInteger(trade, 'T');
@@ -3670,8 +3669,7 @@ export default class binance extends binanceRest {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
-        const message = undefined;
-        return await this.watch(url, messageHash, message, type);
+        return await this.watch(url, messageHash, undefined, type);
     }
     handleBalance(client, message) {
         //
@@ -4563,8 +4561,7 @@ export default class binance extends binanceRest {
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, undefined, isPortfolioMargin);
-        const message = undefined;
-        const orders = await this.watch(url, messageHash, message, type);
+        const orders = await this.watch(url, messageHash, undefined, type);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit(symbolResolved, limit);
@@ -5660,8 +5657,7 @@ export default class binance extends binanceRest {
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, undefined, isPortfolioMargin);
-        const message = undefined;
-        const trades = await this.watch(url, messageHash, message, type);
+        const trades = await this.watch(url, messageHash, undefined, type);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit(symbolResolved, limit);

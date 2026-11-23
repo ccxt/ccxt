@@ -812,8 +812,7 @@ class coinbase extends coinbase$1["default"] {
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             const tradesLength = currentTrades.length;
             for (let j = 0; j < tradesLength; j++) {
-                const item = currentTrades[tradesLength - j - 1];
-                tradesArray.append(this.parseTrade(item));
+                tradesArray.append(this.parseTrade(this.safeDict(currentTrades, tradesLength - j - 1, {})));
             }
         }
         client.resolve(tradesArray, messageHash);

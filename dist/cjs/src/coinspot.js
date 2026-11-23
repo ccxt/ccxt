@@ -492,8 +492,7 @@ class coinspot extends coinspot$1["default"] {
             const market = this.safeMarket(id);
             if (this.safeBool(market, 'spot', false)) {
                 const symbol = this.safeString(market, 'symbol', '');
-                const ticker = prices[id];
-                result[symbol] = this.parseTicker(ticker, market);
+                result[symbol] = this.parseTicker(this.safeDict(prices, id, {}), market);
             }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);

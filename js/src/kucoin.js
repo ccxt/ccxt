@@ -2354,11 +2354,10 @@ export default class kucoin extends Exchange {
         return this.parseCurrencies(filteredCurrencies);
     }
     parseCurrency(currency) {
-        const entry = currency;
-        const id = this.safeString(entry, 'currency');
+        const id = this.safeString(currency, 'currency');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const chains = this.safeList2(entry, 'chains', 'items', []);
+        const chains = this.safeList2(currency, 'chains', 'items', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict(chains, j);
@@ -2389,16 +2388,16 @@ export default class kucoin extends Exchange {
             }
         }
         // kucoin has determined 'fiat' currencies with below logic
-        const rawPrecision = this.safeString(entry, 'precision');
+        const rawPrecision = this.safeString(currency, 'precision');
         const precision = this.parseNumber(this.parsePrecision(rawPrecision));
         const isFiat = chainsLength === 0;
         return this.safeCurrencyStructure({
             'id': id,
-            'name': this.safeString(entry, 'fullName'),
+            'name': this.safeString(currency, 'fullName'),
             'code': code,
             'type': isFiat ? 'fiat' : 'crypto',
             'precision': precision,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': undefined,
             'withdraw': undefined,
@@ -3816,7 +3815,7 @@ export default class kucoin extends Exchange {
             this.setDepositAddressesVersion(version);
         }
         const chains = this.safeList(response, 'data', []);
-        const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
+        const parsed = this.parseDepositAddresses(chains, [this.safeString(currency, 'code', '')], false, {
             'currency': currency['code'],
         });
         return this.indexBy(parsed, 'network');
@@ -5126,8 +5125,7 @@ export default class kucoin extends Exchange {
                 //    }
                 //
             }
-            response = this.safeDict(response, 'data');
-            return this.parseOrder(response);
+            return this.parseOrder(this.safeDict(response, 'data', {}));
         }
         else {
             request['orderId'] = id;
@@ -5161,8 +5159,7 @@ export default class kucoin extends Exchange {
                 //        }
                 //    }
                 //
-                response = this.safeDict(response, 'data', {});
-                return this.parseOrder(response);
+                return this.parseOrder(this.safeDict(response, 'data', {}));
             }
             else {
                 response = await this.privateDeleteOrdersOrderId(this.extend(request, paramsOmitted));

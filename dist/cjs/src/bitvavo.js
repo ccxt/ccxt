@@ -725,7 +725,7 @@ class bitvavo extends bitvavo$1["default"] {
         //         "timestamp":1590381666900
         //     }
         //
-        return this.parseTicker(response, market);
+        return this.parseTicker(this.extend({}, response), market);
     }
     parseTicker(ticker, market = undefined) {
         //

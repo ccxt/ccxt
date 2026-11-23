@@ -1454,8 +1454,7 @@ export default class bitteam extends Exchange {
             rawTickers = response;
         }
         for (let i = 0; i < rawTickers.length; i++) {
-            const rawTicker = rawTickers[i];
-            const ticker = this.parseTicker(rawTicker);
+            const ticker = this.parseTicker(this.safeDict(rawTickers, i, {}));
             tickers.push(ticker);
         }
         return this.filterByArrayTickers(tickers, 'symbol', symbols);

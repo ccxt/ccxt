@@ -3347,10 +3347,15 @@ class bybit extends bybit$1["default"] {
         }
         const category = this.safeString(trade, 'category');
         if (category !== undefined) {
-            marketType = (category === 'spot') ? 'spot' : 'contract';
+            if (category === 'spot') {
+                marketType = 'spot';
+            }
+            else {
+                marketType = 'contract';
+            }
         }
         if (market !== undefined) {
-            marketType = this.safeString(market, 'type');
+            marketType = this.safeString(market, 'type', marketType);
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = this.safeString(marketResolved, 'symbol');
@@ -6101,7 +6106,7 @@ class bybit extends bybit$1["default"] {
         const chains = this.safeList(result, 'chains', []);
         const coin = this.safeString(result, 'coin');
         const currencyFromResponse = this.currency(coin);
-        const parsed = this.parseDepositAddresses(chains, [currencyFromResponse['code']], false, {
+        const parsed = this.parseDepositAddresses(chains, [this.safeString(currencyFromResponse, 'code', '')], false, {
             'currency': currencyFromResponse['code'],
         });
         return this.indexBy(parsed, 'network');
@@ -6796,8 +6801,7 @@ class bybit extends bybit$1["default"] {
         const result = this.safeDict(response, 'result', {});
         const positions = this.safeList2(result, 'list', 'dataList', []);
         const timestamp = this.safeInteger(response, 'time');
-        const first = this.safeDict(positions, 0, {});
-        const position = this.parsePosition(first, market);
+        const position = this.parsePosition(this.safeDict(positions, 0, {}), market);
         position['timestamp'] = timestamp;
         position['datetime'] = this.iso8601(timestamp);
         return position;
@@ -8170,7 +8174,7 @@ class bybit extends bybit$1["default"] {
         const marketId = this.safeString(fee, 'symbol');
         let defaultType = 'contract';
         if (market !== undefined) {
-            defaultType = this.safeString(market, 'type');
+            defaultType = this.safeString(market, 'type', 'contract');
         }
         const symbol = this.safeSymbol(marketId, market, undefined, defaultType);
         return {
@@ -9169,7 +9173,7 @@ class bybit extends bybit$1["default"] {
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         let code = 'USDT';
         if (this.safeBool(marketResolved, 'inverse', false)) {
-            code = marketResolved['quote'];
+            code = this.safeString(marketResolved, 'quote', 'USDT');
         }
         const timestamp = this.safeInteger(income, 'execTime');
         return {

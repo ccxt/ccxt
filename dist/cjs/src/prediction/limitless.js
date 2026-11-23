@@ -309,8 +309,7 @@ class limitless extends limitless$1["default"] {
         const eventKeys = Object.keys(eventGroups);
         for (let i = 0; i < eventKeys.length; i++) {
             const eventKey = eventKeys[i];
-            const g = eventGroups[eventKey];
-            eventsDict[eventKey] = this.parseEvent(g);
+            eventsDict[eventKey] = this.parseEvent(this.safeDict(eventGroups, eventKey, {}));
         }
         this.events = eventsDict;
         const marketsLength = markets.length;
@@ -430,8 +429,7 @@ class limitless extends limitless$1["default"] {
         const tokenEntries = Object.keys(tokens);
         for (let i = 0; i < tokenEntries.length; i++) {
             const outcomeLabel = tokenEntries[i];
-            const tokenData = tokens[outcomeLabel];
-            const tokenId = tokenData;
+            const tokenId = this.safeString(tokens, outcomeLabel);
             const outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1046,10 +1044,8 @@ class limitless extends limitless$1["default"] {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             const rawBids = this.safeList(book, 'bids', []);
             const rawAsks = this.safeList(book, 'asks', []);
-            const rawBidsLength = rawBids.length;
-            const rawAsksLength = rawAsks.length;
-            const yesBestBid = (rawBidsLength > 0) ? rawBids[0] : undefined;
-            const yesBestAsk = (rawAsksLength > 0) ? rawAsks[0] : undefined;
+            const yesBestBid = this.safeDict(rawBids, 0);
+            const yesBestAsk = this.safeDict(rawAsks, 0);
             const yesBidPrice = this.safeString(yesBestBid, 'price');
             const yesBidSize = this.safeString(yesBestBid, 'size');
             const yesAskPrice = this.safeString(yesBestAsk, 'price');
@@ -2139,7 +2135,10 @@ class limitless extends limitless$1["default"] {
                 }
                 else {
                     const quoteAmount = this.parseToNumeric(Precise["default"].stringMul(amountString, priceString));
-                    const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                    let costRequest = quoteAmount;
+                    if (cost !== undefined) {
+                        costRequest = cost;
+                    }
                     makerAmount = this.costToPredictionPrecision(outcome, costRequest);
                 }
             }
@@ -2256,10 +2255,8 @@ class limitless extends limitless$1["default"] {
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        rHex = this.padHexToEven(rHex);
-        sHex = this.padHexToEven(sHex);
+        const rHex = this.padHexToEven(this.safeString(signature, 'r'));
+        const sHex = this.padHexToEven(this.safeString(signature, 's'));
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {

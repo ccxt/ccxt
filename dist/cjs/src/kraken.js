@@ -1162,8 +1162,7 @@ class kraken extends kraken$1["default"] {
         };
         const response = await this.publicGetTicker(this.extend(request, params));
         const tickerResult = this.safeDict(response, 'result', {});
-        const ticker = this.safeValue(tickerResult, market['id']);
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.safeDict(tickerResult, market['id'], {}), market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1273,9 +1272,7 @@ class kraken extends kraken$1["default"] {
         //
         const id = this.safeString(item, 'id');
         let direction = undefined;
-        const account = undefined;
         const referenceId = this.safeString(item, 'refid');
-        const referenceAccount = undefined;
         const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
         const currencyId = this.safeString(item, 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -1293,9 +1290,9 @@ class kraken extends kraken$1["default"] {
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': undefined,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber(amount),
@@ -3772,7 +3769,7 @@ class kraken extends kraken$1["default"] {
                 const numErrors = errors$1.length;
                 if (numErrors > 0) {
                     for (let i = 0; i < numErrors; i++) {
-                        const error = errors$1[i];
+                        const error = this.safeString(errors$1, i);
                         this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                         this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                     }

@@ -1492,7 +1492,7 @@ export default class whitebit extends Exchange {
                     if (orderId === id) {
                         const marketId = this.safeString(order, 'market');
                         const marketNew = this.safeMarket(marketId, undefined, '_');
-                        return this.parseOrder(order, marketNew);
+                        return this.parseOrder(this.safeDict(orders, i, {}), marketNew);
                     }
                 }
             }
@@ -1517,7 +1517,7 @@ export default class whitebit extends Exchange {
                         const order = marketOrders[j];
                         const orderId = this.safeString(order, 'id', '');
                         if (orderId === id) {
-                            return this.parseOrder(order, marketNew);
+                            return this.parseOrder(this.safeDict(marketOrders, j, {}), marketNew);
                         }
                     }
                 }
@@ -1642,7 +1642,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const ticker = this.parseTicker(this.safeValue(response, marketId), market);
+            const ticker = this.parseTicker(this.safeDict(response, marketId, {}), market);
             const symbol = this.safeString(ticker, 'symbol');
             result[symbol] = ticker;
         }

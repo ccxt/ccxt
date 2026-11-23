@@ -442,8 +442,7 @@ export default class deribit extends deribitRest {
         }
         const stored = this.trades[symbol];
         for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            const parsed = this.parseTrade(trade, market);
+            const parsed = this.parseTrade(this.safeDict(trades, i, {}), market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;

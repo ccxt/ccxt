@@ -400,7 +400,7 @@ class mudrex extends mudrex$1["default"] {
             if (symbols !== undefined && !this.inArray(symbol, symbols)) {
                 continue;
             }
-            resultTickers[symbol] = this.parseTicker(t, m);
+            resultTickers[symbol] = this.parseTicker(this.safeDict(rows, i, {}), m);
         }
         return this.filterByArrayTickers(resultTickers, 'symbol', symbols);
     }

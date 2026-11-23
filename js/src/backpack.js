@@ -618,7 +618,9 @@ export default class backpack extends Exchange {
         let deposit = undefined;
         let withdraw = undefined;
         if (this.isEmpty(parsedNetworks)) { // if networks are not provided
-            active = (stock) ? undefined : false;
+            if (!stock) {
+                active = false;
+            }
             deposit = false;
             withdraw = false;
         }
@@ -919,7 +921,12 @@ export default class backpack extends Exchange {
                 if (sessionsLength > 0) {
                     amountPrecision = this.parseNumber(stepSize);
                     minQuantity = this.parseNumber(minimum);
-                    maxQuantity = (unbounded) ? undefined : this.parseNumber(maximum);
+                    if (unbounded) {
+                        maxQuantity = undefined;
+                    }
+                    else {
+                        maxQuantity = this.parseNumber(maximum);
+                    }
                 }
             }
         }
@@ -930,7 +937,7 @@ export default class backpack extends Exchange {
             settleId = this.safeString(market, 'quoteSymbol');
             settle = this.safeCurrencyCode(settleId);
             symbol = base + '/' + quote + ':' + quote; // settle is the quote currency
-            contractSize = 1;
+            contractSize = this.parseNumber('1');
         }
         else {
             return undefined;
@@ -1371,11 +1378,10 @@ export default class backpack extends Exchange {
     filterStockStructures(entries) {
         const result = [];
         for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
-            const symbol = this.safeString(entry, 'symbol');
+            const symbol = this.safeString(entries[i], 'symbol');
             const market = this.safeDict(this.markets, symbol);
             if (this.safeBool(market, 'stock', false)) {
-                result.push(entry);
+                result.push(entries[i]);
             }
         }
         return result;
@@ -1945,10 +1951,9 @@ export default class backpack extends Exchange {
             }
             const filtered = [];
             for (let i = 0; i < rfqTrades.length; i++) {
-                const trade = rfqTrades[i];
-                const timestamp = this.safeInteger(trade, 'timestamp');
+                const timestamp = this.safeInteger(rfqTrades[i], 'timestamp');
                 if ((until === undefined) || ((timestamp !== undefined) && (timestamp <= until))) {
-                    filtered.push(trade);
+                    filtered.push(rfqTrades[i]);
                 }
             }
             const sorted = this.sortBy(filtered, 'timestamp');
@@ -3240,14 +3245,14 @@ export default class backpack extends Exchange {
         const entryPrice = this.safeNumber(position, 'entryPrice');
         const markPrice = this.safeNumber(position, 'markPrice');
         const netCost = this.safeString(position, 'netCost');
-        let hedged = false;
-        let side = 'long';
-        if (Precise.stringLt(netCost, '0')) {
-            side = 'short';
-        }
-        if (netCost === undefined) {
-            hedged = undefined;
-            side = undefined;
+        let hedged = undefined;
+        let side = undefined;
+        if (netCost !== undefined) {
+            hedged = false;
+            side = 'long';
+            if (Precise.stringLt(netCost, '0')) {
+                side = 'short';
+            }
         }
         const unrealizedPnl = this.safeNumber(position, 'pnlUnrealized');
         const realizedPnl = this.safeNumber(position, 'pnlRealized');

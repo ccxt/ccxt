@@ -1098,7 +1098,7 @@ class bithumb extends bithumb$1["default"] {
                     if (symbol === undefined) {
                         continue;
                     }
-                    result[symbol] = this.parseTicker(entry, market);
+                    result[symbol] = this.parseTicker(this.safeDict(tickers, j, {}), market);
                 }
             }
         }
@@ -1251,7 +1251,7 @@ class bithumb extends bithumb$1["default"] {
             //
             data = this.safeDict(response, 'data', {});
         }
-        return this.parseTicker(data, market);
+        return this.parseTicker(this.extend({}, data), market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

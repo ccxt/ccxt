@@ -1970,8 +1970,7 @@ class okx extends okx$1["default"] {
             const optionsUnderlying = this.safeList(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
             const promises = [];
             for (let i = 0; i < optionsUnderlying.length; i++) {
-                const underlying = optionsUnderlying[i];
-                request['uly'] = underlying;
+                request['uly'] = this.safeString(optionsUnderlying, i);
                 promises.push(this.publicGetPublicInstruments(this.extend(request, params)));
             }
             const promisesResult = await Promise.all(promises);
@@ -3967,8 +3966,7 @@ class okx extends okx$1["default"] {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeList(response, 'data', []);
-        const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     parseIds(ids) {
         /**
@@ -4694,8 +4692,7 @@ class okx extends okx$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -5687,7 +5684,7 @@ class okx extends okx$1["default"] {
         //
         const data = this.safeList(response, 'data', []);
         const filtered = this.filterBy(data, 'selected', true);
-        const parsed = this.parseDepositAddresses(filtered, [currency['code']], false);
+        const parsed = this.parseDepositAddresses(filtered, [this.safeString(currency, 'code', '')], false);
         return this.indexBy(parsed, 'network');
     }
     /**
@@ -9112,8 +9109,7 @@ class okx extends okx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method

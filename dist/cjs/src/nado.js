@@ -1552,10 +1552,9 @@ class nado extends nado$1["default"] {
             const submissionIdx = this.safeString(event, 'submission_idx');
             let tx = {};
             for (let j = 0; j < txs.length; j++) {
-                const rawTx = txs[j];
-                const txSubmissionIdx = this.safeString(rawTx, 'submission_idx');
+                const txSubmissionIdx = this.safeString(txs[j], 'submission_idx');
                 if (txSubmissionIdx === submissionIdx) {
-                    tx = rawTx;
+                    tx = txs[j];
                     break;
                 }
             }
@@ -1629,10 +1628,9 @@ class nado extends nado$1["default"] {
             const productId = this.safeString(position, 'product_id');
             let product = {};
             for (let j = 0; j < products.length; j++) {
-                const rawProduct = products[j];
-                const rawProductId = this.safeString(rawProduct, 'product_id');
+                const rawProductId = this.safeString(products[j], 'product_id');
                 if (rawProductId === productId) {
-                    product = rawProduct;
+                    product = products[j];
                     break;
                 }
             }
