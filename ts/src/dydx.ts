@@ -1232,7 +1232,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message: any, privateKey: any): Dict {
+    signMessage (message: any, privateKey: string): Dict {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
