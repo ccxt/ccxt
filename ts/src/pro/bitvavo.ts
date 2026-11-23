@@ -473,7 +473,7 @@ export default class bitvavo extends bitvavoRest {
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         const messageHash = name + '@' + this.safeString (message, 'market', '') + '_' + interval;
-        const candles: Dict[] = this.safeList (message, 'candle', []);
+        const candles = this.safeList (message, 'candle', []);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -482,8 +482,7 @@ export default class bitvavo extends bitvavoRest {
             this.ohlcvs[symbol][timeframe as string] = stored;
         }
         for (let i = 0; i < candles.length; i++) {
-            const candle = candles[i];
-            const parsed = this.parseOHLCV (candle, market);
+            const parsed = this.parseOHLCV (candles[i], market);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
