@@ -707,13 +707,13 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
         //
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let errorCode: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64();
         if (errorCode.is_some()) && (errorCode != Some(0)) {
@@ -724,9 +724,7 @@ impl crate::exchange::DerivedExchange for Apex {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -762,7 +760,7 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "get_account_id" => self.get_account_id().await,
                 "get_seeds" => crate::Value::from(self.get_seeds()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),

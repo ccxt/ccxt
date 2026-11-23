@@ -952,9 +952,9 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -968,9 +968,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1026,8 +1024,8 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "get_asset_history_rows" => Value::Arr(self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "get_withdraw_nonce" => self.get_withdraw_nonce(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -4965,7 +4963,7 @@ impl Woofipro {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: f64, type_var: &str, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: f64, type_var: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4992,9 +4990,7 @@ impl Woofipro {
         let mut modification: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         modification.insert("type".into(), (if (type_var == "ADD") { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         modification.insert("amount".into(), self.parse_number(Value::from(self.number_to_string(Value::from(amount))), &[]));
-        return Value::Map(modification);
-
-    Value::Null
+        return std::sync::Arc::new(modification);
 }
 
 /*
@@ -5019,7 +5015,7 @@ impl Woofipro {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "ADD", &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "ADD", &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -5046,7 +5042,7 @@ impl Woofipro {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "REDUCE", &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "REDUCE", &[&params]).await);
         Value::Null
         }).await?))
     }

@@ -89,7 +89,7 @@ impl Extended {
         match __n {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_funding_rate" => { self.handle_funding_rate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_mark_price" => { self.handle_mark_price(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -277,8 +277,8 @@ impl Extended {
             client.reject(error, messageHash.as_str());
             return;
         }
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&data, "b", &[Value::from(vec![])]));
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(&data, "a", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), (self.safe_list_k(&data, "b", &[Value::from(vec![])])).as_array().map(Vec::as_slice).unwrap_or_default());
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), (self.safe_list_k(&data, "a", &[Value::from(vec![])])).as_array().map(Vec::as_slice).unwrap_or_default());
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.set_book_meta("nonce", Value::from(nonce));
@@ -291,9 +291,7 @@ impl Extended {
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: &[crate::Value]) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;

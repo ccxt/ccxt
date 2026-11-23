@@ -428,8 +428,8 @@ impl Dydx {
         orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
         let asks: crate::value::List = self.safe_list_k_t(&content, "asks");
         let bids: crate::value::List = self.safe_list_k_t(&content, "bids");
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks);
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids);
         orderbook.set_book_meta("nonce", (match message.get("message_id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
         let messageHash: String = format!("{}{}", "orderbook:", symbol);
         let __resolved_orderbook = Value::from(&orderbook);

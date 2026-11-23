@@ -1111,9 +1111,9 @@ impl crate::exchange::DerivedExchange for Bullish {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //         {
@@ -1144,9 +1144,7 @@ impl crate::exchange::DerivedExchange for Bullish {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1189,7 +1187,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "get_closest_limit" => self.get_closest_limit(args.get(0).and_then(crate::Value::as_i64)),
                 "get_timestamp" => self.get_timestamp(),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_pagination_params" => crate::Value::Dict(self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_since_and_until" => crate::Value::Dict(self.handle_since_and_until(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_token" => self.handle_token(&args[..].iter().collect::<Vec<_>>()).await,

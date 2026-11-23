@@ -99,18 +99,18 @@ impl Coinbase {
         match __n {
             "handle_heartbeats" => { self.handle_heartbeats(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_helper" => { self.handle_order_book_helper(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_tickers" => { self.handle_tickers(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_tickers" => { self.handle_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "subscribe" => crate::exchange_stubs::enqueue_spawn("subscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "subscribe_multiple" => crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "try_resolve_usdc" => { self.try_resolve_usdc(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "try_resolve_usdc" => { self.try_resolve_usdc(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "un_subscribe" => crate::exchange_stubs::enqueue_spawn("un_subscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "un_subscribe_multiple" => crate::exchange_stubs::enqueue_spawn("un_subscribe_multiple", args.iter().copied().cloned().collect::<Vec<_>>()),
             "un_watch_order_book" => crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -597,7 +597,7 @@ impl Coinbase {
         }).await?))
     }
 
-    pub fn handle_tickers(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_tickers(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -709,7 +709,7 @@ impl Coinbase {
                 if (wsMarketId.is_none()) {
                     continue;
                 }
-                let mut result: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None);
+                let mut result: crate::value::Dict = self.parse_ws_ticker(&ticker, None);
                 std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
                 std::sync::Arc::make_mut(&mut result).insert("datetime".into(), Value::from(datetime.as_deref()));
                 let symbol: String = self.safe_string_k(&result, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -728,7 +728,8 @@ impl Coinbase {
         }
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        let ticker: Value = ticker.into();
         //
         //     {
         //         "type": "ticker",
@@ -822,7 +823,7 @@ impl Coinbase {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //     {
         //         "channel": "candles",
@@ -873,7 +874,7 @@ impl Coinbase {
                 stored.append(Value::Arr(parsed));
                 let messageHash: String = format!("{}{}", "candles::", symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&stored), messageHash.as_str());
-                self.try_resolve_usdc(&client, messageHash.as_str(), Value::from(&stored));
+                self.try_resolve_usdc(client, messageHash.as_str(), Value::from(&stored));
             }
             }
         }
@@ -1180,7 +1181,7 @@ impl Coinbase {
         }).await?))
     }
 
-    pub fn handle_trade(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "channel": "market_trades",
@@ -1247,7 +1248,7 @@ impl Coinbase {
         self.try_resolve_usdc(client, messageHash.as_str(), Value::from(&tradesArray));
 }
 
-    pub fn handle_order(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "channel": "user",
@@ -1405,8 +1406,7 @@ impl Coinbase {
         }
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1453,7 +1453,7 @@ impl Coinbase {
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let messageHash: String = format!("{}{}", "level2::", symbol);
-            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
+            let subscription: crate::value::Dict = self.safe_dict_t(&(client).subscriptions, Value::from(messageHash.as_str()));
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
             let type_var: Option<String> = self.safe_string_k_opt(&event, "type", &[]);
             if (type_var.as_deref() == Some("snapshot")) {
@@ -1479,12 +1479,12 @@ impl Coinbase {
             orderbook.set_book_meta("datetime", Value::from(datetime.as_deref()));
             orderbook.set_book_meta("symbol", Value::from(symbol));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
-            self.try_resolve_usdc(&client, messageHash.as_str(), Value::from(&orderbook));
+            self.try_resolve_usdc(client, messageHash.as_str(), Value::from(&orderbook));
         }
         }
 }
 
-    pub fn try_resolve_usdc(&self, client: &Value, messageHash: &str, result: impl Into<crate::Value>) {
+    pub fn try_resolve_usdc(&self, client: &crate::pro::ws_client::ClientHandle, messageHash: &str, result: impl Into<crate::Value>) {
         let result: Value = result.into();
         if (Some(messageHash).unwrap_or("").ends_with("/USD")) || (Some(messageHash).unwrap_or("").ends_with("-USD")) {
             client.resolve(result, &(Value::Str(format!("{}{}", Value::from(messageHash), "C").into()))); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too

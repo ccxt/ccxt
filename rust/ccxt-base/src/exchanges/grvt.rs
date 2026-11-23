@@ -1005,7 +1005,7 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (Some(url).unwrap_or("").ends_with("auth/api_key/login")) || (Some(url).unwrap_or("").ends_with("auth/wallet/login")) {
             let accountId: Option<String> = self.safe_string2_opt(&headers, Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]);
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("AuthAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null)); }
@@ -1037,9 +1037,7 @@ impl crate::exchange::DerivedExchange for Grvt {
                 }
             }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1083,7 +1081,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "filter_transfers_by_type" => self.filter_transfers_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
                 "format_signature_rs" => self.format_signature_rs(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_until_option_string" => { let __t = self.handle_until_option_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client(&args[..]).await,
                 "internal_fetch_transfers" => Value::Arr(self.internal_fetch_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),

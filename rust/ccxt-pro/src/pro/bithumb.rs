@@ -91,11 +91,11 @@ impl Bithumb {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "build_gen2_subscription_request" => { self.build_gen2_subscription_request(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
@@ -367,8 +367,8 @@ impl Bithumb {
     }
 
     pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // generation 1
         //
@@ -432,13 +432,14 @@ impl Bithumb {
         //         "stream_type": "REALTIME"
         //     }
         //
-        let content: Value = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let isGenerationTwo: bool = content == Value::Null;
-        let mut tickerMessage: Value = Value::Null;
-        if isGenerationTwo {
-            tickerMessage = message;
-        }  else {
-            tickerMessage = content;
+        let content: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "content");
+        let isGenerationTwo: bool = content.is_none();
+        let mut tickerMessage: Value = message;
+        if !isGenerationTwo {
+            tickerMessage = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}) });
         }
         let marketId: Option<String> = self.safe_string2_opt(&tickerMessage, Value::Str("symbol".into()), Value::Str("code".into()), &[]);
         if (marketId.is_none()) {
@@ -455,8 +456,7 @@ impl Bithumb {
         client.resolve((if let (__m, Some(__k)) = (&self.tickers, symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let ticker: Value = ticker.into();
+    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -759,7 +759,7 @@ impl Bithumb {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -770,12 +770,12 @@ impl Bithumb {
         //    }
         //
         let sideId: Option<String> = self.safe_string_k_opt(&delta, "orderType", &[]);
-        let mut side: Value = Value::Str("asks".into());
+        let mut side: String = "asks".to_string();
         if (sideId.as_deref() == Some("bid")) {
-            side = Value::Str("bids".into());
+            side = "bids".to_string();
         }
         let bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("quantity".into())]);
-        let mut orderbookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&orderbook, &side));
+        let mut orderbookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&Value::from(&*orderbook), side.as_str()));
         orderbookSide.store_array(Value::Arr(bidAsk));
 }
 
@@ -1287,7 +1287,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_orders(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         //    {
         //        "type": "myOrder",
@@ -1313,7 +1313,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let messageHash: String = "myOrder".to_string();
-        let parsed: crate::value::Dict = self.parse_ws_order(message, None);
+        let parsed: crate::value::Dict = self.parse_ws_order(Value::Dict(std::sync::Arc::clone(message)), None);
         // const orderId = this.safeString (parsed, 'id');
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);

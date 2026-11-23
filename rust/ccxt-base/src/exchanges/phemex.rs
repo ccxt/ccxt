@@ -1044,7 +1044,7 @@ impl crate::exchange::DerivedExchange for Phemex {
 
     None
 }
-    fn parse_adl_rank(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_adl_rank(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
         //
         // fetchPositionADLRank: linear
@@ -1163,7 +1163,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         //     }
         //
         let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
@@ -1173,9 +1173,9 @@ impl crate::exchange::DerivedExchange for Phemex {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_conversion(&self, conversion: impl Into<crate::Value>, fromCurrency: Option<&crate::types::Currency>, toCurrency: Option<&crate::types::Currency>) -> Value {
         let conversion: Value = conversion.into();
@@ -1379,9 +1379,9 @@ impl crate::exchange::DerivedExchange for Phemex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //     {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
@@ -1398,9 +1398,7 @@ impl crate::exchange::DerivedExchange for Phemex {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1451,8 +1449,8 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "from_er" => crate::Value::from(self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "from_ev" => crate::Value::from(self.from_ev(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
-                "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                "parse_adl_rank" => Value::Dict(self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_fee_to_precision" => self.parse_funding_fee_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
@@ -7274,7 +7272,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (ranks.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_adl_rank(self, ranks.get(i as usize).cloned().unwrap_or(Value::Null), None));
+            let __ws_arg_73 = self.extend(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[ranks.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_adl_rank(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_73).as_ref(), None).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_adl_ranks(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Bool(false)]);

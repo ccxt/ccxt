@@ -1899,9 +1899,9 @@ impl Pacifica {
         let wsHeadersFinal: crate::value::Dict = self.safe_dict_k_t(&wsHeaders, "headers");
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_errors(0, error.as_str(), "", postType.as_str(), Value::Dict(wsHeadersFinal), (json_stringify(&data)).as_str().unwrap_or_default(), message, Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            }), None);
+    let m = indexmap::IndexMap::new();
+    m
+}), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());

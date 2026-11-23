@@ -947,38 +947,38 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if (outcomes != Value::Null) {
-            let mut missing: Value = Value::from(vec![]);
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_23: bool = true;
-                while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (outcomes.len() as i64) } {
-                if reload.as_bool() == Some(true) || !(self.has_outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
-                    if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
-                }
-            }
-            }
-            let mut missingLength: i64 = missing.len() as i64;
             let wasWarm: bool = (self.pred().outcomes.is_some()) && !(self.is_empty(&self.pred().outcomes).as_bool() == Some(true));
             let loadAll: bool = self.safe_bool_k_opt(&self.options, "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
-            if (missingLength > 0) && loadAll && !wasWarm && !(reload.as_bool() == Some(true)) {
+            if loadAll && !wasWarm && !(reload.as_bool() == Some(true)) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                self.load_outcomes(&[]).await;
-                let mut stillMissing: crate::value::List = std::sync::Arc::new(Vec::new());
+                let mut coldMiss: bool = false;
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_24: bool = true;
-                    while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < missingLength } {
-                    if !(self.has_outcome((missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
-                        std::sync::Arc::make_mut(&mut stillMissing).push(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                    let mut __for_first_23: bool = true;
+                    while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (outcomes.len() as i64) } {
+                    if !(self.has_outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
+                        coldMiss = true;
                     }
                 }
                 }
-                missing = Value::Arr(stillMissing);
-                missingLength = missing.len() as i64;
+                if coldMiss {
+                    self.load_outcomes(&[]).await;
+                }
             }
+            let mut missing: Vec<Value> = Vec::new();
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_24: bool = true;
+                while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (outcomes.len() as i64) } {
+                if reload.as_bool() == Some(true) || !(self.has_outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
+                    missing.push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                }
+            }
+            }
+            let missingLength: i64 = missing.len() as i64;
             if missingLength > 0 {
-                self.fetch_outcomes(missing).await;
+                self.fetch_outcomes(Value::from(missing)).await;
             }
             return Value::from(&self.pred().outcomes);
         }
@@ -1979,7 +1979,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     } }
 
-    fn safe_prediction_order(&self, mut outcomeOrder: Value, optional_args: &[Value]) -> Value {
+    fn safe_prediction_order(&self, mut outcomeOrder: Value, optional_args: &[Value]) -> crate::value::Dict {
         let outcomeObj = get_arg(optional_args, 0, Value::Null);
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
@@ -2114,9 +2114,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("info".to_string(), self.safe_value_k(outcomeOrder.clone(), "info", &[outcomeOrder]));
             m
         });
-        return Value::Map(result);
+        return std::sync::Arc::new(result);
 
-    Value::Null
+    Default::default()
 }
 
     fn safe_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -2216,7 +2216,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    fn safe_prediction_position(&self, mut position: Value) -> Value {
+    fn safe_prediction_position(&self, mut position: Value) -> crate::value::Dict {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
         let timestamp: Option<i64> = self.safe_integer_k(&position, "timestamp", &[]).as_i64();
@@ -2252,9 +2252,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("info".to_string(), self.safe_value_k(position.clone(), "info", &[position]));
             m
         });
-        return Value::Map(result);
+        return std::sync::Arc::new(result);
 
-    Value::Null
+    Default::default()
 }
 
     fn safe_prediction_order_book(&self, mut orderbook: Value, optional_args: &[Value]) -> Value {
@@ -2282,31 +2282,31 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    fn parse_prediction_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_order(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_prediction_order(self, order, market); if !matches!(__v, crate::Value::Null) { return __v; } }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(order).as_ref(), market) { return __v; }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parsePredictionOrder() is not supported yet")));
 
-    Value::Null
+    Default::default()
 }
 
     fn parse_prediction_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_trade(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_prediction_trade(self, trade, market); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::parse_prediction_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(trade).as_ref(), market); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parsePredictionTrade() is not supported yet")));
 
     Value::Null
 }
 
-    fn parse_prediction_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_position(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_prediction_position(self, position, market); if !matches!(__v, crate::Value::Null) { return __v; } }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_prediction_position(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(position).as_ref(), market) { return __v; }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parsePredictionPosition() is not supported yet")));
 
-    Value::Null
+    Default::default()
 }
 
     fn parse_prediction_open_interest(&self, mut interest: Value, market: Option<&crate::types::Market>) -> Value {
@@ -2345,7 +2345,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (rows.len() as i64) } {
-            let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
+            let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, self.safe_dict(&rows, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let trade: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
         }
@@ -2382,7 +2385,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (rows.len() as i64) } {
-            let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
+            let parsed: Value = Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref()));
             let order: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
         }
@@ -2418,7 +2421,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_31: bool = true;
             while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (rows.len() as i64) } {
-            let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let parsed: Value = Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, self.safe_dict(&rows, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None));
             let position: crate::value::Dict = self.extend_t(parsed, &[&params]);
             results.push(position);
         }
@@ -2730,9 +2736,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "pad_hex_address" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_address(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_to_even" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_to_even(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_prediction_open_interest" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_prediction_order" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_prediction_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_orders(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_prediction_position" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_prediction_position" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_prediction_positions" => Value::Arr(std::sync::Arc::new(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_positions(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).into_iter().map(Value::Dict).collect())),
             "parse_prediction_ticker" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_trade" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2744,9 +2750,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "rlp_encode_list" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_list(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "safe_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome(self, args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "safe_outcome_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "safe_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "safe_prediction_order" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "safe_prediction_order_book" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order_book(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "safe_prediction_position" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "safe_prediction_position" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "safe_prediction_ticker" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_prediction_trade" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "send_evm_transaction" => <Self as crate::prediction_exchange_generated::PredictionBase>::send_evm_transaction(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),

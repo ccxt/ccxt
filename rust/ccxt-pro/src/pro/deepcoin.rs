@@ -102,14 +102,14 @@ impl Deepcoin {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_position" => { self.handle_position(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1105,7 +1105,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 orderbook.cache_push(message);
             }
         }  else {
-            self.handle_order_book_message(&client, message, Value::from(&orderbook));
+            self.handle_order_book_message(&client, message.as_map().unwrap_or(&Default::default()), Value::from(&orderbook));
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", "::").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
@@ -1150,13 +1150,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let timestamp: i64 = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) }).as_i64().unwrap_or(0);
         let snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderedEntries), Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
         orderbook.reset(Value::Dict(snapshot));
-        let cachedMessages: crate::value::List = orderbook.cache_items();
+        let cachedMessages: Vec<crate::value::Dict> = crate::value::dict_rows(orderbook.cache_items());
         {
                         let mut j: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (cachedMessages.len() as i64) } {
-            let cachedMessage: Value = cachedMessages.get(j as usize).cloned().unwrap_or(Value::Null);
-            self.handle_order_book_message(client, cachedMessage, Value::from(&orderbook));
+            let cachedMessage: crate::value::Dict = cachedMessages.get(j as usize).cloned().unwrap_or_default();
+            self.handle_order_book_message(client, &cachedMessage, Value::from(&orderbook));
         }
         }
         orderbook.set_book_meta("cache", Value::from(vec![]));
@@ -1164,9 +1164,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_order_book_message(&self, client: &Value, mut message: Value, mut orderbook: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>, mut orderbook: Value) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -1192,12 +1190,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut entry: Value) {
-        let __orderbook_empty = indexmap::IndexMap::new();
-        let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut entry: Value) {
         let data: crate::value::Dict = self.safe_dict_k_t(entry, "d");
-        let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
-        let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("asks").cloned().unwrap_or(Value::Null));
+        let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
+        let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         let side: Option<String> = self.safe_string_k_opt(&data, "D", &[]);
         let price: Option<f64> = self.safe_number_k(&data, "P", &[]).as_f64();
         let volume: Option<f64> = self.safe_number_k(&data, "V", &[]).as_f64();

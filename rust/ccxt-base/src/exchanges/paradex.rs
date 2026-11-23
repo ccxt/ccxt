@@ -856,7 +856,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     None
 }
-    fn parse_greeks(&self, greeks: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_greeks(&self, greeks: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let greeks: Value = greeks.into();
         //
         //     {
@@ -893,7 +893,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&greeks, "created_at", &[]).as_i64();
         let greeksData: crate::value::Dict = self.safe_dict_k_t(&greeks, "greeks");
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -917,9 +917,9 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("underlyingPrice".to_string(), self.safe_number_k(&greeks, "underlying_price", &[]));
         m.insert("info".to_string(), greeks);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_margin_mode(&self, rawMarginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let rawMarginMode: Value = rawMarginMode.into();
@@ -1168,9 +1168,9 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //     {
@@ -1219,7 +1219,7 @@ impl crate::exchange::DerivedExchange for Paradex {
             if (code >= 400) && (message.is_some()) {
                 self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), feedback.as_str());
             }
-            return Value::Null;
+            return None;
         }
         // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
         if (errorCode.as_deref() == Some("INVALID_REQUEST_PARAMETER")) && (message.is_some()) {
@@ -1231,8 +1231,6 @@ impl crate::exchange::DerivedExchange for Paradex {
         }
         self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
-
-    Value::Null
 }
 }
 
@@ -1290,11 +1288,11 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "filter_transactions_by_kind" => Value::Arr(self.filter_transactions_by_kind(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "get_system_config" => crate::Value::Dict(self.get_system_config().await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "onboarding" => self.onboarding(&args[..]).await,
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_greeks" => Value::Dict(self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1302,7 +1300,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+                "parse_option" => Value::Dict(self.parse_option(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -5140,7 +5138,10 @@ impl Paradex {
         // }
         //
         let configs: crate::value::List = self.safe_list_k_t(&response, "configs");
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&configs, Value::Int(0), &[])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&configs, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5370,7 +5371,7 @@ impl Paradex {
         //
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let greeks: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, &greeks, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, Some(&greeks), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5511,7 +5512,7 @@ impl Paradex {
         //
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let chain: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        return self.parse_option(&chain, None, &[(market).raw.clone()]);
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
         Value::Null
         }).await?))
     }
@@ -5544,7 +5545,7 @@ impl Paradex {
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_34]).await.unwrap_or_default();
-        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
+        let data: crate::value::List = self.safe_list_k_t(&response, "results");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -5554,15 +5555,17 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
-            let marketId: String = self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let marketId: String = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if ((if let (Some(__h), Some(__n)) = (Some(marketId.as_str()), Some(prefix.as_str())) { __h.starts_with(__n) } else { false })) {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
                 if ((market).option) {
                     let optionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    result.insert(optionSymbol, self.parse_option(&entry, None, &[crate::Value::from(&market)]));
+                    result.insert(optionSymbol, Value::Dict(self.parse_option(<crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})])).as_ref(), None, &[crate::Value::from(&market)])));
                 }
             }
         }
@@ -5572,7 +5575,7 @@ impl Paradex {
         }).await?))
     }
 
-    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> Value {
+    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
         let chain: Value = chain.into();
         let market = get_arg(optional_args, 0, Value::Null);
         //
@@ -5607,7 +5610,7 @@ impl Paradex {
         if (percentage.is_some()) {
             percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "base"));
@@ -5629,7 +5632,7 @@ impl Paradex {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*

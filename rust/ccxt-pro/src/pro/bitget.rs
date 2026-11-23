@@ -113,12 +113,12 @@ impl Bitget {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "get_inst_type" => { { let __t = self.get_inst_type(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) }; },
-            "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_check_sum_error" => crate::exchange_stubs::enqueue_spawn("handle_check_sum_error", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -131,7 +131,7 @@ impl Bitget {
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker_un_subscription" => { self.handle_ticker_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades_un_subscription" => { self.handle_trades_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -480,7 +480,7 @@ impl Bitget {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         // default
         //
@@ -763,7 +763,7 @@ impl Bitget {
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let ticker: crate::value::Dict = self.parse_ws_bid_ask(message.as_map().unwrap_or(&Default::default()), None);
         let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (symbol.is_some()) {
@@ -1421,8 +1421,8 @@ impl Bitget {
             }
             let asks: crate::value::List = self.safe_list2_t(&rawOrderBook, Value::Str("asks".into()), Value::Str("a".into()));
             let bids: crate::value::List = self.safe_list2_t(&rawOrderBook, Value::Str("bids".into()), Value::Str("b".into()));
-            self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
-            self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), &asks);
+            self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), &bids);
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
@@ -1506,9 +1506,7 @@ impl Bitget {
         bookside.store_array(bidAsk);
 }
 
-    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: &[crate::Value]) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
@@ -3491,7 +3489,7 @@ impl Bitget {
     Value::Null
 }
 
-    pub fn handle_authenticate(&self, client: &Value, message: &Value) {
+    pub fn handle_authenticate(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         //
         //  { event: "login", code: 0 }
@@ -3636,7 +3634,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("login")) {
-            self.handle_authenticate(&client.as_value(), &message);
+            self.handle_authenticate(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         if (event.as_deref() == Some("subscribe")) {

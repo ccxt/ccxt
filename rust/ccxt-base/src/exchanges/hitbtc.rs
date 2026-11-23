@@ -898,7 +898,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         //
         //     {
         //       "error": {
@@ -924,9 +924,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -982,9 +980,9 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "fetch_transactions_helper" => Value::Arr(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_margin_mode_and_params" => { let __t = self.handle_margin_mode_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -4773,7 +4771,7 @@ impl Hitbtc {
     }
 
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: f64, type_var: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: f64, type_var: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4834,15 +4832,12 @@ impl Hitbtc {
         //     }
         //
         let parsedAmount: Option<f64> = self.parse_number(amountValue.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
-        let __ws_arg_72 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_72, &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(parsedAmount));
         m.insert("type".to_string(), Value::from(type_var));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -4874,7 +4869,7 @@ impl Hitbtc {
         if (Value::from(self.number_to_string(&amount)).as_str() != Some("0")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")));
         }
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("reduce"), &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("reduce"), &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -4904,7 +4899,7 @@ impl Hitbtc {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("add"), &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("add"), &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -4947,18 +4942,18 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_73]).await;
+            let __ws_arg_72 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_72]).await;
         }  else {
             if (Some((market).market_type.as_str()) == Some("spot")) {
-                let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_74]).await;
+                let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_73]).await;
             }  else if (Some((market).market_type.as_str()) == Some("swap")) {
-                let __ws_arg_75 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_futures_account_isolated_symbol(&[&__ws_arg_75]).await;
+                let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_futures_account_isolated_symbol(&[&__ws_arg_74]).await;
             }  else if (Some((market).market_type.as_str()) == Some("margin")) {
-                let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_76]).await;
+                let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsOmitted]);
+                response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_75]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLeverage() not support this market type")));
             }
@@ -5018,8 +5013,8 @@ impl Hitbtc {
                 m.insert("margin_balance".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
-        let __ws_arg_77 = self.extend(Value::Map(request), &[&params]);
-        return self.private_put_futures_account_isolated_symbol(&[&__ws_arg_77]).await;
+        let __ws_arg_76 = self.extend(Value::Map(request), &[&params]);
+        return self.private_put_futures_account_isolated_symbol(&[&__ws_arg_76]).await;
         Value::Null
         }).await?))
     }
@@ -5091,8 +5086,8 @@ impl Hitbtc {
                 m.insert("margin_mode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_78 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let response: crate::value::Dict = self.private_delete_futures_position_margin_mode_symbol(&[&__ws_arg_78]).await.unwrap_or_default();
+        let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        let response: crate::value::Dict = self.private_delete_futures_position_margin_mode_symbol(&[&__ws_arg_77]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

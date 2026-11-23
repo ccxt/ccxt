@@ -118,7 +118,7 @@ impl Backpack {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1743,11 +1743,11 @@ impl Backpack {
         }  else if (deltaNonce.is_some()) && ((nonce.is_some() && deltaNonce.is_some() && nonce > deltaNonce)) {
             return;
         }
-        self.handle_book_delta(Value::from(&storedOrderBook), Value::Dict(data));
+        self.handle_book_delta(&mut storedOrderBook, Value::Dict(data));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
         let microseconds: i64 = self.safe_integer_k(&delta, "T", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));

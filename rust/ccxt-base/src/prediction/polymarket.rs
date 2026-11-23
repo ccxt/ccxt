@@ -93,7 +93,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -155,7 +155,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     Value::Null
 }
-    fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // {
@@ -177,7 +177,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let amount: Option<f64> = self.safe_number_k(&order, "original_size", &[]).as_f64();
         let filled: Value = self.safe_number_k(&order, "size_matched", &[Value::Int(0)]);
         let ts: Option<i64> = self.safe_integer_product_k(&order, "created_at", Value::Int(1000), &[]).as_i64();
-        return self.safe_prediction_order(Value::Map({
+        return Some(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -205,11 +205,11 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
     m
-}), &[crate::Value::from(mkt.as_ref())]);
+}), &[crate::Value::from(mkt.as_ref())]));
 
-    Value::Null
+    None
 }
-    fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         let tokenId: Option<String> = self.safe_string_k_opt(&position, "asset", &[]);
         let marketData: Option<crate::types::Market> = self.safe_outcome(tokenId.as_deref(), market);
@@ -220,7 +220,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         if (size.is_some()) && (curPrice.is_some()) {
             notional = (if let (Some(__l), Some(__r)) = (size, curPrice) { Some(__l * __r) } else { None });
         }
-        return self.safe_prediction_position(Value::Map({
+        return Some(self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("outcome".to_string(), self.safe_string_k(&marketData, "outcome", &[]));
@@ -252,9 +252,9 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("info".to_string(), position);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("gamma".into())]));
@@ -291,7 +291,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
             let mut hasArrayParam: bool = false;
-            let queryKeys: crate::value::List = object_keys(&query).into_list();
+            let queryKeys: crate::value::List = crate::value::List::new(query.as_map().map(|__m| __m.keys().map(|__k| Value::from(__k.as_str())).collect()).unwrap_or_default());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_45: bool = true;
@@ -313,7 +313,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         }  else if isArrayBody {
             bodyValue = json_stringify(&params).as_str().map(str::to_owned);
         }  else {
-            let queryKeys: crate::value::List = object_keys(&query).into_list();
+            let queryKeys: crate::value::List = crate::value::List::new(query.as_map().map(|__m| __m.keys().map(|__k| Value::from(__k.as_str())).collect()).unwrap_or_default());
             let queryKeysLength: i64 = queryKeys.len() as i64;
             if queryKeysLength > 0 {
                 bodyValue = json_stringify(&query).as_str().map(str::to_owned);
@@ -409,12 +409,12 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let errorMessage: Option<String> = self.safe_string2_opt(response, Value::Str("error".into()), Value::Str("errorMsg".into()), &[]);
         if (errorMessage.is_some()) {
@@ -422,9 +422,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorMessage.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, Value::from(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -469,7 +467,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
@@ -482,8 +480,8 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_poly_timestamp" => self.parse_poly_timestamp(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_prediction_open_interest" => self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2633,7 +2631,7 @@ impl Polymarket {
             }
         }
         }
-        let bucketKeys: Vec<Value> = Value::Array(buckets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let bucketKeys: Vec<Value> = Value::Array(buckets.as_map().map(|__m| __m.keys().map(|__k| Value::from(__k.as_str())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut unsortedCandles: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3220,7 +3218,7 @@ impl Polymarket {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.clob_private_get_data_order_id(&[&__ws_arg_11]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &response, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&response), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3308,7 +3306,7 @@ impl Polymarket {
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(&built, "request", &[]);
         let enriched: crate::value::Dict = self.extend_t(__ws_arg_12, &[&response]);
-        let mut order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict_k(&built, "outcome", &[])).as_ref()).into_dict();
+        let mut order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&enriched), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict_k(&built, "outcome", &[])).as_ref()).unwrap_or_default();
         std::sync::Arc::make_mut(&mut order).insert("info".into(), Value::Dict(response)); // keep info the raw exchange response, not the request echo
         return Value::Dict(order);
         Value::Null
@@ -3396,13 +3394,13 @@ impl Polymarket {
                 let rawItem: Value = response.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let __ws_arg_14 = self.safe_dict(&requests, Value::Int(i), &[]);
                 let enriched: crate::value::Dict = self.extend_t(__ws_arg_14, &[&rawItem]);
-                let mut parsedItem: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict(&outcomes, Value::Int(i), &[])).as_ref()).into_dict();
+                let mut parsedItem: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&enriched), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict(&outcomes, Value::Int(i), &[])).as_ref()).unwrap_or_default();
                 std::sync::Arc::make_mut(&mut parsedItem).insert("info".into(), rawItem); // keep info the raw exchange response
                 result.push(Value::Dict(parsedItem));
             }
             }
         }  else {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, response__map.map_or(Value::Null, Value::Dict), None));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(response__map.map_or(Value::Null, Value::Dict)).as_ref(), None).map_or(Value::Null, Value::Dict));
         }
         return Value::from(result);
         Value::Null
@@ -3899,13 +3897,13 @@ impl Polymarket {
         if (failureReason.is_none()) {
             status = "canceled".to_string();
         }
-        return self.safe_prediction_order(Value::Map({
+        return Value::Dict(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), Value::from(status));
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), &[]);
+}), &[]));
         Value::Null
         }).await?))
     }
@@ -3941,13 +3939,13 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_39: bool = true;
             while { if !__for_first_39 { i += 1; } __for_first_39 = false; i < (canceled.len() as i64) } {
-            orders.push(self.safe_prediction_order(Value::Map({
+            orders.push(Value::Dict(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), Value::from(&response));
     m
-}), &[]));
+}), &[])));
         }
         }
         return Value::from(orders);
@@ -3998,13 +3996,13 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_40: bool = true;
             while { if !__for_first_40 { i += 1; } __for_first_40 = false; i < (canceled.len() as i64) } {
-            orders.push(self.safe_prediction_order(Value::Map({
+            orders.push(Value::Dict(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
     m
-}), &[]));
+}), &[])));
         }
         }
         return Value::from(orders);
@@ -5081,7 +5079,7 @@ if _try_result.is_err() {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
-        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, event, None).into_dict();
+        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(event).as_ref(), None).unwrap_or_default();
         self.orders.append(Value::from(&parsed));
         client.resolve(Value::from(&self.orders), "orders");
         let outcome: Option<String> = self.safe_string_k_opt(&parsed, "outcome", &[]);
@@ -5095,7 +5093,11 @@ if _try_result.is_err() {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
-        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_trade(self, event, None).into_dict();
+        let __ws_arg_32 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[event]);
+        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_32).as_ref(), None).into_dict();
         self.myTrades.append(Value::from(&parsed));
         client.resolve(Value::from(&self.myTrades), "myTrades");
         let outcome: Option<String> = self.safe_string_k_opt(&parsed, "outcome", &[]);

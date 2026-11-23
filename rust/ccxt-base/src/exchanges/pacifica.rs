@@ -833,9 +833,9 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
@@ -868,9 +868,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -884,7 +882,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "approve_builder_code" => self.approve_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "batch_orders_request" => crate::Value::Dict(self.batch_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "bind_agent_wallet" => self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_request" => Value::Dict(self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -936,7 +934,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_origin_and_single_address" => { let __t = self.handle_origin_and_single_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client().await,
                 "load_account_settings" => { self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
@@ -5258,7 +5256,7 @@ if _try_result.is_err() {
 
 
 
-    pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5269,8 +5267,8 @@ if _try_result.is_err() {
         let costNumber: Option<f64> = self.parse_number(Value::from(cost), &[]).as_f64();
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if costNumber > Some(1.0) {
-            if (self.handle_option(method.clone(), Value::Str("apiKey".into()), &[]) != Value::Null) {
-                let costWithKey: Value = self.handle_option(method, Value::Str("maxCostHugeWithApiKey".into()), &[Value::Int(3)]);
+            if (self.handle_option(Value::from(method), Value::Str("apiKey".into()), &[]) != Value::Null) {
+                let costWithKey: Value = self.handle_option(Value::from(method), Value::Str("maxCostHugeWithApiKey".into()), &[Value::Int(3)]);
                 return costWithKey;
             }
         }

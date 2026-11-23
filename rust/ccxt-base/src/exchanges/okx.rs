@@ -1647,7 +1647,7 @@ impl crate::exchange::DerivedExchange for Okx {
 
     None
 }
-    fn parse_greeks(&self, greeks: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_greeks(&self, greeks: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let greeks: Value = greeks.into();
         //
         //     {
@@ -1675,7 +1675,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let timestamp: Option<i64> = self.safe_integer_k(&greeks, "ts", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&greeks, "instId", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1697,9 +1697,9 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("underlyingPrice".to_string(), Value::Null);
         m.insert("info".to_string(), greeks);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_conversion(&self, conversion: impl Into<crate::Value>, fromCurrency: Option<&crate::types::Currency>, toCurrency: Option<&crate::types::Currency>) -> Value {
         let conversion: Value = conversion.into();
@@ -2051,9 +2051,9 @@ impl crate::exchange::DerivedExchange for Okx {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //    {
@@ -2093,9 +2093,7 @@ impl crate::exchange::DerivedExchange for Okx {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -2178,7 +2176,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_for_symbol" => crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_history" => crate::types::IntoRaw::into_raw(self.fetch_positions_history(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_settlement_history" => self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await,
+                "fetch_settlement_history" => Value::Arr(self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2191,12 +2189,12 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_market_type_and_params" => { let __t = self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>());
                     Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "handle_trading_statistics_window" => { let __t = self.handle_trading_statistics_window(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>());
                     Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_by_type" => self.parse_balance_by_type(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_borrow_interest" => Value::Dict(self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2208,7 +2206,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_balance" => self.parse_funding_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_greeks" => Value::Dict(self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ids" => self.parse_ids(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2219,7 +2217,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+                "parse_option" => Value::Dict(self.parse_option(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -11209,7 +11207,7 @@ impl Okx {
     Value::Null
 }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, mut type_var: Value, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, mut type_var: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -11247,14 +11245,11 @@ impl Okx {
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let entry: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        let __ws_arg_75 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_75, &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (errorCode.as_deref() == Some("0")) { Value::Str("ok".into()) } else { Value::Str("failed".into()) }));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -11280,7 +11275,7 @@ impl Okx {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Value::Str("reduce".into()), &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Value::Str("reduce".into()), &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -11307,7 +11302,7 @@ impl Okx {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Value::Str("add".into()), &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Value::Str("add".into()), &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -11359,8 +11354,8 @@ impl Okx {
         if (type_var.as_deref() == Some("MARGIN")) {
             request.insert("instId".into(), Value::from((market).id.as_deref()));
         }
-        let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let response: crate::value::Dict = self.public_get_public_position_tiers(&[&__ws_arg_76]).await.unwrap_or_default();
+        let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        let response: crate::value::Dict = self.public_get_public_position_tiers(&[&__ws_arg_75]).await.unwrap_or_default();
         //
         //    {
         //        "code": "0",
@@ -11445,8 +11440,8 @@ impl Okx {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let response: crate::value::Dict = self.private_get_account_interest_accrued(&[&__ws_arg_77]).await.unwrap_or_default();
+        let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        let response: crate::value::Dict = self.private_get_account_interest_accrued(&[&__ws_arg_76]).await.unwrap_or_default();
         //
         //    {
         //        "code": "0",
@@ -11504,8 +11499,8 @@ impl Okx {
                 m.insert("side".to_string(), Value::Str("borrow".into()));
             m
         });
-        let __ws_arg_78 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_account_borrow_repay(&[&__ws_arg_78]).await.unwrap_or_default();
+        let __ws_arg_77 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_account_borrow_repay(&[&__ws_arg_77]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -11565,8 +11560,8 @@ impl Okx {
                 m.insert("ordId".to_string(), id.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_79 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_account_borrow_repay(&[&__ws_arg_79]).await.unwrap_or_default();
+        let __ws_arg_78 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_account_borrow_repay(&[&__ws_arg_78]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -11651,8 +11646,8 @@ impl Okx {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_80 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_public_open_interest(&[&__ws_arg_80]).await.unwrap_or_default();
+        let __ws_arg_79 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_public_open_interest(&[&__ws_arg_79]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -11733,8 +11728,8 @@ impl Okx {
         if (instType == "OPTION") && (uly.is_none()) && (instFamily.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
         }
-        let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let response: crate::value::Dict = self.public_get_public_open_interest(&[&__ws_arg_81]).await.unwrap_or_default();
+        let __ws_arg_80 = self.extend(Value::Map(request), &[&paramsSubType]);
+        let response: crate::value::Dict = self.public_get_public_open_interest(&[&__ws_arg_80]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -11824,8 +11819,8 @@ impl Okx {
             let instrumentRequestWindowparamsWindowVariable = self.handle_trading_statistics_window(Value::Map(instrumentRequest), timeframeValue.as_deref().unwrap_or_default(), since, limit, &[&Value::from(&paramsMarketType)]);
             let instrumentRequestWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.0;
             let paramsWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.1;
-            let __ws_arg_82 = self.extend(instrumentRequestWindow, &[&paramsWindow]);
-            response = self.public_get_rubik_stat_contracts_open_interest_history(&[&__ws_arg_82]).await;
+            let __ws_arg_81 = self.extend(instrumentRequestWindow, &[&paramsWindow]);
+            response = self.public_get_rubik_stat_contracts_open_interest_history(&[&__ws_arg_81]).await;
             //
             //    {
             //        "code": "0",
@@ -11845,8 +11840,8 @@ impl Okx {
             return self.parse_open_interests_history(&instrumentData, market.as_ref(), &[Value::from(since), Value::from(limit)]);
         }
         if (type_var.as_deref() == Some("option")) {
-            let __ws_arg_83 = self.extend(&request, &[&paramsMarketType]);
-            response = self.public_get_rubik_stat_option_open_interest_volume(&[&__ws_arg_83]).await;
+            let __ws_arg_82 = self.extend(&request, &[&paramsMarketType]);
+            response = self.public_get_rubik_stat_option_open_interest_volume(&[&__ws_arg_82]).await;
         }  else {
             if (since.is_some()) {
                 request.insert("begin".into(), Value::from(since));
@@ -11856,8 +11851,8 @@ impl Okx {
                 request.insert("end".into(), Value::from(until));
             }
             let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsMarketType, &["until"], &[]) } else { paramsMarketType });
-            let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_get_rubik_stat_contracts_open_interest_volume(&[&__ws_arg_84]).await;
+            let __ws_arg_83 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.public_get_rubik_stat_contracts_open_interest_volume(&[&__ws_arg_83]).await;
         }
         //
         //    {
@@ -11992,8 +11987,8 @@ impl Okx {
             let ids: Value = self.currency_ids(&[codes.clone()]);
             request.insert("ccy".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
-        let __ws_arg_85 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_asset_currencies(&[&__ws_arg_85]).await.unwrap_or_default();
+        let __ws_arg_84 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_asset_currencies(&[&__ws_arg_84]).await.unwrap_or_default();
         //
         //    {
         //        "code": "0",
@@ -12164,7 +12159,7 @@ impl Okx {
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-    pub async fn fetch_settlement_history(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_settlement_history(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -12194,8 +12189,8 @@ impl Okx {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::Dict = self.public_get_public_delivery_exercise_history(&[&__ws_arg_86]).await.unwrap_or_default();
+        let __ws_arg_85 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::Dict = self.public_get_public_delivery_exercise_history(&[&__ws_arg_85]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -12218,9 +12213,7 @@ impl Okx {
         // rows cover every contract of the instrument family, including expired ids missing from markets
         let settlements: crate::value::List = self.parse_settlements(&data, None);
         let sorted: crate::value::List = self.sort_by_t(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
-        return Value::Arr(self.filter_by_since_limit(&sorted, since, limit, &[]));
-
-    Value::Null
+        return self.filter_by_since_limit(&sorted, since, limit, &[]);
 }
 
 /*
@@ -12276,11 +12269,11 @@ impl Okx {
             m
         });
         if (method.as_deref() == Some("privateGetAccountBills")) {
-            let __ws_arg_87 = self.extend(&request, &[&query]);
-            response = self.private_get_account_bills(&[&__ws_arg_87]).await.unwrap_or_default();
+            let __ws_arg_86 = self.extend(&request, &[&query]);
+            response = self.private_get_account_bills(&[&__ws_arg_86]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_88 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_account_bills_archive(&[&__ws_arg_88]).await.unwrap_or_default();
+            let __ws_arg_87 = self.extend(Value::Map(request), &[&query]);
+            response = self.private_get_account_bills_archive(&[&__ws_arg_87]).await.unwrap_or_default();
         }
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut result: Vec<Value> = Vec::new();
@@ -12288,7 +12281,11 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (data.len() as i64) } {
-            result.push(Value::Dict(self.parse_settlement(data.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref())));
+            let __ws_arg_88 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[data.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            result.push(Value::Dict(self.parse_settlement(__ws_arg_88, market.as_ref())));
         }
         }
         let sorted: crate::value::List = self.sort_by_t(Value::from(result), Value::Str("timestamp".into()), &[]);
@@ -12359,12 +12356,16 @@ impl Okx {
                                 let mut j: i64 = 0;
                 let mut __for_first_31: bool = true;
                 while { if !__for_first_31 { j += 1; } __for_first_31 = false; j < (details.len() as i64) } {
-                let settlement: crate::value::Dict = self.parse_settlement(details.get(j as usize).cloned().unwrap_or(Value::Null), market);
-                let __ws_arg_89 = self.iso8601(timestamp);
+                let __ws_arg_89 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[details.get(j as usize).cloned().unwrap_or(Value::Null)]);
+                let settlement: crate::value::Dict = self.parse_settlement(__ws_arg_89, market);
+                let __ws_arg_90 = self.iso8601(timestamp);
                 result.push(self.extend(settlement, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("timestamp".to_string(), Value::from(timestamp));
-                        m.insert("datetime".to_string(), __ws_arg_89);
+                        m.insert("datetime".to_string(), __ws_arg_90);
                     m
                 })]));
             }
@@ -12407,8 +12408,8 @@ impl Okx {
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.as_deref()).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::Dict = self.public_get_public_underlying(&[&__ws_arg_90]).await.unwrap_or_default();
+        let __ws_arg_91 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::Dict = self.public_get_public_underlying(&[&__ws_arg_91]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -12461,8 +12462,8 @@ impl Okx {
                 m.insert("expTime".to_string(), self.safe_string(&optionParts, Value::Int(2), &[]));
             m
         });
-        let __ws_arg_91 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_public_opt_summary(&[&__ws_arg_91]).await.unwrap_or_default();
+        let __ws_arg_92 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_public_opt_summary(&[&__ws_arg_92]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -12500,7 +12501,7 @@ impl Okx {
             let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "instId", &[]);
             if (entryMarketId.as_deref() == Some(marketId.as_str())) {
-                return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, &entry, Some(&market));
+                return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, Some(&entry), Some(&market)).map_or(Value::Null, Value::Dict);
             }
         }
         }
@@ -12566,8 +12567,8 @@ impl Okx {
             }
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["uly", "instFamily"], &[]);
-        let __ws_arg_92 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.public_get_public_opt_summary(&[&__ws_arg_92]).await.unwrap_or_default();
+        let __ws_arg_93 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.public_get_public_opt_summary(&[&__ws_arg_93]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -12664,8 +12665,8 @@ impl Okx {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("ccy".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_93 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let response: crate::value::Dict = self.private_post_trade_close_position(&[&__ws_arg_93]).await.unwrap_or_default();
+        let __ws_arg_94 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        let response: crate::value::Dict = self.private_post_trade_close_position(&[&__ws_arg_94]).await.unwrap_or_default();
         //
         //    {
         //        "code": "1",
@@ -12718,8 +12719,8 @@ impl Okx {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_94 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("public_get_market_ticker", &[&__ws_arg_94]).await;
+        let __ws_arg_95 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("public_get_market_ticker", &[&__ws_arg_95]).await;
         //
         //     {
         //         "code": "0",
@@ -12748,7 +12749,7 @@ impl Okx {
         //
         let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let chain: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
-        return self.parse_option(&chain, None, &[(market).raw.clone()]);
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
         Value::Null
         }).await?))
     }
@@ -12781,8 +12782,8 @@ impl Okx {
                 m.insert("instType".to_string(), Value::Str("OPTION".into()));
             m
         });
-        let __ws_arg_95 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_market_tickers(&[&__ws_arg_95]).await.unwrap_or_default();
+        let __ws_arg_96 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_market_tickers(&[&__ws_arg_96]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -12815,7 +12816,7 @@ impl Okx {
         }).await?))
     }
 
-    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> Value {
+    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
         let chain: Value = chain.into();
         let market = get_arg(optional_args, 0, Value::Null);
         //
@@ -12841,7 +12842,7 @@ impl Okx {
         let marketId: Option<String> = self.safe_string_k_opt(&chain, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&chain, "ts", &[]).as_i64();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
@@ -12863,7 +12864,7 @@ impl Okx {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -12898,8 +12899,8 @@ impl Okx {
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
         });
-        let __ws_arg_96 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_asset_convert_estimate_quote(&[&__ws_arg_96]).await.unwrap_or_default();
+        let __ws_arg_97 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_asset_convert_estimate_quote(&[&__ws_arg_97]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -12969,8 +12970,8 @@ impl Okx {
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
         });
-        let __ws_arg_97 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_asset_convert_trade(&[&__ws_arg_97]).await.unwrap_or_default();
+        let __ws_arg_98 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_asset_convert_trade(&[&__ws_arg_98]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -13031,8 +13032,8 @@ impl Okx {
                 m.insert("clTReqId".to_string(), id);
             m
         });
-        let __ws_arg_98 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_asset_convert_history(&[&__ws_arg_98]).await.unwrap_or_default();
+        let __ws_arg_99 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_asset_convert_history(&[&__ws_arg_99]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",
@@ -13112,8 +13113,8 @@ impl Okx {
         if (limit.is_some()) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_99 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_asset_convert_history(&[&__ws_arg_99]).await.unwrap_or_default();
+        let __ws_arg_100 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_asset_convert_history(&[&__ws_arg_100]).await.unwrap_or_default();
         return self.parse_conversions(self.safe_list_k(&response, "data", &[Value::from(vec![])]), &[code, Value::Str("baseCcy".into()), Value::Str("quoteCcy".into()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
@@ -13278,11 +13279,11 @@ impl Okx {
         let oneWeekAgo: i64 = (now - 604800000);
         let threeMonthsAgo: i64 = (now - 7776000000);
         if (since.is_none()) || (since > Some(oneWeekAgo)) {
-            let __ws_arg_100 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_account_bills(&[&__ws_arg_100]).await;
+            let __ws_arg_101 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_get_account_bills(&[&__ws_arg_101]).await;
         }  else if since > Some(threeMonthsAgo) {
-            let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_account_bills_archive(&[&__ws_arg_101]).await;
+            let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_get_account_bills_archive(&[&__ws_arg_102]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")));
         }
@@ -13389,8 +13390,8 @@ impl Okx {
         if (instType.is_some()) {
             request.insert("instType".into(), instType.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_account_positions_history(&[&__ws_arg_102]).await.unwrap_or_default();
+        let __ws_arg_103 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_account_positions_history(&[&__ws_arg_103]).await.unwrap_or_default();
         //
         //    {
         //        code: '0',
@@ -13478,8 +13479,8 @@ impl Okx {
         let requestWindowparamsWindowVariable = self.handle_trading_statistics_window(Value::Map(request), period.as_deref().unwrap_or_default(), since, limit, &[&params]);
         let requestWindow: crate::value::Dict = requestWindowparamsWindowVariable.0;
         let paramsWindow: crate::value::Dict = requestWindowparamsWindowVariable.1;
-        let __ws_arg_103 = self.extend(requestWindow, &[&paramsWindow]);
-        let response: crate::value::Dict = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[&__ws_arg_103]).await.unwrap_or_default();
+        let __ws_arg_104 = self.extend(requestWindow, &[&paramsWindow]);
+        let response: crate::value::Dict = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[&__ws_arg_104]).await.unwrap_or_default();
         //
         //     {
         //         "code": "0",

@@ -1648,7 +1648,7 @@ impl crate::exchange::DerivedExchange for Bybit {
 
     None
 }
-    fn parse_adl_rank(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_adl_rank(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
         //
         // fetchPositionsADLRank
@@ -1693,7 +1693,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&info, "updatedTime", &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
@@ -1703,9 +1703,9 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
@@ -1765,7 +1765,7 @@ impl crate::exchange::DerivedExchange for Bybit {
 
     None
 }
-    fn parse_greeks(&self, greeks: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_greeks(&self, greeks: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let greeks: Value = greeks.into();
         //
         //     {
@@ -1798,7 +1798,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&greeks, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
@@ -1820,9 +1820,9 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("underlyingPrice".to_string(), self.safe_number_k(&greeks, "underlyingPrice", &[]));
         m.insert("info".to_string(), greeks);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
@@ -2278,11 +2278,11 @@ impl crate::exchange::DerivedExchange for Bybit {
                     m
                 })]);
             }  else {
-                let __ws_arg_89 = self.options.get("recvWindow").cloned().unwrap_or(Value::Null);
+                let __ws_arg_90 = self.options.get("recvWindow").cloned().unwrap_or(Value::Null);
                 let query: crate::value::Dict = self.extend_t(params, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("api_key".to_string(), self.apiKey.clone());
-                        m.insert("recv_window".to_string(), __ws_arg_89);
+                        m.insert("recv_window".to_string(), __ws_arg_90);
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                     m
                 })]);
@@ -2341,9 +2341,9 @@ impl crate::exchange::DerivedExchange for Bybit {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //     {
@@ -2366,7 +2366,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         let errorCode: Option<String> = self.safe_string2_opt(response, Value::Str("ret_code".into()), Value::Str("retCode".into()), &[]);
         if (errorCode.as_deref() != Some("0")) {
             if (errorCode.as_deref() == Some("30084")) {
-                return Value::Null;
+                return None;
             }
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
             if (errorCode.as_deref() == Some("10005")) && !Some(url).unwrap_or("").contains("order") {
@@ -2379,9 +2379,7 @@ impl crate::exchange::DerivedExchange for Bybit {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -2466,7 +2464,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_adl_rank" => crate::types::IntoRaw::into_raw(self.fetch_positions_adl_rank(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_history" => crate::types::IntoRaw::into_raw(self.fetch_positions_history(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_settlement_history" => self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await,
+                "fetch_settlement_history" => Value::Arr(self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await),
                 "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2484,10 +2482,10 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "get_leverage_tiers_paginated" => self.get_leverage_tiers_paginated(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
                 "get_price" => self.get_price(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "is_unified_enabled" => { let __t = self.is_unified_enabled(&args[..].iter().collect::<Vec<_>>()).await; Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), __t.1.map_or(Value::Null, Value::Bool)]) },
                 "nonce" => crate::Value::from(self.nonce()),
-                "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_adl_rank" => Value::Dict(self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_interest" => Value::Dict(self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2496,7 +2494,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_greeks" => Value::Dict(self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2508,7 +2506,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+                "parse_option" => Value::Dict(self.parse_option(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -12152,7 +12150,7 @@ impl Bybit {
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @returns {object[]} a list of [settlement history objects]
  */
-    pub async fn fetch_settlement_history(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_settlement_history(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -12205,9 +12203,7 @@ impl Bybit {
         let data: crate::value::List = self.safe_list_k_t(&result, "list");
         let settlements: crate::value::List = self.parse_settlements(&data, market.as_ref());
         let sorted: crate::value::List = self.sort_by_t(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
-        return Value::Arr(self.filter_by_symbol_since_limit(&sorted, (self.safe_string_k(&market, "symbol", &[])).as_str(), since, limit, &[]));
-
-    Value::Null
+        return self.filter_by_symbol_since_limit(&sorted, (self.safe_string_k(&market, "symbol", &[])).as_str(), since, limit, &[]);
 }
 
 /*
@@ -12357,7 +12353,11 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_24: bool = true;
             while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (settlements.len() as i64) } {
-            result.push(Value::Dict(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market)));
+            let __ws_arg_71 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[settlements.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            result.push(Value::Dict(self.parse_settlement(__ws_arg_71, market)));
         }
         }
         return std::sync::Arc::new(result);
@@ -12388,8 +12388,8 @@ impl Bybit {
                 m.insert("baseCoin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_71 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.public_get_v5_market_historical_volatility(&[&__ws_arg_71]).await.unwrap_or_default();
+        let __ws_arg_72 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.public_get_v5_market_historical_volatility(&[&__ws_arg_72]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -12464,8 +12464,8 @@ impl Bybit {
                 m.insert("category".to_string(), Value::Str("option".into()));
             m
         });
-        let __ws_arg_72 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_72]).await.unwrap_or_default();
+        let __ws_arg_73 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_73]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -12509,15 +12509,15 @@ impl Bybit {
         let timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let data: crate::value::List = self.safe_list_k_t(&result, "list");
-        let greeks: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_greeks(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let greeks: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_greeks(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Some(&market)).into_dict();
-        let __ws_arg_73 = self.iso8601(timestamp);
+})])).as_ref(), Some(&market)).unwrap_or_default();
+        let __ws_arg_74 = self.iso8601(timestamp);
         return self.extend(greeks, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), __ws_arg_73);
+        m.insert("datetime".to_string(), __ws_arg_74);
     m
 })]);
         Value::Null
@@ -12560,8 +12560,8 @@ impl Bybit {
                 request.insert("symbol".into(), Value::from((symbolMarket).id.as_deref()));
             }
         }
-        let __ws_arg_74 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_74]).await.unwrap_or_default();
+        let __ws_arg_75 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_75]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -12670,8 +12670,8 @@ impl Bybit {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsValue, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_75 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_v5_execution_list(&[&__ws_arg_75]).await.unwrap_or_default();
+        let __ws_arg_76 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_v5_execution_list(&[&__ws_arg_76]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -12745,8 +12745,8 @@ impl Bybit {
                 m.insert("category".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let response: crate::value::Dict = self.public_get_v5_market_risk_limit(&[&__ws_arg_76]).await.unwrap_or_default();
+        let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsSubType]);
+        let response: crate::value::Dict = self.public_get_v5_market_risk_limit(&[&__ws_arg_77]).await.unwrap_or_default();
         let result: crate::value::List = self.add_pagination_cursor_to_result(&response);
         let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
         let total: i64 = result.len() as i64;
@@ -12811,13 +12811,13 @@ impl Bybit {
             }
             symbol = Some((market).symbol.clone());
         }
-        let __ws_arg_77 = self.extend(Value::Map({
+        let __ws_arg_78 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("paginate".to_string(), Value::Bool(true));
         m.insert("paginationCalls".to_string(), Value::Int(200));
     m
 }), &[&params]);
-        let data: Option<crate::value::List> = self.get_leverage_tiers_paginated(symbol.as_deref(), &[__ws_arg_77]).await.into_opt_list();
+        let data: Option<crate::value::List> = self.get_leverage_tiers_paginated(symbol.as_deref(), &[__ws_arg_78]).await.into_opt_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]);
         Value::Null
@@ -12938,8 +12938,8 @@ impl Bybit {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsValue, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_78 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_v5_execution_list(&[&__ws_arg_78]).await.unwrap_or_default();
+        let __ws_arg_79 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_v5_execution_list(&[&__ws_arg_79]).await.unwrap_or_default();
         let fundings: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_incomes(&fundings, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
@@ -12974,8 +12974,8 @@ impl Bybit {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_79 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_79]).await.unwrap_or_default();
+        let __ws_arg_80 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_80]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13019,7 +13019,7 @@ impl Bybit {
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let resultList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "list"));
         let chain: crate::value::Dict = resultList.get(0).cloned().unwrap_or_default();
-        return self.parse_option(&chain, None, &[(market).raw.clone()]);
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
         Value::Null
         }).await?))
     }
@@ -13051,8 +13051,8 @@ impl Bybit {
                 m.insert("baseCoin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_80 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_80]).await.unwrap_or_default();
+        let __ws_arg_81 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_v5_market_tickers(&[&__ws_arg_81]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13100,7 +13100,7 @@ impl Bybit {
         }).await?))
     }
 
-    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> Value {
+    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
         let chain: Value = chain.into();
         let market = get_arg(optional_args, 0, Value::Null);
         //
@@ -13134,7 +13134,7 @@ impl Bybit {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&chain, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
@@ -13156,7 +13156,7 @@ impl Bybit {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -13218,8 +13218,8 @@ impl Bybit {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_v5_position_closed_pnl(&[&__ws_arg_81]).await.unwrap_or_default();
+        let __ws_arg_82 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_v5_position_closed_pnl(&[&__ws_arg_82]).await.unwrap_or_default();
         //
         //    {
         //        retCode: '0',
@@ -13303,8 +13303,8 @@ impl Bybit {
                 m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_82 = self.extend(Value::Map(request), &[&paramsAccountType]);
-        let response: crate::value::Dict = self.private_get_v5_asset_exchange_query_coin_list(&[&__ws_arg_82]).await.unwrap_or_default();
+        let __ws_arg_83 = self.extend(Value::Map(request), &[&paramsAccountType]);
+        let response: crate::value::Dict = self.private_get_v5_asset_exchange_query_coin_list(&[&__ws_arg_83]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13448,8 +13448,8 @@ impl Bybit {
                 m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_83 = self.extend(Value::Map(request), &[&paramsAccountType]);
-        let response: crate::value::Dict = self.private_post_v5_asset_exchange_quote_apply(&[&__ws_arg_83]).await.unwrap_or_default();
+        let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsAccountType]);
+        let response: crate::value::Dict = self.private_post_v5_asset_exchange_quote_apply(&[&__ws_arg_84]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13510,8 +13510,8 @@ impl Bybit {
                 m.insert("quoteTxId".to_string(), id);
             m
         });
-        let __ws_arg_84 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_v5_asset_exchange_convert_execute(&[&__ws_arg_84]).await.unwrap_or_default();
+        let __ws_arg_85 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_v5_asset_exchange_convert_execute(&[&__ws_arg_85]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13573,8 +13573,8 @@ impl Bybit {
                 m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_85 = self.extend(Value::Map(request), &[&paramsAccountType]);
-        let response: crate::value::Dict = self.private_get_v5_asset_exchange_convert_result_query(&[&__ws_arg_85]).await.unwrap_or_default();
+        let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsAccountType]);
+        let response: crate::value::Dict = self.private_get_v5_asset_exchange_convert_result_query(&[&__ws_arg_86]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13649,8 +13649,8 @@ impl Bybit {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_86 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_v5_asset_exchange_query_convert_history(&[&__ws_arg_86]).await.unwrap_or_default();
+        let __ws_arg_87 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_v5_asset_exchange_query_convert_history(&[&__ws_arg_87]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13732,8 +13732,8 @@ impl Bybit {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_87 = self.extend(Value::Map(request), &[&paramsValue]);
-        let response: crate::value::Dict = self.public_get_v5_market_account_ratio(&[&__ws_arg_87]).await.unwrap_or_default();
+        let __ws_arg_88 = self.extend(Value::Map(request), &[&paramsValue]);
+        let response: crate::value::Dict = self.public_get_v5_market_account_ratio(&[&__ws_arg_88]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,
@@ -13826,8 +13826,8 @@ impl Bybit {
         let type_var: Option<String> = type_varparamsValueVariable.0.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = type_varparamsValueVariable.1;
         request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_88 = self.extend(Value::Map(request), &[&paramsValue]);
-        let response: crate::value::Dict = self.private_get_v5_position_list(&[&__ws_arg_88]).await.unwrap_or_default();
+        let __ws_arg_89 = self.extend(Value::Map(request), &[&paramsValue]);
+        let response: crate::value::Dict = self.private_get_v5_position_list(&[&__ws_arg_89]).await.unwrap_or_default();
         //
         //     {
         //         "retCode": 0,

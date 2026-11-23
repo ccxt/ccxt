@@ -1030,16 +1030,16 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let error: Option<crate::value::Dict> = self.safe_dict_k_o(response, "error");
         if (error.is_none()) {
-            return Value::Null;
+            return None;
         }
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
@@ -1047,8 +1047,6 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
         self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
-
-    Value::Null
 }
 }
 
@@ -1086,7 +1084,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_route_and_params" => crate::Value::Dict(self.handle_route_and_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "is_eddsa_secret" => self.is_eddsa_secret(),
                 "is_native_deribit_credentials" => self.is_native_deribit_credentials(),

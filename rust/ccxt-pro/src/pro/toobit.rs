@@ -100,7 +100,7 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -129,17 +129,17 @@ impl Toobit {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_incoming_pong" => { self.handle_incoming_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_partial_snapshot" => { self.handle_order_book_partial_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_partial_snapshot" => { self.handle_order_book_partial_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_tickers" => { self.handle_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -150,11 +150,11 @@ impl Toobit {
             "parse_ws_ohlcv" => { Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_position" => { Value::Dict(self.parse_ws_position(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "set_balance_cache" => { self.set_balance_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "set_order_book_snapshot" => { self.set_order_book_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "set_order_book_snapshot" => { self.set_order_book_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "set_ws_options" => { self.set_ws_options(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "watch_balance" => crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -871,9 +871,8 @@ impl Toobit {
         client.resolve(Value::Map(newTickers), "tickers");
 }
 
-    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let ticker: Value = ticker.into();
-        return self.parse_ticker(ticker, market);
+    pub fn parse_ws_ticker(&self, ticker: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        return self.parse_ticker(Value::Dict(std::sync::Arc::clone(ticker)), market);
 
     Default::default()
 }
@@ -965,7 +964,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -991,7 +990,7 @@ impl Toobit {
         //
         let isSnapshot: bool = (match __pro_message.get("f").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         if isSnapshot {
-            self.set_order_book_snapshot(&client, message.as_map().unwrap_or(&Default::default()), Value::Str("diffDepth".into()));
+            self.set_order_book_snapshot(client, message.as_map().unwrap_or(&Default::default()), Value::Str("diffDepth".into()));
             return;
         }
         let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
@@ -1015,8 +1014,8 @@ impl Toobit {
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
             let bids: crate::value::List = self.safe_list_k_t(&entry, "b");
             let asks: crate::value::List = self.safe_list_k_t(&entry, "a");
-            self.handle_deltas(crate::pro::order_book::Side::of(orderBook.book_field("asks")), Value::Arr(asks));
-            self.handle_deltas(crate::pro::order_book::Side::of(orderBook.book_field("bids")), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderBook.book_field("asks")), &asks);
+            self.handle_deltas(crate::pro::order_book::Side::of(orderBook.book_field("bids")), &bids);
             orderBook.set_book_meta("timestamp", Value::from(timestamp));
             let __resolved_orderBook = Value::from(&orderBook);
             CacheStore::put(&mut self.orderbooks, &symbol, orderBook);
@@ -1030,7 +1029,7 @@ impl Toobit {
         bookside.store_array(Value::Arr(bidAsk));
 }
 
-    pub fn handle_order_book_partial_snapshot(&mut self, client: &Value, message: &Value) {
+    pub fn handle_order_book_partial_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -1056,7 +1055,7 @@ impl Toobit {
         self.set_order_book_snapshot(client, message.as_map().unwrap_or(&Default::default()), Value::Str("depth".into()));
 }
 
-    pub fn set_order_book_snapshot(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>, mut channel: Value) {
+    pub fn set_order_book_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>, mut channel: Value) {
         let data: crate::value::List = message.key_list("data");
         let length: i64 = data.len() as i64;
         if (length == 0) {
@@ -1159,9 +1158,7 @@ impl Toobit {
         }
 }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // spot
         //
@@ -1306,7 +1303,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         //    {
         //        "e": "executionReport",
@@ -1342,7 +1339,7 @@ impl Toobit {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let order: crate::value::Dict = self.parse_ws_order(message, None);
+        let order: crate::value::Dict = self.parse_ws_order(Value::Dict(std::sync::Arc::clone(message)), None);
         self.orders.append(Value::from(&order));
         let mut messageHash: String = "orders".to_string();
         client.resolve(Value::from(&self.orders), messageHash.as_str());
@@ -1450,7 +1447,7 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn handle_my_trade(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_my_trade(&self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         //    {
         //        "e": "ticketInfo",
@@ -1472,7 +1469,7 @@ impl Toobit {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_my_trade(self, message, None).into_dict();
+        let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_my_trade(self, Value::Dict(std::sync::Arc::clone(message)), None).into_dict();
         myTrades.append(Value::from(&trade));
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
         client.resolve(Value::from(&myTrades), messageHash.as_str());

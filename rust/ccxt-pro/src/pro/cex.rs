@@ -111,27 +111,27 @@ impl Cex {
             "fetch_open_orders_ws" => crate::exchange_stubs::enqueue_spawn("fetch_open_orders_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "fetch_order_ws" => crate::exchange_stubs::enqueue_spawn("fetch_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "fetch_ticker_ws" => crate::exchange_stubs::enqueue_spawn("fetch_ticker_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_authentication_message" => { self.handle_authentication_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authentication_message" => { self.handle_authentication_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_connected" => { self.handle_connected(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_init_ohlcv" => { self.handle_init_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv1m" => { self.handle_ohlcv1m(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv24" => { self.handle_ohlcv24(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_update" => { self.handle_order_book_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_update" => { self.handle_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_update" => { self.handle_order_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders_snapshot" => { self.handle_orders_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades_inner" => { self.handle_trades_inner(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_trades_snapshot" => { self.handle_trades_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_transaction" => { self.handle_transaction(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades_inner" => { self.handle_trades_inner(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_trades_snapshot" => { self.handle_trades_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_transaction" => { self.handle_transaction(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "pair_to_symbol" => { self.pair_to_symbol(args.get(0).copied().and_then(crate::Value::as_text).as_deref()); },
             "parse_ws_old_trade" => { Value::Dict(self.parse_ws_old_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -402,7 +402,7 @@ impl Cex {
         }).await?))
     }
 
-    pub fn handle_trades_snapshot(&mut self, client: &Value, message: &Value) {
+    pub fn handle_trades_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         //
         //     {
         //         "e": "history",
@@ -455,7 +455,7 @@ impl Cex {
     Default::default()
 }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //     {
         //         "e": "history-update",
@@ -467,7 +467,7 @@ impl Cex {
         self.handle_trades_inner(client, message.as_map().unwrap_or(&Default::default()));
 }
 
-    pub fn handle_trades_inner(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_trades_inner(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         let data: crate::value::List = message.key_list("data");
         let symbol: Option<String> = self.safe_string_k_opt(self.options.get("watchTrades").cloned().unwrap_or(Value::Null), "symbol", &[]);
@@ -878,7 +878,7 @@ impl Cex {
         }).await?))
     }
 
-    pub fn handle_transaction(&mut self, client: &Value, message: &Value) {
+    pub fn handle_transaction(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         let data: crate::value::Dict = __pro_message.key_dict("data");
@@ -890,7 +890,7 @@ impl Cex {
         self.handle_my_trades(client, message.as_map().unwrap_or(&Default::default()));
 }
 
-    pub fn handle_my_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "e": "tx",
@@ -1020,7 +1020,7 @@ impl Cex {
     Default::default()
 }
 
-    pub fn handle_order_update(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_order_update(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //  partialExecution
         //     {
@@ -1489,8 +1489,8 @@ impl Cex {
         let timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
         let asks: crate::value::List = self.safe_list_k_t(&data, "asks");
         let bids: crate::value::List = self.safe_list_k_t(&data, "bids");
-        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
-        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), &asks);
+        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), &bids);
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
         storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
         storedOrderBook.set_book_meta("nonce", Value::from(incrementalId));
@@ -1502,9 +1502,7 @@ impl Cex {
         bookside.store_array(Value::Arr(bidAsk));
 }
 
-    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: &[crate::Value]) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
@@ -2125,7 +2123,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub fn handle_authentication_message(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_authentication_message(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "e": "auth",

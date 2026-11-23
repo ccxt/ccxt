@@ -206,14 +206,14 @@ impl Alpaca {
             "handle_error_message" => { self.handle_error_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription" => { self.handle_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade_update" => { self.handle_trade_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_trade_update" => { self.handle_trade_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trading_message" => { self.handle_trading_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_my_trade" => { self.parse_my_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()); },
             "parse_ticker" => { Value::Dict(self.parse_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -355,7 +355,7 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         //    {
         //         "T": "q",
@@ -367,7 +367,7 @@ impl Alpaca {
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, message, None).unwrap_or_default();
+        let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Value::Dict(std::sync::Arc::clone(message)), None).unwrap_or_default();
         let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "ticker:", tickerSymbol);
@@ -537,8 +537,8 @@ impl Alpaca {
         }  else {
             let asks: crate::value::List = __pro_message.key_list("a");
             let bids: crate::value::List = __pro_message.key_list("b");
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks);
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }
@@ -599,9 +599,8 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "T": "t",
@@ -621,7 +620,7 @@ impl Alpaca {
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let parsed: crate::value::Dict = self.parse_trade(message, None);
+        let parsed: crate::value::Dict = self.parse_trade(Value::Dict(std::sync::Arc::clone(message)), None);
         stored.append(Value::Dict(parsed));
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
@@ -737,12 +736,12 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn handle_trade_update(&mut self, client: &Value, message: &Value) {
+    pub fn handle_trade_update(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
         self.handle_order(client, message.as_map().unwrap_or(&Default::default()));
         self.handle_my_trade(client, message.as_map().unwrap_or(&Default::default()));
 }
 
-    pub fn handle_order(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -803,7 +802,7 @@ impl Alpaca {
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
-    pub fn handle_my_trade(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_my_trade(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "stream": "trade_updates",

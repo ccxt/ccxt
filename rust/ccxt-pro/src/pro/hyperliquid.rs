@@ -122,8 +122,8 @@ impl Hyperliquid {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_liquidations" => { self.handle_my_liquidations(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_liquidations" => { self.handle_my_liquidations(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades_unsubscription" => { self.handle_my_trades_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv_unsubscription" => { self.handle_ohlcv_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1164,7 +1164,7 @@ impl Hyperliquid {
     Default::default()
 }
 
-    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1235,7 +1235,7 @@ impl Hyperliquid {
         client.resolve(Value::from(&self.myTrades), messageHash.as_str());
 }
 
-    pub fn handle_my_liquidations(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_my_liquidations(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // userFills message, see handleMyTrades, liquidation fills carry
         //
@@ -2395,12 +2395,12 @@ impl Hyperliquid {
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_errors(0, "", "", "", Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            }), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            }), None);
+    let m = indexmap::IndexMap::new();
+    m
+}), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());

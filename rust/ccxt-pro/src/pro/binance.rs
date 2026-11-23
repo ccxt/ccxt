@@ -86,7 +86,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "get_stock_unified_symbol" => crate::Value::from(self.get_stock_unified_symbol(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "get_stock_ws_url" => self.get_stock_ws_url(&args[..].iter().collect::<Vec<_>>()),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "is_spot_url" => self.is_spot_url(args.get(0).unwrap_or(&crate::Value::Null)),
                 "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
@@ -177,7 +177,7 @@ impl Binance {
             "handle_balance_ws" => { self.handle_balance_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bids_asks" => { self.handle_bids_asks(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_edit_order_ws" => { self.handle_edit_order_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_event_stream_terminated" => { self.handle_event_stream_terminated(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_fetch_ohlcv" => { self.handle_fetch_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -185,16 +185,16 @@ impl Binance {
             "handle_liquidation" => { self.handle_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_mark_prices" => { self.handle_mark_prices(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_liquidation" => { self.handle_my_liquidation(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_liquidation" => { self.handle_my_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_options_account_update" => { self.handle_options_account_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_options_order_update" => { self.handle_options_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_options_order_update" => { self.handle_options_order_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_update" => { self.handle_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_update" => { self.handle_order_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_ws" => { self.handle_order_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders_ws" => { self.handle_orders_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -205,7 +205,7 @@ impl Binance {
             "handle_ticker_ws" => { self.handle_ticker_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_tickers" => { self.handle_tickers(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_tickers_and_bids_asks" => { self.handle_tickers_and_bids_asks(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trades_ws" => { self.handle_trades_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_user_data_stream_subscribe" => { self.handle_user_data_stream_subscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1086,7 +1086,7 @@ impl Binance {
         }).await?))
     }
 
-    pub fn handle_my_liquidation(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_my_liquidation(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1551,13 +1551,13 @@ impl Binance {
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             orderbook.reset(snapshot);
             // unroll the accumulated deltas
-            let messages: crate::value::List = orderbook.cache_items();
+            let messages: Vec<crate::value::Dict> = crate::value::dict_rows(orderbook.cache_items());
             orderbook.set_book_meta("cache", Value::from(vec![]));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (messages.len() as i64) } {
-                let messageItem: Value = self.safe_value(&messages, Value::Int(i), &[]);
+                let messageItem: crate::value::Dict = messages.get(i as usize).cloned().unwrap_or_default();
                 let U: Option<i64> = self.safe_integer_k(&messageItem, "U", &[]).as_i64();
                 let u: Option<i64> = self.safe_integer_k(&messageItem, "u", &[]).as_i64();
                 if (U.is_none()) || (u.is_none()) {
@@ -1568,7 +1568,7 @@ impl Binance {
                 if (snapshotNonce.is_none()) {
                     // every comparison against an undefined nonce is false, only pu === undefined matches
                     if (type_var.as_deref() == Some("linear")) && (pu.is_none()) {
-                        self.handle_order_book_message(client, messageItem.clone(), Value::from(&orderbook));
+                        self.handle_order_book_message(client, &Value::from(&messageItem), Value::from(&orderbook));
                     }
                     continue;
                 }
@@ -1579,7 +1579,7 @@ impl Binance {
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                     if ((U.is_some() && snapshotNonce.is_some() && U <= snapshotNonce)) && ((u.is_some() && snapshotNonce.is_some() && u >= snapshotNonce)) || (pu == snapshotNonce) {
-                        self.handle_order_book_message(client, messageItem.clone(), Value::from(&orderbook));
+                        self.handle_order_book_message(client, &Value::from(&messageItem), Value::from(&orderbook));
                     }
                 }  else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
@@ -1588,7 +1588,7 @@ impl Binance {
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                     if (matches!((((if let Some(__l) = U { Some(__l - 1) } else { None })), snapshotNonce), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) && (matches!((((if let Some(__l) = u { Some(__l - 1) } else { None })), snapshotNonce), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
-                        self.handle_order_book_message(client, messageItem, Value::from(&orderbook));
+                        self.handle_order_book_message(client, &Value::Dict(messageItem), Value::from(&orderbook));
                     }
                 }
             }
@@ -1606,23 +1606,22 @@ impl Binance {
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: &[crate::Value]) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (deltas.len() as i64) } {
-            self.handle_delta(&mut bookside, self.safe_list(&deltas, Value::Int(i), &[]));
+            self.handle_delta(&mut bookside, self.safe_list(deltas, Value::Int(i), &[]));
         }
         }
 }
 
-    pub fn handle_order_book_message(&self, client: &Value, message: impl Into<crate::Value>, mut orderbook: Value) -> Value {
-        let mut message: Value = message.into();
+    pub fn handle_order_book_message(&self, client: &Value, message: &Value, mut orderbook: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let u: Option<i64> = (match message.get("u") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), (match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), (match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), ((match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })).as_array().map(Vec::as_slice).unwrap_or_default());
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), ((match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })).as_array().map(Vec::as_slice).unwrap_or_default());
         orderbook.set_book_meta("nonce", Value::from(u));
         let timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -1701,7 +1700,7 @@ impl Binance {
                             conditional = Some(((if let Some(__l) = U { Some(__l - 1) } else { None })) == nonce);
                         }
                         if (conditional == Some(true)) {
-                            self.handle_order_book_message(&client, message.clone(), Value::from(&orderbook));
+                            self.handle_order_book_message(&client, &message, Value::from(&orderbook));
                             let newNonce: i64 = self.safe_integer_k(Value::from(&orderbook), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
                             if (nonce.is_some() && nonce < Some(newNonce)) {
                                 client.resolve(Value::from(&orderbook), messageHash.as_str());
@@ -1720,7 +1719,7 @@ impl Binance {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U.is_some() && nonce.is_some() && U <= nonce)) || (pu == nonce) {
-                            self.handle_order_book_message(&client, message, Value::from(&orderbook));
+                            self.handle_order_book_message(&client, &message, Value::from(&orderbook));
                             let newNonce: i64 = self.safe_integer_k(Value::from(&orderbook), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
                             if (nonce.is_some() && nonce <= Some(newNonce)) {
                                 client.resolve(Value::from(&orderbook), messageHash.as_str());
@@ -2316,9 +2315,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     Default::default()
 }
 
-    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_trade(&mut self, client: &Value, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         let marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -2332,7 +2330,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "trade::", symbol);
-        let trade: Value = Value::Dict(self.parse_ws_trade(message, Some(&market)));
+        let trade: Value = Value::Dict(self.parse_ws_trade(Value::Dict(std::sync::Arc::clone(message)), Some(&market)));
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -6306,7 +6304,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Default::default()
 }
 
-    pub fn handle_order_update(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_order_update(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -6534,7 +6532,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:quote:", quoteSymbol).into())));
 }
 
-    pub fn handle_options_order_update(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_options_order_update(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // eOptions ORDER_TRADE_UPDATE: "o" is an array of orders (not a dict like futures)
         //
@@ -7265,7 +7263,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }).await?))
     }
 
-    pub fn handle_my_trade(&mut self, client: &Value, message: impl Into<crate::Value>) {
+    pub fn handle_my_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: impl Into<crate::Value>) {
         let message: Value = message.into();
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
@@ -7359,7 +7357,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub fn handle_order(&mut self, client: &Value, message: impl Into<crate::Value>) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: impl Into<crate::Value>) {
         let message: Value = message.into();
         let mut parsed: Value = Value::Dict(self.parse_ws_order(message, None));
         let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -7515,12 +7513,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let codeValue: i64 = code.unwrap_or(0);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_errors(codeValue, msg.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            }), (json_stringify(&error)).as_str().unwrap_or_default(), Value::from(&error), Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            }), None);
+    let m = indexmap::IndexMap::new();
+    m
+}), (json_stringify(&error)).as_str().unwrap_or_default(), Value::from(&error), Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             rejected = true;

@@ -110,14 +110,14 @@ impl Htx {
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_snapshot" => crate::exchange_stubs::enqueue_spawn("handle_order_book_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -907,8 +907,8 @@ impl Htx {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             let data: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "data");
-            let messages: crate::value::List = orderbook.cache_items();
-            let firstMessage: crate::value::Dict = self.safe_dict_t(&messages, Value::Int(0));
+            let messages: Vec<crate::value::Dict> = crate::value::dict_rows(orderbook.cache_items());
+            let firstMessage: crate::value::Dict = messages.get(0).cloned().unwrap_or_default();
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]);
             let tick: crate::value::Dict = self.safe_dict_k_t(&firstMessage, "tick");
             let sequence: Option<i64> = self.safe_integer_k(&tick, "prevSeqNum", &[]).as_i64();
@@ -948,7 +948,8 @@ impl Htx {
                                         let mut i: i64 = 0;
                     let mut __for_first_1: bool = true;
                     while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (messages.len() as i64) } {
-                    self.handle_order_book_message(client, messages.get(i as usize).cloned().unwrap_or(Value::Null));
+                    let messageItem: crate::value::Dict = messages.get(i as usize).cloned().unwrap_or_default();
+                    self.handle_order_book_message(client, &Value::Dict(messageItem));
                 }
                 }
                 orderbook.set_book_meta("cache", Value::from(vec![]));
@@ -1023,9 +1024,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
-        let __deltas_empty = Vec::new();
-        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: &[crate::Value]) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
@@ -1035,7 +1034,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn handle_order_book_message(&self, client: &Value, mut message: Value) {
+    pub fn handle_order_book_message(&self, client: &Value, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         // spot markets
@@ -1133,8 +1132,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (spotConditon) || (nonSpotCondition) {
             let asks: crate::value::List = self.safe_list_k_t(&tick, "asks");
             let bids: crate::value::List = self.safe_list_k_t(&tick, "bids");
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks);
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids);
             let mut nonceKey: String = "version".to_string();
             if spotConditon {
                 nonceKey = "seqNum".to_string();
@@ -1219,7 +1218,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (event.is_none()) && (self.safe_integer_k(Value::from(&orderbook), "nonce", &[]) == Value::Null) {
             orderbook.cache_push(message);
         }  else {
-            self.handle_order_book_message(&client, message);
+            self.handle_order_book_message(&client, &message);
             client.resolve(Value::from(&orderbook), messageHash.as_deref());
         }
 }

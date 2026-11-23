@@ -97,7 +97,7 @@ impl Bitstamp {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -371,11 +371,11 @@ impl Bitstamp {
         }  else if (nonce.is_some() && deltaNonce.is_some() && nonce >= deltaNonce) {
             return;
         }
-        self.handle_book_delta(Value::from(&storedOrderBook), delta.map_or(Value::Null, Value::Dict));
+        self.handle_book_delta(&mut storedOrderBook, delta.map_or(Value::Null, Value::Dict));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
         let timestamp: Option<i64> = self.safe_timestamp_k(&delta, "timestamp", &[]).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));

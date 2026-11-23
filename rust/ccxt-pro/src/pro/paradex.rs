@@ -144,7 +144,7 @@ impl Paradex {
             "clean_unsubscribed" => { self.clean_unsubscribed(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "expire_pending_unsubscribe" => crate::exchange_stubs::enqueue_spawn("expire_pending_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "get_ws_url" => { self.get_ws_url(); },
-            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_binary_message" => { self.handle_binary_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -735,7 +735,7 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_authentication_message(&self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         //
         //     {
@@ -779,7 +779,7 @@ if _try_result.is_err() {
         let result: crate::value::Dict = __pro_message.key_dict("result");
         let isAuth: bool = ((requestId.is_some()) && (requestId == authRequestId)) || (self.safe_string_k(&result, "node_id", &[]) != Value::Null);
         if isAuth {
-            self.handle_authentication_message(client.clone(), message.clone());
+            self.handle_authentication_message(client.clone(), message.as_map().unwrap_or(&Default::default()));
         }
         if (requestId.is_some()) {
             self.handle_unsubscribe_reply(client, requestId.as_deref().unwrap_or_default());

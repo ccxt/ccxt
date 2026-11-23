@@ -1053,7 +1053,7 @@ if _try_result.is_err() {
 
     None
 }
-    fn parse_adl_rank(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_adl_rank(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
         //
         // fetchPositionsADLRank
@@ -1101,7 +1101,7 @@ if _try_result.is_err() {
         let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&info, "openingTimestamp", &[]).as_i64();
         let percentage: Option<String> = self.safe_string_k_opt(&info, "delevPercentage", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
@@ -1111,9 +1111,9 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
@@ -1507,10 +1507,10 @@ if _try_result.is_err() {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) || (response == Value::Null) {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), Value::from(body));
-            return Value::Null;
+            return None;
         }
         //
         // bad
@@ -1526,9 +1526,7 @@ if _try_result.is_err() {
         if (errorCode.as_deref() != Some("200000")) && (errorCode.as_deref() != Some("200")) {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1541,7 +1539,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "borrow_cross_margin" => crate::types::IntoRaw::into_raw(self.borrow_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "borrow_isolated_margin" => crate::types::IntoRaw::into_raw(self.borrow_isolated_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
-                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_contract_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_contract_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_spot_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_spot_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1645,7 +1643,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_utaohlcv" => self.fetch_utaohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_hf_and_params" => { let __t = self.handle_hf_and_params(&args[..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) },
                 "is_futures_method" => self.is_futures_method(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "is_hf_or_mining" => self.is_hf_or_mining(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -1653,7 +1651,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "load_migration_status" => self.load_migration_status(&args[..].iter().collect::<Vec<_>>()).await,
                 "market_order_amount_to_precision" => crate::Value::from(self.market_order_amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "nonce" => crate::Value::from(self.nonce()),
-                "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_adl_rank" => Value::Dict(self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_balance_helper" => Value::Dict(self.parse_balance_helper(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "parse_borrow_interest" => Value::Dict(self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -13059,7 +13057,7 @@ impl Kucoin {
         }).await?))
     }
 
-    pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -13068,10 +13066,10 @@ impl Kucoin {
         let config = config.as_map().unwrap_or(&__config_empty);
         let versions: crate::value::Dict = self.safe_dict_k_t(&self.options, "versions");
         let apiVersions: crate::value::Dict = self.safe_dict_t(&versions, self.safe_string(&api, Value::Int(0), &[]));
-        let methodVersions: crate::value::Dict = self.safe_dict_t(&apiVersions, method);
+        let methodVersions: crate::value::Dict = self.safe_dict_t(&apiVersions, Value::from(method));
         let defaultVersion: Option<String> = self.safe_string_opt(&methodVersions, &path, &[&self.options.get("version").cloned().unwrap_or(Value::Null)]);
         let version: Option<String> = self.safe_string_k_opt(&params, "version", &[&defaultVersion]);
-        if (self.safe_string(api, Value::Int(0), &[]).as_str() == Some("utaV2")) && (path.as_str() == Some("market/orderbook")) {
+        if (self.safe_string(api, Value::Int(0), &[]).as_str() == Some("utaV2")) && (path == "market/orderbook") {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
             let depth: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64(); // undefined for 'FULL'

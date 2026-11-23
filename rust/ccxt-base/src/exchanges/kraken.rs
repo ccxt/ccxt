@@ -1046,12 +1046,12 @@ impl crate::exchange::DerivedExchange for Kraken {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (code == 520) {
             panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason))));
         }
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         if (self.safe_string(Value::from(body), Value::Int(0), &[]).as_str() == Some("{")) {
             let message: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
@@ -1092,9 +1092,7 @@ impl crate::exchange::DerivedExchange for Kraken {
                 }
             }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1146,7 +1144,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                 "find_market_by_altname_or_id" => self.find_market_by_altname_or_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_delisted_market_by_id" => self.get_delisted_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "order_request" => { let __t = self.order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_f64),
                     args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>());

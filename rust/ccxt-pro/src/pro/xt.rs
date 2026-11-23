@@ -112,7 +112,7 @@ impl Xt {
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
             "get_listen_key" => crate::exchange_stubs::enqueue_spawn("get_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => crate::exchange_stubs::enqueue_spawn("handle_error_message", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -351,7 +351,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
         orderbook.set_book_meta("nonce", self.safe_integer2(&delta, Value::Str("i".into()), Value::Str("u".into()), &[]));
         let obAsks: crate::value::List = self.safe_list_k_t(&delta, "a");
         let obBids: crate::value::List = self.safe_list_k_t(delta, "b");

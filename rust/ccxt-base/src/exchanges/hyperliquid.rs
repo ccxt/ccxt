@@ -1039,9 +1039,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) || (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
         //
@@ -1094,9 +1094,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if nonEmptyMessage {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -1118,7 +1116,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "build_user_dex_abstraction_sig" => self.build_user_dex_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "build_withdraw_sig" => self.build_withdraw_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "calculate_price_precision" => self.calculate_price_precision(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default()),
-                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -1176,13 +1174,13 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_public_address" => { let __t = self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "initialize_client" => self.initialize_client().await,
                 "is_unified_enabled" => { let __t = self.is_unified_enabled(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await; Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) },
                 "market" => crate::types::IntoRaw::into_raw(self.market(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_create_edit_order_args" => { let __t = self.parse_create_edit_order_args(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>());
@@ -5797,7 +5795,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "add", &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "add", &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -5826,12 +5824,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "reduce", &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "reduce", &[&params]).await);
         Value::Null
         }).await?))
     }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, type_var: &str, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, type_var: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5866,15 +5864,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Map(request)]).await;
-        let __ws_arg_30 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        let __ws_arg_31 = self.safe_string_k(&response, "status", &[]);
-        return self.extend(__ws_arg_30, &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("code".to_string(), __ws_arg_31);
+        m.insert("code".to_string(), self.safe_string_k(&response, "status", &[]));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -6224,8 +6218,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_32]).await;
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
+        let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_30]).await;
         //
         //     {
         //         "dailyUserVlm": [
@@ -6369,8 +6363,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
             params2 = self.omit_t(&params2, &["until"], &[]);
         }
-        let __ws_arg_33 = self.extend(Value::Map(request), &[&params2]);
-        let response: Value = self.public_post_info(&[&__ws_arg_33]).await;
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&params2]);
+        let response: Value = self.public_post_info(&[&__ws_arg_31]).await;
         //
         // [
         //     {
@@ -6450,8 +6444,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
             params2 = self.omit_t(&params2, &["until"], &[]);
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[&params2]);
-        let depositLedger: crate::value::List = Self::info_list(self.public_post_info(&[&__ws_arg_34]).await);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&params2]);
+        let depositLedger: crate::value::List = Self::info_list(self.public_post_info(&[&__ws_arg_32]).await);
         //
         // [
         //     {
@@ -6538,8 +6532,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
             params2 = self.omit_t(&params2, &["until"], &[]);
         }
-        let __ws_arg_35 = self.extend(Value::Map(request), &[&params2]);
-        let withdrawalLedger: crate::value::List = Self::info_list(self.public_post_info(&[&__ws_arg_35]).await);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[&params2]);
+        let withdrawalLedger: crate::value::List = Self::info_list(self.public_post_info(&[&__ws_arg_33]).await);
         //
         // [
         //     {
@@ -6609,8 +6603,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (dexName.is_some()) {
             request.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
-        let swapMarkets: Option<crate::value::List> = Some(self.fetch_swap_markets(&[__ws_arg_36]).await);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
+        let swapMarkets: Option<crate::value::List> = Some(self.fetch_swap_markets(&[__ws_arg_34]).await);
         return self.parse_open_interests(&swapMarkets, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -6695,8 +6689,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[&__ws_arg_37]).await));
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[&__ws_arg_35]).await));
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
@@ -6731,8 +6725,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), Value::Dict(signature));
-        let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&__ws_arg_38]).await;
+        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&__ws_arg_36]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -6771,8 +6765,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, expiresAfter);
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), Value::Dict(signature));
-        let __ws_arg_39 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
-        let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&__ws_arg_39]).await;
+        let __ws_arg_37 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
+        let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&__ws_arg_37]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -6848,7 +6842,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
 
 
-    pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m

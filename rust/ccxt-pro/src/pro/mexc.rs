@@ -113,7 +113,7 @@ impl Mexc {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_binary_message" => { self.handle_binary_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bookside_delta" => { self.handle_bookside_delta(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -373,22 +373,25 @@ impl Mexc {
         //         "s": "BTCUSDT"
         //     }
         //
-        let rawTicker: Value = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]).map_or(Value::Null, Value::Dict);
+        let rawTicker: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]);
         let marketId: Option<String> = self.safe_string2_opt(&message, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let timestamp: Option<i64> = self.safe_integer2(&message, Value::Str("t".into()), Value::Str("sendTime".into()), &[]).as_i64();
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut ticker: Value = Value::Null;
         if (market).spot {
-            self.handle_bid_ask(client, message); // the bids-asks channel is spot only
-            ticker = Value::Dict(self.parse_ws_ticker(rawTicker.clone(), Some(&market)));
+            self.handle_bid_ask(client, message.clone()); // the bids-asks channel is spot only
+            ticker = Value::Dict(self.parse_ws_ticker(self.safe_dict_n(message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]).map_or(Value::Null, Value::Dict), Some(&market)));
             if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
             if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
-        }  else if (rawTicker != Value::Null) {
+        }  else if (rawTicker.is_some()) {
             let __ws_arg_0 = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), &[rawTicker]);
+            }), &[&rawTicker]);
             ticker = Value::Dict(self.parse_ticker(__ws_arg_0, Some(&market)));
         }  else {
             return;
@@ -548,7 +551,7 @@ impl Mexc {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut ticker: Value = Value::Null;
             if (isSpot.as_bool() == Some(true)) {
-                ticker = Value::Dict(self.parse_ws_ticker(Value::Dict(entry), Some(&market)));
+                ticker = Value::Dict(self.parse_ws_ticker(&entry, Some(&market)));
             }  else {
                 ticker = Value::Dict(self.parse_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                     let m = indexmap::IndexMap::new();
@@ -567,7 +570,8 @@ impl Mexc {
         client.resolve(Value::Arr(result), topic.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        let ticker: Value = ticker.into();
         // protobuf ticker
         // "bidPrice": "93387.28",  // Best bid price
         // "bidQuantity": "3.73485", // Best bid quantity
@@ -1284,7 +1288,7 @@ impl Mexc {
             return;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_book_delta(Value::from(&storedOrderBook), data.map_or(Value::Null, Value::Dict));
+            self.handle_book_delta(&mut storedOrderBook, data.map_or(Value::Null, Value::Dict));
             let timestamp: Option<i64> = self.safe_integer_n(message, Value::from(vec![Value::Str("t".into()), Value::Str("ts".into()), Value::Str("sendTime".into())]), &[]).as_i64();
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1321,8 +1325,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
-        let existingNonce: Option<i64> = self.safe_integer_k(&orderbook, "nonce", &[]).as_i64();
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
+        let existingNonce: Option<i64> = self.safe_integer_k(Value::from(&*orderbook), "nonce", &[]).as_i64();
         let deltaNonce: Option<i64> = self.safe_integer_n(&delta, Value::from(vec![Value::Str("r".into()), Value::Str("version".into()), Value::Str("fromVersion".into())]), &[]).as_i64();
         if (deltaNonce.is_some()) && (existingNonce.is_some()) && ((deltaNonce.is_some() && existingNonce.is_some() && deltaNonce < existingNonce)) {
             return;

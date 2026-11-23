@@ -723,12 +723,12 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let entry: Value = entry.into();
         let marketId: Option<String> = self.safe_string_k_opt(&entry, "conid", &[]);
         let resolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&entry, "_updated", &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&resolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -737,9 +737,9 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         m.insert("side".to_string(), Value::Null);
         m.insert("info".to_string(), entry);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let interest: Value = interest.into();
@@ -900,7 +900,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         let url: Value = url.into();
         let method: Value = method.into();
         let body: Value = body.into();
@@ -912,7 +912,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
                 gatewayUrl.map(Value::from).unwrap_or(Value::Null)).into()), " in a browser. Current action: ").into()), method).into()), " ").into()), url).into()), " ").into()), body)));
         }
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         //
         //     {
@@ -928,9 +928,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -983,7 +981,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "ibkr_balance_code" => crate::Value::from(self.ibkr_balance_code(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "ibkr_check_oauth_credentials" => self.ibkr_check_oauth_credentials(),
                 "ibkr_disambiguate_contract_symbols" => self.ibkr_disambiguate_contract_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1009,7 +1007,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "markets_endpoint_call" => self.markets_endpoint_call(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_last_price" => Value::Dict(self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4484,13 +4482,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let methodqueryVariable = self.handle_option_and_params(params, Value::Str("fetchPortfolioAccounts".into()), Value::Str("method".into()), &[Value::Str("privateGetPortfolioAccounts".into())]);
         let method: Option<String> = methodqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = methodqueryVariable.1;
-        let mut response: Option<crate::value::List> = None;
         if (method.as_deref() == Some("privateGetPortfolioSubaccounts")) {
-            response = self.webapi_get_v1_api_portfolio_subaccounts(&[&Value::from(&query)]).await;
-        }  else {
-            response = self.webapi_get_v1_api_portfolio_accounts(&[&Value::Dict(query)]).await;
+            let subaccounts: crate::value::List = self.webapi_get_v1_api_portfolio_subaccounts(&[&Value::from(&query)]).await.unwrap_or_default();
+            return Value::Arr(subaccounts);
         }
-        return response.map_or(Value::Null, Value::Arr);
+        let response: crate::value::List = self.webapi_get_v1_api_portfolio_accounts(&[&Value::Dict(query)]).await.unwrap_or_default();
+        return Value::Arr(response);
 
     Value::Null
 }

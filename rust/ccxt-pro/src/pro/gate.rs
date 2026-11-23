@@ -132,12 +132,12 @@ impl Gate {
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
             "get_type_by_market" => { self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).copied().cloned().unwrap_or_default()).as_ref()); },
             "get_url_by_market_type" => { self.get_url_by_market_type(args.get(0).copied().and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]); },
-            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance_subscription" => { self.handle_balance_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); },
-            "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_liquidation" => { self.handle_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -149,8 +149,8 @@ impl Gate {
             "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker_and_bid_ask" => { self.handle_ticker_and_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker_and_bid_ask" => { self.handle_ticker_and_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &crate::pro::ws_client::ClientHandle::from_value(args.get(1).copied().unwrap_or(&crate::Value::Null)), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_un_subscribe" => { self.handle_un_subscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "load_positions_snapshot" => crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -1063,7 +1063,7 @@ impl Gate {
             if (nonce.is_none()) || ((deltaStart.is_some()) && ((nonce.is_some() && deltaStart.is_some() && nonce >= deltaStart))) {
                 return;
             }
-            self.handle_book_delta(Value::from(&orderbook), Value::Dict(result));
+            self.handle_book_delta(&mut orderbook, Value::Dict(result));
         }
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -1173,7 +1173,7 @@ impl Gate {
         }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
             return;
         }  else if (deltaStart.is_some()) && (nonce.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
-            self.handle_book_delta(Value::from(&storedOrderBook), delta.map_or(Value::Null, Value::Dict));
+            self.handle_book_delta(&mut storedOrderBook, delta.map_or(Value::Null, Value::Dict));
         }  else {
             __ch.remove_subscription(messageHash.as_str());
             storedOrderBook.set_book_meta("nonce", Value::Null);
@@ -1231,7 +1231,7 @@ impl Gate {
         }
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
         let timestamp: Option<i64> = self.safe_integer_k(&delta, "t", &[]).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1307,7 +1307,7 @@ impl Gate {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //    {
         //        "time": 1649326221,
@@ -1358,7 +1358,7 @@ impl Gate {
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         //
         //    {
         //        "time": 1671363004,
@@ -1438,7 +1438,7 @@ impl Gate {
     Value::Null
 }
 
-    pub fn handle_ticker_and_bid_ask(&mut self, mut objectName: Value, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_ticker_and_bid_ask(&mut self, mut objectName: Value, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let rawMarketType: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -3020,8 +3020,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __pro_message_empty = indexmap::IndexMap::new();
+        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
         // subscribe
         //    {
@@ -3153,7 +3153,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let requestId: Option<String> = (match __pro_message.get("request_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (requestId.as_deref() == Some("authenticated")) {
-            self.handle_authentication_message(client.as_value(), message);
+            self.handle_authentication_message(client.as_value(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         if (requestId.is_some()) {
@@ -3336,7 +3336,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_authentication_message(&self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());

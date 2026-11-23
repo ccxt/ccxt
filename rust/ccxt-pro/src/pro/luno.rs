@@ -122,7 +122,7 @@ impl Luno {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "custom_parse_bid_ask" => { Value::Arr(self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -409,7 +409,7 @@ impl Luno {
             let snapshot: crate::value::Dict = self.custom_parse_order_book(message.clone(), Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            self.handle_book_delta(Value::from(&orderbook), message);
+            self.handle_book_delta(&mut orderbook, message);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
@@ -470,9 +470,7 @@ impl Luno {
         return std::sync::Arc::new(result);
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut message: Value) {
-        let __orderbook_empty = indexmap::IndexMap::new();
-        let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut message: Value) {
         //
         //  create
         //     {
@@ -516,8 +514,8 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut asksOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("asks").cloned().unwrap_or(Value::Null));
-        let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
+        let mut asksOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
+        let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
         let tradeUpdates: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&message, "trade_updates"));

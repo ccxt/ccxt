@@ -552,9 +552,9 @@ impl crate::exchange::DerivedExchange for Hibachi {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let status: Option<String> = self.safe_string_k_opt(&response, "status", &[]);
         //
@@ -571,9 +571,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -624,7 +622,7 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_account_id" => self.get_account_id(),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "hardcoded_currencies" => self.hardcoded_currencies(),
                 "nonce" => crate::Value::from(self.nonce()),
                 "order_message" => self.order_message(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(),
@@ -2974,7 +2972,11 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (settlements.len() as i64) } {
-            result.push(Value::Dict(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market)));
+            let __ws_arg_20 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[settlements.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            result.push(Value::Dict(self.parse_settlement(__ws_arg_20, market)));
         }
         }
         return std::sync::Arc::new(result);
@@ -3022,8 +3024,8 @@ impl Hibachi {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_trade_account_settlements_history(&[&__ws_arg_20]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_trade_account_settlements_history(&[&__ws_arg_21]).await.unwrap_or_default();
         //
         //     {
         //         "settlements": [
@@ -3097,8 +3099,8 @@ impl Hibachi {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_market_data_open_interest(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_market_data_open_interest(&[&__ws_arg_22]).await.unwrap_or_default();
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
@@ -3143,8 +3145,8 @@ impl Hibachi {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("public_get_market_data_prices", &[&__ws_arg_22]).await;
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("public_get_market_data_prices", &[&__ws_arg_23]).await;
         //
         // {
         //     "askPrice": "3514.650296",
@@ -3218,8 +3220,8 @@ impl Hibachi {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_market_data_funding_rates(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_market_data_funding_rates(&[&__ws_arg_24]).await.unwrap_or_default();
         //
         // {
         //     "data": [

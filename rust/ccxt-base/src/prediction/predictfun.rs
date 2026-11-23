@@ -56,7 +56,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
         // Forward to the inherent method on Predictfun.
         Some(Predictfun::nonce(self))
     }
-    fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         let party: crate::value::Dict = self.safe_dict_k_t(&trade, "partyToParse");
         // fetchMyTrades spans several markets at once, so the row's identity comes from the party
@@ -125,7 +125,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
 
     Value::Null
 }
-    fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // fetchOrder
@@ -195,7 +195,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
         let amountFilled: Option<String> = self.safe_string_k_opt(&order, "amountFilled", &[]);
         let filled: Option<String> = crate::precise::Precise::stringDiv(&amountFilled, &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let filledCost: Option<String> = crate::precise::Precise::stringMul(&filled, &price).as_str().map(str::to_owned);
-        return self.safe_prediction_order(Value::Map({
+        return Some(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderHash.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -220,11 +220,11 @@ impl crate::exchange::DerivedExchange for Predictfun {
         m.insert("event".to_string(), self.safe_string_k(&outcomeObj, "event", &[]));
         m.insert("info".to_string(), order);
     m
-}), &[]);
+}), &[]));
 
-    Value::Null
+    None
 }
-    fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         let rawOutcome: crate::value::Dict = self.safe_dict_k_t(&position, "outcome");
         let rawMarket: crate::value::Dict = self.safe_dict_k_t(&position, "market");
@@ -268,7 +268,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
             realizedPnl = pnl.take();
             unrealizedPnl = None;
         }
-        return self.safe_prediction_position(Value::Map({
+        return Some(self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -295,9 +295,9 @@ impl crate::exchange::DerivedExchange for Predictfun {
         m.insert("event".to_string(), self.safe_string_k(&outcomeObj, "event", &[]));
         m.insert("info".to_string(), position);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("predictfun".into())]));
@@ -373,13 +373,13 @@ impl crate::exchange::DerivedExchange for Predictfun {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
         if success {
-            return Value::Null;
+            return None;
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
         // the message is matched first because it is the more specific of the two: several
@@ -403,8 +403,6 @@ impl crate::exchange::DerivedExchange for Predictfun {
             panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
-
-    Value::Null
 }
 }
 
@@ -435,15 +433,15 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "nonce" => crate::Value::from(self.nonce()),
                 "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "outcome_for_token" => crate::types::IntoRaw::into_raw(self.outcome_for_token(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "outcomes_by_market_id" => self.outcomes_by_market_id(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_event" => crate::Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_topic_market" => Value::Dict(self.parse_topic_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
@@ -2976,7 +2974,7 @@ impl Predictfun {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.safe_prediction_order(Value::Map({
+        return Value::Dict(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&result, Value::Str("orderHash".into()), Value::Str("hash".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -2999,7 +2997,7 @@ impl Predictfun {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
     m
-}), &[]);
+}), &[]));
         Value::Null
         }).await?))
     }
@@ -3352,7 +3350,7 @@ impl Predictfun {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &data, outcomeObj.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&data), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4765,7 +4763,7 @@ impl Predictfun {
             remaining = crate::precise::Precise::stringSub(&amount, &filled).as_str().map(str::to_owned);
         }
         let timestamp: Option<i64> = self.safe_integer_k(&event, "timestamp", &[]).as_i64();
-        return self.safe_prediction_order(Value::Map({
+        return Value::Dict(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&event, Value::Str("orderHash".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -4794,7 +4792,7 @@ impl Predictfun {
         m.insert("event".to_string(), self.safe_string_k(&outcomeObj, "event", &[]));
         m.insert("info".to_string(), event);
     m
-}), &[]);
+}), &[]));
 
     Value::Null
 }

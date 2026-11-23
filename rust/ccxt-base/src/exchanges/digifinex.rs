@@ -1139,13 +1139,13 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
         if (codeError.as_deref() == Some("0")) || (codeError.as_deref() == Some("200")) {
-            return Value::Null;
+            return None;
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
         if (codeError.is_none()) {
@@ -1156,8 +1156,6 @@ impl crate::exchange::DerivedExchange for Digifinex {
         let ExceptionClass: Value = get_value(&ExceptionClassmessageVariable, &Value::Int(0));
         let message: Value = get_value(&ExceptionClassmessageVariable, &Value::Int(1));
         panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(ExceptionClass)), &crate::runtime::stringify_param(&(message))));
-
-    Value::Null
 }
 }
 
@@ -1213,9 +1211,9 @@ impl crate::exchange_generated::ExchangeBase for Digifinex {
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_margin_mode_and_params" => { let __t = self.handle_margin_mode_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_interest" => Value::Dict(self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -6182,7 +6180,7 @@ impl Digifinex {
 }));
         let side: Option<String> = self.safe_string_k_opt(&params, "side", &[]);
         self.check_required_argument(Value::Str("addMargin".into()), &side.map(Value::from).unwrap_or(Value::Null), Value::Str("side".into()), &[Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(1), &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(1), &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -6212,12 +6210,12 @@ impl Digifinex {
 }));
         let side: Option<String> = self.safe_string_k_opt(&params, "side", &[]);
         self.check_required_argument(Value::Str("reduceMargin".into()), &side.map(Value::from).unwrap_or(Value::Null), Value::Str("side".into()), &[Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(2), &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(2), &[&params]).await);
         Value::Null
         }).await?))
     }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: Option<f64>, type_var: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: Option<f64>, type_var: Option<i64>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6254,14 +6252,11 @@ impl Digifinex {
             status = "ok".to_string();
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_52 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_52, &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -6311,8 +6306,8 @@ impl Digifinex {
         if (since.is_some()) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start_timestamp".into(), Value::from(since));
         }
-        let __ws_arg_53 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_swap_get_account_funding_fee(&[&__ws_arg_53]).await.unwrap_or_default();
+        let __ws_arg_52 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_swap_get_account_funding_fee(&[&__ws_arg_52]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -6367,8 +6362,8 @@ impl Digifinex {
                 m.insert("margin_mode".to_string(), Value::from(marginModeResolved));
             m
         });
-        let __ws_arg_54 = self.extend(Value::Map(request), &[&params]);
-        return self.private_swap_post_account_position_mode(&[&__ws_arg_54]).await;
+        let __ws_arg_53 = self.extend(Value::Map(request), &[&params]);
+        return self.private_swap_post_account_position_mode(&[&__ws_arg_53]).await;
         Value::Null
         }).await?))
     }

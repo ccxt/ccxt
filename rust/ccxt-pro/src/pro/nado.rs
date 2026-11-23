@@ -140,12 +140,12 @@ impl Nado {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_position" => { self.handle_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription" => { self.handle_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_unsubscription" => { self.handle_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription_cache" => { self.handle_unsubscription_cache(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -2180,9 +2180,8 @@ impl Nado {
     Default::default()
 }
 
-    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2193,7 +2192,7 @@ impl Nado {
             trades = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, trades.clone());
         }
-        let trade: crate::value::Dict = self.parse_ws_trade(message, Some(&market));
+        let trade: crate::value::Dict = self.parse_ws_trade(Value::Dict(std::sync::Arc::clone(message)), Some(&market));
         trades.append(Value::Dict(trade));
         client.resolve(Value::from(&trades), messageHash.as_str());
 }
@@ -2317,8 +2316,8 @@ impl Nado {
     Default::default()
 }
 
-    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let order: crate::value::Dict = self.parse_ws_order(message, None);
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let order: crate::value::Dict = self.parse_ws_order(Value::Dict(std::sync::Arc::clone(message)), None);
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2597,8 +2596,8 @@ impl Nado {
         }
         let asks: crate::value::List = __pro_message.key_list("asks");
         let bids: crate::value::List = __pro_message.key_list("bids");
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null)), Value::Arr(asks));
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null)), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null)), &asks);
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null)), &bids);
         let timestamp: Option<i64> = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into())).as_i64();
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.map(Value::from).unwrap_or(Value::Null));
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::from(timestamp));

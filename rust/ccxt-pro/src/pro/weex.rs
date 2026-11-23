@@ -1494,8 +1494,8 @@ impl Weex {
         }  else {
             let asks: crate::value::List = __pro_message.key_list("a");
             let bids: crate::value::List = __pro_message.key_list("b");
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks);
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("nonce", Value::from(nonce));

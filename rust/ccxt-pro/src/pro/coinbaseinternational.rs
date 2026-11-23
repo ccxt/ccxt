@@ -77,7 +77,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "get_cancel_on_disconnect" => self.get_cancel_on_disconnect(&args[..]).await,
                 "get_ws_url" => self.get_ws_url(&args[..]),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-                "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "logout_ws" => self.logout_ws(&args[..].iter().collect::<Vec<_>>()).await,
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -156,7 +156,7 @@ impl Coinbaseinternational {
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_heartbeat" => crate::exchange_stubs::enqueue_spawn("handle_heartbeat", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -2178,8 +2178,8 @@ impl Coinbaseinternational {
                 self.spawn(&[Value::Str("resubscribe_order_book".into()), Value::from(channel.as_deref())]);
                 return;
             }
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
-            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), (self.safe_list_k(&data, "asks", &[Value::from(vec![])])).as_array().map(Vec::as_slice).unwrap_or_default());
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), (self.safe_list_k(&data, "bids", &[Value::from(vec![])])).as_array().map(Vec::as_slice).unwrap_or_default());
         }
         orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
         orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "change_id", &[]));
@@ -2235,13 +2235,13 @@ impl Coinbaseinternational {
         }
 }
 
-    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: &[crate::Value]) {
         let deltasLength: i64 = deltas.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < deltasLength } {
-            self.handle_delta(&mut bookside, self.safe_list(&deltas, Value::Int(i), &[]));
+            self.handle_delta(&mut bookside, self.safe_list(deltas, Value::Int(i), &[]));
         }
         }
 }
@@ -2277,9 +2277,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn handle_heartbeat(&mut self, mut client: Value, mut message: Value) -> Value {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub async fn handle_heartbeat(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) -> Value {
         let params: crate::value::Dict = message.key_dict("params");
         let data: Option<String> = self.safe_string_k_opt(&params, "data", &[]);
         if (data.as_deref() == Some("test_request")) {

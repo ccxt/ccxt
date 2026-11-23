@@ -96,8 +96,8 @@ impl Onetrading {
             "find_timeframe" => { self.find_timeframe(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_account_update" => { self.handle_account_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_authentication_message" => { self.handle_authentication_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance_snapshot" => { self.handle_balance_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance_snapshot" => { self.handle_balance_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_book_deltas" => { self.handle_book_deltas(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_heartbeat" => { self.handle_heartbeat(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -276,7 +276,7 @@ impl Onetrading {
         }).await?))
     }
 
-    pub fn handle_balance_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_balance_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         // snapshot
         //     {
@@ -312,7 +312,7 @@ impl Onetrading {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: crate::value::Dict = self.parse_balance(message);
+        let mut balance: crate::value::Dict = self.parse_balance(Value::Dict(std::sync::Arc::clone(message)));
         if (self.balance.is_empty()) {
             self.balance = std::sync::Arc::new({
                 let m = indexmap::IndexMap::new();
@@ -678,19 +678,17 @@ impl Onetrading {
         client.resolve(__resolved_orderbook, channel.as_str());
 }
 
-    pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
-        let __orderbook_empty = indexmap::IndexMap::new();
-        let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
+    pub fn handle_book_delta(&self, orderbook: &mut Option<crate::pro::order_book::Book>, mut delta: Value) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
         let bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta.clone(), &[Value::Int(1), Value::Int(2)]);
         let type_var: Option<String> = self.safe_string_opt(&delta, Value::Int(0), &[]);
         if (type_var.as_deref() == Some("BUY")) {
-            let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
+            let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
             bids.store_array(Value::from(&bidAsk));
         }  else if (type_var.as_deref() == Some("SELL")) {
-            let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("asks").cloned().unwrap_or(Value::Null));
+            let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
             asks.store_array(Value::Arr(bidAsk));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOrderBook () received unknown change type ").into()), json_stringify(&delta))));
@@ -704,7 +702,7 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (deltas.len() as i64) } {
-            self.handle_book_delta(orderbook.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
+            self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(orderbook.clone()), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
 }

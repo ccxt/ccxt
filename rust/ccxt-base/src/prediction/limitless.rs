@@ -319,7 +319,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
-    fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         let matchedSize: Option<String> = self.safe_string_k_opt(&trade, "matchedSize", &[]);
         if (matchedSize.is_some()) {
@@ -452,7 +452,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     Value::Null
 }
-    fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -616,7 +616,7 @@ impl crate::exchange::DerivedExchange for Limitless {
                 m
             }));
         }
-        return self.safe_prediction_order(Value::Map({
+        return Some(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -644,11 +644,11 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::from(vec![]));
     m
-}), &[]);
+}), &[]));
 
-    Value::Null
+    None
 }
-    fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
         //
         //     {
@@ -665,7 +665,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let realizedPnl: Option<String> = self.apply_scale(self.safe_string_k(&position, "realisedPnl", &[]).as_str(), &[]).as_str().map(str::to_owned);
         let collateral: Option<String> = self.apply_scale(self.safe_string_k(&position, "cost", &[]).as_str(), &[]).as_str().map(str::to_owned);
         let entryPrice: Option<String> = self.apply_scale(self.safe_string_k(&position, "fillPrice", &[]).as_str(), &[]).as_str().map(str::to_owned);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
@@ -696,9 +696,9 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("info".to_string(), position);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("limitless".into())]));
@@ -766,13 +766,13 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
         if (response == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let statusCodeInt: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
         if (statusCodeInt >= 200) && (statusCodeInt < 300) {
-            return Value::Null;
+            return None;
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
         // the API returns either a string message or an array of field-validation errors
@@ -787,9 +787,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         if (statusCodeInt == 400) {
             panic!("{}", crate::exchange_errors::bad_request(feedback));
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 }
 
@@ -828,13 +826,13 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "redeem" => self.redeem(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
@@ -3260,7 +3258,7 @@ if _try_result.is_err() {
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsValue]);
         let response: crate::value::Dict = self.limitless_private_post_orders(&[&__ws_arg_24]).await.unwrap_or_default();
-        let mut parsedOrder: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &response, outcomeObj.as_ref()).into_dict();
+        let mut parsedOrder: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&response), outcomeObj.as_ref()).unwrap_or_default();
         // the create-order response omits a status field; a freshly accepted order is open
         let parsedStatus: Option<String> = self.safe_string_k_opt(&parsedOrder, "status", &[]);
         if (parsedStatus.is_none()) {
@@ -3491,7 +3489,7 @@ if _try_result.is_err() {
         let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.limitless_private_delete_orders_order_id(&[&__ws_arg_25]).await.unwrap_or_default();
         // the delete response carries no order body, so backfill the id and the resulting status
-        let mut order: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &response, None);
+        let mut order: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&response), None).map_or(Value::Null, Value::Dict);
         let orderId: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
         if (orderId.is_none()) {
             if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }
@@ -3640,11 +3638,11 @@ if _try_result.is_err() {
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsValue]);
         let response: crate::value::Dict = self.limitless_private_delete_orders_all_slug(&[&__ws_arg_28]).await.unwrap_or_default();
-        return Value::from(vec![self.safe_prediction_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), &[])]);
+}), &[]))]);
         Value::Null
         }).await?))
     }
@@ -3963,7 +3961,7 @@ if _try_result.is_err() {
         let rawMarket: crate::value::Dict = self.safe_dict_k_t(&entry, "market");
         let slug: Option<String> = self.safe_string_k_opt(&rawMarket, "slug", &[]);
         let outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), label, None);
-        let mut parsed: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_prediction_position(self, &position, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).as_map().cloned().unwrap_or_default();
+        let mut parsed: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_prediction_position(self, Some(&position), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts.as_deref(), &[]), &[]));
         let latestTrade: crate::value::Dict = self.safe_dict_k_t(&entry, "latestTrade");
         let mut key: String = "latestYesPrice".to_string();
@@ -3972,7 +3970,7 @@ if _try_result.is_err() {
         }
         parsed.insert("markPrice".into(), self.safe_number(&latestTrade, Value::from(key), &[]));
         parsed.insert("info".into(), entry);
-        return self.safe_prediction_position(Value::Map(parsed));
+        return Value::Dict(self.safe_prediction_position(Value::Map(parsed)));
 
     Value::Null
 }
