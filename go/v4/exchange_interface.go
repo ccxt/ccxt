@@ -467,7 +467,7 @@ type IDerivedExchange interface {
 	ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any
 	ParseIncome(info any, optionalArgs ...any) map[string]any
 	ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode
-	ParseBorrowInterest(info any, optionalArgs ...any) any
+	ParseBorrowInterest(info map[string]any, optionalArgs ...any) any
 	ParseOption(chain any, optionalArgs ...any) Option
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
