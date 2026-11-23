@@ -656,8 +656,7 @@ export default class binance extends binanceRest {
         const optionsType: Dict = this.safeDict (this.options, type, {});
         const listenKey = this.safeString (optionsType, 'listenKey');
         const url = this.getPrivateWsUrl (type, listenKey);
-        const message = undefined;
-        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, message, [ type ]);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, undefined, [ type ]);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -3691,8 +3690,7 @@ export default class binance extends binanceRest {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
-        const message = undefined;
-        return await this.watch (url, messageHash, message, type);
+        return await this.watch (url, messageHash, undefined, type);
     }
 
     handleBalance (client: Client, message: Dict) {
@@ -4587,8 +4585,7 @@ export default class binance extends binanceRest {
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
-        const message = undefined;
-        const orders: ArrayCache = await this.watch (url, messageHash, message, type);
+        const orders: ArrayCache = await this.watch (url, messageHash, undefined, type);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -5691,8 +5688,7 @@ export default class binance extends binanceRest {
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
-        const message = undefined;
-        const trades: ArrayCache = await this.watch (url, messageHash, message, type);
+        const trades: ArrayCache = await this.watch (url, messageHash, undefined, type);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

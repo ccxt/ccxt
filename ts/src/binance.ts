@@ -3817,7 +3817,7 @@ export default class binance extends Exchange {
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
         let subType: SubType = undefined;
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         let strike: Str = undefined;
         if (contract) {
             if (swap) {
