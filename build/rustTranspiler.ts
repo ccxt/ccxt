@@ -5120,10 +5120,10 @@ function rustTypedParsePositionFamilies (content: string): string {
     return content.split (Q).join ('');
 }
 
-// The `parseLeverage` / `parseIncome` / `parseAccount` / `parseMarginMode` slots borrow their `Dict` row (the TypeScript
+// The `parseIncome` / `parseAccount` / `parseMarginMode` slots borrow their `Dict` row (the TypeScript
 // declaration; every caller passes a dict). A boxed argument hands the map it holds, an empty one for a non-map value.
 function rustBorrowedParseRows (content: string): string {
-    const fns = 'parse_leverage|parse_income|parse_account|parse_margin_mode';
+    const fns = 'parse_income|parse_account|parse_margin_mode';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), '\n    fn $1(&self, $2: &crate::value::Dict$3');
     content = content.replace (new RegExp ('(\\n    fn (?:' + fns + ')\\(&self, (\\w+): &crate::value::Dict[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Value::from($2);');
     const fromBody = (v: string) => '&<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').unwrap_or_default()';
