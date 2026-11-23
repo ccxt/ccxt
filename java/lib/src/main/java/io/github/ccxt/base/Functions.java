@@ -22,7 +22,8 @@ public final class Functions {
     // reads size() then loops get(i); under concurrent mutation by the WsClient
     // messageExecutor those two reads disagree and throw IndexOutOfBoundsException.
     private static final ObjectMapper MAPPER = new ObjectMapper()
-            .registerModule(buildOrderBookSideModule());
+            .registerModule(buildOrderBookSideModule())
+            .registerModule(JsonHelper.jsNumberModule());
 
     private static com.fasterxml.jackson.databind.module.SimpleModule buildOrderBookSideModule() {
         com.fasterxml.jackson.databind.module.SimpleModule m =
