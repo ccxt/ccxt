@@ -877,15 +877,15 @@ public partial class deribit : Exchange
         };
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
-        bool isOption = ((marketId != null)) && ((((string)marketId).EndsWith("-C")) || (((string)marketId).EndsWith("-P")));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0)))))
+        bool isOption = ((marketId != null)) && ((marketId.EndsWith("-C")) || (marketId.EndsWith("-P")));
+        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
-        return base.safeMarket(marketId, market, delimiter, marketType);
+        return base.safeMarket(marketId, market, delimiter,marketType);
     }
 
     /**
@@ -1079,7 +1079,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(result));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //      {
@@ -1567,7 +1567,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", null },         });
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker /public/ticker
@@ -1945,7 +1945,7 @@ public partial class deribit : Exchange
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? side = this.safeString(trade, "direction");
         string? priceString = this.safeString(trade, "price");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         string? amount = this.safeString(trade, "amount");
@@ -2308,7 +2308,7 @@ public partial class deribit : Exchange
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2338,7 +2338,7 @@ public partial class deribit : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "creation_timestamp");
         Int64? lastUpdate = this.safeInteger(order, "last_update_timestamp");
         string? id = this.safeString(order, "order_id");
@@ -3210,7 +3210,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3239,7 +3239,7 @@ public partial class deribit : Exchange
         //     }
         //
         string? contract = this.safeString(position, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market));
         string side = ((this.safeString(position, "direction") == "buy")) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");
@@ -3591,7 +3591,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(result, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3672,7 +3672,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -4186,7 +4186,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToGreeks(this.parseGreeks(result, market));
     }
 
-    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(IDictionary<string, object> greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4370,7 +4370,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(result, "base_currency", "instrument_name"));
     }
 
-    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(IDictionary<string, object> chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4396,7 +4396,7 @@ public partial class deribit : Exchange
         //     }
         //
         string? marketId = this.safeString(chain, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? currencyId = this.safeString(chain, "base_currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(chain, "timestamp");
@@ -4510,7 +4510,7 @@ public partial class deribit : Exchange
         //
         Int64? timestamp = this.safeInteger(interest, "creation_timestamp");
         string? marketId = this.safeString(interest, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         double? openInterest = this.safeNumber(interest, "open_interest");
         double? openInterestAmount = null;
         double? openInterestValue = null;

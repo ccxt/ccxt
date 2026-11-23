@@ -976,7 +976,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1445,14 +1445,14 @@ public partial class btse : Exchange
         return this.parseTicker(data, market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
         // openInterest, fundingRate, nextFundingTime and fundingIntervalMinutes
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "amount");
         if (((baseVolume != null)) && ((marketResolved != null)) && (this.safeBool(marketResolved, "contract", false) == true))
@@ -1554,7 +1554,7 @@ public partial class btse : Exchange
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
         string? marketId = this.safeString(interest, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(interest, "closeTime");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1650,7 +1650,7 @@ public partial class btse : Exchange
         //     }
         //
         string? marketId = this.safeString(contract, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(contract, "closeTime");
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
@@ -1996,7 +1996,7 @@ public partial class btse : Exchange
         // the unified futures rows echo the short symbol form but carry the full
         // market id in positionId, which resolves against the markets snapshot
         string? marketId = this.safeString2(trade, "positionId", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(trade, "feeAmount");
@@ -2619,7 +2619,7 @@ public partial class btse : Exchange
         {
             order = this.safeDict(order, 0, new Dictionary<string, object>() {});
         }
-        return this.parseOrder(((object)order), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -2908,7 +2908,7 @@ public partial class btse : Exchange
         return this.parseOrders(rows, market, since, limit);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder - spot
@@ -2972,7 +2972,7 @@ public partial class btse : Exchange
         //     }
         //
         string? marketId = this.safeString2(order, "symbol", "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "timestamp");
         // open_orders rows carry no numeric status - the state lives in
         // orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
@@ -3606,7 +3606,7 @@ public partial class btse : Exchange
         return await this.FetchPositions(new List<object>() {symbol}, paramsExtended);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3657,7 +3657,7 @@ public partial class btse : Exchange
         {
             marketId = this.safeString(position, "symbol");
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(position, "timestamp");
         string? marginType = this.safeString(position, "marginType");
         string? side = this.safeStringLower2(position, "positionDirection", "side");
@@ -3813,7 +3813,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(IDictionary<string, object> marginMode, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3824,7 +3824,7 @@ public partial class btse : Exchange
         //     }
         //
         string? marketId = this.safeString(marginMode, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? positionMode = this.safeStringLower(marginMode, "marginMode");
         string marginModeValue = "cross";
         if (positionMode == "isolated")
@@ -3939,7 +3939,7 @@ public partial class btse : Exchange
         IDictionary<string, object> paramsOmitted = (typeUpper == "LIMIT") ? this.omit(paramsOrderType, "price") : paramsOrderType;
         object response = await this.privateDeleteFuturesApiV3TradePositions(this.extend(request, paramsOmitted));
         IDictionary<string, object> order = this.safeDict(response, 0, response);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**

@@ -154,7 +154,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -484,7 +484,7 @@ public partial class aster : ccxt.aster
         string? eventVar = this.safeString(message, "e");
         string? marketId = this.safeString(message, "s");
         Int64? timestamp = this.safeInteger(message, "E");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? last = this.safeString(message, "c");
         if (eventVar == "markPriceUpdate")
         {
@@ -533,7 +533,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -651,7 +651,7 @@ public partial class aster : ccxt.aster
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
         string? marketId = this.safeString(message, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
         string? symbol = this.safeString(ticker, "symbol");
         if ((symbol != null))
@@ -851,7 +851,7 @@ public partial class aster : ccxt.aster
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
         string? marketId = this.safeString(message, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         ccxt.Trade parsed = this.parseWsTrade(message, market);
         string? symbol = parsed.symbol;
         if ((symbol == null))
@@ -1222,7 +1222,7 @@ public partial class aster : ccxt.aster
         string marketType = this.getAccountTypeFromUrl(client.url);
         string? marketId = this.safeString(message, "s");
         Int64? timestamp = this.safeInteger(message, "T");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
@@ -1443,7 +1443,7 @@ public partial class aster : ccxt.aster
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
         string? marketId = this.safeString(message, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> kline = this.safeDict(message, "k");
         string? timeframeId = this.safeString(kline, "i");
@@ -1674,7 +1674,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // spot balance update
@@ -2309,7 +2309,7 @@ public partial class aster : ccxt.aster
     {
         string? executionType = this.safeString(order, "x");
         string? marketId = this.safeString(order, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "O");
         Int64? T = this.safeInteger(order, "T");
         Int64? lastTradeTimestamp = null;
@@ -2381,7 +2381,7 @@ public partial class aster : ccxt.aster
     {
         string? marketId = this.safeString(order, "s");
         string marketType = this.getAccountTypeFromUrl(client.url);
-        return this.safeMarket(marketId, null, null, marketType);
+        return this.safeMarket(marketId, null, null,marketType);
     }
 
     public virtual void handleBalanceAndPosition(WebSocketClient client, Dictionary<string, object> message)

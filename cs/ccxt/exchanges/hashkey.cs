@@ -1600,7 +1600,7 @@ public partial class hashkey : Exchange
         //     }
         Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? side = this.safeStringLower(trade, "side"); // swap trades have side param
         if ((side != null))
         {
@@ -1730,7 +1730,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeValue, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1810,7 +1810,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1828,7 +1828,7 @@ public partial class hashkey : Exchange
         //
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? marketId = this.safeString(ticker, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
@@ -1894,10 +1894,10 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(IDictionary<string, object> entry, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(entry, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         return new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
@@ -2460,7 +2460,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         Int64? timestamp = this.safeInteger(transfer, "timestamp");
         string? currencyId = this.safeString(currency, "id");
@@ -2513,7 +2513,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(response, parameters));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         string? accountLabel = this.safeString(account, "accountLabel");
         string label = "";
@@ -2833,7 +2833,7 @@ public partial class hashkey : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2895,18 +2895,18 @@ public partial class hashkey : Exchange
         };
         if (!(amount == null))
         {
-            request["quantity"] = this.amountToPrecision(symbol, amount);
+            request["quantity"] = this.amountToPrecision(((string)symbol), amount);
         }
         IList<object> costparamsCostVariable = (IList<object>)this.handleParamString(parameters, "cost");
         string? cost = (string)costparamsCostVariable[0];
         IDictionary<string, object> paramsCost = ((IDictionary<string, object>)costparamsCostVariable[1]);
         if ((cost != null))
         {
-            request["quantity"] = this.costToPrecision(symbol, cost);
+            request["quantity"] = this.costToPrecision(((string)symbol), cost);
         }
         if ((price != null))
         {
-            request["price"] = this.priceToPrecision(symbol, price);
+            request["price"] = this.priceToPrecision(((string)symbol), price);
         }
         bool isMarketOrder = typeValue == "MARKET";
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarketOrder, typeValue == "LIMIT_MAKER", paramsCost);
@@ -3637,7 +3637,7 @@ public partial class hashkey : Exchange
         return new List<object>() {isTriggerStop, paramsStop};
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder spot
@@ -3749,7 +3749,7 @@ public partial class hashkey : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger2(order, "transactTime", "time");
         string? status = this.safeString(order, "status");
         string? type = this.safeString(order, "type");
@@ -3961,7 +3961,7 @@ public partial class hashkey : Exchange
         //     }
         //
         string? marketId = this.safeString(contract, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "swap");
         double? fundingRate = this.safeNumber(contract, "rate");
         Int64? fundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         return new Dictionary<string, object>() {
@@ -4138,10 +4138,10 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, new List<object>() {symbol}));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -4383,7 +4383,7 @@ public partial class hashkey : Exchange
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(data, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "swap");
         Int64? timestamp = this.safeInteger(data, "timestamp");
         string? errorCode = this.safeString(data, "code");
         bool success = errorCode == "0000";
@@ -4505,7 +4505,7 @@ public partial class hashkey : Exchange
         //
         List<object> riskLimits = this.safeList(info, "riskLimits", new List<object>() {});
         string? marketId = this.safeString(info, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         List<object> tiers = new List<object>() {};
         for (int i = 0; i < (riskLimits?.Count ?? 0); i++)
         {
@@ -4555,7 +4555,7 @@ public partial class hashkey : Exchange
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend(new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             }, parameters));
-            return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(response, market));
+            return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(((IDictionary<string, object>)response), market));
         } else
         {
             string? marketTypeValue = this.safeString(market, "type", "");
@@ -4613,7 +4613,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         //
         // spot

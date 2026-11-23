@@ -199,7 +199,7 @@ public partial class gemini : ccxt.gemini
         client.resolve(stored, messageHash);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -261,7 +261,7 @@ public partial class gemini : ccxt.gemini
         }
     }
 
-    public virtual void handleTradesForMultidata(WebSocketClient client, IList<object> trades, object timestamp)
+    public virtual void handleTradesForMultidata(WebSocketClient client, IList<object> trades, Int64? timestamp)
     {
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
@@ -339,7 +339,7 @@ public partial class gemini : ccxt.gemini
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -442,9 +442,9 @@ public partial class gemini : ccxt.gemini
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
-        bool isInitial = ((message != null && ((IDictionary<string, object>)message).ContainsKey("auction_events"))) && ((message != null && ((IDictionary<string, object>)message).ContainsKey("trades"))) && ((message != null && ((IDictionary<string, object>)message).ContainsKey("changes")));
+        bool isInitial = ((message != null && message.ContainsKey("auction_events"))) && ((message != null && message.ContainsKey("trades"))) && ((message != null && message.ContainsKey("changes")));
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? marketId = this.safeStringLower(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -526,13 +526,13 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters));
     }
 
-    public virtual void handleBidsAsksForMultidata(WebSocketClient client, IList<object> rawBidAskChanges, object timestamp, object nonce)
+    public virtual void handleBidsAsksForMultidata(WebSocketClient client, IList<object> rawBidAskChanges, Int64? timestamp, Int64? nonce)
     {
         //
         // {
@@ -656,7 +656,7 @@ public partial class gemini : ccxt.gemini
         return await this.watchMultiple(url, messageHashes, null);
     }
 
-    public virtual void handleOrderBookForMultidata(WebSocketClient client, IList<object> rawOrderBookChanges, object timestamp, object nonce)
+    public virtual void handleOrderBookForMultidata(WebSocketClient client, IList<object> rawOrderBookChanges, Int64? timestamp, Int64? nonce)
     {
         //
         // rawOrderBookChanges
@@ -795,7 +795,7 @@ public partial class gemini : ccxt.gemini
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -810,7 +810,7 @@ public partial class gemini : ccxt.gemini
         return message;
     }
 
-    public virtual object handleSubscription(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscription(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -954,7 +954,7 @@ public partial class gemini : ccxt.gemini
         return this.safeString(types, type, type);
     }
 
-    public virtual void handleError(WebSocketClient client, object message)
+    public virtual void handleError(WebSocketClient client, IDictionary<string, object> message)
     {
         throw new ExchangeError (this.json(message)) ;
     }

@@ -80,7 +80,7 @@ public partial class paradex : ccxt.paradex
         }
     }
 
-    public virtual string? getOrderBookChannel(object marketId, bool? deltas = null)
+    public virtual string? getOrderBookChannel(string? marketId, bool? deltas = null)
     {
         // the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
         // takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
@@ -89,9 +89,9 @@ public partial class paradex : ccxt.paradex
         deltas ??= false;
         if (deltas == true)
         {
-            return (("order_book." + (marketId)) + ".deltas");
+            return (("order_book." + marketId) + ".deltas");
         }
-        return (("order_book." + (marketId)) + ".snapshot@15@100ms");
+        return (("order_book." + marketId) + ".snapshot@15@100ms");
     }
 
     public virtual Int64 requestId()
@@ -761,7 +761,7 @@ public partial class paradex : ccxt.paradex
         }, marketResolved);
     }
 
-    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -874,8 +874,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             Dictionary<string, object> feedMarket = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-            feeds.Add(this.getOrderBookChannel((feedMarket != null && feedMarket.ContainsKey("id") ? feedMarket["id"] : null), true));
-            feeds.Add(this.getOrderBookChannel((feedMarket != null && feedMarket.ContainsKey("id") ? feedMarket["id"] : null), false));
+            feeds.Add(this.getOrderBookChannel(this.safeString(feedMarket, "id"), true));
+            feeds.Add(this.getOrderBookChannel(this.safeString(feedMarket, "id"), false));
         }
         await this.waitForPendingUnsubscribe(url, feeds);
         var client = this.client(url);
@@ -884,8 +884,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-            string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
-            string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
+            string deltasChannel = this.getOrderBookChannel(this.safeString(market, "id"), true);
+            string? snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id"), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -957,8 +957,8 @@ public partial class paradex : ccxt.paradex
         {
             Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             // the feed the market is on, a market is on one of them at a time
-            string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
-            string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
+            string deltasChannel = this.getOrderBookChannel(this.safeString(market, "id"), true);
+            string? snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id"), false);
             string? channel = ((deltasOption == true)) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             string requestedHash = (deltasChannel + ":requested");
@@ -1178,7 +1178,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1478,7 +1478,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2016,7 +2016,7 @@ public partial class paradex : ccxt.paradex
         return this.safeBalance(result);
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

@@ -2415,7 +2415,7 @@ public partial class htx : Exchange
         };
     }
 
-    public override string? costToPrecision(object symbol, object cost)
+    public override string? costToPrecision(string symbol, object cost)
     {
         Dictionary<string, object> market = this.market(symbol);
         return this.decimalToPrecision(cost, TRUNCATE, this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "cost"), this.precisionMode);
@@ -2902,7 +2902,7 @@ public partial class htx : Exchange
         return symbolOrMarketId;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -3290,11 +3290,11 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(data, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(IDictionary<string, object> entry, IDictionary<string, object> market = null)
     {
         // example responses are documented in fetchLastPrices
         string? marketId = this.safeString2(entry, "symbol", "contract_code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         double? price = this.safeNumber(entry, "price");
         string? direction = this.safeString(entry, "direction"); // "buy" or "sell"
         // group timestamp should not be assigned to the individual trades' times
@@ -3520,7 +3520,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
@@ -3955,7 +3955,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, limitVar));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4196,7 +4196,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(data));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -5018,7 +5018,7 @@ public partial class htx : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual object parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
+    public virtual Dictionary<string, object> parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
     {
         IDictionary<string, object> account = this.account();
         if ((result != null && code != null && result.ContainsKey(code)))
@@ -5889,7 +5889,7 @@ public partial class htx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -6095,7 +6095,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString2(order, "contract_code", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
         string? status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
         if ((rejectedCreateOrders != null))
@@ -6339,7 +6339,7 @@ public partial class htx : Exchange
                 defaultOperator = "lte";
             }
             string? stopOperator = this.safeString(paramsMarginMode, "operator", defaultOperator);
-            request["stop-price"] = this.priceToPrecision(symbol, triggerPrice);
+            request["stop-price"] = this.priceToPrecision(((string)symbol), triggerPrice);
             request["operator"] = stopOperator;
             if ((orderType == "limit") || (orderType == "limit-fok"))
             {
@@ -6400,7 +6400,7 @@ public partial class htx : Exchange
             string? quoteAmount = null;
             if ((cost != null))
             {
-                quoteAmount = this.amountToPrecision(symbol, cost);
+                quoteAmount = this.amountToPrecision(((string)symbol), cost);
             } else if ((createMarketBuyOrderRequiresPrice == true))
             {
                 if ((price == null))
@@ -6416,27 +6416,27 @@ public partial class htx : Exchange
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     string? amountString = this.numberToString(amount);
                     string? priceString = this.numberToString(price);
-                    quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
+                    quoteAmount = this.amountToPrecision(((string)symbol), Precise.stringMul(amountString, priceString));
                 }
             } else
             {
-                quoteAmount = this.amountToPrecision(symbol, amount);
+                quoteAmount = this.amountToPrecision(((string)symbol), amount);
             }
             request["amount"] = quoteAmount;
         } else
         {
-            request["amount"] = this.amountToPrecision(symbol, amount);
+            request["amount"] = this.amountToPrecision(((string)symbol), amount);
         }
         IDictionary<string, object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new Dictionary<string, object>() {});
         if (limitOrderTypes.ContainsKey(orderType))
         {
-            request["price"] = this.priceToPrecision(symbol, price);
+            request["price"] = this.priceToPrecision(((string)symbol), price);
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsCost, new List<object>() {"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"});
         return this.extend(request, paramsOmitted);
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -7284,7 +7284,7 @@ public partial class htx : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(result, market)), new Dictionary<string, object>() {             { "id", id },             { "status", "canceled" },         }));
+        return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market)), new Dictionary<string, object>() {             { "id", id },             { "status", "canceled" },         }));
     }
 
     /**
@@ -8227,7 +8227,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer
@@ -8940,7 +8940,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         // isolated
         //    {
@@ -9425,7 +9425,7 @@ public partial class htx : Exchange
         return response;
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -9467,7 +9467,7 @@ public partial class htx : Exchange
         };
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -10778,7 +10778,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //            {
@@ -11304,7 +11304,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionADLRank linear

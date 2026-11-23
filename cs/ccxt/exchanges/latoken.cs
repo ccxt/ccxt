@@ -951,7 +951,7 @@ public partial class latoken : Exchange
         return this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -981,7 +981,7 @@ public partial class latoken : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = null;
-        object marketResolved = market;
+        IDictionary<string, object> marketResolved = market;
         if (((bs != null)) && ((quote != null)))
         {
             string knownSymbol = ((bs + "/") + quote);
@@ -1431,7 +1431,7 @@ public partial class latoken : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2177,7 +2177,7 @@ public partial class latoken : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {

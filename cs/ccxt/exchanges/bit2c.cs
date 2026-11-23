@@ -481,7 +481,7 @@ public partial class bit2c : Exchange
         return this.parseOrderBook(filtered, symbol);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? averagePrice = this.safeString(ticker, "av");
@@ -791,7 +791,7 @@ public partial class bit2c : Exchange
         return this.parseOrder(response, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //      createOrder
@@ -1066,8 +1066,8 @@ public partial class bit2c : Exchange
             amount = this.safeString(trade, "firstAmount");
             List<object> reference_parts = reference.Split(new [] {"|"}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             string? marketId = this.safeString(trade, "pair");
-            Dictionary<string, object> marketByPair = this.safeMarket(marketId, market);
-            tradeMarket = this.safeMarket((reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null), marketByPair);
+            Dictionary<string, object> marketByPair = this.safeMarket(marketId,((IDictionary<string, object>)market));
+            tradeMarket = this.safeMarket(((string)(reference_parts != null && 0 < reference_parts.Count ? reference_parts[0] : null)), marketByPair);
             bool? isMaker = this.safeBool(trade, "isMaker", false);
             makerOrTaker = isMaker == true ? "maker" : "taker";
             orderId = this.safeString(reference_parts, 1);
@@ -1097,7 +1097,7 @@ public partial class bit2c : Exchange
             id = this.safeString(trade, "tid");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "amount");
-            tradeMarket = this.safeMarket(null, market);
+            tradeMarket = this.safeMarket(((string)null),((IDictionary<string, object>)market));
             side = this.safeValue(trade, "isBid");
             if ((side != null))
             {
@@ -1105,7 +1105,7 @@ public partial class bit2c : Exchange
                 side = "buy";
             }
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(null, tradeMarket);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), tradeMarket);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },

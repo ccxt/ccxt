@@ -1332,7 +1332,7 @@ public partial class bullish : Exchange
         //     ]
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(trade, "createdAtTimestamp");
         string? price = this.safeString(trade, "price");
@@ -1438,7 +1438,7 @@ public partial class bullish : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1479,7 +1479,7 @@ public partial class bullish : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(ticker, "createdAtTimestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1640,7 +1640,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "createdAtTimestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
@@ -1815,7 +1815,7 @@ public partial class bullish : Exchange
         Int64 ninetyDays = ((((90L * 24L) * 60) * 60) * 1000);
         Int64 now = this.milliseconds();
         Int64 allowedSince = (now - ninetyDays);
-        if (((since != null)) && (((since == null || since < allowedSince))))
+        if (((since != null)) && (since.Value < allowedSince))
         {
             throw new BadRequest ((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
         }
@@ -1833,7 +1833,7 @@ public partial class bullish : Exchange
         return paramsExtended;
     }
 
-    public virtual Dictionary<string, object> handleSinceAndUntil(object since = null, object parameters = null, string? sinceKey = null, string? untilKey = null)
+    public virtual Dictionary<string, object> handleSinceAndUntil(Int64? since = null, object parameters = null, string? sinceKey = null, string? untilKey = null)
     {
         parameters ??= new Dictionary<string, object>();
         sinceKey ??= "createdAtDatetime[gte]";
@@ -1858,7 +1858,7 @@ public partial class bullish : Exchange
             {
                 Int64 now = this.milliseconds();
                 Int64 latestSince = (now - timeDelta);
-                if (isGreaterThan(since, latestSince))
+                if (since > latestSince)
                 {
                     until = now;
                 } else
@@ -1881,13 +1881,13 @@ public partial class bullish : Exchange
         {
             return pageSize;
         }
-        if (((limit > 5)) && (((limit == null || limit < 26))))
+        if ((limit > 5) && (limit.Value < 26))
         {
             pageSize = 25;
-        } else if (((limit > 25)) && (((limit == null || limit < 51))))
+        } else if ((limit > 25) && (limit.Value < 51))
         {
             pageSize = 50;
-        } else if ((limit > 50))
+        } else if (limit > 50)
         {
             pageSize = 100;
         }
@@ -2251,7 +2251,7 @@ public partial class bullish : Exchange
         return this.parseOrders(orders, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders, fetchOrder
@@ -2303,7 +2303,7 @@ public partial class bullish : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)(((market == null)) ? marketId : null)),((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? id = this.safeString(order, "orderId");
         Int64? timestamp = this.safeInteger(order, "createdAtTimestamp");
@@ -2729,7 +2729,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(response, parameters));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         return new Dictionary<string, object>() {
             { "id", this.safeString(account, "tradingAccountId") },
@@ -2803,7 +2803,7 @@ public partial class bullish : Exchange
                 }
             }
         }
-        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(data, currency));
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(this.extend(new Dictionary<string, object>() {}, data), currency));
     }
 
     public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
@@ -2948,7 +2948,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(this.parsePositions(response, symbols), "symbol", symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -2971,7 +2971,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(position, "symbol"), market);
+        Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(position, "symbol"),((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(position, "createdAtTimestamp");
         string? side = this.safeString(position, "side");
@@ -3133,7 +3133,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // fetchTransfers

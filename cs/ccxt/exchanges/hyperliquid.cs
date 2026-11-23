@@ -1405,9 +1405,8 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object market = response[i];
-            IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
-            ccxt.Ticker ticker = this.parseTicker(info, market);
+            IDictionary<string, object> info = this.safeDict(response[i], "info", new Dictionary<string, object>() {});
+            ccxt.Ticker ticker = this.parseTicker(info, this.extend(new Dictionary<string, object>() {}, response[i]));
             string? symbol = ticker.symbol;
             result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
@@ -1559,7 +1558,7 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1578,7 +1577,7 @@ public partial class hyperliquid : Exchange
         //
         string? name = this.safeString(ticker, "name");
         string? marketId = this.coinToMarketId(name);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         List<object> bidAsk = this.safeList(ticker, "impactPxs");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1674,7 +1673,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, originalSince, limit, useTail));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1766,7 +1765,7 @@ public partial class hyperliquid : Exchange
         return this.parseTrades(fills, market, since, limit);
     }
 
-    public override string? amountToPrecision(object symbol, object amount)
+    public override string? amountToPrecision(string symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
         string result = this.decimalToPrecision(amount, ROUND, this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "amount"), this.precisionMode, this.paddingMode);
@@ -1780,7 +1779,7 @@ public partial class hyperliquid : Exchange
         return result;
     }
 
-    public override string? priceToPrecision(object symbol, object price)
+    public override string? priceToPrecision(string symbol, object price)
     {
         Dictionary<string, object> market = this.market(symbol);
         string? priceStr = this.numberToString(price);
@@ -1812,9 +1811,9 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual Dictionary<string, object> constructPhantomAgent(object hash, bool? isTestnet = null)
@@ -1847,7 +1846,7 @@ public partial class hyperliquid : Exchange
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
 
-    public virtual Dictionary<string, object> signL1Action(object action, object nonce, object vaultAdress = null, object expiresAfter = null)
+    public virtual Dictionary<string, object> signL1Action(object action, object nonce, object vaultAdress = null, Int64? expiresAfter = null)
     {
         object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
         bool? isTestnet = this.safeBool(this.options, "sandboxMode", false);
@@ -3839,7 +3838,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrder(this.safeDict(response, "order", new Dictionary<string, object>() {}), market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrdersWs error
@@ -3939,7 +3938,7 @@ public partial class hyperliquid : Exchange
         string? error = this.safeString(order, "error");
         if ((error != null))
         {
-            object finalOrder = order; // java req
+            IDictionary<string, object> finalOrder = order; // java req
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", finalOrder },
                 { "status", "rejected" },
@@ -3959,7 +3958,7 @@ public partial class hyperliquid : Exchange
             marketResolved = this.safeMarket(marketId);
         } else
         {
-            marketResolved = this.safeMarket(marketId, market);
+            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         }
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(entry, "timestamp");
@@ -4454,7 +4453,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4980,7 +4979,7 @@ public partial class hyperliquid : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // {'response': {'type': 'default'}, 'status': 'ok'}
@@ -5658,7 +5657,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -5683,7 +5682,7 @@ public partial class hyperliquid : Exchange
         {
             marketId = this.coinToMarketId(coin);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? amount = this.safeString(delta, "usdc");
         string? code = this.safeString(marketResolved, "settle", "USDC");
         double? rate = this.safeNumber(delta, "fundingRate");
@@ -5929,11 +5928,11 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type");
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((type != null)))
+        if ((config.ContainsKey("byType")) && ((type != null)))
         {
             IDictionary<string, object> byType = this.safeDict(config, "byType", new Dictionary<string, object>() {});
             if (((type != null) && byType.ContainsKey(type)))

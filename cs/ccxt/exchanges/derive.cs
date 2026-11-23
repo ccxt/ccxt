@@ -1389,7 +1389,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToGreeks(this.parseGreeks(result, market));
     }
 
-    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(IDictionary<string, object> greeks, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(greeks, "t");
         IDictionary<string, object> pricing = this.safeDict(greeks, "option_pricing", new Dictionary<string, object>() {});
@@ -1446,7 +1446,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToOption(this.parseOption(result, null, market));
     }
 
-    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(IDictionary<string, object> chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(chain, "t");
         IDictionary<string, object> pricing = this.safeDict(chain, "option_pricing", new Dictionary<string, object>() {});
@@ -1584,7 +1584,7 @@ public partial class derive : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object>? market = null)
     {
         //
         // fetchSettlementHistory
@@ -1629,12 +1629,12 @@ public partial class derive : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
+            result.Add(this.parseSettlement(((IDictionary<string, object>)(settlements != null && i < settlements.Count ? settlements[i] : null)), market));
         }
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
@@ -1973,7 +1973,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open_price"), this.safeNumber(ohlcv, "high_price"), this.safeNumber(ohlcv, "low_price"), this.safeNumber(ohlcv, "close_price"), this.safeNumber(ohlcv, "volume_contracts")};
     }
@@ -2231,7 +2231,7 @@ public partial class derive : Exchange
         return ((string?)((object)(this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex"))));
     }
 
-    public virtual string? signOrder(object order, object privateKey)
+    public virtual string? signOrder(object order, string privateKey)
     {
         string? hashOrder = this.hashOrderMessage(order);
         return ((string?)((object)(this.signHash(hashOrder, privateKey))));
@@ -2266,17 +2266,17 @@ public partial class derive : Exchange
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
-    public virtual string? signHash(string hash, object privateKey)
+    public virtual string? signHash(string hash, string privateKey)
     {
         this.checkRequiredCredentials();
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         string? r = this.safeString(signature, "r", "");
         string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public virtual string? signMessage(string? message, object privateKey)
+    public virtual string? signMessage(string? message, string privateKey)
     {
         return this.signHash(this.hashMessage(message), privateKey);
     }
@@ -3122,7 +3122,7 @@ public partial class derive : Exchange
         return null;
     }
 
-    public override ccxt.Order parseOrder(object rawOrder, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> rawOrder, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3167,7 +3167,7 @@ public partial class derive : Exchange
         Int64? timestamp = this.safeInteger(rawOrder, "creation_timestamp"); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         string? orderId = this.safeString(order, "order_id");
         string? marketId = this.safeString(order, "instrument_name");
-        IDictionary<string, object> marketResolved = ((marketId != null)) ? this.safeMarket(marketId, market) : market;
+        IDictionary<string, object> marketResolved = ((marketId != null)) ? this.safeMarket(marketId,((IDictionary<string, object>)market)) : market;
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "limit_price");
         string? average = this.safeString(order, "average_price");
@@ -3521,7 +3521,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -3554,7 +3554,7 @@ public partial class derive : Exchange
         // }
         //
         string? contract = this.safeString(position, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market));
         string? size = this.safeString(position, "amount");
         string? side = null;
         if (Precise.stringGt(size, "0"))
@@ -3706,7 +3706,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(events, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -4159,7 +4159,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transferEntry);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         Int64? timestamp = this.safeInteger(transfer, "timestamp");
         string? currencyId = this.safeString(transfer, "asset");
@@ -4242,7 +4242,8 @@ public partial class derive : Exchange
         List<object> parsed = new List<object>() {};
         for (int i = 0; i < transfers.Count; i++)
         {
-            parsed.Add(this.parseTransfer(this.safeDict(transfers, i, new Dictionary<string, object>() {})));
+            Dictionary<string, object> transfer = this.extend(this.parseTransfer(this.safeDict(transfers, i, new Dictionary<string, object>() {})), new Dictionary<string, object>() {});
+            parsed.Add(transfer);
         }
         List<object> sorted = this.sortBy(parsed, "timestamp");
         return ccxt.BaseExchange.ToTransferEntryList(this.filterByCurrencySinceLimit(sorted,code, since, limit));
@@ -4400,7 +4401,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(sorted,code, since, limit));
     }
 
-    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(info, "timestamp");
         return new Dictionary<string, object>() {

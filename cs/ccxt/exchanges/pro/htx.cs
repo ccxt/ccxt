@@ -203,7 +203,7 @@ public partial class htx : ccxt.htx
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // "market.btcusdt.detail"
@@ -321,7 +321,7 @@ public partial class htx : ccxt.htx
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
-    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1221,7 +1221,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // spot
@@ -1647,7 +1647,7 @@ public partial class htx : ccxt.htx
         Int64? lastTradeTimestamp = this.safeIntegerN(order, new List<object>() {"lastActTime", "updated_time", "ts"});
         Int64? created = this.safeInteger2(order, "orderCreateTime", "created_time");
         string? marketId = this.safeString2(order, "contract_code", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? amount = this.safeString2(order, "orderSize", "volume");
         string? status = this.parseOrderStatus(this.safeStringN(order, new List<object>() {"orderStatus", "state", "status"}));
@@ -1742,7 +1742,7 @@ public partial class htx : ccxt.htx
         //         "orderId": 509835753860328
         //     }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         Dictionary<string, object> marketValue = marketResolved;
         string? symbol = this.safeString(marketResolved, "symbol");
         string? tradeId = this.safeString(trade, "tradeId");
@@ -2167,7 +2167,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         // spot
         //
@@ -2443,7 +2443,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2484,7 +2484,7 @@ public partial class htx : ccxt.htx
                 }
             }
         }
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("unsubbed")))
+        if ((message != null && message.ContainsKey("unsubbed")))
         {
             this.handleUnSubscription(client, subscription);
         }
@@ -2506,7 +2506,7 @@ public partial class htx : ccxt.htx
         this.cleanCache(subscription);
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -2521,7 +2521,7 @@ public partial class htx : ccxt.htx
         return message;
     }
 
-    public virtual void handleSubject(WebSocketClient client, object message)
+    public virtual void handleSubject(WebSocketClient client, IDictionary<string, object> message)
     {
         // spot
         //     {
@@ -2706,12 +2706,12 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, IDictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, object message)
+    public virtual void handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // spot
@@ -3152,7 +3152,7 @@ public partial class htx : ccxt.htx
         //     }
         //
         string? marketId = this.safeString2(trade, "symbol", "contract_code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringN(trade, new List<object>() {"side", "orderSide", "direction"});
         string? tradeId = this.safeStringN(trade, new List<object>() {"tradeId", "trade_id", "id"});

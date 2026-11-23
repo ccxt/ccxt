@@ -331,7 +331,7 @@ public partial class mudrex : Exchange
         return null;
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
@@ -512,10 +512,10 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(resultTickers, "symbol", symbols));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? ms = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(ms,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol", "");
         double? pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -975,10 +975,10 @@ public partial class mudrex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? oms = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(oms, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(oms,((IDictionary<string, object>)market));
         string? oid = this.safeString2(order, "order_id", "id");
         string? rawSide = this.safeStringUpper(order, "order_type");
         string? side = null;
@@ -1297,9 +1297,9 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? ms = this.safeString(position, "symbol");
         string? symbol = this.safeSymbol(ms, marketResolved);
         // open positions use "order_type", closed positions (history) use "position_type"
@@ -1476,8 +1476,9 @@ public partial class mudrex : Exchange
      */
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
+        object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(this.parseNumber(Precise.stringNeg(this.numberToString(amount)))), parameters);
+        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired((-amount)), parameters);
     }
 
     /**
@@ -1617,7 +1618,7 @@ public partial class mudrex : Exchange
         //     }
         //
         string? ms = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(ms, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(ms,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined

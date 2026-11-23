@@ -722,7 +722,7 @@ public partial class coinmate : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1057,7 +1057,7 @@ public partial class coinmate : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "currencyPair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
         string? side = this.safeStringLower2(trade, "type", "tradeType");
@@ -1251,7 +1251,7 @@ public partial class coinmate : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // limit sell

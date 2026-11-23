@@ -222,7 +222,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1101,7 +1101,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1435,7 +1435,7 @@ public partial class weex : ccxt.weex
         {
             marketType = "swap";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, null,marketType);
         string? side = this.safeStringLower(trade, "orderSide");
         Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "fillFee");
@@ -1742,7 +1742,7 @@ public partial class weex : ccxt.weex
         {
             marketType = "swap";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, null,marketType);
         Dictionary<string, object> marketValue = marketResolved;
         string? side = this.safeStringLower(order, "orderSide");
         Dictionary<string, object> fee = null;
@@ -2173,7 +2173,7 @@ public partial class weex : ccxt.weex
             marketType = "swap";
         }
         string? marketId = this.safeString(message, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         return market;
     }
 
@@ -2196,7 +2196,7 @@ public partial class weex : ccxt.weex
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { "result": true, "id": 2 }

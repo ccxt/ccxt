@@ -219,7 +219,7 @@ public partial class bingx : ccxt.bingx
         return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // swap
@@ -284,7 +284,7 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
@@ -574,7 +574,7 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trade::" + symbol);
         IList<object> trades = null;
@@ -781,7 +781,7 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -924,7 +924,7 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         List<object> candles = null;
         if (isSwap)
         {
@@ -1985,7 +1985,7 @@ public partial class bingx : ccxt.bingx
             type = "spot";
         }
         string? marketId = this.safeString(result, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-",type);
         ccxt.Trade parsed = this.parseTrade(result, market);
         string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
         string spotHash = "spot:mytrades";
@@ -2075,9 +2075,9 @@ public partial class bingx : ccxt.bingx
     }
 
     // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "Ping"))
+        if ((message == "Ping"))
         {
             this.spawn(this.pong, new object[] { client, message});
         }
@@ -2166,7 +2166,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

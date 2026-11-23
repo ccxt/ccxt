@@ -723,7 +723,7 @@ public partial class bittrade : Exchange
         };
     }
 
-    public override string? costToPrecision(object symbol, object cost)
+    public override string? costToPrecision(string symbol, object cost)
     {
         IDictionary<string, object> precision = this.safeDict(this.market(symbol), "precision", new Dictionary<string, object>() {});
         return this.decimalToPrecision(cost, TRUNCATE, (precision != null && precision.ContainsKey("cost") ? precision["cost"] : null), this.precisionMode);
@@ -868,7 +868,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -1321,7 +1321,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, limitVar));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1771,7 +1771,7 @@ public partial class bittrade : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {                  id:  13997833014,
@@ -1817,7 +1817,7 @@ public partial class bittrade : Exchange
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "created-at");
         string? clientOrderId = this.safeString(order, "client-order-id");
         string? amount = this.safeString(order, "amount");

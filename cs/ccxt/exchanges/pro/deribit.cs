@@ -217,7 +217,7 @@ public partial class deribit : ccxt.deribit
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -227,7 +227,7 @@ public partial class deribit : ccxt.deribit
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string? interval = this.safeString(parameters, "interval", "100ms");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "interval");
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -315,7 +315,7 @@ public partial class deribit : ccxt.deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1165,7 +1165,7 @@ public partial class deribit : ccxt.deribit
         }
     }
 
-    public virtual object handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleAuthenticationMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

@@ -482,7 +482,7 @@ public partial class bitbns : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -676,7 +676,7 @@ public partial class bitbns : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1033,7 +1033,7 @@ public partial class bitbns : Exchange
         //         "type":"buy"
         //     }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? orderId = this.safeString2(trade, "id", "tradeId");
         Int64? timestamp = this.parse8601(this.safeString(trade, "date"));
         timestamp = this.safeInteger(trade, "timestamp", timestamp);

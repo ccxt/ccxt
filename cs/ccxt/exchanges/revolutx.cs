@@ -544,7 +544,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? tickerSymbol = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(tickerSymbol, market, "/");
@@ -750,7 +750,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the candle is for
      * @returns {int[]} an [OHLCV structure]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(ohlcv, "start");
         double? open = this.safeNumber(ohlcv, "open");
@@ -1027,7 +1027,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? orderId = this.safeString2(order, "id", "venue_order_id");
         string? clientOrderId = this.safeString(order, "client_order_id");
@@ -1299,12 +1299,12 @@ public partial class revolutx : Exchange
         string? venueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
         ccxt.Order order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
-            { "id", venueOrderId },
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "status", state },
-            { "side", side },
-            { "type", type },
-        }), market);
+    { "id", venueOrderId },
+    { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+    { "status", state },
+    { "side", side },
+    { "type", type },
+}), market);
         return order;
     }
 
@@ -1321,7 +1321,7 @@ public partial class revolutx : Exchange
      * @param {boolean} singleLeg whether the order has only this leg
      * @returns {object} the leg request
      */
-    public virtual Dictionary<string, object> createTriggerLegRequest(object symbol, object type, object price, string? triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
+    public virtual Dictionary<string, object> createTriggerLegRequest(object symbol, object type, double? price, string? triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
     {
         string? legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
         if ((legTriggerPrice == null))
@@ -1329,7 +1329,7 @@ public partial class revolutx : Exchange
             throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "trigger_price", this.priceToPrecision(symbol, legTriggerPrice) },
+            { "trigger_price", this.priceToPrecision(((string)symbol), legTriggerPrice) },
         };
         string? legPrice = this.safeString(leg, "price");
         if (((legPrice == null)) && ((type is "limit")))
@@ -1342,7 +1342,7 @@ public partial class revolutx : Exchange
         }
         if ((legPrice != null))
         {
-            result["limit_price"] = this.priceToPrecision(symbol, legPrice);
+            result["limit_price"] = this.priceToPrecision(((string)symbol), legPrice);
         }
         return result;
     }
@@ -1621,7 +1621,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         string? id = this.safeString(trade, "tid");
         string? orderId = this.safeString(trade, "oid");
@@ -1800,12 +1800,12 @@ public partial class revolutx : Exchange
         string? newVenueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
         ccxt.Order order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
-            { "id", newVenueOrderId },
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "status", state },
-            { "side", side },
-            { "type", type },
-        }), market);
+    { "id", newVenueOrderId },
+    { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+    { "status", state },
+    { "side", side },
+    { "type", type },
+}), market);
         return order;
     }
 

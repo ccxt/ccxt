@@ -426,7 +426,7 @@ public partial class bitbank : Exchange
         });
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
@@ -521,7 +521,7 @@ public partial class bitbank : Exchange
         //    }
         //
         Int64? timestamp = this.safeInteger(trade, "executed_at");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
         string? id = this.safeString2(trade, "transaction_id", "trade_id");
@@ -648,7 +648,7 @@ public partial class bitbank : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -816,11 +816,11 @@ public partial class bitbank : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(order, "order_id");
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "ordered_at");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "start_amount");

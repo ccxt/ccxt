@@ -812,7 +812,7 @@ public partial class bitvavo : Exchange
         return this.parseTicker(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -1207,7 +1207,7 @@ public partial class bitvavo : Exchange
         return orderbook;
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1382,7 +1382,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         return new Dictionary<string, object>() {
             { "id", this.safeString(account, "id") },
@@ -1575,7 +1575,7 @@ public partial class bitvavo : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(transfer, "symbol");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -1643,7 +1643,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1833,7 +1833,7 @@ public partial class bitvavo : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1843,19 +1843,19 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"});
         if ((price != null))
         {
-            request["price"] = this.priceToPrecision(symbol, price);
+            request["price"] = this.priceToPrecision(((string)symbol), price);
         }
         if ((amount != null))
         {
-            request["amount"] = this.amountToPrecision(symbol, amount);
+            request["amount"] = this.amountToPrecision(((string)symbol), amount);
         }
         if ((amountRemaining != null))
         {
-            request["amountRemaining"] = this.amountToPrecision(symbol, amountRemaining);
+            request["amountRemaining"] = this.amountToPrecision(((string)symbol), amountRemaining);
         }
         if ((triggerPrice != null))
         {
-            request["triggerAmount"] = this.priceToPrecision(symbol, triggerPrice);
+            request["triggerAmount"] = this.priceToPrecision(((string)symbol), triggerPrice);
         }
         request = this.extend(request, paramsOmitted);
         if (this.isEmpty(request))
@@ -2297,7 +2297,7 @@ public partial class bitvavo : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, cancelAllOrders
@@ -2347,7 +2347,7 @@ public partial class bitvavo : Exchange
         string? id = this.safeString(order, "orderId");
         Int64? timestamp = this.safeInteger(order, "created");
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeString(order, "side");
@@ -2880,7 +2880,7 @@ public partial class bitvavo : Exchange
         };
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //   {
@@ -3052,13 +3052,13 @@ public partial class bitvavo : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
         string? marketId = this.safeString(parameters, "market");
-        if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && ((marketId == null)))
+        if ((config.ContainsKey("noMarket")) && ((marketId == null)))
         {
-            return ((IDictionary<string,object>)config)["noMarket"];
+            return config["noMarket"];
         }
         return this.safeInteger(config, "cost", 1);
     }

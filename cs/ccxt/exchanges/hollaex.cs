@@ -786,7 +786,7 @@ public partial class hollaex : Exchange
         return new ccxt.Tickers(this.filterByArrayTickers(result, "symbol", symbols)).tickers;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -815,7 +815,7 @@ public partial class hollaex : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         string? close = this.safeString(ticker, "close");
@@ -908,7 +908,7 @@ public partial class hollaex : Exchange
         //  }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? datetime = this.safeString(trade, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
@@ -1077,7 +1077,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1288,7 +1288,7 @@ public partial class hollaex : Exchange
         {
             throw new OrderNotFound (((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
     }
 
     /**
@@ -1369,7 +1369,7 @@ public partial class hollaex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -2089,7 +2089,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //    "bch":{

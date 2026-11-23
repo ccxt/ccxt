@@ -1365,9 +1365,9 @@ public partial class deepcoin : ccxt.deepcoin
         return this.safeString(modes, marginMode, marginMode);
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "pong"))
+        if ((message == "pong"))
         {
             this.handlePong(client, message);
         }

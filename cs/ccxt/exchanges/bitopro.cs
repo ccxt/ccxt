@@ -535,7 +535,7 @@ public partial class bitopro : Exchange
         });
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -549,7 +549,7 @@ public partial class bitopro : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -735,7 +735,7 @@ public partial class bitopro : Exchange
             timestamp = this.safeInteger(trade, "timestamp");
         }
         string? marketId = this.safeString(trade, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(trade, "price");
         string? type = this.safeStringLower(trade, "type");
@@ -933,7 +933,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
@@ -1135,7 +1135,7 @@ public partial class bitopro : Exchange
         return this.safeString(statuses, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1182,7 +1182,7 @@ public partial class bitopro : Exchange
         string? amount = this.safeString2(order, "amount", "originalAmount");
         string? price = this.safeString(order, "price");
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? orderStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(orderStatus);
@@ -2001,7 +2001,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(result, currency));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //    {
         //        "currency":"eth",

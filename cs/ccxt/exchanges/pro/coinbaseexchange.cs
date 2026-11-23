@@ -164,7 +164,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -469,7 +469,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -511,7 +511,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return message;
     }
 
-    public virtual object handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
@@ -884,7 +884,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         });
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -922,7 +922,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return message;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1063,7 +1063,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

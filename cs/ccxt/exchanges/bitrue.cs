@@ -1340,7 +1340,7 @@ public partial class bitrue : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchBidsAsks
@@ -1602,7 +1602,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -1984,7 +1984,7 @@ public partial class bitrue : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder - spot
@@ -3165,7 +3165,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data, currency));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //   {
@@ -3244,7 +3244,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(coins, codes, "coin"));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     fetchTransfers
@@ -3688,15 +3688,15 @@ public partial class bitrue : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
         string? paramsSymbol = this.safeString(parameters, "symbol");
         string? paramsLimit = this.safeString(parameters, "limit");
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && ((paramsSymbol == null)))
+        if ((config.ContainsKey("noSymbol")) && ((paramsSymbol == null)))
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((paramsLimit != null)))
+            return config["noSymbol"];
+        } else if ((config.ContainsKey("byLimit")) && ((paramsLimit != null)))
         {
             Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});

@@ -432,7 +432,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         string? accountId = this.safeString(account, "id", "0");
         return new Dictionary<string, object>() {
@@ -797,7 +797,7 @@ public partial class apex : Exchange
         });
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -818,7 +818,7 @@ public partial class apex : Exchange
         // }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? last = this.safeString(ticker, "lastPrice");
         string? percentage = this.safeString(ticker, "price24hPcnt");
@@ -942,7 +942,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(OHLCVs, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //  {
@@ -1086,7 +1086,7 @@ public partial class apex : Exchange
         //  ]
         //
         string? marketId = this.safeString2(trade, "s", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? id = this.safeString2(trade, "i", "id");
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? priceString = this.safeString2(trade, "p", "price");
@@ -1158,7 +1158,7 @@ public partial class apex : Exchange
         // }
         //
         string? marketId = this.safeString(interest, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved);
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1250,7 +1250,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -1310,7 +1310,7 @@ public partial class apex : Exchange
         string? orderId = this.safeString(order, "id");
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
@@ -1393,17 +1393,17 @@ public partial class apex : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         object marketResolved = market;
         if ((market == null) && (marketId != null))
         {
-            if (((this.markets != null)) && ((this.markets != null && marketId is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
+            if (((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(marketId))))
             {
-                marketResolved = (this.markets != null && marketId != null && this.markets.ContainsKey((string)marketId) ? this.markets[(string)marketId] : null);
-            } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
+                marketResolved = (this.markets != null && marketId != null && this.markets.ContainsKey(marketId) ? this.markets[marketId] : null);
+            } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId))))
             {
-                marketResolved = this.safeDict((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null), 0);
+                marketResolved = this.safeDict((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey(marketId) ? this.markets_by_id[marketId] : null), 0);
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
@@ -1413,7 +1413,7 @@ public partial class apex : Exchange
                     int numMarkets = getArrayLength(markets);
                     for (int i = 0; i < numMarkets; i++)
                     {
-                        if (((i == 0)) && (isEqual(this.safeString(getValue(markets, i), "id2"), marketId)))
+                        if (((i == 0)) && ((this.safeString(getValue(markets, i), "id2") == marketId)))
                         {
                             marketResolved = getValue(markets, i);
                         }
@@ -1421,7 +1421,7 @@ public partial class apex : Exchange
                 }
             }
         }
-        return base.safeMarket(marketId, marketResolved, delimiter, marketType);
+        return base.safeMarket(marketId,((IDictionary<string, object>)marketResolved), delimiter,marketType);
     }
 
     public virtual string? generateRandomClientIdOmni(string? _accountId)
@@ -1727,7 +1727,7 @@ public partial class apex : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(transfer, "coin");
         Int64? timestamp = this.safeInteger(transfer, "timestamp");
@@ -2056,7 +2056,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(fundingValues, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2073,7 +2073,7 @@ public partial class apex : Exchange
         // }
         //
         string? marketId = this.safeString(income, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "contract");
         string code = "USDT";
         Int64? timestamp = this.safeInteger(income, "fundingTime");
         return new Dictionary<string, object>() {
@@ -2143,7 +2143,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2161,7 +2161,7 @@ public partial class apex : Exchange
         //     "customInitialMarginRate": "0"
         // }
         string? marketId = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");

@@ -457,7 +457,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -481,7 +481,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 defaultDex = dexName;
             }
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((defaultDex != null)) ? this.omit(parameters, "dex") : parameters));
+        IDictionary<string, object> paramsOmitted = ((defaultDex != null)) ? this.omit(parameters, "dex") : parameters;
         if ((defaultDex != null))
         {
             messageHash = ("tickers:" + defaultDex);
@@ -847,7 +847,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         client.resolve(trades, messageHash);
     }
 
-    public virtual void handleMyLiquidations(WebSocketClient client, object message)
+    public virtual void handleMyLiquidations(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // userFills message, see handleMyTrades, liquidation fills carry
@@ -1903,7 +1903,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         try
         {
-            this.handleErrors(0L, "", "", "", new Dictionary<string, object>() {},this.json(payload), payload, new Dictionary<string, object>() {}, "");
+            this.handleErrors(0L, "", "", "", new Dictionary<string, object>() {},this.json(payload), payload, new Dictionary<string, object>() {},((string)null));
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -2245,7 +2245,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //   {

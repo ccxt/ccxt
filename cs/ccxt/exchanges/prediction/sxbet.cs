@@ -784,9 +784,9 @@ public partial class sxbet : PredictionExchange
      * @param {string} privateKey the signer's private key
      * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
      */
-    public virtual string? signDigest(string? digest, object privateKey)
+    public virtual string? signDigest(string? digest, string privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
         string? rRaw = this.safeString(signature, "r", "");
@@ -1400,7 +1400,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1497,7 +1497,7 @@ public partial class sxbet : PredictionExchange
      * @param {int} limit the user-requested limit
      * @returns {int} the limit clamped to at most 100
      */
-    public virtual object clampSxbetPerPage(object limit)
+    public virtual object clampSxbetPerPage(Int64? limit)
     {
         if ((limit == null))
         {
@@ -1963,7 +1963,7 @@ public partial class sxbet : PredictionExchange
         int rawTradesLength = rawTrades.Count;
         for (int i = 0; i < rawTradesLength; i++)
         {
-            Dictionary<string, object> settlement = this.parseSettlement((rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null));
+            Dictionary<string, object> settlement = this.parseSettlement(((IDictionary<string, object>)(rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null)));
             if (((wantedOutcomeId == null)) || ((this.safeString(settlement, "outcomeId") == wantedOutcomeId)))
             {
                 result.Add(settlement);
@@ -1981,7 +1981,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    public virtual Dictionary<string, object> parseSettlement(object trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         //
         //     TradeV3 row with a settlement sub-object:
@@ -2092,7 +2092,7 @@ public partial class sxbet : PredictionExchange
         // route needs an apiKey, so it only pays off for the multi-market path
         IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
         IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
-        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, outcomeObj));
     }
 
     /**
@@ -2241,7 +2241,7 @@ public partial class sxbet : PredictionExchange
             {
                 continue;
             }
-            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
+            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             string? sym = this.safeString(ticker, "outcome");
             if ((sym != null))
             {
@@ -2260,7 +2260,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2530,9 +2530,9 @@ public partial class sxbet : PredictionExchange
         return await this.watch<T>(url, messageHash, subscribeMsg, channel);
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        List<object> lines = ((string)message).Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
+        List<object> lines = message.Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
         int linesLength = lines.Count;
         for (int i = 0; i < linesLength; i++)
         {
@@ -2821,7 +2821,7 @@ public partial class sxbet : PredictionExchange
             // for every newly watched market, not only on a fresh subscription
             IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
-            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
+            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             this.setWsOption("wsTickers", sym, ((object)ticker));
             hydrated = true;
         }
@@ -2884,7 +2884,7 @@ public partial class sxbet : PredictionExchange
                     continue;
                 }
                 object outcomeObj = this.outcome(sym);
-                Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
+                Dictionary<string, object> ticker = this.parsePredictionTicker(raw,((IDictionary<string, object>)outcomeObj));
                 this.setWsOption("wsTickers", sym, ((object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }

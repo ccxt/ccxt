@@ -1466,7 +1466,7 @@ public partial class aster : Exchange
         return this.safeInteger(response, "serverTime") ?? 0;
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // spot:
@@ -1614,7 +1614,7 @@ public partial class aster : Exchange
         {
             marketType = "swap";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
         string? currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         string? currencyCode = this.safeCurrencyCode(currencyId);
         string? amountString = this.safeString2(trade, "qty", "q");
@@ -1858,7 +1858,7 @@ public partial class aster : Exchange
         return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker & fetchTickers: both SPOT & PERP has similar format
@@ -1920,7 +1920,7 @@ public partial class aster : Exchange
             marketType = (!(this.safeInteger(ticker, "lastUpdateId") == null)) ? "swap" : "spot";
         }
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
@@ -2122,15 +2122,15 @@ public partial class aster : Exchange
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             string? marketId = this.safeString(rows[i], "symbol");
-            Dictionary<string, object> safeMarket = this.safeMarket(marketId, null, null, marketType);
-            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(rows[i], safeMarket), paramsMarketType);
+            Dictionary<string, object> safeMarket = this.safeMarket(marketId, null, null,marketType);
+            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(((IDictionary<string, object>)rows[i]), safeMarket), paramsMarketType);
             results.Add(priceData);
         }
         IList<object> symbolsNormalized2 = this.marketSymbols(symbolsNormalized);
         return ccxt.BaseExchange.ToLastPrices(this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized2, false), "symbol"));
     }
 
-    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(IDictionary<string, object> entry, IDictionary<string, object> market = null)
     {
         //
         // spot & swap
@@ -2656,7 +2656,7 @@ public partial class aster : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // swap
@@ -2717,7 +2717,7 @@ public partial class aster : Exchange
             defaultType = "swap";
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, defaultType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,defaultType);
         string? side = this.safeStringLower(order, "side");
         Int64? timestamp = this.safeInteger(order, "time");
         string? statusId = this.safeStringUpper(order, "status");
@@ -3203,7 +3203,7 @@ public partial class aster : Exchange
         return this.parseOrders(response);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3712,7 +3712,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(response, symbols, "symbol", "swap"));
     }
 
-    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(IDictionary<string, object> marginMode, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3734,7 +3734,7 @@ public partial class aster : Exchange
         //     }
         //
         string? marketId = this.safeString(marginMode, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "swap");
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
@@ -3825,7 +3825,7 @@ public partial class aster : Exchange
         string? errorCode = this.safeString(data, "code");
         string? marketId = this.safeString(data, "symbol");
         Int64? timestamp = this.safeInteger(data, "time");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "swap");
         bool noErrorCode = (errorCode == null);
         bool success = errorCode == "200";
         return new Dictionary<string, object>() {
@@ -3900,7 +3900,7 @@ public partial class aster : Exchange
         return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4712,9 +4712,9 @@ public partial class aster : Exchange
         return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
-    public virtual string? signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, string privateKey)
     {
-        return this.signHash(this.keccakMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.keccakMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual string? signWithdrawPayload(object withdrawPayload, object network)
@@ -4905,7 +4905,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(transfer, "code");
         return new Dictionary<string, object>() {

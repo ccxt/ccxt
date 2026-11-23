@@ -866,7 +866,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToAccountList(result);
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         // fetchAccountsV2
@@ -1473,7 +1473,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> subtotalObject = this.safeDict(trade, "subtotal", new Dictionary<string, object>() {});
         IDictionary<string, object> feeObject = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         if ((marketResolved != null))
         {
             symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
@@ -2612,7 +2612,7 @@ public partial class coinbase : Exchange
         return ticker;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTickerV2
@@ -2720,7 +2720,7 @@ public partial class coinbase : Exchange
             askVolume = this.safeNumber(firstAsk, "size");
         }
         string? marketId = this.safeString(ticker, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         double? last = this.safeNumber(ticker, "price");
         string? datetime = this.safeString(ticker, "time");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -3767,7 +3767,7 @@ public partial class coinbase : Exchange
         return this.parseOrder(data, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -3833,7 +3833,7 @@ public partial class coinbase : Exchange
         //
         string? marketId = this.safeString(order, "product_id");
         string? symbol = this.safeSymbol(marketId, market, "-");
-        IDictionary<string, object> marketResolved = ((symbol != null)) ? this.safeMarket(symbol, market) : market;
+        IDictionary<string, object> marketResolved = ((symbol != null)) ? this.safeMarket(symbol,((IDictionary<string, object>)market)) : market;
         IDictionary<string, object> orderConfiguration = this.safeDict(order, "order_configuration", new Dictionary<string, object>() {});
         IDictionary<string, object> limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc");
         IDictionary<string, object> limitGTD = this.safeDict(orderConfiguration, "limit_limit_gtd");
@@ -4524,7 +4524,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limitValue));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -5368,7 +5368,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5397,7 +5397,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5452,7 +5452,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data));
     }
 
-    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(IDictionary<string, object> conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         string? fromCoin = this.safeString(conversion, "source_currency");
         string? fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
@@ -5513,7 +5513,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -5651,7 +5651,7 @@ public partial class coinbase : Exchange
         }
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -5666,7 +5666,7 @@ public partial class coinbase : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? rawSide = this.safeString(position, "side");
         string? side = null;
         if (rawSide == "LONG")
@@ -5873,7 +5873,7 @@ public partial class coinbase : Exchange
         return (this.secret.Length == 88) || (this.safeBool(this.options, "v2CloudAPiKey", false) == true) || this.secret.EndsWith("=");
     }
 
-    public virtual string? createAuthToken(Int64 seconds, string url, string? method = null, bool? useEddsa = null)
+    public virtual string? createAuthToken(object seconds, string url, string? method = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication

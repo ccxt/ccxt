@@ -1207,7 +1207,7 @@ public partial class woo : Exchange
             }
         }
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString2(trade, "executed_price", "executedPrice");
         string? amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
@@ -1877,7 +1877,7 @@ public partial class woo : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         data = this.safeDict(this.safeList(data, "rows"), 0, data);
-        return this.parseOrder(this.extend(data, new Dictionary<string, object>() {             { "timestamp", this.safeString(response, "timestamp") },         }), market);
+        return this.parseOrder(this.extend(data, new Dictionary<string, object>() {     { "timestamp", this.safeString(response, "timestamp") }, }), market);
     }
 
     public virtual string? encodeMarginMode(string? mode)
@@ -2358,7 +2358,7 @@ public partial class woo : Exchange
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2460,7 +2460,7 @@ public partial class woo : Exchange
         string? orderId = this.safeString2(order, "orderId", "algoOrderId");
         string? clientOrderId = ((string)this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId"))); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity"); // This is base amount
@@ -2595,7 +2595,7 @@ public partial class woo : Exchange
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2615,7 +2615,7 @@ public partial class woo : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -2849,7 +2849,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "startTimestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
@@ -3056,7 +3056,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(rows, parameters));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -3679,7 +3679,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit, paramsOmitted));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //    fetchTransfers
@@ -3992,7 +3992,7 @@ public partial class woo : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4435,7 +4435,7 @@ public partial class woo : Exchange
     public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? marginMode = this.safeStringLower(leverage, "marginMode");
         Int64? spotLeverage = this.safeInteger(leverage, "leverage");
         if ((spotLeverage == 0))
@@ -4690,7 +4690,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // v1PrivateGetPositionSymbol
@@ -4741,7 +4741,7 @@ public partial class woo : Exchange
         //     }
         //
         string? contract = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market));
         string? size = this.safeString(position, "holding");
         string? side = null;
         if (Precise.stringGt(size, "0"))
@@ -4820,7 +4820,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4828,8 +4828,8 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "sellToken", ((string)fromCode).ToUpper() },
-            { "buyToken", ((string)toCode).ToUpper() },
+            { "sellToken", fromCode.ToUpper() },
+            { "buyToken", toCode.ToUpper() },
             { "sellQuantity", this.numberToString(amount) },
         };
         Dictionary<string, object> response = await this.v3PrivateGetConvertRfq(this.extend(request, parameters));
@@ -4869,7 +4869,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5002,7 +5002,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "sellAsset", "buyAsset", since, limit));
     }
 
-    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(IDictionary<string, object> conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -5193,7 +5193,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(positions, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionsADLRank

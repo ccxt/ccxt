@@ -767,7 +767,7 @@ public partial class polymarket : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // merged row assembled by fetchTickers from the tickers, statistics and bbo endpoints
@@ -792,7 +792,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -954,7 +954,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString2(trade, "instrument_id", "iid");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger2(trade, "timestamp", "ts");
         string? side = this.safeStringLower(trade, "side");
         if (side == "long")
@@ -1063,7 +1063,7 @@ public partial class polymarket : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // rows carry the timestamp, open, high, low, close, base volume and the trade count
@@ -1136,7 +1136,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString(contract, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(contract, "timestamp");
         Int64? nextFundingTimestamp = this.safeInteger(contract, "next_funding");
         string? interval = this.safeString((marketResolved != null && marketResolved.ContainsKey("info") ? marketResolved["info"] : null), "funding_interval");
@@ -1296,7 +1296,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString(interest, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(interest, "timestamp");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1833,7 +1833,7 @@ public partial class polymarket : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // GET /v1/account/orders and /v1/account/open-orders use long names
@@ -1874,7 +1874,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString2(order, "instrument_id", "iid");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger2(order, "created_timestamp", "cts");
         Int64? lastUpdateTimestamp = this.safeInteger2(order, "updated_timestamp", "uts");
         bool? isBuy = this.safeBool(order, "buy");
@@ -2026,7 +2026,7 @@ public partial class polymarket : Exchange
         return ccxt.BaseExchange.ToPosition(position);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2047,7 +2047,7 @@ public partial class polymarket : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? size = this.safeString(position, "size");
         string? side = null;
         if ((size != null))
@@ -2648,7 +2648,7 @@ public partial class polymarket : Exchange
     public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(leverage, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         bool? isCross = this.safeBool(leverage, "cross");
         string? marginMode = null;
         if ((isCross != null))
@@ -3049,7 +3049,7 @@ public partial class polymarket : Exchange
         return result;
     }
 
-    public override string? priceToPrecision(object symbol, object price)
+    public override string? priceToPrecision(string symbol, object price)
     {
         if ((price == null))
         {
@@ -3069,7 +3069,7 @@ public partial class polymarket : Exchange
         return result;
     }
 
-    public override string? amountToPrecision(object symbol, object amount)
+    public override string? amountToPrecision(string symbol, object amount)
     {
         if ((amount == null))
         {
@@ -3087,7 +3087,7 @@ public partial class polymarket : Exchange
         return result;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((path == "account/orders"))

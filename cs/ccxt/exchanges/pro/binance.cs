@@ -487,7 +487,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void handleLiquidation(WebSocketClient client, object message)
+    public virtual void handleLiquidation(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // future
@@ -1212,7 +1212,7 @@ public partial class binance : ccxt.binance
         return orderbook;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -1244,7 +1244,7 @@ public partial class binance : ccxt.binance
         {
             marketType = "spot";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + symbol);
         if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
@@ -1381,7 +1381,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1856,7 +1856,7 @@ public partial class binance : ccxt.binance
         });
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
@@ -1869,7 +1869,7 @@ public partial class binance : ccxt.binance
         {
             marketType = "spot";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trade::" + symbol);
         ccxt.Trade trade = this.parseWsTrade(message, market);
@@ -2194,7 +2194,7 @@ public partial class binance : ccxt.binance
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, parameters);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2246,7 +2246,7 @@ public partial class binance : ccxt.binance
         {
             marketType = "spot";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         bool? inverse = this.safeBool(market, "inverse");
@@ -2539,7 +2539,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
         // option lookup would consume callerMethodName, so it is resolved once for both lookups below
@@ -2704,7 +2704,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.stock] set to true to use stocks quote streams
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3073,7 +3073,7 @@ public partial class binance : ccxt.binance
             // take the timestamp of the closing price for candlestick streams
             timestamp = this.safeIntegerN(message, new List<object>() {"C", "E", "time"});
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? last = this.safeString2(message, "c", "price");
         // A coin-margined stream counts `v` in contracts and puts the
         // base asset in `q`, one field over from a linear stream, and
@@ -4229,7 +4229,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, type));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // sent upon a balance update not related to orders
@@ -5552,7 +5552,7 @@ public partial class binance : ccxt.binance
         });
     }
 
-    public virtual void handleOrderUpdate(WebSocketClient client, object message)
+    public virtual void handleOrderUpdate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // spot
@@ -5703,7 +5703,7 @@ public partial class binance : ccxt.binance
         this.handleMyLiquidation(client, messageValue);
     }
 
-    public virtual void handleStockPrice(WebSocketClient client, object message)
+    public virtual void handleStockPrice(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -5749,7 +5749,7 @@ public partial class binance : ccxt.binance
         client.resolve(tickers, "stock:price");
     }
 
-    public virtual void handleStockQuote(WebSocketClient client, object message)
+    public virtual void handleStockQuote(WebSocketClient client, IDictionary<string, object> message)
     {
         string? stockSymbol = this.safeString(message, "s");
         string? symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
@@ -6034,7 +6034,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -6625,13 +6625,13 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void handleAcountUpdate(WebSocketClient client, object message)
+    public virtual void handleAcountUpdate(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleBalance(client, message);
         this.handlePositions(client, message);
     }
 
-    public virtual void handleOptionsAccountUpdate(WebSocketClient client, object message)
+    public virtual void handleOptionsAccountUpdate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // BALANCE_POSITION_UPDATE (options user data stream)
@@ -6732,7 +6732,7 @@ public partial class binance : ccxt.binance
         Int64? codeValue = ((code == null)) ? 0 : code;
         try
         {
-            this.handleErrors(codeValue, msg,((string)client.url), "", new Dictionary<string, object>() {},this.json(error), error, new Dictionary<string, object>() {}, "");
+            this.handleErrors(codeValue, msg,((string)client.url), "", new Dictionary<string, object>() {},this.json(error), error, new Dictionary<string, object>() {},((string)null));
         } catch(Exception e)
         {
             rejected = true;
@@ -6769,7 +6769,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void handleEventStreamTerminated(WebSocketClient client, object message)
+    public virtual void handleEventStreamTerminated(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {

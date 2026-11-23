@@ -115,7 +115,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, IDictionary<string, object> orderParams, double? amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, IDictionary<string, object> orderParams, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -778,7 +778,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -806,12 +806,12 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        ((IDictionary<string,object>)parameters)["event_trigger"] = "bbo";
+        parameters["event_trigger"] = "bbo";
         object ticker = await this.watchMultiHelper("bidask", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)
         {
@@ -1079,7 +1079,7 @@ public partial class kraken : ccxt.kraken
         return request;
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;
@@ -1300,7 +1300,7 @@ public partial class kraken : ccxt.kraken
         return ((string?)((object)(joinedResult)));
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -1923,7 +1923,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public virtual object handleUnsubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleUnsubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // one acknowledgement per symbol in the unsubscribe request

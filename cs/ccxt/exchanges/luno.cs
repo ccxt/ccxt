@@ -838,7 +838,7 @@ public partial class luno : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -869,7 +869,7 @@ public partial class luno : Exchange
             side = "buy";
         }
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? price = this.safeString(order, "limit_price");
         string? amount = this.safeString(order, "limit_volume");
         double? quoteFee = this.safeNumber(order, "fee_counter");
@@ -1014,7 +1014,7 @@ public partial class luno : Exchange
         return await this.FetchOrdersByState("COMPLETE", symbol, since, limit, parameters);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         // {
         //     "pair":"XBTAUD",
@@ -1319,7 +1319,7 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         // {
         //     "timestamp": 1664055240000,

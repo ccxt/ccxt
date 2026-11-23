@@ -104,7 +104,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object newTickers = await this.watchPublicMultiple(symbols, "ticker");
@@ -567,7 +567,7 @@ public partial class upbit : ccxt.upbit
         string? rawStatus = this.safeString(order, "state");
         string? status = this.parseWsOrderStatus(rawStatus);
         string? marketId = this.safeString(order, "code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "paid_fee");
         if ((feeCost != null))
@@ -622,7 +622,7 @@ public partial class upbit : ccxt.upbit
         }
         Int64? timestamp = this.safeInteger(trade, "trade_timestamp");
         string? marketId = this.safeString(trade, "code");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         // price and volume describe the fill when state is trade
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "volume");

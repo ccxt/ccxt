@@ -398,7 +398,7 @@ public partial class poloniex : ccxt.poloniex
         return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("cancelAllOrders", parameters));
     }
 
-    public virtual void handleOrderRequest(WebSocketClient client, object message)
+    public virtual void handleOrderRequest(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -519,7 +519,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -840,7 +840,7 @@ public partial class poloniex : ccxt.poloniex
         return new List<object> {this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")};
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -894,7 +894,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -986,7 +986,7 @@ public partial class poloniex : ccxt.poloniex
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "createTime");
         string? takerMaker = this.safeStringLower2(trade, "matchRole", "taker");
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1076,7 +1076,7 @@ public partial class poloniex : ccxt.poloniex
         }, market));
     }
 
-    public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // Order is created
@@ -1293,7 +1293,7 @@ public partial class poloniex : ccxt.poloniex
         });
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1609,7 +1609,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public virtual void handleUnsubscription(WebSocketClient client, object message)
+    public virtual void handleUnsubscription(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1710,7 +1710,7 @@ public partial class poloniex : ccxt.poloniex
         return ((bool?)((object)(false)));
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {

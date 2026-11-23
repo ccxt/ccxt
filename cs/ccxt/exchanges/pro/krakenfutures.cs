@@ -208,7 +208,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -239,7 +239,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters);
@@ -416,7 +416,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null, object timestamp = null)
+    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null, Int64? timestamp = null)
     {
         //
         //        {
@@ -699,7 +699,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "time");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -775,7 +775,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }, market));
     }
 
-    public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //  update (verbose)
@@ -1955,7 +1955,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
     {
         /**
          * @ignore

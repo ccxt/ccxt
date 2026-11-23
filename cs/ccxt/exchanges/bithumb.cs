@@ -522,7 +522,7 @@ public partial class bithumb : Exchange
         });
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
@@ -531,7 +531,7 @@ public partial class bithumb : Exchange
         return base.safeMarket(marketId, market, delimiter, "spot");
     }
 
-    public override string? amountToPrecision(object symbol, object amount)
+    public override string? amountToPrecision(string symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
         return this.decimalToPrecision(amount, TRUNCATE, this.safeInteger((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
@@ -956,7 +956,7 @@ public partial class bithumb : Exchange
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1391,7 +1391,7 @@ public partial class bithumb : Exchange
         return this.parseTicker(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // generation 1
@@ -1699,7 +1699,7 @@ public partial class bithumb : Exchange
         }
         string? id = this.safeString2(trade, "cont_no", "sequential_id");
         string? marketId = this.safeString(trade, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? priceString = this.safeString2(trade, "price", "trade_price");
         string? tradeVolume = this.safeString(trade, "trade_volume");
         string? amountString = ((tradeVolume == null)) ? this.fixCommaNumber(this.safeString2(trade, "units_traded", "units")) : tradeVolume;
@@ -1890,7 +1890,7 @@ public partial class bithumb : Exchange
         return this.parseOrders(data, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
     {
         /**
         * @method
@@ -2324,7 +2324,7 @@ public partial class bithumb : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //
@@ -2511,7 +2511,7 @@ public partial class bithumb : Exchange
             symbol = ((bs + "/") + quote);
         }
         string? marketId = this.safeString(order, "market");
-        IDictionary<string, object> marketResolved = ((symbol == null)) ? this.safeMarket(marketId, market) : market;
+        IDictionary<string, object> marketResolved = ((symbol == null)) ? this.safeMarket(marketId,((IDictionary<string, object>)market)) : market;
         if ((symbol == null))
         {
             symbol = this.safeString(marketResolved, "symbol");

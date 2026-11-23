@@ -310,7 +310,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -321,7 +321,7 @@ public partial class independentreserve : ccxt.independentreserve
         return message;
     }
 
-    public virtual object handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

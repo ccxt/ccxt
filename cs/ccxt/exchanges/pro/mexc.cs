@@ -212,7 +212,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -426,7 +426,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -737,7 +737,7 @@ public partial class mexc : ccxt.mexc
         string? timeframe = null;
         if ((message != null && ((IDictionary<string, object>)message).ContainsKey("publicSpotKline")))
         {
-            market = this.safeMarket(this.symbol(this.safeString(message, "symbol")));
+            market = this.safeMarket(((string)this.symbol(this.safeString(message, "symbol"))));
             IDictionary<string, object> data = this.safeDict(message, "publicSpotKline", new Dictionary<string, object>() {});
             string? timeframeId = this.safeString(data, "interval");
             timeframe = this.findTimeframe(timeframeId, (this.options != null && this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null));
@@ -887,7 +887,7 @@ public partial class mexc : ccxt.mexc
         (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
-    public override object getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
@@ -1549,7 +1549,7 @@ public partial class mexc : ccxt.mexc
             }
         } else if ((data != null))
         {
-            parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(data, market));
+            parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market));
         } else
         {
             return;
@@ -2308,13 +2308,13 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handlePong(WebSocketClient client, IDictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -2423,9 +2423,9 @@ public partial class mexc : ccxt.mexc
         return true;
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "Invalid listen key"))
+        if ((message == "Invalid listen key"))
         {
             var error = new AuthenticationError((this.id + " invalid listen key"));
             client.reject(error);

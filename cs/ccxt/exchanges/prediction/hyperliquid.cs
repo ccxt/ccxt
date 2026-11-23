@@ -810,7 +810,7 @@ public partial class hyperliquid : PredictionExchange
             Dictionary<string, object> ticker = this.parsePredictionTicker(new Dictionary<string, object>() {
                 { "levels", new List<object>() {new List<object>() {}, new List<object>() {}} },
                 { "mid", mid },
-            }, ((object)outcomeObj));
+            }, outcomeObj);
             tickers[(string)outcomeHandle] = ticker;
         }
         return ccxt.BaseExchange.ToPredictionTickers(tickers);
@@ -825,7 +825,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1027,7 +1027,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1189,7 +1189,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
@@ -1809,7 +1809,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // from frontendOpenOrders:
@@ -1835,7 +1835,7 @@ public partial class hyperliquid : PredictionExchange
         string? coin = this.safeString(entry, "coin");
         IDictionary<string, object> outcomeObj = this.safeOutcome(coin, market);
         string? marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = market;
+        IDictionary<string, object> resolvedMarket = market;
         if ((marketSymbol != null) && marketSymbol != "")
         {
             resolvedMarket = this.safeMarket(marketSymbol, market);
@@ -2026,7 +2026,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2053,7 +2053,7 @@ public partial class hyperliquid : PredictionExchange
         string? coin = this.safeString(trade, "coin");
         IDictionary<string, object> outcomeObj = this.safeOutcome(coin, market);
         string? marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = market;
+        IDictionary<string, object> resolvedMarket = market;
         if ((marketSymbol != null) && marketSymbol != "")
         {
             resolvedMarket = this.safeMarket(marketSymbol, market);
@@ -2297,7 +2297,7 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public override string? amountToPrecision(object outcome, object amount)
+    public override string? amountToPrecision(string outcome, object amount)
     {
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
@@ -2314,7 +2314,7 @@ public partial class hyperliquid : PredictionExchange
         return this.decimalToPrecision(amount, 1, decimals, 2, this.paddingMode);
     }
 
-    public override string? priceToPrecision(object outcome, object price)
+    public override string? priceToPrecision(string outcome, object price)
     {
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
@@ -2351,9 +2351,9 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual Dictionary<string, object> constructPhantomAgent(object hash, bool? isTestnet = null)
@@ -2617,13 +2617,13 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
-        if (((IDictionary<string, object>)config).ContainsKey("byType"))
+        if (config.ContainsKey("byType"))
         {
             string? type = this.safeString(parameters, "type");
-            object byType = ((IDictionary<string,object>)config)["byType"];
+            object byType = config["byType"];
             if ((type != null))
             {
                 if (inOp(byType, type))

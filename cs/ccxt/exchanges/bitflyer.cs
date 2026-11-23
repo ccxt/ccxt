@@ -316,7 +316,7 @@ public partial class bitflyer : Exchange
         return this.parse8601((expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z"));
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
@@ -585,7 +585,7 @@ public partial class bitflyer : Exchange
         return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
@@ -687,7 +687,7 @@ public partial class bitflyer : Exchange
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         string? id = this.safeString(trade, "id");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -855,7 +855,7 @@ public partial class bitflyer : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.parse8601(this.safeString(order, "child_order_date"));
         string? price = this.safeString(order, "price");

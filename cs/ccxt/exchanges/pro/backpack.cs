@@ -467,7 +467,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWsTickers("watchTickers", symbols, parameters));
@@ -604,7 +604,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} message stream envelope
      * @returns {boolean} whether a subscription was updated
      */
-    public virtual bool handleStockTicker(WebSocketClient client, object message)
+    public virtual bool handleStockTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? stream = this.safeString(message, "stream", "");
@@ -655,7 +655,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote, unavailable prices remain undefined
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true));
@@ -1149,7 +1149,7 @@ public partial class backpack : ccxt.backpack
         Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         string? id = this.safeString(trade, "t");
         string? marketId = this.safeString(trade, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         bool? isBuyerMaker = this.safeBool(trade, "m");
         string? side = null;
         string? takerOrMaker = null;
@@ -1382,7 +1382,7 @@ public partial class backpack : ccxt.backpack
         }
     }
 
-    public override object getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
     {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
@@ -1690,7 +1690,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} message stream envelope
      * @returns {boolean} whether a balance was updated
      */
-    public virtual bool handleBalance(WebSocketClient client, object message)
+    public virtual bool handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? assetId = this.safeString(data, "a");
@@ -1753,7 +1753,7 @@ public partial class backpack : ccxt.backpack
         Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         string? status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         string? marketId = this.safeString(order, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? type = this.safeStringLower(order, "o");
         string? timeInForce = this.safeString(order, "f");

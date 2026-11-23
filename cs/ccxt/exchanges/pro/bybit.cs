@@ -432,7 +432,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -655,7 +655,7 @@ public partial class bybit : ccxt.bybit
             List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             int topicLength = topicParts.Count;
             string? marketId = this.safeString(topicParts, (topicLength - 1));
-            Dictionary<string, object> market = this.safeMarket(marketId, null, null, type);
+            Dictionary<string, object> market = this.safeMarket(marketId, null, null,type);
             symbol = this.safeString(market, "symbol");
             // update the info in place
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
@@ -688,7 +688,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -944,7 +944,7 @@ public partial class bybit : ccxt.bybit
         {
             marketType = "spot";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
@@ -1177,7 +1177,7 @@ public partial class bybit : ccxt.bybit
         {
             marketType = "spot";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeInteger(message, "ts");
         if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
@@ -1374,7 +1374,7 @@ public partial class bybit : ccxt.bybit
             marketType = "spot";
         }
         string? marketId = this.safeString(parts, 1);
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -1437,7 +1437,7 @@ public partial class bybit : ccxt.bybit
             marketType = this.safeString(market, "type", marketType);
         }
         string? marketId = this.safeString(trade, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
@@ -2334,11 +2334,6 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < rawOrders.Count; i++)
         {
             ccxt.Order parsed = this.parseOrder(this.safeDict(rawOrders, i, new Dictionary<string, object>() {}));
-            // if (isSpot) {
-            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
-            // } else {
-            //     parsed = this.parseOrder (rawOrders[i]);
-            // }
             string? symbol = parsed.symbol;
             if ((symbol == null))
             {
@@ -3042,7 +3037,7 @@ public partial class bybit : ccxt.bybit
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //   {
@@ -3066,7 +3061,7 @@ public partial class bybit : ccxt.bybit
         return message;
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -3109,7 +3104,7 @@ public partial class bybit : ccxt.bybit
         return message;
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -3128,7 +3123,7 @@ public partial class bybit : ccxt.bybit
         return message;
     }
 
-    public virtual object handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleUnSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}

@@ -335,7 +335,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1325,7 +1325,7 @@ public partial class cex : ccxt.cex
         client.resolve(stored, messageHash);
     }
 
-    public virtual object handleOHLCV24(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOHLCV24(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1435,7 +1435,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -1517,7 +1517,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object rawOrder = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, rawOrder), market);
     }
 
     /**
@@ -1566,7 +1566,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -1603,7 +1603,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -1677,7 +1677,7 @@ public partial class cex : ccxt.cex
         client.resolve(data, messageHash);
     }
 
-    public virtual object handleConnected(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleConnected(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

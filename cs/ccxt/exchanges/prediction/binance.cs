@@ -873,7 +873,7 @@ public partial class binance : PredictionExchange
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(response, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(response, outcomeObj));
     }
 
     /**
@@ -885,7 +885,7 @@ public partial class binance : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
@@ -981,7 +981,7 @@ public partial class binance : PredictionExchange
                 response = await this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters));
                 responsesByMarketId[(string)marketId] = response;
             }
-            Dictionary<string, object> ticker = this.parsePredictionTicker(response, ((object)outcomeObj));
+            Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
             string? symbolKey = this.safeString(ticker, "outcome", (outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             result[(string)symbolKey] = ticker;
         }
@@ -1079,7 +1079,7 @@ public partial class binance : PredictionExchange
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object outcomeObj = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> outcomeObj = null)
     {
         //
         // {
@@ -1109,7 +1109,7 @@ public partial class binance : PredictionExchange
         // }
         //
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
-        object outcomeObjResolved = outcomeObj;
+        IDictionary<string, object> outcomeObjResolved = outcomeObj;
         if ((outcomeObjResolved == null))
         {
             string? marketId = this.safeString(order, "marketId");
@@ -1504,9 +1504,9 @@ public partial class binance : PredictionExchange
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object outcomeObj = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> outcomeObj = null)
     {
-        object outcomeObjResolved = outcomeObj;
+        IDictionary<string, object> outcomeObjResolved = outcomeObj;
         if ((outcomeObjResolved == null))
         {
             string? marketId = this.safeString(position, "marketId");
@@ -1661,7 +1661,7 @@ public partial class binance : PredictionExchange
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object outcomeObj = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> outcomeObj = null)
     {
         //
         // {
@@ -1690,7 +1690,7 @@ public partial class binance : PredictionExchange
         //     "networkFee": "0.000001"
         // }
         //
-        object outcomeObjResolved = outcomeObj;
+        IDictionary<string, object> outcomeObjResolved = outcomeObj;
         if ((outcomeObjResolved == null))
         {
             string? marketId = this.safeString(trade, "marketId");
@@ -1834,7 +1834,7 @@ public partial class binance : PredictionExchange
         return response;
     }
 
-    public override string? priceToPrecision(object outcome, object price)
+    public override string? priceToPrecision(string outcome, object price)
     {
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
@@ -1846,7 +1846,7 @@ public partial class binance : PredictionExchange
         return this.decimalToPrecision(price, ROUND, decimals, DECIMAL_PLACES, this.paddingMode);
     }
 
-    public override string? amountToPrecision(object outcome, object amount)
+    public override string? amountToPrecision(string outcome, object amount)
     {
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.01);

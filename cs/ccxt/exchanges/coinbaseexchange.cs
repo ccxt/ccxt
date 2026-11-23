@@ -935,7 +935,7 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -1043,7 +1043,7 @@ public partial class coinbaseexchange : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTickers
@@ -1289,7 +1289,7 @@ public partial class coinbaseexchange : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? feeRate = null;
         string? takerOrMaker = null;
         string? cost = null;
@@ -1482,7 +1482,7 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1613,7 +1613,7 @@ public partial class coinbaseexchange : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1638,7 +1638,7 @@ public partial class coinbaseexchange : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(order, "created_at"));
         string? marketId = this.safeString(order, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? doneReason = this.safeString(order, "done_reason");
         if ((status == "closed") && (doneReason == "canceled"))

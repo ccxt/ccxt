@@ -1477,7 +1477,7 @@ public partial class polymarket : PredictionExchange
                     { "book", book },
                     { "lastTrade", this.safeDict(lastTradesByTokenId, tokenId, new Dictionary<string, object>() {}) },
                 };
-                Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
+                Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput,((IDictionary<string, object>)outcomeObj));
                 string? symbolKey = this.safeString(ticker, "outcome", tokenId);
                 result[(string)symbolKey] = ticker;
             }
@@ -1495,7 +1495,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1778,7 +1778,7 @@ public partial class polymarket : PredictionExchange
         return ccxt.BaseExchange.ToOHLCVList(candles);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
@@ -2034,7 +2034,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -2053,7 +2053,7 @@ public partial class polymarket : PredictionExchange
             side = rawSide;
         }
         string? assetId = this.safeString2(trade, "asset", "asset_id");
-        object mkt = null;
+        IDictionary<string, object> mkt = null;
         if ((market != null))
         {
             mkt = market;
@@ -2235,7 +2235,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? tokenId = this.safeString(position, "asset");
         IDictionary<string, object> marketData = this.safeOutcome(tokenId, market);
@@ -2339,7 +2339,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2448,7 +2448,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> response = await this.clobPrivatePostOrder(this.safeDict(built, "body"));
         // request echo first so the response's real orderID/status/success win on overlap
         Dictionary<string, object> enriched = this.extend(this.safeDict(built, "request"), response);
-        Dictionary<string, object> order = this.parsePredictionOrder(enriched, ((object)this.safeDict(built, "outcome")));
+        Dictionary<string, object> order = this.parsePredictionOrder(enriched, this.safeDict(built, "outcome"));
         order["info"] = response; // keep info the raw exchange response, not the request echo
         return ccxt.BaseExchange.ToPredictionOrder(order);
     }
@@ -2508,13 +2508,13 @@ public partial class polymarket : PredictionExchange
                 // request echo first so the response's real orderID/status win on overlap
                 object rawItem = response[i];
                 Dictionary<string, object> enriched = this.extend(this.safeDict(requests, i), rawItem);
-                Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, ((object)this.safeDict(outcomes, i)));
+                Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, this.safeDict(outcomes, i));
                 parsedItem["info"] = rawItem; // keep info the raw exchange response
                 result.Add(parsedItem);
             }
         } else
         {
-            result.Add(this.parsePredictionOrder(response));
+            result.Add(this.parsePredictionOrder(((IDictionary<string, object>)response)));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
     }
@@ -2526,7 +2526,7 @@ public partial class polymarket : PredictionExchange
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    public virtual Dictionary<string, object> buildClobOrderBody(string? outcome, string? type, string? side, double? amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> buildClobOrderBody(string? outcome, string? type, string? side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
@@ -2725,7 +2725,7 @@ public partial class polymarket : PredictionExchange
         return await this.CreateOrder(outcome, "market", "buy", cost, null, request);
     }
 
-    public virtual Dictionary<string, object> polymarketOrderRawAmounts(string? side, object size, object price, string? tickSize, object cost = null)
+    public virtual Dictionary<string, object> polymarketOrderRawAmounts(string? side, object size, object price, string? tickSize, double? cost = null)
     {
         Dictionary<string, object> configs = new Dictionary<string, object>() {
             { "0.1", new Dictionary<string, object>() {
@@ -3531,9 +3531,9 @@ public partial class polymarket : PredictionExchange
         };
     }
 
-    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual string? signClobAuth(string? address, string? timestamp, Int64? nonce)
@@ -3684,7 +3684,7 @@ public partial class polymarket : PredictionExchange
         return "PING";
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
@@ -4088,7 +4088,7 @@ public partial class polymarket : PredictionExchange
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        Dictionary<string, object> parsed = this.parsePredictionOrder(eventVar);
+        Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)eventVar));
         stored.append(parsed);
         client.resolve(stored, "orders");
         string? outcome = this.safeString(parsed, "outcome");
@@ -4106,7 +4106,7 @@ public partial class polymarket : PredictionExchange
             this.myTrades = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
-        Dictionary<string, object> parsed = this.parsePredictionTrade(eventVar);
+        Dictionary<string, object> parsed = this.parsePredictionTrade(((IDictionary<string, object>)eventVar));
         stored.append(parsed);
         client.resolve(stored, "myTrades");
         string? outcome = this.safeString(parsed, "outcome");

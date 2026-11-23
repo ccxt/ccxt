@@ -235,7 +235,7 @@ public partial class modetrade : ccxt.modetrade
         }, market);
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -276,7 +276,7 @@ public partial class modetrade : ccxt.modetrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -342,7 +342,7 @@ public partial class modetrade : ccxt.modetrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -613,7 +613,7 @@ public partial class modetrade : ccxt.modetrade
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
@@ -928,7 +928,7 @@ public partial class modetrade : ccxt.modetrade
         //
         string? orderId = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
@@ -1572,7 +1572,7 @@ public partial class modetrade : ccxt.modetrade
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // { event: "pong", ts: 1614667590000 }
@@ -1581,7 +1581,7 @@ public partial class modetrade : ccxt.modetrade
         return message;
     }
 
-    public virtual object handleSubscribe(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscribe(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

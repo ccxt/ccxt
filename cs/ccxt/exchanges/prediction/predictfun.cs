@@ -1491,7 +1491,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] the outcome the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1778,7 +1778,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> party = this.safeDict(trade, "partyToParse", new Dictionary<string, object>() {});
         // fetchMyTrades spans several markets at once, so the row's identity comes from the party
@@ -1913,9 +1913,9 @@ public partial class predictfun : PredictionExchange
      * @param {string} privateKey the wallet private key
      * @returns {string} the 65 byte signature, 0x prefixed
      */
-    public virtual string? signHash(string hash, object privateKey)
+    public virtual string? signHash(string hash, string privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
         string? rRaw = this.safeString(signature, "r", "");
         string? sRaw = this.safeString(signature, "s", "");
@@ -2388,7 +2388,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] not used by predictfun parsePredictionPosition
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> rawOutcome = this.safeDict(position, "outcome", new Dictionary<string, object>() {});
         IDictionary<string, object> rawMarket = this.safeDict(position, "market", new Dictionary<string, object>() {});
@@ -2745,7 +2745,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder
@@ -3701,7 +3701,7 @@ public partial class predictfun : PredictionExchange
      * @param {Client} client the websocket client
      * @param {object} message the raw message
      */
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -3812,7 +3812,7 @@ public partial class predictfun : PredictionExchange
      * @param {Client} client the websocket client
      * @param {object} message the raw message
      */
-    public virtual void handleWalletEvent(WebSocketClient client, object message)
+    public virtual void handleWalletEvent(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -4153,7 +4153,7 @@ public partial class predictfun : PredictionExchange
      * @param {Client} client the websocket client
      * @param {object} message the raw message
      */
-    public virtual void handleHeartbeat(WebSocketClient client, object message)
+    public virtual void handleHeartbeat(WebSocketClient client, IDictionary<string, object> message)
     {
         // client.send () is a coroutine in the python port, so firing it from this synchronous
         // handler would drop it unsent and the venue would close the socket on its next probe

@@ -576,7 +576,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             marketId = this.safeString(trade, 1);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)marketId),((IDictionary<string, object>)market));
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
         int amountKey = isPublic ? 2 : 4;
@@ -688,7 +688,7 @@ public partial class bitfinex : ccxt.bitfinex
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? last = this.safeString(ticker, 6);
         string? change = this.safeString(ticker, 4);
@@ -1063,7 +1063,7 @@ public partial class bitfinex : ccxt.bitfinex
         return account;
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1105,7 +1105,7 @@ public partial class bitfinex : ccxt.bitfinex
         return true;
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

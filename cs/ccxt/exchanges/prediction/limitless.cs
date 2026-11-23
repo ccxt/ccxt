@@ -1134,7 +1134,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1200,14 +1200,14 @@ public partial class limitless : PredictionExchange
         //     }
         //
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
-        object raw = ticker;
+        IDictionary<string, object> raw = ticker;
         IDictionary<string, object> book = null;
-        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("market")))
+        if ((ticker != null && ticker.ContainsKey("market")))
         {
             raw = this.safeDict(ticker, "market", new Dictionary<string, object>() {});
             book = this.safeDict(ticker, "book");
         }
-        string? rawLabel = ((market != null)) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "yes")) : "yes";
+        string? rawLabel = ((market != null)) ? this.safeString(market, "label", this.safeString((market != null && market.ContainsKey("info") ? market["info"] : null), "outcomeLabel", "yes")) : "yes";
         bool isYes = (rawLabel.ToLower() != "no");
         string? bidStr = null;
         string? askStr = null;
@@ -1385,7 +1385,7 @@ public partial class limitless : PredictionExchange
             List<object> grouped = this.safeList(outcomesBySlug, slug, new List<object>() {});
             for (int j = 0; j < (grouped?.Count ?? 0); j++)
             {
-                Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput, grouped[j]);
+                Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput,((IDictionary<string, object>)grouped[j]));
                 string? symbolKey = this.safeString(ticker, "outcome");
                 if ((symbolKey != null))
                 {
@@ -2014,7 +2014,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -2281,7 +2281,7 @@ public partial class limitless : PredictionExchange
         }
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         string? accountId = this.safeString(account, "id");
         return new Dictionary<string, object>() {
@@ -2591,9 +2591,9 @@ public partial class limitless : PredictionExchange
         return result.ToLower();
     }
 
-    public virtual string? signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public override string? signEvmTransaction(IDictionary<string, object> tx, object privateKey)
@@ -2949,7 +2949,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         string? matchedSize = this.safeString(trade, "matchedSize");
         if ((matchedSize != null))
@@ -3090,7 +3090,7 @@ public partial class limitless : PredictionExchange
 
     public virtual IDictionary<string, object> getOutcomeBySlugAndLabel(string? slug, string? label, object market = null)
     {
-        Dictionary<string, object> mkt = this.safeMarket(slug, market);
+        Dictionary<string, object> mkt = this.safeMarket(slug,((IDictionary<string, object>)market));
         List<object> outcomes = this.safeList(mkt, "outcomes", new List<object>() {});
         for (int i = 0; i < outcomes.Count; i++)
         {
@@ -3266,7 +3266,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {

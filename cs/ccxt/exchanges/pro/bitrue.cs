@@ -982,7 +982,7 @@ public partial class bitrue : ccxt.bitrue
         client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> tick, object market, object timestamp = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> tick, object market, Int64? timestamp = null)
     {
         string? symbol = this.safeString(market, "symbol", "");
         double? rawVol = this.safeNumber(tick, "vol");
@@ -1039,7 +1039,7 @@ public partial class bitrue : ccxt.bitrue
         return this.safeString(statuses, status, status);
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, IDictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }

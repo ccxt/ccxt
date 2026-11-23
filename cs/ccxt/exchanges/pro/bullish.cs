@@ -69,7 +69,7 @@ public partial class bullish : ccxt.bullish
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

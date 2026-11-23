@@ -1419,7 +1419,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async virtual Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchTickers() is not supported yet")) ;
@@ -1794,22 +1794,22 @@ public partial class PredictionExchange : BaseExchange
         return this.extend(this.omit(orderbook, "symbol"), identity);
     }
 
-    public virtual Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parsePredictionTicker() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public virtual Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parsePredictionOrder() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public virtual Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parsePredictionTrade() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public virtual Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parsePredictionPosition() is not supported yet")) ;
     }
@@ -1842,7 +1842,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionTrade(rows[i], outcomeObj);
+            Dictionary<string, object> parsed = this.parsePredictionTrade(((IDictionary<string, object>)rows[i]),((IDictionary<string, object>)outcomeObj));
             Dictionary<string, object> trade = this.extend(parsed, parameters);
             results.Add(trade);
         }
@@ -1871,7 +1871,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionOrder(rows[i], outcomeObj);
+            Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)rows[i]),((IDictionary<string, object>)outcomeObj));
             Dictionary<string, object> order = this.extend(parsed, parameters);
             results.Add(order);
         }
@@ -1900,7 +1900,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionPosition(rows[i]);
+            Dictionary<string, object> parsed = this.parsePredictionPosition(((IDictionary<string, object>)rows[i]));
             Dictionary<string, object> position = this.extend(parsed, parameters);
             results.Add(position);
         }

@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
             Int64 startTime = exchange.milliseconds();
             try
             {
-                response = detypeForComparison(await exchange.WatchBidsAsks(argSymbols, argParams));
+                response = detypeForComparison(await exchange.WatchBidsAsks(argSymbols));
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so

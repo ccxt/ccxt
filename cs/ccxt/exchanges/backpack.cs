@@ -1251,7 +1251,7 @@ public partial class backpack : Exchange
      * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
      * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
      */
-    public async virtual Task<object> fetchStockIndicativeQuote(object symbol, object side, object amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> fetchStockIndicativeQuote(object symbol, object side, object amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1276,7 +1276,7 @@ public partial class backpack : Exchange
             { "side", this.encodeOrderSide(side) },
             { "quantity", this.numberToString(amount) },
         };
-        return await (this.publicGetApiV1StockIndicativeQuote(this.extend(query, request)));
+        return await this.publicGetApiV1StockIndicativeQuote(this.extend(query, request));
     }
 
     /**
@@ -1322,7 +1322,7 @@ public partial class backpack : Exchange
      * @param {object} [toCurrency] destination currency
      * @returns {object} unified conversion structure
      */
-    public override Dictionary<string, object> parseConversion(object order, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(IDictionary<string, object> order, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         string? fromCode = this.safeString(fromCurrency, "code");
         string? toCode = this.safeString(toCurrency, "code");
@@ -1362,7 +1362,7 @@ public partial class backpack : Exchange
      * @param {float} [params.price] optional limit price when converting quote currency to stock
      * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
      */
-    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? amountString = this.numberToString(amount);
@@ -1372,11 +1372,11 @@ public partial class backpack : Exchange
         }
         await this.loadMarkets();
         IDictionary<string, object> market = this.rfqConversionMarket(fromCode, toCode);
-        bool fromIsBase = isEqual(fromCode, this.safeString(market, "base"));
+        bool fromIsBase = (fromCode == this.safeString(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         if (!fromIsBase)
         {
-            object initialQuote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, 1, new Dictionary<string, object>() {
+            Dictionary<string, object> initialQuote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, 1, new Dictionary<string, object>() {
                 { "stock", true },
             });
             string? initialPrice = this.safeString(initialQuote, "price");
@@ -1394,7 +1394,7 @@ public partial class backpack : Exchange
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() price must be positive")) ;
             }
             string? rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
-            string? preciseQuantity = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), this.parseNumber(rawQuantity));
+            string? preciseQuantity = this.amountToPrecision(((string)(market.ContainsKey("symbol") ? market["symbol"] : null)), this.parseNumber(rawQuantity));
             if ((preciseQuantity == null))
             {
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() could not determine a stock quantity")) ;
@@ -1405,7 +1405,7 @@ public partial class backpack : Exchange
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
             }
         }
-        object quote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+        Dictionary<string, object> quote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, this.parseNumber(amountString), new Dictionary<string, object>() {
             { "stock", true },
         });
         if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))
@@ -1463,7 +1463,7 @@ public partial class backpack : Exchange
      * @param {int} [params.clientOrderId] requester client identifier for a newly submitted RFQ
      * @returns {object} conversion result; RFQ submission may remain open and is not necessarily a fill
      */
-    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1475,14 +1475,14 @@ public partial class backpack : Exchange
         {
             Dictionary<string, object> acceptParams = this.omit(query, new List<object>() {"quoteId", "price", "baseAmount", "clientOrderId"});
             object accepted = await this.acceptRfqQuote(id, quoteId, this.safeSymbol(null, market), acceptParams);
-            return ccxt.BaseExchange.ToConversion(this.parseConversion(accepted, this.currency(((string)fromCode)), this.currency(((string)toCode))));
+            return ccxt.BaseExchange.ToConversion(this.parseConversion(((IDictionary<string, object>)accepted), this.currency(fromCode), this.currency(toCode)));
         }
         string? amountString = this.numberToString(amount);
         if (((amountString == null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a positive amount")) ;
         }
-        bool fromIsBase = isEqual(fromCode, this.safeString(market, "base"));
+        bool fromIsBase = (fromCode == this.safeString(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         string? quantity = this.numberToString(amount);
         double? price = this.safeNumber(query, "price");
@@ -1496,7 +1496,7 @@ public partial class backpack : Exchange
             {
                 if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
                 {
-                    object indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(null, market), side, 1, new Dictionary<string, object>() {
+                    Dictionary<string, object> indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(null, market), side, 1, new Dictionary<string, object>() {
                         { "stock", true },
                     });
                     if (!(this.safeBool(indicative, "available", false) == true))
@@ -1510,7 +1510,7 @@ public partial class backpack : Exchange
                     throw new InvalidOrder ((this.id + " createConvertTrade() buying stock requires a positive price bound")) ;
                 }
                 string? rawQuantity = Precise.stringDiv(this.numberToString(amount), this.numberToString(price), 18);
-                string? preciseQuantity = this.amountToPrecision(this.safeSymbol(null, market), this.parseNumber(rawQuantity));
+                string? preciseQuantity = this.amountToPrecision(((string)this.safeSymbol(null, market)), this.parseNumber(rawQuantity));
                 if ((preciseQuantity == null))
                 {
                     throw new InvalidOrder ((this.id + " createConvertTrade() could not determine a stock quantity")) ;
@@ -1519,7 +1519,7 @@ public partial class backpack : Exchange
             }
             if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
             {
-                object indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(null, market), side, this.parseNumber(quantity), new Dictionary<string, object>() {
+                Dictionary<string, object> indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(null, market), side, this.parseNumber(quantity), new Dictionary<string, object>() {
                     { "stock", true },
                 });
                 if (!(this.safeBool(indicative, "available", false) == true))
@@ -1569,7 +1569,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> order = await this.createRfqOrder(this.safeSymbol(null, market), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new Dictionary<string, object>() {
             { "stock", true },
         }));
-        return ccxt.BaseExchange.ToConversion(this.parseConversion(order, this.currency(((string)fromCode)), this.currency(((string)toCode))));
+        return ccxt.BaseExchange.ToConversion(this.parseConversion(order, this.currency(fromCode), this.currency(toCode)));
     }
 
     /**
@@ -1803,7 +1803,7 @@ public partial class backpack : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker/fetchTickers
@@ -1822,7 +1822,7 @@ public partial class backpack : Exchange
         //     }, ...
         //
         string? marketId = this.safeString(ticker, "symbol");
-        object marketResolved = ((market == null)) ? this.safeMarket(marketId) : market;
+        IDictionary<string, object> marketResolved = ((market == null)) ? this.safeMarket(marketId) : market;
         string? open = this.safeString(ticker, "firstPrice");
         string? last = this.safeString(ticker, "lastPrice");
         string? high = this.safeString(ticker, "high");
@@ -2005,7 +2005,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -2067,7 +2067,7 @@ public partial class backpack : Exchange
         //     }
         //
         string? marketId = this.safeString(contract, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved);
         Int64? nextFundingTimestamp = this.safeInteger(contract, "nextFundingTimestamp");
         return new Dictionary<string, object>() {
@@ -2393,7 +2393,7 @@ public partial class backpack : Exchange
         //
         string? id = this.safeString2(trade, "id", "tradeId");
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? price = this.safeString2(trade, "fillPrice", "price");
         string? amount = this.safeString2(trade, "fillQuantity", "quantity");
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
@@ -3009,7 +3009,7 @@ public partial class backpack : Exchange
         IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
         if (!(this.safeNumber(precision, "amount") == null))
         {
-            string? preciseQuantity = this.amountToPrecision(symbol, amount);
+            string? preciseQuantity = this.amountToPrecision(((string)symbol), amount);
             if (!Precise.stringEq(quantity, preciseQuantity))
             {
                 throw new InvalidOrder ((this.id + " createOrder() RFQ quantity must match the share increment without rounding")) ;
@@ -3025,7 +3025,7 @@ public partial class backpack : Exchange
         }
         if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true))
         {
-            object indicative = await this.fetchStockIndicativeQuote(symbol, side, amount, new Dictionary<string, object>() {
+            Dictionary<string, object> indicative = await this.fetchStockIndicativeQuote(symbol, side, amount, new Dictionary<string, object>() {
                 { "stock", false },
             });
             string? indicativePrice = this.safeString(indicative, "price");
@@ -3168,7 +3168,7 @@ public partial class backpack : Exchange
      * @param {object} [params] exchange-specific order parameters
      * @returns {object} venue order payload
      */
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, object side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3608,7 +3608,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> rfq = this.safeDict(order, "rfq");
         if ((rfq != null))
@@ -3719,7 +3719,7 @@ public partial class backpack : Exchange
         string? id = this.safeString2(order, "id", "rfqId");
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? type = this.safeStringLower(order, "orderType");
         if (((type == null)) && ((this.safeString(order, "rfqId") != null)) && ((this.safeString(order, "price") != null)))
@@ -3814,7 +3814,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // fetchPositions
@@ -3851,7 +3851,7 @@ public partial class backpack : Exchange
         //
         string? id = this.safeString(position, "positionId");
         string? marketId = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         double? entryPrice = this.safeNumber(position, "entryPrice");
         double? markPrice = this.safeNumber(position, "markPrice");
@@ -3936,7 +3936,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {

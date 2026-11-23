@@ -472,7 +472,7 @@ public partial class btcbox : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? last = this.safeString(ticker, "last");
@@ -560,7 +560,7 @@ public partial class btcbox : Exchange
         //      }
         //
         Int64? timestamp = this.safeTimestamp(trade, "date");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
@@ -707,7 +707,7 @@ public partial class btcbox : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -742,7 +742,7 @@ public partial class btcbox : Exchange
             }
         }
         string? trades = null; // todo: this.parseTrades (order['trades']);
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? side = this.safeString(order, "type");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },

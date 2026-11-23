@@ -163,7 +163,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public async virtual Task<object> subscribe(string access, string? messageHash, object channel, object symbol, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string access, string? messageHash, object channel, object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -185,7 +185,7 @@ public partial class okx : ccxt.okx
             { "op", "subscribe" },
             { "args", new List<object> {this.deepExtend(firstArgument, parameters)} },
         };
-        return await this.watch(url, messageHashResolved, request, messageHashResolved);
+        return await this.watch<T>(url, messageHashResolved, request, messageHashResolved);
     }
 
     /**
@@ -551,7 +551,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -785,7 +785,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1261,13 +1261,13 @@ public partial class okx : ccxt.okx
         string? symbolValue = this.symbol(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = ("candle" + interval);
-        object ohlcv = await this.subscribe("public", name, name, symbolValue, parameters);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.subscribe<ccxt.pro.ArrayCacheByTimestamp>("public", name, name, symbolValue, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -1705,7 +1705,7 @@ public partial class okx : ccxt.okx
         return orderbook;
     }
 
-    public virtual object handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // snapshot
@@ -1936,7 +1936,7 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         await this.authenticate();
-        return ccxt.BaseExchange.ToBalances(await this.subscribe("private", "account", "account", null, parameters));
+        return ccxt.BaseExchange.ToBalances(await this.subscribe<object>("private", "account", "account", null, parameters));
     }
 
     public virtual void handleBalanceAndPosition(WebSocketClient client, Dictionary<string, object> message)
@@ -2163,13 +2163,13 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        object orders = await this.subscribe("private", messageHash, channel, null, this.extend(request, paramsMarginMode));
+        ccxt.pro.ArrayCache orders = await this.subscribe<ccxt.pro.ArrayCache>("private", messageHash, channel, null, this.extend(request, paramsMarginMode));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -2401,13 +2401,13 @@ public partial class okx : ccxt.okx
         {
             channel = "orders-algo";
         }
-        object orders = await this.subscribe("private", channel, channel, symbolResolved, this.extend(request, paramsMarginMode));
+        ccxt.pro.ArrayCache orders = await this.subscribe<ccxt.pro.ArrayCache>("private", channel, channel, symbolResolved, this.extend(request, paramsMarginMode));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -2699,7 +2699,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {},stringMsg, message, new Dictionary<string, object>() {}, "");
+            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {},stringMsg, message, new Dictionary<string, object>() {},((string)null));
         }
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         IDictionary<string, object> first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2911,7 +2911,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {},stringMsg, message, new Dictionary<string, object>() {}, "");
+            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {},stringMsg, message, new Dictionary<string, object>() {},((string)null));
         }
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         client.resolve(orders, messageHash);
@@ -2937,7 +2937,7 @@ public partial class okx : ccxt.okx
         client.resolve(data, messageHash);
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
@@ -3037,9 +3037,9 @@ public partial class okx : ccxt.okx
         return ((bool?)((object)(true)));
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "pong"))
+        if ((message == "pong"))
         {
             this.handlePong(client, message);
         }

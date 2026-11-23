@@ -197,7 +197,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1306,7 +1306,7 @@ public partial class onetrading : ccxt.onetrading
         return null;
     }
 
-    public virtual object handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1322,7 +1322,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1382,7 +1382,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public virtual object handlePricePointUpdates(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePricePointUpdates(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1405,7 +1405,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual object handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

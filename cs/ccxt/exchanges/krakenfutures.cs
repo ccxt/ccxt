@@ -817,7 +817,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -856,7 +856,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? open = this.safeString(ticker, "open24h");
@@ -1110,7 +1110,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -1366,7 +1366,7 @@ public partial class krakenfutures : Exchange
             rawType = this.safeString(priorEdit, "type");
         }
         string? type = this.parseOrderType(rawType); // undefined stays undefined
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? cost = null;
         bool? linear = this.safeBool(marketResolved, "linear", false);
         if (((amount != null)) && ((price != null)) && ((marketResolved != null)))
@@ -1438,7 +1438,7 @@ public partial class krakenfutures : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2257,7 +2257,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // LIMIT
@@ -2598,7 +2598,7 @@ public partial class krakenfutures : Exchange
         List<object> orderEvents = this.safeList(order, "orderEvents", new List<object>() {});
         string? errorStatus = this.safeString(order, "status");
         int orderEventsLength = orderEvents.Count;
-        if (((order != null && ((IDictionary<string, object>)order).ContainsKey("orderEvents"))) && ((errorStatus != null)) && ((orderEventsLength == 0)))
+        if (((order != null && order.ContainsKey("orderEvents"))) && ((errorStatus != null)) && ((orderEventsLength == 0)))
         {
             // creteOrders error response
             return this.safeOrder(new Dictionary<string, object>() {
@@ -2666,7 +2666,7 @@ public partial class krakenfutures : Exchange
         string? status = this.parseOrderStatus(statusId);
         bool isClosed = this.inArray(status, new List<object>() {"canceled", "rejected", "closed"});
         string? marketId = this.safeString2(details, "symbol", "tradeable");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString2(details, "timestamp", "receivedTime"));
         Int64? lastUpdateTimestamp = this.parse8601(this.safeString(details, "lastUpdateTime"));
@@ -3011,7 +3011,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(logs, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -3717,7 +3717,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         // cross
         //    {
@@ -3817,7 +3817,7 @@ public partial class krakenfutures : Exchange
             }
         }
         string? marketId = this.safeString2(position, "symbol", "tradeable");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "executionUid") },
@@ -3954,7 +3954,7 @@ public partial class krakenfutures : Exchange
         //
         List<object> marginLevels = this.safeList(info, "marginLevels");
         string? marketId = this.safeString(info, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         List<object> tiers = new List<object>() {};
         if ((marginLevels == null))
         {
@@ -3979,7 +3979,7 @@ public partial class krakenfutures : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer

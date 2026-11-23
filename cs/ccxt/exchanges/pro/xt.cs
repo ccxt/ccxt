@@ -153,7 +153,7 @@ public partial class xt : ccxt.xt
         return ((string?)((object)((client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null))));
     }
 
-    public override object getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
@@ -404,7 +404,7 @@ public partial class xt : ccxt.xt
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -828,7 +828,7 @@ public partial class xt : ccxt.xt
         return await this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters);
     }
 
-    public virtual object handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleFundingRate(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -962,7 +962,7 @@ public partial class xt : ccxt.xt
         client.resolve(new List<object>() {position}, "position::contract");
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1051,7 +1051,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual object handleTickers(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTickers(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1160,7 +1160,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1209,7 +1209,7 @@ public partial class xt : ccxt.xt
             {
                 tradeType = "spot";
             }
-            Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
+            Dictionary<string, object> market = this.safeMarket(marketId, null, null,tradeType);
             string? symbol = this.safeString(market, "symbol", "");
             IList<object> parsed = this.parseOHLCV(data, market);
             this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -1231,7 +1231,7 @@ public partial class xt : ccxt.xt
         return message;
     }
 
-    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1274,7 +1274,7 @@ public partial class xt : ccxt.xt
             {
                 tradeType = "spot";
             }
-            Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
+            Dictionary<string, object> market = this.safeMarket(marketId, null, null,tradeType);
             string? symbol = this.safeString(market, "symbol", "");
             string? eventVar = this.safeString(message, "event");
             ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -1367,7 +1367,7 @@ public partial class xt : ccxt.xt
             {
                 tradeType = "contract";
             }
-            Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
+            Dictionary<string, object> market = this.safeMarket(marketId, null, null,tradeType);
             string? symbol = this.safeString(market, "symbol", "");
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
@@ -1460,7 +1460,7 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, tradeType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,tradeType);
         string? timestamp = this.safeString(trade, "t");
         return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1533,7 +1533,7 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, tradeType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,tradeType);
         Int64? timestamp = this.safeInteger2(order, "ct", "createTime");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1565,7 +1565,7 @@ public partial class xt : ccxt.xt
         }, marketResolved);
     }
 
-    public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // spot
@@ -1624,7 +1624,7 @@ public partial class xt : ccxt.xt
             {
                 tradeType = "contract";
             }
-            Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
+            Dictionary<string, object> market = this.safeMarket(marketId, null, null,tradeType);
             ccxt.Order parsed = this.parseWsOrder(order, market);
             orders.append(ccxt.BaseExchange.FromOrder(parsed));
             client.resolve(orders, ("order::" + tradeType));
@@ -1747,9 +1747,9 @@ public partial class xt : ccxt.xt
         client.resolve(stored, ("trade::" + tradeType));
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "pong"))
+        if ((message == "pong"))
         {
             client.lastPong = this.milliseconds();
         }
@@ -1805,7 +1805,7 @@ public partial class xt : ccxt.xt
         return "ping";
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

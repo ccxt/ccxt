@@ -569,7 +569,7 @@ public partial class independentreserve : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -592,7 +592,7 @@ public partial class independentreserve : Exchange
         {
             defaultMarketId = ((baseId + "/") + quoteId);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(defaultMarketId, market, "/");
+        Dictionary<string, object> marketResolved = this.safeMarket(defaultMarketId,((IDictionary<string, object>)market), "/");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -656,7 +656,7 @@ public partial class independentreserve : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder

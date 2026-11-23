@@ -77,7 +77,7 @@ public partial class extended : ccxt.extended
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -615,7 +615,7 @@ public partial class extended : ccxt.extended
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "symbol", symbolValue },             { "messageHash", messageHash },         }));
     }
 
-    public virtual void handleFundingRate(WebSocketClient client, object message)
+    public virtual void handleFundingRate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -766,7 +766,7 @@ public partial class extended : ccxt.extended
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -882,7 +882,7 @@ public partial class extended : ccxt.extended
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

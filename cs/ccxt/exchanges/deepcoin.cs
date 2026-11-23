@@ -956,7 +956,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -980,7 +980,7 @@ public partial class deepcoin : Exchange
         //
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
@@ -1103,7 +1103,7 @@ public partial class deepcoin : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? side = this.safeString(trade, "side");
         string? execType = this.safeString(trade, "execType");
@@ -1727,7 +1727,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1821,7 +1821,7 @@ public partial class deepcoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         /**
         * @method
@@ -2805,7 +2805,7 @@ public partial class deepcoin : Exchange
         return this.parseOrders(data, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // regular order
@@ -2874,7 +2874,7 @@ public partial class deepcoin : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "cTime");
         string timestampString = this.safeString(order, "cTime", "");
         if (timestampString.Length < 13)
@@ -3049,7 +3049,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3070,7 +3070,7 @@ public partial class deepcoin : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(position, "cTime");
         string? marginMode = this.safeString(position, "mgnMode");
         double? useMargin = this.safeNumber(position, "useMargin");
@@ -3395,7 +3395,7 @@ public partial class deepcoin : Exchange
         //
         Int64? timestamp = this.safeTimestamp(info, "CreateTime");
         string? instrumentID = this.safeString2(info, "instrumentID", "instrumentId");
-        Dictionary<string, object> marketResolved = this.safeMarket(instrumentID, market, null, "swap");
+        Dictionary<string, object> marketResolved = this.safeMarket(instrumentID,((IDictionary<string, object>)market), null, "swap");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -3565,7 +3565,7 @@ public partial class deepcoin : Exchange
             response = await this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, paramsOmitted));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

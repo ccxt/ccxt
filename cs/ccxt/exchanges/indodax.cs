@@ -574,7 +574,7 @@ public partial class indodax : Exchange
         return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buy", "sell");
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -751,7 +751,7 @@ public partial class indodax : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -838,7 +838,7 @@ public partial class indodax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -890,7 +890,7 @@ public partial class indodax : Exchange
         string? remaining = null;
         string? filled = null;
         string? marketId = this.safeString(order, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         if ((marketResolved != null))
         {
             symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
@@ -968,8 +968,8 @@ public partial class indodax : Exchange
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
-            { "id", id },
-        }, (orders != null && orders.ContainsKey("order") ? orders["order"] : null)), market));
+    { "id", id },
+}, (orders != null && orders.ContainsKey("order") ? orders["order"] : null)), market));
         order["info"] = response;
         return ccxt.BaseExchange.ToOrder(order);
     }

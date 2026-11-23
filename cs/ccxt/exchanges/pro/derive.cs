@@ -220,7 +220,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -262,7 +262,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsResolved));
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -469,7 +469,7 @@ public partial class derive : ccxt.derive
         this.cleanUnsubscription(client, topic, ("unwatch" + (topic)), true);
     }
 
-    public virtual object handleUnSubscribe(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleUnSubscribe(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1298,7 +1298,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual void handleAuth(WebSocketClient client, object message)
+    public virtual void handleAuth(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

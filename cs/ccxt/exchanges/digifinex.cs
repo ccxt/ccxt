@@ -1426,7 +1426,7 @@ public partial class digifinex : Exchange
         return this.parseTicker(this.safeDict(response, "data", new Dictionary<string, object>() {}), market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1475,7 +1475,7 @@ public partial class digifinex : Exchange
         }
         string? marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null,marketType);
         Int64? timestamp = this.safeTimestamp(ticker, "date");
         if ((this.safeBool(marketResolved, "swap", false) == true))
         {
@@ -1582,7 +1582,7 @@ public partial class digifinex : Exchange
         {
             marketIdResolved = marketId;
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketIdResolved, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketIdResolved,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         string? side = this.safeString2(trade, "type", "side");
         string? type = null;
@@ -1809,7 +1809,7 @@ public partial class digifinex : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -2127,7 +2127,7 @@ public partial class digifinex : Exchange
         return this.parseOrders(result, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, object side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2204,7 +2204,7 @@ public partial class digifinex : Exchange
             }
             if ((price != null))
             {
-                request["price"] = this.priceToPrecision(symbol, price);
+                request["price"] = this.priceToPrecision(((string)symbol), price);
             }
             request["order_type"] = orderType;
             request["size"] = amount; // swap orders require the amount to be the number of contracts
@@ -2219,7 +2219,7 @@ public partial class digifinex : Exchange
                 suffix = "_market";
             } else
             {
-                request["price"] = this.priceToPrecision(symbol, price);
+                request["price"] = this.priceToPrecision(((string)symbol), price);
             }
             request["type"] = add(side, suffix);
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
@@ -2239,7 +2239,7 @@ public partial class digifinex : Exchange
                 double? cost = this.safeNumber(paramsRequiresPrice, "cost");
                 if ((cost != null))
                 {
-                    quantity = this.costToPrecision(symbol, cost);
+                    quantity = this.costToPrecision(((string)symbol), cost);
                 } else if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if ((price == null))
@@ -2250,15 +2250,15 @@ public partial class digifinex : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         double? costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
-                        quantity = this.costToPrecision(symbol, costRequest);
+                        quantity = this.costToPrecision(((string)symbol), costRequest);
                     }
                 } else
                 {
-                    quantity = this.costToPrecision(symbol, amount);
+                    quantity = this.costToPrecision(((string)symbol), amount);
                 }
             } else
             {
-                quantity = this.amountToPrecision(symbol, amount);
+                quantity = this.amountToPrecision(((string)symbol), amount);
             }
             request["amount"] = quantity;
         }
@@ -2622,7 +2622,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // spot: createOrder
@@ -3157,7 +3157,7 @@ public partial class digifinex : Exchange
         {
             throw new OrderNotFound ((((this.id + " fetchOrder() order ") + idValue) + " not found")) ;
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -3706,7 +3706,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer between spot, margin and OTC
@@ -3916,7 +3916,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4581,7 +4581,7 @@ public partial class digifinex : Exchange
         }
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // swap
@@ -4622,7 +4622,7 @@ public partial class digifinex : Exchange
         //     }
         //
         string? marketId = this.safeString2(position, "instrument_id", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? marginMode = this.safeString(position, "margin_mode");
         if ((marginMode != null))
@@ -4952,7 +4952,7 @@ public partial class digifinex : Exchange
         List<object> tiers = new List<object>() {};
         List<object> brackets = this.safeList(info, "open_max_limits", new List<object>() {});
         string? marketId = this.safeString(info, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         for (int i = 0; i < brackets.Count; i++)
         {
             IDictionary<string, object> tier = this.safeDict(brackets, i);
@@ -5291,7 +5291,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(data, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {

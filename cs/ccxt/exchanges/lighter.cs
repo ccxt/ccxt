@@ -771,17 +771,17 @@ public partial class lighter : Exchange
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
-    public virtual string? signHash(string hash, object privateKey)
+    public virtual string? signHash(string hash, string privateKey)
     {
         this.checkRequiredCredentials();
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         string? r = this.safeString(signature, "r", "");
         string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
+    public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, string privateKey)
     {
         string? hashMessage = this.hashMessage(message);
         string signature = this.signHash(hashMessage, privateKey);
@@ -1055,7 +1055,7 @@ public partial class lighter : Exchange
         }
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? amountStr = null;
-        string? priceStr = this.priceToPrecision(symbol, price);
+        string? priceStr = this.priceToPrecision(((string)symbol), price);
         string? amountScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("size_decimals") ? marketInfo["size_decimals"] : null));
         string? priceScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("price_decimals") ? marketInfo["price_decimals"] : null));
         string? triggerPriceStr = "0"; // default is 0
@@ -1074,7 +1074,7 @@ public partial class lighter : Exchange
                 {
                     orderTypeNum = 3;
                 }
-                triggerPriceStr = this.priceToPrecision(symbol, stopLossPrice);
+                triggerPriceStr = this.priceToPrecision(((string)symbol), stopLossPrice);
             } else if ((takeProfitPrice != null))
             {
                 if (isMarketOrder)
@@ -1084,11 +1084,11 @@ public partial class lighter : Exchange
                 {
                     orderTypeNum = 5;
                 }
-                triggerPriceStr = this.priceToPrecision(symbol, takeProfitPrice);
+                triggerPriceStr = this.priceToPrecision(((string)symbol), takeProfitPrice);
             }
         } else
         {
-            amountStr = this.amountToPrecision(symbol, amount);
+            amountStr = this.amountToPrecision(((string)symbol), amount);
         }
         request["order_expiry"] = orderExpiry;
         request["order_type"] = orderTypeNum;
@@ -1753,7 +1753,7 @@ public partial class lighter : Exchange
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -1816,7 +1816,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "market_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? last = this.safeString(ticker, "last_trade_price");
         string? high = this.safeString(ticker, "daily_price_high");
@@ -1949,7 +1949,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2360,7 +2360,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2382,7 +2382,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "market_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? sign = this.safeInteger(position, "sign");
         string? side = null;
         if ((sign != null))
@@ -2502,7 +2502,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, paramsAccountIndex));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -2711,7 +2711,7 @@ public partial class lighter : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2751,7 +2751,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "market_index");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(order, "timestamp");
         bool? isAsk = this.safeBool(order, "is_ask");
         Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
@@ -3051,7 +3051,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit, paramsApiKeyIndex));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3557,7 +3557,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "market_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? accountIndex = this.safeString(trade, "account_index");
         string? askAccountId = this.safeString(trade, "ask_account_id");

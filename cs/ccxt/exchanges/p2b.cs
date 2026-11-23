@@ -540,7 +540,7 @@ public partial class p2b : Exchange
         return this.parseTicker(result, market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // parseTickers
@@ -845,7 +845,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    [
@@ -1373,7 +1373,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder
@@ -1414,7 +1414,7 @@ public partial class p2b : Exchange
         //
         Int64? timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "id", "orderId") },

@@ -480,7 +480,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -557,7 +557,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -963,7 +963,7 @@ public partial class nado : ccxt.nado
         //         "id": 100
         //     }
         //
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {     { "place_order", placeOrder }, }, response), market);
     }
 
     /**
@@ -1021,7 +1021,7 @@ public partial class nado : ccxt.nado
         //
         IDictionary<string, object> cancelAndPlace = this.safeDict(request, "cancel_and_place", new Dictionary<string, object>() {});
         IDictionary<string, object> placeOrder = this.safeDict(cancelAndPlace, "place_order", new Dictionary<string, object>() {});
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {     { "place_order", placeOrder }, }, response), market);
     }
 
     /**
@@ -1101,8 +1101,8 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
             result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
-                { "status", "canceled" },
-            }, cancelledOrders[i]), market)));
+    { "status", "canceled" },
+}, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1150,8 +1150,8 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
             result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
-                { "status", "canceled" },
-            }, cancelledOrders[i]), market)));
+    { "status", "canceled" },
+}, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1443,7 +1443,7 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.parseWsTimestamp(trade, "timestamp");
         bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         string? side = null;
@@ -1619,7 +1619,7 @@ public partial class nado : ccxt.nado
         //     }
         //
         string? marketId = this.safeString(order, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.parseWsTimestamp(order, "timestamp");
         string? id = this.safeString(order, "digest");
         string? amountString = this.safeString(order, "amount");
@@ -2133,7 +2133,7 @@ public partial class nado : ccxt.nado
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handlePong(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

@@ -162,7 +162,7 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -284,7 +284,7 @@ public partial class p2b : ccxt.p2b
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -335,7 +335,7 @@ public partial class p2b : ccxt.p2b
         return message;
     }
 
-    public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrade(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -378,7 +378,7 @@ public partial class p2b : ccxt.p2b
         return message;
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // state
@@ -563,7 +563,7 @@ public partial class p2b : ccxt.p2b
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

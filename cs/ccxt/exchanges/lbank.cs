@@ -835,7 +835,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -876,7 +876,7 @@ public partial class lbank : Exchange
         string? marketId = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         IDictionary<string, object> tickerData = this.safeDict(ticker, "ticker", new Dictionary<string, object>() {});
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         IDictionary<string, object> data = (this.safeBool(marketResolved, "contract", false) == true) ? ticker : tickerData;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1319,7 +1319,7 @@ public partial class lbank : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //   [
@@ -1720,7 +1720,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToBalances(balanceResult);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         //
         //      {
@@ -1780,7 +1780,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
+            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
@@ -1951,7 +1951,7 @@ public partial class lbank : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrderSupplement (private)
@@ -2045,7 +2045,7 @@ public partial class lbank : Exchange
         Int64? timestamp = this.safeInteger2(order, "time", "create_time");
         string? rawStatus = this.safeString(order, "status");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? timeInForce = null;
         bool postOnly = false;
         string type = "limit";
@@ -3293,7 +3293,7 @@ public partial class lbank : Exchange
         return result;
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         // * only used for fetchPrivateDepositWithdrawFees

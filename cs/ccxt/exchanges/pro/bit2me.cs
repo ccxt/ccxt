@@ -228,7 +228,7 @@ public partial class bit2me : ccxt.bit2me
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
@@ -369,7 +369,7 @@ public partial class bit2me : ccxt.bit2me
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolvedMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(order, "feeAmount");
@@ -826,7 +826,7 @@ public partial class bit2me : ccxt.bit2me
         return await (future as Exchange.Future);
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, object message)
+    public virtual void handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "event": "authenticate" }
@@ -850,7 +850,7 @@ public partial class bit2me : ccxt.bit2me
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { "event": "subscribe", "symbol": "BTC/USDC", "subscription": { "name": "order-book" }, "result": "subscribed" }

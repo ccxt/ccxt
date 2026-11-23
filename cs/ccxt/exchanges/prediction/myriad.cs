@@ -683,7 +683,7 @@ public partial class myriad : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> position = this.parsePredictionPosition(data[i]);
+            Dictionary<string, object> position = this.parsePredictionPosition(((IDictionary<string, object>)data[i]));
             if (((outcomes == null)) || this.inArray((position != null && position.ContainsKey("outcome") ? position["outcome"] : null), outcomes))
             {
                 result.Add(position);
@@ -701,7 +701,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] not used by myriad
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketSlug = this.safeString(position, "marketSlug", "");
         string? outcomeTitle = this.safeString(position, "outcomeTitle", "");
@@ -1513,7 +1513,7 @@ public partial class myriad : PredictionExchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> inner = this.safeDict(order, "order", new Dictionary<string, object>() {});
         string? orderHash = this.safeString2(order, "orderHash", "hash");
@@ -1543,7 +1543,7 @@ public partial class myriad : PredictionExchange
         {
             outcome = this.safeString(market, "outcome");
         }
-        object outcomeObj = market;
+        IDictionary<string, object> outcomeObj = market;
         if ((outcome == null))
         {
             // the REST order has no top-level networkId; order book lives on the default network
@@ -2702,7 +2702,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3168,7 +3168,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3248,7 +3248,7 @@ public partial class myriad : PredictionExchange
             for (int j = 0; j < (grouped?.Count ?? 0); j++)
             {
                 object outcomeObj = grouped[j];
-                Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
+                Dictionary<string, object> ticker = this.parsePredictionTicker(((IDictionary<string, object>)response),((IDictionary<string, object>)outcomeObj));
                 string? symbolKey = this.safeString(ticker, "outcome");
                 if ((symbolKey != null))
                 {
@@ -3338,7 +3338,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeTimestamp(trade, "timestamp");
         string? amountStr = this.safeString(trade, "shares");
@@ -3654,9 +3654,9 @@ public partial class myriad : PredictionExchange
         return await this.watch<T>(url, messageHash, subscribeMsg, channel);
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        List<object> lines = ((string)message).Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
+        List<object> lines = message.Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
         int linesLength = lines.Count;
         for (int i = 0; i < linesLength; i++)
         {
@@ -4037,7 +4037,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes == null))

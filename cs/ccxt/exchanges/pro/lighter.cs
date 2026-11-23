@@ -408,7 +408,7 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1423,7 +1423,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(rawMessage, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, rawMessage), market);
     }
 
     /**
@@ -1692,7 +1692,7 @@ public partial class lighter : ccxt.lighter
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1703,7 +1703,7 @@ public partial class lighter : ccxt.lighter
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object message)
+    public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

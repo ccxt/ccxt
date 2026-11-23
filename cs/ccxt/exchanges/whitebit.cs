@@ -1665,7 +1665,7 @@ public partial class whitebit : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //  FetchTicker (v1)
@@ -1752,7 +1752,7 @@ public partial class whitebit : Exchange
         //     }
         //
         string? marketId = this.safeString2(ticker, "tradingPairs", "ticker_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         // last price is provided as "last" or "last_price"
         string? last = this.safeStringN(ticker, new List<object>() {"last", "last_price", "lastPrice"});
         // if "close" is provided, use it, otherwise use <last>
@@ -2226,7 +2226,7 @@ public partial class whitebit : Exchange
         //          "feeAsset": "USDT"
         //      }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp2(trade, "time", "trade_timestamp");
         string? orderId = this.safeString2(trade, "dealOrderId", "orderId");
         string? cost = this.safeString(trade, "deal");
@@ -2352,7 +2352,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -3097,7 +3097,7 @@ public partial class whitebit : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder
@@ -3139,7 +3139,7 @@ public partial class whitebit : Exchange
         //      }
         //
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeString(order, "side");
         string? filled = this.safeString(order, "dealStock");
@@ -3664,10 +3664,10 @@ public partial class whitebit : Exchange
         //
         //    []
         //
-        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(new Dictionary<string, object>() {}, currency), new Dictionary<string, object>() {             { "info", response },         }));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //    []
@@ -4041,7 +4041,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4314,7 +4314,7 @@ public partial class whitebit : Exchange
         };
     }
 
-    public virtual object parseFundingHistories(IList<object> contracts, IDictionary<string, object>? market = null, Int64? since = null, Int64? limit = null)
+    public virtual IList<object> parseFundingHistories(IList<object> contracts, IDictionary<string, object>? market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (contracts?.Count ?? 0); i++)
@@ -4323,7 +4323,7 @@ public partial class whitebit : Exchange
             result.Add(this.parseFundingHistory(contract, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
-        return this.filterBySinceLimit(sorted, since, limit);
+        return ((IList<object>)((object)(this.filterBySinceLimit(sorted, since, limit))));
     }
 
     /**
@@ -4422,15 +4422,15 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCode));
-        Dictionary<string, object> toCurrency = this.currency(((string)toCode));
+        Dictionary<string, object> fromCurrency = this.currency(fromCode);
+        Dictionary<string, object> toCurrency = this.currency(toCode);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "from", fromCode },
             { "to", toCode },
@@ -4464,15 +4464,15 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCode));
-        Dictionary<string, object> toCurrency = this.currency(((string)toCode));
+        Dictionary<string, object> fromCurrency = this.currency(fromCode);
+        Dictionary<string, object> toCurrency = this.currency(toCode);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "quoteId", id },
         };
@@ -4553,7 +4553,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(IDictionary<string, object> conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -4765,7 +4765,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToPosition(this.parsePosition(data, market));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // fetchPosition, fetchPositions
@@ -4916,7 +4916,7 @@ public partial class whitebit : Exchange
     public override Dictionary<string, object> parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(info, "fundingTime");
         return new Dictionary<string, object>() {
             { "info", info },

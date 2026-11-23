@@ -374,7 +374,7 @@ public partial class coinone : ccxt.coinone
             symbol = ((bs + "/") + quote);
         }
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(symbol,((IDictionary<string, object>)market));
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if ((isSellerMaker != null))
@@ -464,7 +464,7 @@ public partial class coinone : ccxt.coinone
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

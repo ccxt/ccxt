@@ -602,7 +602,7 @@ public partial class phemex : ccxt.phemex
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -884,7 +884,7 @@ public partial class phemex : ccxt.phemex
         return await this.unSubscribePublic((name + ".unsubscribe"), ((("kline:" + (timeframeVar)) + ":") + symbolValue), marketParams, subscription, parameters);
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object message)
+    public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
@@ -1272,7 +1272,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, IDictionary<string, object> message)
     {
         // spot update
         // {

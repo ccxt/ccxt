@@ -807,19 +807,19 @@ public partial class coinsph : Exchange
         });
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
         bool hasSymbolParam = ((this.safeString(parameters, "symbol") != null));
         bool hasSymbolsParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbols")));
         Int64? limit = this.safeInteger(parameters, "limit");
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !hasSymbolParam)
+        if ((config.ContainsKey("noSymbol")) && !hasSymbolParam)
         {
-            return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !hasSymbolParam && !hasSymbolsParam)
+            return config["noSymbol"];
+        } else if ((config.ContainsKey("noSymbolAndNoSymbols")) && !hasSymbolParam && !hasSymbolsParam)
         {
-            return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && hasSymbolsParam)
+            return config["noSymbolAndNoSymbols"];
+        } else if ((config.ContainsKey("byNumberOfSymbols")) && hasSymbolsParam)
         {
             List<object> symbols = this.safeList(parameters, "symbols", new List<object>() {});
             int symbolsAmount = symbols.Count;
@@ -833,7 +833,7 @@ public partial class coinsph : Exchange
                     return this.safeInteger(entry, 1);
                 }
             }
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((limit != null)))
+        } else if ((config.ContainsKey("byLimit")) && ((limit != null)))
         {
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
@@ -1113,7 +1113,7 @@ public partial class coinsph : Exchange
         return this.parseTicker(((IDictionary<string, object>)ticker), market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
@@ -1154,7 +1154,7 @@ public partial class coinsph : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(ticker, "closeTime");
         string? bid = this.safeString(ticker, "bidPrice");
         string? ask = this.safeString(ticker, "askPrice");
@@ -1310,7 +1310,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
@@ -1469,7 +1469,7 @@ public partial class coinsph : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString2(trade, "id", "tradeId");
         string? orderId = this.safeString(trade, "orderId");
@@ -1884,7 +1884,7 @@ public partial class coinsph : Exchange
         return this.parseOrders(response, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder POST /openapi/v1/order
@@ -1956,7 +1956,7 @@ public partial class coinsph : Exchange
         //
         string? id = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger2(order, "time", "transactTime");
         List<object> trades = this.safeList(order, "fills");
         string? triggerPrice = this.safeString(order, "stopPrice");
@@ -2144,7 +2144,7 @@ public partial class coinsph : Exchange
         IList<object> fees = response;
         for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
+            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
@@ -2154,7 +2154,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         //
         //     {

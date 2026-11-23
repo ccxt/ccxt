@@ -1326,7 +1326,7 @@ public partial class gemini : Exchange
         return await this.FetchTickerV1AndV2(symbol, parameters);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTickers
@@ -1368,7 +1368,7 @@ public partial class gemini : Exchange
         Int64? timestamp = this.safeInteger(volume, "timestamp");
         string? symbol = null;
         string? marketId = this.safeStringLower(ticker, "pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? baseId = null;
         string? quoteId = null;
         string? bs = null;
@@ -1683,7 +1683,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder (private)

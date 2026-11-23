@@ -219,7 +219,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public override object getCacheIndex(object orderbook, IList<object> deltas)
+    public override Int64 getCacheIndex(object orderbook, IList<object> deltas)
     {
         // we will consider it a fail
         IDictionary<string, object> firstElement = this.safeDict(deltas, 0);
@@ -326,7 +326,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? sideRaw = this.safeInteger(trade, "type");
         string side = "sell";
@@ -663,7 +663,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -820,7 +820,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         string? triggerPrice = this.safeString(order, "stop_price");
         Int64? timestamp = this.safeTimestamp(order, "datetime");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol", "");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -962,7 +962,7 @@ public partial class bitstamp : ccxt.bitstamp
         return newCache;
     }
 
-    public virtual void handleSubject(WebSocketClient client, object message)
+    public virtual void handleSubject(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

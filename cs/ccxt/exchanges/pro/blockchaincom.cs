@@ -639,7 +639,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? datetime = this.safeString(order, "transactTime");
         string? status = this.safeString(order, "ordStatus");
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? tradeId = this.safeString(order, "tradeId");
         List<object> trades = new List<object>() {};
         if (tradeId != "0")

@@ -321,14 +321,14 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    public virtual List<object> ibkrMarketDataRequest(object marketId, object parameters = null)
+    public virtual List<object> ibkrMarketDataRequest(string? marketId, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "watchTickers", new Dictionary<string, object>() {});
         List<object> defaultFields = this.safeList(options, "fields", new List<object>() {});
         List<object> fields = this.safeList(parameters, "fields", defaultFields);
         IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "fields"));
-        string request = ((("smd+" + (marketId)) + "+") + this.json(new Dictionary<string, object>() {
+        string request = ((("smd+" + marketId) + "+") + this.json(new Dictionary<string, object>() {
     { "fields", fields },
 }));
         return new List<object>() {request, query};
@@ -344,7 +344,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string[]} [params.fields] the market data fields to stream, default options.watchTicker.fields
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.ibkrWatchMarketData("ticker", symbols, parameters);
@@ -367,7 +367,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.ibkrWatchMarketData("bidask", symbols, parameters);
@@ -413,7 +413,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         for (int i = 0; i < (marketSymbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(marketSymbols[i]);
-            var requestqueryVariable = this.ibkrMarketDataRequest((market.ContainsKey("id") ? market["id"] : null), parameters);
+            var requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
             var request = requestqueryVariable[0];
             var query = requestqueryVariable[1];
             Dictionary<string, object> subscription = this.extend(new Dictionary<string, object>() {
@@ -491,7 +491,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         return true;
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -529,7 +529,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), ("ticker::" + symbol));
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
-        bool hasBidAsk = ((message != null && ((IDictionary<string, object>)message).ContainsKey("84"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("85"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("86"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("88")));
+        bool hasBidAsk = ((message != null && message.ContainsKey("84"))) || ((message != null && message.ContainsKey("85"))) || ((message != null && message.ContainsKey("86"))) || ((message != null && message.ContainsKey("88")));
         bool hasQuote = ((this.safeString(ccxt.BaseExchange.FromTicker(ticker), "bid") != null)) || ((this.safeString(ccxt.BaseExchange.FromTicker(ticker), "ask") != null));
         if (hasBidAsk && hasQuote)
         {
@@ -579,7 +579,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         var future = client.reusableFuture(messageHash);
         // the last price stream, it builds the current candles
-        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest((market.ContainsKey("id") ? market["id"] : null), parameters);
+        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
         var marketDataRequest = marketDataRequestqueryVariable[0];
         var query = marketDataRequestqueryVariable[1];
         await this.ibkrSubscribe(client, messageHash, marketDataRequest, new Dictionary<string, object>() {
@@ -659,7 +659,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         return true;
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -954,7 +954,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         return await this.ibkrUnsubscribe(client, new List<object>() {("orderbook::" + unifiedSymbol)}, ("ubd+" + (accountId)), subscription);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // the price ladder is a list of rows, the first message after subscribing is an empty placeholder ladder,
@@ -1191,7 +1191,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         });
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1243,7 +1243,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 merged = this.extend(previous, rawOrder);
                 rawOrders[(string)orderId] = merged;
             }
-            ccxt.Order parsed = this.parseOrder(merged);
+            ccxt.Order parsed = this.parseOrder(this.extend(new Dictionary<string, object>() {}, merged));
             orders.append(ccxt.BaseExchange.FromOrder(parsed));
             string? orderSymbol = parsed.symbol;
             if ((orderSymbol != null))
@@ -1335,7 +1335,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         });
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1493,7 +1493,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         return await this.ibkrUnsubscribe(client, new List<object>() {"balance", ("sld::" + (accountId))}, ((("uld+" + (accountId)) + "+") + emptyArgs), query);
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1541,7 +1541,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         client.resolve(this.balance, "balance");
     }
 
-    public virtual void handleSessionStatus(WebSocketClient client, object message)
+    public virtual void handleSessionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
@@ -1597,7 +1597,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         return "tic";
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
         // plain text frames carry no data, but like every message they prove the connection is alive
         client.lastPong = this.milliseconds();

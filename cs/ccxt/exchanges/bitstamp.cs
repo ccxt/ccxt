@@ -1479,7 +1479,7 @@ public partial class bitstamp : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -1887,7 +1887,7 @@ public partial class bitstamp : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2099,7 +2099,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(tradingFee, market));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(fee, "market");
         IDictionary<string, object> fees = this.safeDict(fee, "fees", new Dictionary<string, object>() {});
@@ -2121,7 +2121,7 @@ public partial class bitstamp : Exchange
         IList<object> feesList = fees;
         for (int i = 0; i < (feesList?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(feesList[i]);
+            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)feesList[i]));
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
@@ -2252,7 +2252,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(responseByCurrencyId, codes));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
@@ -2960,7 +2960,7 @@ public partial class bitstamp : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //   from fetch order:
@@ -3475,7 +3475,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //    { status: 'ok' }

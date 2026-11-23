@@ -682,7 +682,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "id");
         string? symbol = this.safeSymbol(marketId, market);
@@ -783,7 +783,7 @@ public partial class cex : Exchange
         //
         string? dateStr = this.safeString(trade, "dateISO");
         Int64? timestamp = this.parse8601(dateStr);
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -929,7 +929,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
@@ -978,7 +978,7 @@ public partial class cex : Exchange
             {
                 market = this.safeMarket(key);
             }
-            Dictionary<string, object> parsed = this.parseTradingFee((response != null && key != null && response.ContainsKey(key) ? response[key] : null), market);
+            Dictionary<string, object> parsed = this.parseTradingFee(((IDictionary<string, object>)(response != null && key != null && response.ContainsKey(key) ? response[key] : null)), market);
             string? parsedSymbol = this.safeString(parsed, "symbol");
             if ((parsedSymbol != null))
             {
@@ -998,7 +998,7 @@ public partial class cex : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -1044,7 +1044,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(arrays, parameters));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         return new Dictionary<string, object>() {
             { "id", null },
@@ -1331,7 +1331,7 @@ public partial class cex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //                "orderId": "1313003",
@@ -1372,7 +1372,7 @@ public partial class cex : Exchange
         {
             marketId = ((currency1 + "-") + currency2);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
@@ -1916,7 +1916,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transferBetweenSubAccounts

@@ -748,7 +748,7 @@ public partial class opinion : PredictionExchange
             { "price", priceResponse },
             { "book", bookResponse },
         };
-        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(response, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(response, outcomeObj));
     }
 
     /**
@@ -760,7 +760,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -776,7 +776,7 @@ public partial class opinion : PredictionExchange
         //         }
         //     }
         //
-        object marketAny = market;
+        IDictionary<string, object> marketAny = market;
         IDictionary<string, object> priceResponse = this.safeDict(ticker, "price", new Dictionary<string, object>() {});
         IDictionary<string, object> priceResult = this.safeDict(priceResponse, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> bookResponse = this.safeDict(ticker, "book", new Dictionary<string, object>() {});
@@ -858,7 +858,7 @@ public partial class opinion : PredictionExchange
                 { "price", priceResponse },
                 { "book", bookResponse },
             };
-            Dictionary<string, object> ticker = this.parsePredictionTicker(response, ((object)outcomeObj));
+            Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
             string? symbolKey = this.safeString(ticker, "outcome");
             if ((symbolKey != null))
             {
@@ -974,7 +974,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         // Unused: fetchOHLCV maps { p, t } points directly.
         //
@@ -1258,7 +1258,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> response = await this.opinionPrivatePostOrder(orderBody);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> orderData = this.safeDict(result, "orderData", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(orderData, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(orderData, outcomeObj));
     }
 
     /**
@@ -1316,7 +1316,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1340,7 +1340,7 @@ public partial class opinion : PredictionExchange
         //     }
         //
         string? id = this.safeString(order, "orderId");
-        object marketAny = market;
+        IDictionary<string, object> marketAny = market;
         string? statusEnum = this.safeString(order, "statusEnum");
         string? status = this.parseOrderStatus(statusEnum);
         string? sideEnum = this.safeStringLower(order, "sideEnum");
@@ -1576,7 +1576,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         string? tokenId = this.safeString(trade, "tokenId");
         IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, market);
@@ -1727,7 +1727,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? tokenId = this.safeString(position, "tokenId");
         IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, market);
@@ -1765,9 +1765,9 @@ public partial class opinion : PredictionExchange
         };
     }
 
-    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual string? signApiKeyAuth(string walletAddress, string? action, string? timestamp)

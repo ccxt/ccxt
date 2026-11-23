@@ -950,7 +950,7 @@ public partial class blofin : Exchange
         return this.parseOrderBook(first, symbol, timestamp);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // response similar for REST & WS
@@ -973,7 +973,7 @@ public partial class blofin : Exchange
         //
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
@@ -1129,7 +1129,7 @@ public partial class blofin : Exchange
         //
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "price", "fillPrice");
@@ -1242,7 +1242,7 @@ public partial class blofin : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1632,7 +1632,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceByType(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1740,7 +1740,7 @@ public partial class blofin : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // response similar for REST & WS
@@ -1802,7 +1802,7 @@ public partial class blofin : Exchange
             type = "trigger";
         }
         string? marketId = this.safeString(order, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeSymbol(marketId, marketResolved, "-");
         string? filled = this.safeString(order, "filledSize");
         string? price = this.safeStringN(order, new List<object>() {"px", "price", "orderPrice"});
@@ -2721,7 +2721,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(dataByCurrencyId, codes));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
@@ -2811,20 +2811,22 @@ public partial class blofin : Exchange
      * @param {string} id withdrawal id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientId = this.safeString(parameters, "clientId");
-        if (((id == null)) && ((clientId == null)))
+        // an undefined or empty id looks the withdrawal up by params['clientId']
+        bool hasId = ((id != null)) && ((id != ""));
+        if (!hasId && ((clientId == null)))
         {
             throw new ArgumentsRequired ((this.id + " fetchWithdrawal() requires an id argument or a params[\"clientId\"]")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((id != null))
+        if (hasId)
         {
             request["withdrawId"] = id;
         }
@@ -2843,7 +2845,7 @@ public partial class blofin : Exchange
         {
             IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             bool matches = false;
-            if ((id != null))
+            if (hasId)
             {
                 matches = ((this.safeString(entry, "withdrawId") == id));
             } else
@@ -2855,7 +2857,7 @@ public partial class blofin : Exchange
                 return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
             }
         }
-        string? reference = ((id != null)) ? id : clientId;
+        string? reference = hasId ? id : clientId;
         throw new ExchangeError (((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
     }
 
@@ -3303,7 +3305,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         string? id = this.safeString(transfer, "transferId");
         return new Dictionary<string, object>() {
@@ -3450,7 +3452,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // response similar for REST & WS
@@ -3502,7 +3504,7 @@ public partial class blofin : Exchange
         //            },
         //
         string? marketId = this.safeString(position, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? pos = this.safeString(position, "positions");
         string? contractsAbs = Precise.stringAbs(pos);
@@ -3926,7 +3928,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(IDictionary<string, object> marginMode, IDictionary<string, object> market = null)
     {
         return new Dictionary<string, object>() {
             { "info", marginMode },
@@ -4081,7 +4083,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionsADLRank

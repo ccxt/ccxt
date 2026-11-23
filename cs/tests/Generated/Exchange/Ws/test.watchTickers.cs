@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
             Int64 startTime = exchange.milliseconds();
             try
             {
-                response = detypeForComparison(await exchange.WatchTickers(argSymbols, argParams));
+                response = detypeForComparison(await exchange.WatchTickers(argSymbols));
             } catch(Exception e)
             {
                 // for some exchanges, specifically watchTickers method not subscribe

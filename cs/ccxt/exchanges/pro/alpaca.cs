@@ -113,7 +113,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -592,7 +592,7 @@ public partial class alpaca : ccxt.alpaca
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object trade = this.parseMyTrade(rawOrder);
+        Dictionary<string, object> trade = this.parseMyTrade(rawOrder);
         if ((trade == null))
         {
             return;
@@ -605,7 +605,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -649,7 +649,7 @@ public partial class alpaca : ccxt.alpaca
         string? type = this.safeString(trade, "type");
         if ((type == null))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         if (type.IndexOf("limit", StringComparison.Ordinal) >= 0)
         {
@@ -772,7 +772,7 @@ public partial class alpaca : ccxt.alpaca
         }
     }
 
-    public virtual void handleTradingMessage(WebSocketClient client, object message)
+    public virtual void handleTradingMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? stream = this.safeString(message, "stream");
         Dictionary<string, object> methods = new Dictionary<string, object>() {

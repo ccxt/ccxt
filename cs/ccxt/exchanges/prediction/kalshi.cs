@@ -992,7 +992,7 @@ public partial class kalshi : PredictionExchange
         //     }
         //
         IDictionary<string, object> raw = this.safeDict(response, "market", response);
-        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, outcomeObj));
     }
 
     /**
@@ -1068,7 +1068,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1281,7 +1281,7 @@ public partial class kalshi : PredictionExchange
                 List<object> grouped = (marketTicker != null && outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
                 for (int j = 0; j < (grouped?.Count ?? 0); j++)
                 {
-                    Dictionary<string, object> ticker = this.parsePredictionTicker(raw, grouped[j]);
+                    Dictionary<string, object> ticker = this.parsePredictionTicker(((IDictionary<string, object>)raw),((IDictionary<string, object>)grouped[j]));
                     string? symbolKey = this.safeString(ticker, "outcome");
                     if ((symbolKey != null))
                     {
@@ -1503,7 +1503,7 @@ public partial class kalshi : PredictionExchange
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         this.options["ohlcvCandleDurationSeconds"] = tf;
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, ((object)outcomeObj),timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, outcomeObj,timeframeVar, since, limit));
     }
 
     /**
@@ -1515,7 +1515,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] the outcome object the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1609,7 +1609,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(trade, "trade_id");
         Int64? ts = this.parse8601(this.safeString(trade, "created_time"));
@@ -1712,7 +1712,7 @@ public partial class kalshi : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            object trade = trades[i];
+            Dictionary<string, object> trade = ((Dictionary<string, object>)trades[i]);
             if (((wantedOutcome == null)) || ((this.safeString(trade, "outcome") == wantedOutcome)))
             {
                 result.Add(trade);
@@ -1730,7 +1730,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a unified trade structure
      */
-    public virtual object parseMyTrade(object fill, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(object fill, IDictionary<string, object>? market = null)
     {
         string? id = this.safeString2(fill, "fill_id", "trade_id");
         string? orderId = this.safeString(fill, "order_id");
@@ -1940,7 +1940,7 @@ public partial class kalshi : PredictionExchange
         List<object> parsed = new List<object>() {};
         for (int i = 0; i < rawSettlementsLength; i++)
         {
-            parsed.Add(this.parseSettlement((rawSettlements != null && i < rawSettlements.Count ? rawSettlements[i] : null)));
+            parsed.Add(this.parseSettlement(((IDictionary<string, object>)(rawSettlements != null && i < rawSettlements.Count ? rawSettlements[i] : null))));
         }
         IDictionary<string, object> wantedOutcomeObj = ((outcome != null)) ? this.outcome(outcome) : new Dictionary<string, object>() {};
         string? wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
@@ -1965,7 +1965,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object>? market = null)
     {
         string? ticker = this.safeString(settlement, "ticker");
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
@@ -2050,7 +2050,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? ticker = this.safeString(position, "ticker");
         IDictionary<string, object> outcomeObj = this.safeOutcome(ticker, market);
@@ -2229,7 +2229,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(order, "order_id");
         string? ticker = this.safeString(order, "ticker");
@@ -2559,7 +2559,7 @@ public partial class kalshi : PredictionExchange
                 }, parameters));
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                Dictionary<string, object> parsed = this.parsePredictionOrder(restingOrder);
+                Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)restingOrder));
                 parsed["status"] = "canceled";
                 canceledOrders.Add(parsed);
             }

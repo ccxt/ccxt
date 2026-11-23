@@ -675,7 +675,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
@@ -1137,7 +1137,7 @@ public partial class pacifica : ccxt.pacifica
         string? price = this.safeString(trade, "p");
         string? amount = this.safeString(trade, "a");
         string? marketId = this.safeString(trade, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "h");
         string? fee = this.safeString(trade, "f");
@@ -1529,7 +1529,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> wsHeadersFinal = this.safeDict(wsHeaders, "headers", new Dictionary<string, object>() {});
         try
         {
-            this.handleErrors(0L,error, "",postType, wsHeadersFinal,this.json(data), message, new Dictionary<string, object>() {}, "");
+            this.handleErrors(0L,error, "",postType, wsHeadersFinal,this.json(data), message, new Dictionary<string, object>() {},((string)null));
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -1735,7 +1735,7 @@ public partial class pacifica : ccxt.pacifica
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //   {

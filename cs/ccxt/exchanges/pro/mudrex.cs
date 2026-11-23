@@ -93,7 +93,7 @@ public partial class mudrex : ccxt.mudrex
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -237,7 +237,7 @@ public partial class mudrex : ccxt.mudrex
         {
             return;
         }
-        Dictionary<string, object> market = this.safeMarket(s.ToUpper());
+        Dictionary<string, object> market = this.safeMarket(((string)s.ToUpper()));
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> parsed = new List<object> {this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -267,7 +267,7 @@ public partial class mudrex : ccxt.mudrex
             {
                 continue;
             }
-            Dictionary<string, object> market = this.safeMarket(s.ToUpper());
+            Dictionary<string, object> market = this.safeMarket(((string)s.ToUpper()));
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Int64 timestamp = this.milliseconds();
             double? last = this.safeNumber(t, "p");

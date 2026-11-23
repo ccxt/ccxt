@@ -169,7 +169,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
@@ -1040,7 +1040,7 @@ public partial class grvt : ccxt.grvt
         //        "prev_sequence_number": "16"
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(message, "feed");
+        IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1055,7 +1055,7 @@ public partial class grvt : ccxt.grvt
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         // same as REST api
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> response)

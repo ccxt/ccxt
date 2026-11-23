@@ -177,7 +177,7 @@ public partial class toobit : ccxt.toobit
         }
     }
 
-    public virtual void handleIncomingPong(WebSocketClient client, object pongTimestamp)
+    public virtual void handleIncomingPong(WebSocketClient client, Int64? pongTimestamp)
     {
         client.lastPong = pongTimestamp;
     }
@@ -484,7 +484,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1109,7 +1109,7 @@ public partial class toobit : ccxt.toobit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object trade = this.parseMyTrade(message);
+        Dictionary<string, object> trade = this.parseMyTrade(message);
         myTrades.append(trade);
         string messageHash = ("myTrades:" + this.safeString(trade, "symbol", ""));
         client.resolve(myTrades, messageHash);
@@ -1117,7 +1117,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual object parseMyTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(object trade, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(trade, "s");
         string? ts = this.safeString(trade, "t");

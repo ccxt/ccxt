@@ -328,7 +328,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
@@ -390,7 +390,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -694,12 +694,12 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         parameters["callerMethodName"] = "watchOrders";
-        List<object> symbolsArray = new List<object>() {};
         if ((symbol != null))
         {
-            symbolsArray.Add(symbol);
+            await this.loadMarkets();
+            return await this.WatchOrdersForSymbols(new List<object> {this.symbol(symbol)}, since, limit, parameters);
         }
-        return await this.WatchOrdersForSymbols(symbolsArray, since, limit, parameters);
+        return await this.WatchOrdersForSymbols(new List<object>() {}, since, limit, parameters);
     }
 
     /**
@@ -814,7 +814,7 @@ public partial class blofin : ccxt.blofin
 
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -1067,7 +1067,7 @@ public partial class blofin : ccxt.blofin
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 
-    public virtual void handleUnsubscription(WebSocketClient client, object message)
+    public virtual void handleUnsubscription(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1113,9 +1113,9 @@ public partial class blofin : ccxt.blofin
         };
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "pong"))
+        if ((message == "pong"))
         {
             client.lastPong = this.milliseconds();
         }

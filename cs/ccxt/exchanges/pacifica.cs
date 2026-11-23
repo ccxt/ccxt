@@ -1405,7 +1405,7 @@ public partial class pacifica : Exchange
         //       }
         //
         string? marketId = this.safeString(info, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         double? funding = this.safeNumber(info, "funding");
         double? markPx = this.safeNumber(info, "mark");
@@ -1522,7 +1522,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1705,7 +1705,7 @@ public partial class pacifica : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "history_id");
         string? side = this.safeString(trade, "side");
@@ -1827,7 +1827,7 @@ public partial class pacifica : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
-    public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2376,7 +2376,7 @@ public partial class pacifica : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "info", response },             { "symbol", symbol },         });
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount, object price, IDictionary<string, object> market, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount, double? price, IDictionary<string, object> market, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((side == null))
@@ -2393,8 +2393,8 @@ public partial class pacifica : Exchange
         }
         string operationType = "edit_order";
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        string? priceNormalized = this.priceToPrecision(symbol, price);
-        string? amountNormalized = this.amountToPrecision(symbol, amount);
+        string? priceNormalized = this.priceToPrecision(((string)symbol), price);
+        string? amountNormalized = this.amountToPrecision(((string)symbol), amount);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id") },
             { "price", priceNormalized },
@@ -2546,7 +2546,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2563,7 +2563,7 @@ public partial class pacifica : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -2943,7 +2943,7 @@ public partial class pacifica : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOpenOrders
@@ -3032,7 +3032,7 @@ public partial class pacifica : Exchange
         //     }
         //
         string? marketId = this.safeString2(order, "symbol", "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
@@ -3148,7 +3148,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3164,7 +3164,7 @@ public partial class pacifica : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? margin = this.safeString(position, "margin");
         bool? rawIsolated = this.safeBool(position, "isolated");
@@ -3494,7 +3494,7 @@ public partial class pacifica : Exchange
         //     }
         //
         string? marketId = this.safeString(interest, "symbol");
-        object marketResolved = ((marketId != null)) ? this.safeMarket(marketId, market) : market;
+        object marketResolved = ((marketId != null)) ? this.safeMarket(marketId,((IDictionary<string, object>)market)) : market;
         string? symbol = null;
         if ((marketId != null))
         {
@@ -3816,7 +3816,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(data, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3832,7 +3832,7 @@ public partial class pacifica : Exchange
         string? id = this.safeString(income, "history_id");
         Int64? timestamp = this.safeInteger(income, "created_at");
         string? marketId = this.safeString(income, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? amount = this.safeString(income, "payout");
         string? code = this.safeCurrencyCode("USDC");
@@ -3893,7 +3893,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", this.safeString(request, "account") },             { "toAccount", toAccount },         }));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // {
@@ -4246,7 +4246,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
         string? cost = this.safeString(config, "cost", "1");

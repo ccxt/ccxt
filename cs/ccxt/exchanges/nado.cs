@@ -508,7 +508,7 @@ public partial class nado : Exchange
         //         "id": 100
         //     }
         //
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {     { "place_order", placeOrder }, }, response), market);
     }
 
     /**
@@ -695,7 +695,7 @@ public partial class nado : Exchange
         //
         IDictionary<string, object> cancelAndPlace = this.safeDict(request, "cancel_and_place", new Dictionary<string, object>() {});
         IDictionary<string, object> placeOrder = this.safeDict(cancelAndPlace, "place_order", new Dictionary<string, object>() {});
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {             { "place_order", placeOrder },         }, response), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {     { "place_order", placeOrder }, }, response), market);
     }
 
     /**
@@ -734,8 +734,8 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " editOrder() requires a price argument")) ;
         }
         Int64? productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
-        string? priceString = this.priceToPrecision(symbol, price);
-        string? amountString = this.amountToPrecision(symbol, amount);
+        string? priceString = this.priceToPrecision(((string)symbol), price);
+        string? amountString = this.amountToPrecision(((string)symbol), amount);
         string? priceX18 = this.convertToX18(priceString);
         string? amountX18 = this.convertToX18(amountString);
         if ((side == "sell"))
@@ -873,8 +873,8 @@ public partial class nado : Exchange
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
             result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
-                { "status", "canceled" },
-            }, cancelledOrders[i]), market)));
+    { "status", "canceled" },
+}, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -975,8 +975,8 @@ public partial class nado : Exchange
         for (int i = 0; i < cancelledOrders.Count; i++)
         {
             result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
-                { "status", "canceled" },
-            }, cancelledOrders[i]), market)));
+    { "status", "canceled" },
+}, cancelledOrders[i]), market)));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -2487,7 +2487,7 @@ public partial class nado : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2537,7 +2537,7 @@ public partial class nado : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(trade, "timestamp");
         IDictionary<string, object> rawOrder = this.safeDict(trade, "order");
         bool isArchiveMatch = (rawOrder != null);
@@ -2660,7 +2660,7 @@ public partial class nado : Exchange
         //     }
         //
         string? marketId = this.safeString(contract, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? fundingTimestamp = this.safeTimestamp(contract, "next_funding_rate_timestamp");
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -2735,7 +2735,7 @@ public partial class nado : Exchange
         //     }
         //
         string? marketId = this.safeString(interest, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "openInterestAmount", this.safeNumber(interest, "open_interest") },
@@ -2746,10 +2746,10 @@ public partial class nado : Exchange
         }, marketResolved);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         object timestamp = null;
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -2921,7 +2921,7 @@ public partial class nado : Exchange
         };
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2941,7 +2941,7 @@ public partial class nado : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         IDictionary<string, object> balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
         string? amountString = this.safeString(balance, "amount");
         IDictionary<string, object> product = this.safeDict(position, "product", new Dictionary<string, object>() {});
@@ -3014,7 +3014,7 @@ public partial class nado : Exchange
         return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // create order
@@ -3104,7 +3104,7 @@ public partial class nado : Exchange
         {
             id = cancelOrderDigest;
             string? marketId = this.safeString(order, "product_id");
-            marketResolved = this.safeMarket(marketId, market);
+            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
             string? amountString = this.safeString(order, "amount");
             if ((amountString != null))
             {
@@ -3148,7 +3148,7 @@ public partial class nado : Exchange
         {
             id = cancelOrderDigest;
             string? marketId = this.safeString(order, "product_id");
-            marketResolved = this.safeMarket(marketId, market);
+            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
             string? amountString = this.safeString(order, "amount");
             if ((amountString != null))
             {
@@ -3171,7 +3171,7 @@ public partial class nado : Exchange
             IDictionary<string, object> placeOrder = this.safeDict2(order, "place_order", "order", new Dictionary<string, object>() {});
             IDictionary<string, object> rawOrder = this.safeDict(placeOrder, "order", new Dictionary<string, object>() {});
             string? marketId = this.safeString(placeOrder, "product_id");
-            marketResolved = this.safeMarket(marketId, market);
+            marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
             IDictionary<string, object> data = this.safeDict(order, "data", new Dictionary<string, object>() {});
             id = this.safeString(data, "digest");
             if ((id == null))
@@ -3266,7 +3266,7 @@ public partial class nado : Exchange
 
     public virtual string? createOrderNonce(Int64? recvWindow)
     {
-        object expires = this.sum(this.milliseconds(), recvWindow);
+        Int64 expires = this.sum(this.milliseconds(), recvWindow);
         string? highBits = Precise.stringMul(this.numberToString(expires), "1048576");
         // the exchange defines the nonce to be the recv time moved left by 20 bits
         // plus a random value on the low bits, otherwise two orders created
@@ -3322,7 +3322,7 @@ public partial class nado : Exchange
         return appendix;
     }
 
-    public virtual string? createSubaccount(object walletAddress, string? subaccount = null)
+    public virtual string? createSubaccount(string walletAddress, string? subaccount = null)
     {
         subaccount ??= "default";
         if ((walletAddress == null))
@@ -3483,13 +3483,13 @@ public partial class nado : Exchange
         return this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey);
     }
 
-    public virtual string? signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, string privateKey)
     {
         if ((privateKey == null))
         {
             throw new ArgumentsRequired ((this.id + " signHash() requires privateKey")) ;
         }
-        Dictionary<string, object> signature = ecdsa(hash, ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(hash, ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         string? r = this.safeString(signature, "r", "");
         string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null))).ToLower();
@@ -3509,14 +3509,14 @@ public partial class nado : Exchange
         return ((string?)((object)(marketId)));
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
         config ??= new Dictionary<string, object>();
-        if (((IDictionary<string, object>)config).ContainsKey("byType"))
+        if (config.ContainsKey("byType"))
         {
-            object byType = ((IDictionary<string,object>)config)["byType"];
+            object byType = config["byType"];
             string? queryType = this.safeString(parameters, "type");
             if ((queryType != null))
             {

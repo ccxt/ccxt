@@ -1638,7 +1638,7 @@ public partial class phemex : Exchange
         return ((string?)((object)(this.fromEn(er, this.safeInteger(market, "ratioScale")))));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1769,7 +1769,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,timeframeVar, sinceResolved, userLimit));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -1825,7 +1825,7 @@ public partial class phemex : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         string? last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
@@ -2237,7 +2237,7 @@ public partial class phemex : Exchange
         string? feeRateString = null;
         string? feeCurrencyCode = null;
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? orderId = null;
         string? takerOrMaker = null;
@@ -2791,7 +2791,7 @@ public partial class phemex : Exchange
             clientOrderId = null;
         }
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         string? amount = this.fromEv(this.safeString(order, "baseQtyEv"), marketResolved);
@@ -2960,7 +2960,7 @@ public partial class phemex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.parseOrderSide(this.safeStringLower(order, "side"));
         string? type = this.parseOrderType(this.safeString(order, "orderType"));
@@ -3044,10 +3044,10 @@ public partial class phemex : Exchange
         }));
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         bool? isSwap = this.safeBool(market, "swap", false);
-        bool hasPnl = ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnl"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnlRv"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("totalPnlRv")));
+        bool hasPnl = ((order != null && order.ContainsKey("closedPnl"))) || ((order != null && order.ContainsKey("closedPnlRv"))) || ((order != null && order.ContainsKey("totalPnlRv")));
         if ((isSwap == true) || hasPnl)
         {
             return new ccxt.Order(this.parseSwapOrder(order, market));
@@ -3698,7 +3698,7 @@ public partial class phemex : Exchange
             }
             order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -4612,7 +4612,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolSinceLimit(positions, symbolValue, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -4709,7 +4709,7 @@ public partial class phemex : Exchange
         //            },
         //
         string? marketId = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         string? notionalString = this.safeString2(position, "value", "valueRv");
@@ -5079,7 +5079,7 @@ public partial class phemex : Exchange
         //         "data": "OK"
         //     }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null),((IDictionary<string, object>)market));
         bool? inverse = this.safeBool(marketResolved, "inverse", false);
         string codeCurrency = inverse == true ? "base" : "quote";
         return new Dictionary<string, object>() {
@@ -5316,7 +5316,7 @@ public partial class phemex : Exchange
         //     },
         //
         string? marketId = this.safeString(info, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         List<object> riskLimits = this.safeList((marketResolved != null && marketResolved.ContainsKey("info") ? marketResolved["info"] : null), "riskLimits", new List<object>() {});
         List<object> tiers = new List<object>() {};
         Int64? minNotional = 0;
@@ -5633,7 +5633,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer
@@ -5991,15 +5991,15 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCode));
-        Dictionary<string, object> toCurrency = this.currency(((string)toCode));
+        Dictionary<string, object> fromCurrency = this.currency(fromCode);
+        Dictionary<string, object> toCurrency = this.currency(toCode);
         Int64? valueScale = this.safeInteger(fromCurrency, "valueScale");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "fromCurrency", fromCode },
@@ -6041,15 +6041,15 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCode));
-        Dictionary<string, object> toCurrency = this.currency(((string)toCode));
+        Dictionary<string, object> fromCurrency = this.currency(fromCode);
+        Dictionary<string, object> toCurrency = this.currency(toCode);
         Int64? valueScale = this.safeInteger(fromCurrency, "valueScale");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "code", id },
@@ -6149,7 +6149,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override Dictionary<string, object> parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(IDictionary<string, object> conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -6304,12 +6304,12 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; i++)
         {
-            result.Add(this.parseADLRank(ranks[i]));
+            result.Add(this.parseADLRank(((IDictionary<string, object>)ranks[i])));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false));
     }
 
-    public override Dictionary<string, object> parseADLRank(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseADLRank(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         // fetchPositionADLRank: linear

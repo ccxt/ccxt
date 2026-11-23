@@ -707,7 +707,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
+            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
@@ -1139,7 +1139,7 @@ public partial class zebpay : Exchange
         string? orderId = this.safeString2(trade, "id", "order");
         Int64? timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringLower(trade, "side");
         string? priceString = this.safeString(trade, "price");
@@ -1255,7 +1255,7 @@ public partial class zebpay : Exchange
             string? marginAsset = this.safeString(query, "marginAsset", "INR");
             string? formType = this.safeStringUpper(query, "formType", "ORDER_FORM");
             request["formType"] = formType;
-            request["amount"] = this.parseToNumeric(this.amountToPrecision((market.ContainsKey("id") ? market["id"] : null), amount));
+            request["amount"] = this.parseToNumeric(this.amountToPrecision(((string)(market.ContainsKey("id") ? market["id"] : null)), amount));
             request["marginAsset"] = marginAsset;
             bool hasTP = (takeProfitPrice != null);
             bool hasSL = (stopLossPrice != null);
@@ -1295,7 +1295,7 @@ public partial class zebpay : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual object spotOrderBody(object symbol, object type, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> spotOrderBody(object symbol, object type, double? amount, IDictionary<string, object> request, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string upperCaseType = ((string)type).ToUpper();
@@ -1313,15 +1313,15 @@ public partial class zebpay : Exchange
             {
                 throw new ExchangeError ((this.id + " spot market orders require cost in params")) ;
             }
-            request["quoteOrderAmount"] = this.costToPrecision(symbol, quoteOrderQty);
+            request["quoteOrderAmount"] = this.costToPrecision(((string)symbol), quoteOrderQty);
         } else
         {
             if ((triggerPrice != null))
             {
-                request["stopLossPrice"] = this.priceToPrecision(symbol, triggerPrice);
+                request["stopLossPrice"] = this.priceToPrecision(((string)symbol), triggerPrice);
             }
-            request["amount"] = this.amountToPrecision(symbol, amount);
-            request["price"] = this.priceToPrecision(symbol, price);
+            request["amount"] = this.amountToPrecision(((string)symbol), amount);
+            request["price"] = this.priceToPrecision(((string)symbol), price);
         }
         return this.extend(request, paramsOmitted);
     }
@@ -1550,7 +1550,7 @@ public partial class zebpay : Exchange
         return this.parseOrder(responseData, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //      {
@@ -1570,7 +1570,7 @@ public partial class zebpay : Exchange
         //      }
         //
         string? marketId = this.safeString(order, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? symbol = this.safeString(marketResolved, "symbol");
         string? type = this.safeString(order, "type");
         double? timestamp = this.safeNumber(order, "timestamp");
@@ -2052,7 +2052,7 @@ public partial class zebpay : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // isolated
@@ -2068,7 +2068,7 @@ public partial class zebpay : Exchange
         double? leverage = this.safeNumber(position, "leverage");
         string? datetime = this.safeString(position, "datetime");
         string? marketId = this.safeString(position, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? marginMode = this.safeStringLower(position, "marginMode", "isolated");
         double? initialMargin = this.safeNumber(position, "initialMargin");
         // isolated positions hold exactly the initial margin posted for them
@@ -2120,7 +2120,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(fee, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
@@ -2134,7 +2134,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     [

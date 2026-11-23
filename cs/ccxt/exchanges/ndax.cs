@@ -991,7 +991,7 @@ public partial class ndax : Exchange
         return this.parseOrderBook(response, symbol);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -1045,7 +1045,7 @@ public partial class ndax : Exchange
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? symbol = this.safeSymbol(marketId, marketResolved);
         string? last = this.safeString2(ticker, "LastTradedPx", "last_price");
         string? percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
@@ -1169,7 +1169,7 @@ public partial class ndax : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1744,7 +1744,7 @@ public partial class ndax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder

@@ -737,7 +737,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -841,7 +841,7 @@ public partial class btcmarkets : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -861,7 +861,7 @@ public partial class btcmarkets : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "marketId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "volume24h");
@@ -976,7 +976,7 @@ public partial class btcmarkets : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? marketId = this.safeString(trade, "marketId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         object feeCurrencyCode = null;
         if ((((marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) as string) == "AUD"))
         {
@@ -1303,7 +1303,7 @@ public partial class btcmarkets : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1328,7 +1328,7 @@ public partial class btcmarkets : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(order, "creationTime"));
         string? marketId = this.safeString(order, "marketId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "-");
         string? side = this.safeString(order, "side");
         if (side == "Bid")
         {

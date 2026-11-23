@@ -1165,7 +1165,7 @@ public partial class grvt : Exchange
         return this.parseTicker(result, market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //  {
@@ -1383,7 +1383,7 @@ public partial class grvt : Exchange
         //            }
         //
         string? marketId = this.safeString(trade, "instrument");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         string? takerOrMaker = null;
         bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
@@ -1503,7 +1503,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //            {
@@ -2206,7 +2206,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(result, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer
@@ -2824,7 +2824,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //            {
@@ -3023,7 +3023,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseLeverages(results, symbols));
     }
 
-    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(IDictionary<string, object> marginMode, IDictionary<string, object> market = null)
     {
         //
         // fetchMarginModes
@@ -3110,7 +3110,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(result, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //            {
@@ -3415,7 +3415,7 @@ public partial class grvt : Exchange
         return this.parseOrder(result);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3513,7 +3513,7 @@ public partial class grvt : Exchange
         int primaryOrderIndex = 0;
         IDictionary<string, object> firstLeg = this.safeDict(legs, primaryOrderIndex);
         string? legMarketId = this.safeString(firstLeg, "instrument");
-        IDictionary<string, object> marketResolved = ((firstLeg != null)) ? this.safeMarket(legMarketId, market) : market;
+        IDictionary<string, object> marketResolved = ((firstLeg != null)) ? this.safeMarket(legMarketId,((IDictionary<string, object>)market)) : market;
         if ((firstLeg != null))
         {
             size = this.safeString(firstLeg, "size");

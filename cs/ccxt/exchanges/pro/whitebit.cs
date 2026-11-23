@@ -100,7 +100,7 @@ public partial class whitebit : ccxt.whitebit
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // {
@@ -292,7 +292,7 @@ public partial class whitebit : ccxt.whitebit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -320,7 +320,7 @@ public partial class whitebit : ccxt.whitebit
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //   {
@@ -546,7 +546,7 @@ public partial class whitebit : ccxt.whitebit
         string? price = this.safeString(trade, 4);
         string? amount = this.safeString(trade, 5);
         string? marketId = this.safeString(trade, 2);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, 6);
         if ((feeCost != null))
@@ -708,7 +708,7 @@ public partial class whitebit : ccxt.whitebit
         //
         Int64? status = this.safeInteger(order, "status");
         string? marketId = this.safeString(order, "market");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? id = this.safeString(order, "id");
         string? clientOrderId = ((string)this.omitZero(this.safeString(order, "client_order_id")));
         string? price = this.safeString(order, "price");
@@ -1287,7 +1287,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;

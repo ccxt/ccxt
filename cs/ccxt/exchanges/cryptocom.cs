@@ -1667,7 +1667,7 @@ public partial class cryptocom : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -1932,7 +1932,7 @@ public partial class cryptocom : Exchange
         return this.parseOrders(result);
     }
 
-    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, double? amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2123,7 +2123,7 @@ public partial class cryptocom : Exchange
         return this.parseOrder(result);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object amount = null, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2146,8 +2146,8 @@ public partial class cryptocom : Exchange
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }
-        request["new_quantity"] = this.amountToPrecision(symbol, amount);
-        request["new_price"] = this.priceToPrecision(symbol, price);
+        request["new_quantity"] = this.amountToPrecision(((string)symbol), amount);
+        request["new_price"] = this.priceToPrecision(((string)symbol), price);
         return this.extend(request, paramsOmitted);
     }
 
@@ -2769,7 +2769,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawalList, currency, since, limit));
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -2805,7 +2805,7 @@ public partial class cryptocom : Exchange
         //
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? marketId = this.safeString(ticker, "i");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? last = this.safeString(ticker, "a");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -2869,7 +2869,7 @@ public partial class cryptocom : Exchange
         //
         Int64? timestamp = this.safeInteger2(trade, "t", "create_time");
         string? marketId = this.safeString2(trade, "i", "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_");
         string? feeCurrency = this.safeString(trade, "fee_instrument_name");
         string? feeCostString = this.safeString(trade, "fees");
         return this.safeTrade(new Dictionary<string, object>() {
@@ -2892,7 +2892,7 @@ public partial class cryptocom : Exchange
         }, marketResolved);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2929,7 +2929,7 @@ public partial class cryptocom : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, cancelOrder
@@ -3189,7 +3189,7 @@ public partial class cryptocom : Exchange
         return new List<object>() {marginMode, paramsMarginMode};
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -3490,7 +3490,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -3922,7 +3922,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3938,7 +3938,7 @@ public partial class cryptocom : Exchange
         //     }
         //
         string? marketId = this.safeString(position, "instrument_name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "contract");
         string? symbol = this.safeSymbol(marketId, marketResolved, null, "contract");
         Int64? timestamp = this.safeInteger(position, "update_timestamp_ms");
         string? amount = this.safeString(position, "quantity");

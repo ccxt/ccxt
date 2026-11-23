@@ -2064,15 +2064,15 @@ public partial class gate : Exchange
         };
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
-        bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0)))))
+        bool isOption = ((marketId != null)) && ((marketId.IndexOf("-C", StringComparison.Ordinal) > -1) || (marketId.IndexOf("-P", StringComparison.Ordinal) > -1));
+        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
-        return base.safeMarket(marketId, market, delimiter, marketType);
+        return base.safeMarket(marketId, market, delimiter,marketType);
     }
 
     /**
@@ -3571,7 +3571,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "currency"));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -3700,7 +3700,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(response, symbolResolved, since, limit));
     }
 
-    public virtual object parseFundingHistories(IList<object> response, object symbol, Int64? since, Int64? limit)
+    public virtual IList<object> parseFundingHistories(IList<object> response, object symbol, Int64? since, Int64? limit)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
@@ -3710,7 +3710,7 @@ public partial class gate : Exchange
             result.Add(funding);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(sorted, symbol, since, limit))));
     }
 
     public virtual object parseFundingHistory(IDictionary<string, object> info, IDictionary<string, object>? market = null)
@@ -3945,7 +3945,7 @@ public partial class gate : Exchange
         return this.parseTicker(this.extend(new Dictionary<string, object>() {}, ticker), market);
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // SPOT
@@ -4659,7 +4659,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // Spot market candles
@@ -5162,7 +5162,7 @@ public partial class gate : Exchange
         {
             marketType = "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), "_",marketType);
         string? amountString = this.safeString2(trade, "amount", "size");
         string? priceString = this.safeString(trade, "price");
         string contractSide = "buy";
@@ -5771,7 +5771,7 @@ public partial class gate : Exchange
 
     public virtual string? getGateFuturesSignedAmount(object symbol, object side, object amount)
     {
-        string? amountString = this.amountToPrecision(symbol, amount);
+        string? amountString = this.amountToPrecision(((string)symbol), amount);
         if ((side is "sell"))
         {
             return ((string?)((object)(Precise.stringNeg(amountString))));
@@ -5779,7 +5779,7 @@ public partial class gate : Exchange
         return amountString;
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -5887,7 +5887,7 @@ public partial class gate : Exchange
                     request["price"] = "0"; // set to 0 for market orders
                 } else
                 {
-                    request["price"] = zeroPrice ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    request["price"] = zeroPrice ? "0" : this.priceToPrecision(((string)symbol), priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -5921,7 +5921,7 @@ public partial class gate : Exchange
                     query = this.omit(query, "cost");
                     if ((cost != null))
                     {
-                        quoteAmount = this.costToPrecision(symbol, cost);
+                        quoteAmount = this.costToPrecision(((string)symbol), cost);
                     } else if ((createMarketBuyOrderRequiresPrice == true))
                     {
                         if ((priceResolved == null))
@@ -5932,20 +5932,20 @@ public partial class gate : Exchange
                             string? amountString = this.numberToString(amountResolved);
                             string? priceString = this.numberToString(priceResolved);
                             string? costRequest = Precise.stringMul(amountString, priceString);
-                            quoteAmount = this.costToPrecision(symbol, costRequest);
+                            quoteAmount = this.costToPrecision(((string)symbol), costRequest);
                         }
                     } else
                     {
-                        quoteAmount = this.costToPrecision(symbol, amountResolved);
+                        quoteAmount = this.costToPrecision(((string)symbol), amountResolved);
                     }
                     request["amount"] = quoteAmount;
                 } else
                 {
-                    request["amount"] = this.amountToPrecision(symbol, amountResolved);
+                    request["amount"] = this.amountToPrecision(((string)symbol), amountResolved);
                 }
                 if (isLimitOrder)
                 {
-                    request["price"] = this.priceToPrecision(symbol, priceResolved);
+                    request["price"] = this.priceToPrecision(((string)symbol), priceResolved);
                 }
                 if ((timeInForce != null))
                 {
@@ -6001,7 +6001,7 @@ public partial class gate : Exchange
                     initial["price"] = "0";
                 } else
                 {
-                    initial["price"] = zeroPrice ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    initial["price"] = zeroPrice ? "0" : this.priceToPrecision(((string)symbol), priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -6028,11 +6028,11 @@ public partial class gate : Exchange
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = ((side == "buy")) ? 1 : 2;
-                        triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), stopLossPrice);
                     } else if (isTakeProfitOrder)
                     {
                         rule = ((side == "buy")) ? 2 : 1;
-                        triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), takeProfitPrice);
                     }
                     Int64? priceType = this.safeInteger(query, "price_type", 0);
                     if (priceType.GetValueOrDefault() < 0 || priceType.GetValueOrDefault() > 2)
@@ -6042,7 +6042,7 @@ public partial class gate : Exchange
                     query = this.omit(query, new List<object>() {"price_type"});
                     request["trigger"] = new Dictionary<string, object>() {
                         { "price_type", priceType },
-                        { "price", this.priceToPrecision(symbol, triggerOrderPrice) },
+                        { "price", this.priceToPrecision(((string)symbol), triggerOrderPrice) },
                         { "rule", rule },
                     };
                 }
@@ -6062,8 +6062,8 @@ public partial class gate : Exchange
                     { "put", new Dictionary<string, object>() {
                         { "type", type },
                         { "side", side },
-                        { "price", this.priceToPrecision(symbol, priceResolved) },
-                        { "amount", this.amountToPrecision(symbol, amountResolved) },
+                        { "price", this.priceToPrecision(((string)symbol), priceResolved) },
+                        { "amount", this.amountToPrecision(((string)symbol), amountResolved) },
                         { "account", marginMode },
                         { "time_in_force", timeInForce },
                     } },
@@ -6080,14 +6080,14 @@ public partial class gate : Exchange
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = ((side == "buy")) ? ">=" : "<=";
-                        triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), stopLossPrice);
                     } else if (isTakeProfitOrder)
                     {
                         rule = ((side == "buy")) ? "<=" : ">=";
-                        triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), takeProfitPrice);
                     }
                     Dictionary<string, object> triggerRequest = new Dictionary<string, object>() {
-                        { "price", this.priceToPrecision(symbol, triggerOrderPrice) },
+                        { "price", this.priceToPrecision(((string)symbol), triggerOrderPrice) },
                         { "rule", rule },
                         { "expiration", expiration },
                     };
@@ -6132,7 +6132,7 @@ public partial class gate : Exchange
         return await this.CreateOrder(symbol, "market", "buy", cost, null, paramsExtended);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -6165,7 +6165,7 @@ public partial class gate : Exchange
         {
             if ((this.safeBool(market, "spot", false) == true))
             {
-                request["amount"] = this.amountToPrecision(symbol, amount);
+                request["amount"] = this.amountToPrecision(((string)symbol), amount);
             } else
             {
                 string? signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
@@ -6180,7 +6180,7 @@ public partial class gate : Exchange
         }
         if ((price != null))
         {
-            request["price"] = this.priceToPrecision(symbol, price);
+            request["price"] = this.priceToPrecision(((string)symbol), price);
         }
         if (!(this.safeBool(market, "spot", false) == true))
         {
@@ -6275,7 +6275,7 @@ public partial class gate : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // SPOT
@@ -6620,10 +6620,10 @@ public partial class gate : Exchange
         string? clientOrderId = this.safeString(order, "text");
         if ((clientOrderId == null))
         {
-            if ((order != null && ((IDictionary<string, object>)order).ContainsKey("initial")))
+            if ((order != null && order.ContainsKey("initial")))
             {
                 clientOrderId = this.safeString(initial, "text");
-            } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("trigger")))
+            } else if ((order != null && order.ContainsKey("trigger")))
             {
                 IDictionary<string, object> triggerOrder = this.safeDict(order, "trigger", new Dictionary<string, object>() {});
                 clientOrderId = this.safeString(triggerOrder, "text");
@@ -7615,7 +7615,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //    {
@@ -7729,7 +7729,7 @@ public partial class gate : Exchange
         return response;
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // swap and future
@@ -7806,7 +7806,7 @@ public partial class gate : Exchange
         //    }
         //
         string? contract = this.safeString(position, "contract");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market, "_", "contract");
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market), "_", "contract");
         string? size = this.safeString2(position, "size", "accum_size");
         string? side = this.safeString(position, "side");
         if ((side == null))
@@ -8626,10 +8626,10 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override Dictionary<string, object> parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "currency_pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string marginMode = "cross";
         if ((marketId != null))
         {
@@ -8852,7 +8852,7 @@ public partial class gate : Exchange
         //     }
         //
         string? contract = this.safeString(data, "contract");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market, "_", "contract");
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market), "_", "contract");
         double? total = this.safeNumber(data, "margin");
         return new Dictionary<string, object>() {
             { "info", data },
@@ -9170,7 +9170,7 @@ public partial class gate : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object>? market = null)
     {
         //
         // fetchSettlementHistory
@@ -9257,7 +9257,7 @@ public partial class gate : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
+            result.Add(this.parseSettlement(((IDictionary<string, object>)(settlements != null && i < settlements.Count ? settlements[i] : null)), market));
         }
         return result;
     }
@@ -9914,7 +9914,7 @@ public partial class gate : Exchange
         throw new NullResponse (((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
     }
 
-    public override Dictionary<string, object> parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(IDictionary<string, object> greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10215,7 +10215,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(response, null, "name"));
     }
 
-    public override Dictionary<string, object> parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(IDictionary<string, object> chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10258,7 +10258,7 @@ public partial class gate : Exchange
         //     }
         //
         string? marketId = this.safeString(chain, "name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(chain, "create_time");
         return new Dictionary<string, object>() {
             { "info", chain },

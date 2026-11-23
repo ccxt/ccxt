@@ -1910,7 +1910,7 @@ public partial class foxbit : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object entry, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> entry, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", entry },
@@ -1922,7 +1922,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "market_symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "spot");
@@ -1965,7 +1965,7 @@ public partial class foxbit : Exchange
         }, market);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
     }
@@ -2013,7 +2013,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(order, "market_symbol");
         IDictionary<string, object> marketResolved = market;

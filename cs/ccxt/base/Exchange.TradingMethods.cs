@@ -12,7 +12,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " closePosition() is not supported yet")) ;
     }
 
-    public async virtual Task<object> closeAllPositions(IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Position>> CloseAllPositions(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " closeAllPositions() is not supported yet")) ;
@@ -129,7 +129,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " fetchMarkPrices() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchBidsAsks() is not supported yet")) ;
@@ -771,7 +771,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " fetchTickers() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchTickers() is not supported yet")) ;

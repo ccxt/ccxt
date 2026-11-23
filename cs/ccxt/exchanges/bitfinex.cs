@@ -809,7 +809,7 @@ public partial class bitfinex : Exchange
         throw new NotSupported ((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
 
-    public override string? amountToPrecision(object symbol, object amount)
+    public override string? amountToPrecision(string symbol, object amount)
     {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
@@ -819,7 +819,7 @@ public partial class bitfinex : Exchange
         return this.decimalToPrecision(amount, TRUNCATE, this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
     }
 
-    public override string? priceToPrecision(object symbol, object price)
+    public override string? priceToPrecision(string symbol, object price)
     {
         string? symbolValue = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbolValue);
@@ -1353,7 +1353,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(new Dictionary<string, object>() {             { "result", response },         }, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer
@@ -1927,7 +1927,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1987,7 +1987,7 @@ public partial class bitfinex : Exchange
         return this.safeString(orderTypes, orderType, "GTC");
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         List<object> orderList = this.safeList(order, "result");
         string? id = this.safeString(orderList, 0);
@@ -2062,7 +2062,7 @@ public partial class bitfinex : Exchange
         }, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3473,7 +3473,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //    [

@@ -497,7 +497,7 @@ public partial class hashkey : ccxt.hashkey
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(order, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(order, "O");
         string? rawSide = this.safeStringLower(order, "S");
         string? side = this.parseOrderSideValue(rawSide);
@@ -639,7 +639,7 @@ public partial class hashkey : ccxt.hashkey
         //     }
         //
         string? marketId = this.safeString(trade, "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "t");
         bool? isBuyerMaker = this.safeBool(trade, "m");
         bool isPublicTrade = (this.safeString(trade, "e") == null);

@@ -91,7 +91,7 @@ public partial class bittrade : ccxt.bittrade
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -179,7 +179,7 @@ public partial class bittrade : ccxt.bittrade
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -584,7 +584,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual object handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -622,7 +622,7 @@ public partial class bittrade : ccxt.bittrade
         return message;
     }
 
-    public virtual object handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSystemStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -637,7 +637,7 @@ public partial class bittrade : ccxt.bittrade
         return message;
     }
 
-    public virtual void handleSubject(WebSocketClient client, object message)
+    public virtual void handleSubject(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -693,7 +693,7 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual void handlePing(WebSocketClient client, object message)
+    public virtual void handlePing(WebSocketClient client, IDictionary<string, object> message)
     {
         this.spawn(this.pong, new object[] { client, message});
     }

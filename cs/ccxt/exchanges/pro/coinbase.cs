@@ -343,7 +343,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1029,7 +1029,7 @@ public partial class coinbase : ccxt.coinbase
         string? clientOrderId = this.safeString(order, "client_order_id");
         string? marketId = this.safeString(order, "product_id");
         string? datetime = this.safeString2(order, "time", "creation_time");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1155,7 +1155,7 @@ public partial class coinbase : ccxt.coinbase
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1201,7 +1201,7 @@ public partial class coinbase : ccxt.coinbase
         return message;
     }
 
-    public virtual object handleHeartbeats(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleHeartbeats(WebSocketClient client, Dictionary<string, object> message)
     {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.

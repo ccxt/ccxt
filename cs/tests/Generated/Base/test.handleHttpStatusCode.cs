@@ -96,7 +96,7 @@ public partial class BaseTest
             // a derived handleErrors that wants to surface it must throw on its own
             object skip = exchange.handleErrors(406, "Not Acceptable", "url", "GET", new Dictionary<string, object>() {}, "{\"success\":false}", new Dictionary<string, object>() {
                 { "success", false },
-            }, new Dictionary<string, object>() {}, "");
+            }, new Dictionary<string, object>() {}, null);
             Assert((skip == null), "the base handleErrors stub should return undefined");
             exchange.handleHttpStatusCode(406, "Not Acceptable", "url", "GET", "{\"success\":false}");
         }

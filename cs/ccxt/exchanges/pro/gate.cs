@@ -190,7 +190,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> request = this.createOrderRequest(symbolValue, type, side, amount, price, parameters);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, request, channel);
-        ccxt.Order order = this.parseOrder(rawOrder, market);
+        ccxt.Order order = this.parseOrder(this.extend(new Dictionary<string, object>() {}, rawOrder), market);
         return order;
     }
 
@@ -318,7 +318,7 @@ public partial class gate : ccxt.gate
             { "order_id", id.ToString() },
         });
         object res = await this.requestPrivate(url, this.extend(orderRequest, requestParams), channel);
-        return this.parseOrder(res, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, res), market);
     }
 
     /**
@@ -350,7 +350,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, extendedRequest, channel);
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, rawOrder), market);
     }
 
     /**
@@ -391,7 +391,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, rawOrder), market);
     }
 
     /**
@@ -641,7 +641,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual void handleNewSpotOrderBook(WebSocketClient client, object message)
+    public virtual void handleNewSpotOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //   {
@@ -702,7 +702,7 @@ public partial class gate : ccxt.gate
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // spot
@@ -823,7 +823,7 @@ public partial class gate : ccxt.gate
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override object getCacheIndex(object orderBook, IList<object> cache)
+    public override Int64 getCacheIndex(object orderBook, IList<object> cache)
     {
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
@@ -912,7 +912,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {             { "method", "tickers" },         }, parameters)));
@@ -952,7 +952,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {             { "method", "book_ticker" },         }, parameters)));
@@ -1058,7 +1058,7 @@ public partial class gate : ccxt.gate
         {
             IDictionary<string, object> rawTicker = ((IDictionary<string, object>)results[i]);
             string? marketId = this.safeString(rawTicker, "s");
-            Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
+            Dictionary<string, object> market = this.safeMarket(marketId, null, "_",marketType);
             ccxt.Ticker parsedItem = this.parseTicker(rawTicker, market);
             string? symbol = parsedItem.symbol;
             if (isTicker)
@@ -1209,7 +1209,7 @@ public partial class gate : ccxt.gate
         //
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList53011))
+        if ((rawResult is IList<object> hxList53083))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else

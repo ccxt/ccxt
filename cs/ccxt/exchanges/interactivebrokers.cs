@@ -2683,7 +2683,8 @@ public partial class interactivebrokers : Exchange
         var fields = ((IList<object>) fieldsqueryVariable)[0];
         var query = ((IList<object>) fieldsqueryVariable)[1];
         string fieldsString = String.Join(",", ((IList<object>)fields).ToArray());
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, query);
+        List<object> readyFields = new List<object>() {"31", "84", "86"};
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, query);
         //
         //     [
         //         {
@@ -2713,11 +2714,11 @@ public partial class interactivebrokers : Exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    public async virtual Task<object> ibkrFetchSnapshot(object symbols, object fields, object parameters = null, object readyFields = null)
+    public async virtual Task<List<object>> ibkrFetchSnapshot(object symbols, object fields, object readyFields, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> conids = new List<object>() {};
@@ -2733,10 +2734,10 @@ public partial class interactivebrokers : Exchange
             { "conids", String.Join(",", conids.ToArray()) },
             { "fields", fields },
         };
-        object response = new List<object>() {};
+        List<object> response = new List<object>() {};
         for (int i = 0; i <= retries.GetValueOrDefault(); i++)
         {
-            response = ((object)await this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters)));
+            response = await this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters));
             if (this.ibkrSnapshotReady(response, readyFields))
             {
                 break;
@@ -2749,21 +2750,20 @@ public partial class interactivebrokers : Exchange
         return response;
     }
 
-    public virtual bool ibkrSnapshotReady(object response, object readyFields = null)
+    public virtual bool ibkrSnapshotReady(IList<object> response, object fieldIds)
     {
-        int numItems = getArrayLength(response);
+        int numItems = response?.Count ?? 0;
         if ((numItems == 0))
         {
             return false;
         }
-        object fieldIds = ((readyFields == null)) ? new List<object>() {"31", "84", "86"} : readyFields;
         int numFields = getArrayLength(fieldIds);
         for (int i = 0; i < numItems; i++)
         {
             bool found = false;
             for (int j = 0; j < numFields; j++)
             {
-                if ((this.safeString(getValue(response, i), getValue(fieldIds, j)) != null))
+                if ((this.safeString((response != null && i < response.Count ? response[i] : null), getValue(fieldIds, j)) != null))
                 {
                     found = true;
                     break;
@@ -2802,7 +2802,7 @@ public partial class interactivebrokers : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? fields = this.safeString(parameters, "fields", "84,85,86,88");
         Dictionary<string, object> query = this.omit(parameters, "fields");
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, query, new List<object>() {"84", "86"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, new List<object>() {"84", "86"}, query);
         //
         //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2831,17 +2831,17 @@ public partial class interactivebrokers : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, "31", parameters, new List<object>() {"31"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, "31", new List<object>() {"31"}, parameters);
         //
         //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(IDictionary<string, object> entry, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(entry, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(entry, "_updated");
         return new Dictionary<string, object>() {
             { "symbol", (resolved != null && resolved.ContainsKey("symbol") ? resolved["symbol"] : null) },
@@ -2875,7 +2875,7 @@ public partial class interactivebrokers : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, "7635", parameters, new List<object>() {"7635"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, "7635", new List<object>() {"7635"}, parameters);
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2913,7 +2913,7 @@ public partial class interactivebrokers : Exchange
             }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, "31,7697,7638", parameters, new List<object>() {"7697", "7638"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, "31,7697,7638", new List<object>() {"7697", "7638"}, parameters);
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
@@ -2923,7 +2923,7 @@ public partial class interactivebrokers : Exchange
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(interest, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(interest, "_updated");
         string? openInterest = this.ibkrParseValue(this.safeString2(interest, "7697", "7638"));
         string? last = this.ibkrParseValue(this.safeString(interest, "31"));
@@ -3012,10 +3012,10 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(ticker, "_updated");
         string? last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
         if ((last == null))
@@ -3154,7 +3154,7 @@ public partial class interactivebrokers : Exchange
         return ((this.yyyymmdd(timestamp, "") + "-") + ((iso == null) ? null : iso.Substring(Math.Min(11, iso.Length), Math.Min(19, iso.Length) - Math.Min(11, iso.Length))));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
@@ -3192,12 +3192,12 @@ public partial class interactivebrokers : Exchange
         List<object> accounts = new List<object>() {};
         for (int i = 0; i < (portfolioAccounts?.Count ?? 0); i++)
         {
-            accounts.Add(this.parseAccount(portfolioAccounts[i]));
+            accounts.Add(this.parseAccount(((IDictionary<string, object>)portfolioAccounts[i])));
         }
         return ccxt.BaseExchange.ToAccountList(accounts);
     }
 
-    public override Dictionary<string, object> parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -3487,7 +3487,7 @@ public partial class interactivebrokers : Exchange
         bool isMarketByCost = isMarket && ((cost != null));
         if (!isMarketByCost)
         {
-            request["quantity"] = this.parseNumber(this.amountToPrecision(symbol, amount));
+            request["quantity"] = this.parseNumber(this.amountToPrecision(((string)symbol), amount));
         }
         string? orderType = null;
         if (((trailingAmount != null)) || ((trailingPercent != null)))
@@ -3500,34 +3500,34 @@ public partial class interactivebrokers : Exchange
             } else
             {
                 request["trailingType"] = "amt";
-                request["trailingAmt"] = this.parseNumber(this.priceToPrecision(symbol, trailingAmount));
+                request["trailingAmt"] = this.parseNumber(this.priceToPrecision(((string)symbol), trailingAmount));
             }
             if ((triggerPrice != null))
             {
-                request["auxPrice"] = this.parseNumber(this.priceToPrecision(symbol, triggerPrice));
+                request["auxPrice"] = this.parseNumber(this.priceToPrecision(((string)symbol), triggerPrice));
             }
             if (!isMarket)
             {
-                request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
+                request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), price));
             }
         } else if ((triggerPrice != null))
         {
             if (isMarket)
             {
                 orderType = "STP";
-                request["price"] = this.parseNumber(this.priceToPrecision(symbol, triggerPrice));
+                request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), triggerPrice));
             } else
             {
                 orderType = "STP LMT";
-                request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
-                request["auxPrice"] = this.parseNumber(this.priceToPrecision(symbol, triggerPrice));
+                request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), price));
+                request["auxPrice"] = this.parseNumber(this.priceToPrecision(((string)symbol), triggerPrice));
             }
         } else if (isMarket)
         {
             orderType = "MKT";
             if (isMarketByCost)
             {
-                request["cashQty"] = this.parseNumber(this.priceToPrecision(symbol, cost));
+                request["cashQty"] = this.parseNumber(this.priceToPrecision(((string)symbol), cost));
             } else if ((side is "buy"))
             {
                 throw new InvalidOrder ((this.id + " createOrder() requires params[\"cost\"] for market buy orders")) ;
@@ -3535,7 +3535,7 @@ public partial class interactivebrokers : Exchange
         } else
         {
             orderType = "LMT";
-            request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
+            request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), price));
         }
         request["orderType"] = orderType;
         string defaultTimeInForce = "DAY";
@@ -4053,7 +4053,7 @@ public partial class interactivebrokers : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder / editOrder
@@ -4080,7 +4080,7 @@ public partial class interactivebrokers : Exchange
         {
             marketId = null;
         }
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string? orderTime = this.safeString(order, "order_time");
         Int64? timestamp = this.safeInteger(order, "lastExecutionTime_r");
         if (((timestamp == null)) && ((orderTime != null)))
@@ -4346,7 +4346,7 @@ public partial class interactivebrokers : Exchange
             //    }
             //
             string? transactionMarketId = this.safeString(trade, "conid");
-            Dictionary<string, object> transactionMarket = this.safeMarket(transactionMarketId, market);
+            Dictionary<string, object> transactionMarket = this.safeMarket(transactionMarketId,((IDictionary<string, object>)market));
             Int64? transactionTimestamp = ((Int64)this.parseTransactionDate(this.safeString(trade, "date")));
             string? qty = this.safeString(trade, "qty");
             string? typeId = this.safeStringLower(trade, "type");
@@ -4378,7 +4378,7 @@ public partial class interactivebrokers : Exchange
             }, transactionMarket);
         }
         string? marketId = this.safeString(trade, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(trade, "trade_time_r");
         string? sideId = this.safeString(trade, "side");
         string? side = null;
@@ -4525,10 +4525,10 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToPositionList(result);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(position, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(position, "timestamp");
         string? contracts = this.safeString(position, "position");
         string? side = null;
@@ -4602,7 +4602,7 @@ public partial class interactivebrokers : Exchange
         return ((("OAuth realm=\"" + realm) + "\", ") + String.Join(", ", parts.ToArray()));
     }
 
-    public virtual object ibkrOauthBase(object consumerKey, object consumerAccessToken)
+    public virtual object ibkrOauthBase(object consumerKey, string consumerAccessToken)
     {
         return new Dictionary<string, object>() {
             { "oauth_consumer_key", consumerKey },
