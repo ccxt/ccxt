@@ -3590,7 +3590,7 @@ class bingx extends Exchange {
         return $this->extend($request, $paramsRequest);
     }
 
-    public function encode_trigger_price_type(?string $triggerPriceType) {
+    public function encode_trigger_price_type(?string $triggerPriceType): ?string {
         $types = array(
             'last' => 'CONTRACT_PRICE',
             'mark' => 'MARK_PRICE',

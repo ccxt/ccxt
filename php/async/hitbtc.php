@@ -3075,7 +3075,7 @@ class hitbtc extends Exchange {
             if ($marketId === null) {
                 continue;
             }
-            $rawFundingRate = $this->safe_dict($response, $marketId);
+            $rawFundingRate = $this->safe_dict($response, $marketId, array());
             $marketInner = $this->market($marketId);
             $symbol = $this->safe_symbol($marketId, $marketInner);
             $fundingRate = $this->parse_funding_rate($rawFundingRate, $marketInner);

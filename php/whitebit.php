@@ -3708,7 +3708,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_history(?array $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "market": "BTC_PERP",

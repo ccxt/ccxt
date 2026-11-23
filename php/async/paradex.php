@@ -3637,7 +3637,7 @@ class paradex extends Exchange {
         // }
         //
         $configs = $this->safe_list($response, 'configs');
-        return $this->parse_leverage($this->safe_dict($configs, 0), $market);
+        return $this->parse_leverage($this->safe_dict($configs, 0, array()), $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {

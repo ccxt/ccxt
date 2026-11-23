@@ -1345,14 +1345,14 @@ class phemex extends Exchange {
         if (($amount === null) || ($market === null)) {
             return $amount;
         }
-        return $this->to_en($amount, $this->safe_integer($market, 'valueScale'));
+        return $this->to_en($amount, $this->safe_integer($this->safe_dict($market, 'info'), 'valueScale'));
     }
 
     public function to_ep(mixed $price, ?array $market = null) {
         if (($price === null) || ($market === null)) {
             return $price;
         }
-        return $this->to_en($price, $this->safe_integer($market, 'priceScale'));
+        return $this->to_en($price, $this->safe_integer($this->safe_dict($market, 'info'), 'priceScale'));
     }
 
     public function from_en(?string $en, ?int $scale): ?string {
@@ -1369,21 +1369,21 @@ class phemex extends Exchange {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
-        return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
+        return $this->from_en($ep, $this->safe_integer($this->safe_dict($market, 'info'), 'priceScale'));
     }
 
     public function from_ev(?string $ev, ?array $market = null): ?string {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
-        return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
+        return $this->from_en($ev, $this->safe_integer($this->safe_dict($market, 'info'), 'valueScale'));
     }
 
     public function from_er(?string $er, ?array $market = null): ?string {
         if (($er === null) || ($market === null)) {
             return $er;
         }
-        return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
+        return $this->from_en($er, $this->safe_integer($this->safe_dict($market, 'info'), 'ratioScale'));
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {

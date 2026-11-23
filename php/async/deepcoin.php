@@ -2241,7 +2241,7 @@ class deepcoin extends Exchange {
         $paramsOmitted = $this->omit($params, 'trigger');
         $response = null;
         if ($trigger) {
-            $request['instType'] = $this->convert_to_instrument_type($market['type']);
+            $request['instType'] = $this->convert_to_instrument_type($this->safe_string($market, 'type'));
             //
             //     {
             //         "code": "0",
@@ -2682,7 +2682,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $instrumentType = $this->convert_to_instrument_type($market['type']);
+        $instrumentType = $this->convert_to_instrument_type($this->safe_string($market, 'type'));
         $request = array(
             'instType' => $instrumentType,
             'instId' => $market['id'],

@@ -1898,7 +1898,7 @@ class aster extends Exchange {
         //         "time": 1750146970000
         //     }
         //
-        return $this->parse_funding_rate($response, $market);
+        return $this->parse_funding_rate($this->extend(array(), $response), $market);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
@@ -3328,7 +3328,7 @@ class aster extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, float $addOrReduce, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, float $addOrReduce, $params = array()): array {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $amountValue = $this->amount_to_precision($symbol, $amount);

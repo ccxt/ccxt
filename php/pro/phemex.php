@@ -54,7 +54,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function from_en(mixed $en, mixed $scale): ?string {
+    public function from_en(?string $en, ?int $scale): ?string {
         if ($en === null) {
             return null;
         }
@@ -62,27 +62,6 @@ class phemex extends \ccxt\async\phemex {
         $precise->decimals = $this->sum($precise->decimals, $this->safe_integer(array( $scale ), 0, 0));
         $precise->reduce();
         return (string) $precise;
-    }
-
-    public function from_ep(?string $ep, ?array $market = null): ?string {
-        if (($ep === null) || ($market === null)) {
-            return $ep;
-        }
-        return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
-    }
-
-    public function from_ev(?string $ev, ?array $market = null): ?string {
-        if (($ev === null) || ($market === null)) {
-            return $ev;
-        }
-        return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
-    }
-
-    public function from_er(?string $er, ?array $market = null): ?string {
-        if (($er === null) || ($market === null)) {
-            return $er;
-        }
-        return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
     public function request_id(): int {
@@ -115,14 +94,14 @@ class phemex extends \ccxt\async\phemex {
         $marketValue = $marketResolved;
         $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $lastString = $this->from_ep($this->safe_string($ticker, 'close'), $marketValue);
+        $lastString = $this->fromEp($this->safe_string($ticker, 'close'), $marketValue);
         $last = $this->parse_number($lastString);
-        $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'turnover'), $marketValue));
-        $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'volume'), $marketValue));
+        $quoteVolume = $this->parse_number($this->fromEv($this->safe_string($ticker, 'turnover'), $marketValue));
+        $baseVolume = $this->parse_number($this->fromEv($this->safe_string($ticker, 'volume'), $marketValue));
         $change = null;
         $percentage = null;
         $average = null;
-        $openString = $this->omit_zero($this->from_ep($this->safe_string($ticker, 'open'), $marketValue));
+        $openString = $this->omit_zero($this->fromEp($this->safe_string($ticker, 'open'), $marketValue));
         $open = $this->parse_number($openString);
         if (($openString !== null) && ($lastString !== null)) {
             $change = $this->parse_number(Precise::string_sub($lastString, $openString));
@@ -133,8 +112,8 @@ class phemex extends \ccxt\async\phemex {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'high'), $marketValue)),
-            'low' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'low'), $marketValue)),
+            'high' => $this->parse_number($this->fromEp($this->safe_string($ticker, 'high'), $marketValue)),
+            'low' => $this->parse_number($this->fromEp($this->safe_string($ticker, 'low'), $marketValue)),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -149,8 +128,8 @@ class phemex extends \ccxt\async\phemex {
             'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
-            'markPrice' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'markPrice'), $marketValue)),
-            'indexPrice' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'indexPrice'), $marketValue)),
+            'markPrice' => $this->parse_number($this->fromEp($this->safe_string($ticker, 'markPrice'), $marketValue)),
+            'indexPrice' => $this->parse_number($this->fromEp($this->safe_string($ticker, 'indexPrice'), $marketValue)),
             'info' => $ticker,
         ));
     }
@@ -176,14 +155,14 @@ class phemex extends \ccxt\async\phemex {
         $marketResolved = $this->safe_market($marketId, $market);
         $marketValue = $marketResolved;
         $symbol = $this->safe_string($marketResolved, 'symbol');
-        $lastString = $this->from_ep($this->safe_string($ticker, 4), $marketValue);
+        $lastString = $this->fromEp($this->safe_string($ticker, 4), $marketValue);
         $last = $this->parse_number($lastString);
-        $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 6), $marketValue));
-        $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 5), $marketValue));
+        $quoteVolume = $this->parse_number($this->fromEv($this->safe_string($ticker, 6), $marketValue));
+        $baseVolume = $this->parse_number($this->fromEv($this->safe_string($ticker, 5), $marketValue));
         $change = null;
         $percentage = null;
         $average = null;
-        $openString = $this->omit_zero($this->from_ep($this->safe_string($ticker, 1), $marketValue));
+        $openString = $this->omit_zero($this->fromEp($this->safe_string($ticker, 1), $marketValue));
         $open = $this->parse_number($openString);
         if (($openString !== null) && ($lastString !== null)) {
             $change = $this->parse_number(Precise::string_sub($lastString, $openString));
@@ -194,8 +173,8 @@ class phemex extends \ccxt\async\phemex {
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->parse_number($this->from_ep($this->safe_string($ticker, 2), $marketValue)),
-            'low' => $this->parse_number($this->from_ep($this->safe_string($ticker, 3), $marketValue)),
+            'high' => $this->parse_number($this->fromEp($this->safe_string($ticker, 2), $marketValue)),
+            'low' => $this->parse_number($this->fromEp($this->safe_string($ticker, 3), $marketValue)),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -1562,12 +1541,12 @@ class phemex extends \ccxt\async\phemex {
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parseOrderType($this->safe_string($order, 'ordType'));
-        $price = $this->safe_string($order, 'priceRp', $this->from_ep($this->safe_string($order, 'priceEp'), $marketValue));
+        $price = $this->safe_string($order, 'priceRp', $this->fromEp($this->safe_string($order, 'priceEp'), $marketValue));
         $amount = $this->safe_string($order, 'orderQty');
         $filled = $this->safe_string($order, 'cumQty');
         $remaining = $this->safe_string($order, 'leavesQty');
         $timestamp = $this->safe_integer_product($order, 'actionTimeNs', 0.000001);
-        $cost = $this->safe_string($order, 'cumValueRv', $this->from_ev($this->safe_string($order, 'cumValueEv'), $marketValue));
+        $cost = $this->safe_string($order, 'cumValueRv', $this->fromEv($this->safe_string($order, 'cumValueEv'), $marketValue));
         $lastTradeTimestamp = $this->safe_integer_product($order, 'transactTimeNs', 0.000001);
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;

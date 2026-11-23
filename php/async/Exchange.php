@@ -4106,7 +4106,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $ranksArray = $this->to_array($ranks);
         $result = array();
         for ($i = 0; $i < count($ranksArray); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranksArray[$i]), $params);
+            $rank = $this->extend($this->parse_adl_rank($this->extend(array(), $ranksArray[$i])), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
@@ -4116,7 +4116,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $accountsArray = $this->to_array($accounts);
         $result = array();
         for ($i = 0; $i < count($accountsArray); $i++) {
-            $account = $this->extend($this->parse_account($accountsArray[$i]), $params);
+            $account = $this->extend($this->parse_account($this->extend(array(), $accountsArray[$i])), $params);
             $result[] = $account;
         }
         return $result;
@@ -5647,7 +5647,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_last_prices_list(array $pricesData, ?array $symbols = null, $params = array()) {
         $results = array();
         for ($i = 0; $i < count($pricesData); $i++) {
-            $results[] = $this->extend($this->parse_last_price($pricesData[$i]), $params);
+            $results[] = $this->extend($this->parse_last_price($this->extend(array(), $pricesData[$i])), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
@@ -5786,7 +5786,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_funding_rates(array $response, ?array $symbols = null) {
         $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_funding_rate($response[$i]);
+            $parsed = $this->parse_funding_rate($this->safe_dict($response, $i, array()));
             $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $fundingRates[$symbol] = $parsed;
@@ -5802,7 +5802,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_long_short_ratio_history(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $rates[] = $this->parse_long_short_ratio($response[$i], $market);
+            $rates[] = $this->parse_long_short_ratio($this->extend(array(), $response[$i]), $market);
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
@@ -6272,7 +6272,7 @@ class BaseExchange extends \ccxt\BaseExchange {
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
-            $result[] = $this->parse_income($incomes[$i], $market);
+            $result[] = $this->parse_income($this->extend(array(), $incomes[$i]), $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
@@ -6900,7 +6900,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketTypeResolved);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
-                $leverageStructures[$market['symbol']] = $this->parse_leverage($info, $market);
+                $leverageStructures[$market['symbol']] = $this->parse_leverage($this->extend(array(), $info), $market);
             }
         }
         return $leverageStructures;

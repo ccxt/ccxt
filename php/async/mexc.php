@@ -3531,7 +3531,6 @@ class mexc extends Exchange {
             if ($errorMsg !== 'success') {
                 throw new InvalidOrder($this->id . ' cancelOrder() the order with id ' . $id . ' cannot be cancelled => ' . $errorMsg);
             }
-            return $this->parse_order($this->safe_dict($data, 0, array()), $market);
         }
         return $this->parse_order($data, $market);
     }

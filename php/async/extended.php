@@ -1173,7 +1173,7 @@ class extended extends Exchange {
         return $this->parse_funding_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_history(array $history, ?array $market = null) {
+    public function parse_funding_history(array $history, ?array $market = null): array {
         //
         //     {
         //         "id": 8341,

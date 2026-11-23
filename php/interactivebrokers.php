@@ -1473,7 +1473,7 @@ class interactivebrokers extends Exchange {
         $results = $promises;
         $neededSecTypes = array( 'CRYPTO' ); // CFD, OPT - they should already be fetched in other calls
         for ($i = 0; $i < count($results); $i++) {
-            $result = $results[$i];
+            $result = $this->safe_list($results, $i, array());
             for ($j = 0; $j < count($result); $j++) {
                 $entry = $result[$j];
                 $sections = $this->safe_list($entry, 'sections', array());
@@ -1652,7 +1652,7 @@ class interactivebrokers extends Exchange {
         }
         $responses = $promises;
         for ($i = 0; $i < count($responses); $i++) {
-            $cfds = $responses[$i];
+            $cfds = $this->safe_list($responses, $i, array());
             for ($j = 0; $j < count($cfds); $j++) {
                 $cfd = $cfds[$j];
                 $conid = $this->safe_string($cfd, 'conid');
@@ -1726,7 +1726,7 @@ class interactivebrokers extends Exchange {
         $filterPartsLength = count($filterParts);
         $contractPromises = array();
         for ($i = 0; $i < count($searchResults); $i++) {
-            $searchResult = $searchResults[$i];
+            $searchResult = $this->safe_list($searchResults, $i, array());
             for ($j = 0; $j < count($searchResult); $j++) {
                 $issuers = $this->safe_list($searchResult[$j], 'issuers', array());
                 for ($k = 0; $k < count($issuers); $k++) {
@@ -1765,7 +1765,7 @@ class interactivebrokers extends Exchange {
         //     ]
         //
         for ($i = 0; $i < count($contractResults); $i++) {
-            $contracts = $contractResults[$i];
+            $contracts = $this->safe_list($contractResults, $i, array());
             for ($j = 0; $j < count($contracts); $j++) {
                 $contract = $contracts[$j];
                 $conid = $this->safe_string($contract, 'conid');

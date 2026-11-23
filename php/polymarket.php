@@ -2509,7 +2509,7 @@ class polymarket extends Exchange {
         return $this->set_leverage($leverageInt, $symbol, $this->extend($request, $paramsOmitted));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, string $type, $params = array()): array {
         /**
          * @ignore
          * adds margin to an isolated position or removes some, the $amount is a $signed decimal in the $collateral asset

@@ -2502,7 +2502,7 @@ class nado extends Exchange {
         );
     }
 
-    public function parse_funding_history(array $funding, ?array $market = null) {
+    public function parse_funding_history(array $funding, ?array $market = null): array {
         //
         //     {
         //         "product_id": 2,

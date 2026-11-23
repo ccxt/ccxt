@@ -3375,7 +3375,7 @@ class deribit extends Exchange {
         $rates = array();
         $result = $this->safe_list($response, 'result', array());
         for ($i = 0; $i < count($result); $i++) {
-            $fr = $this->safe_dict($result, $i);
+            $fr = $this->safe_dict($result, $i, array());
             $rate = $this->parse_funding_rate($fr, $market);
             $rates[] = $rate;
         }

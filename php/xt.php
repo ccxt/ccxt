@@ -4572,7 +4572,7 @@ class xt extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $addOrReduce, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, string $addOrReduce, $params = array()): array {
         $positionSide = $this->safe_string($params, 'positionSide');
         $methodName = 'reduceMargin';
         if ($addOrReduce === 'ADD') {
@@ -5197,7 +5197,7 @@ class xt extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function parse_funding_history(?array $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "id": "210804044057280512",

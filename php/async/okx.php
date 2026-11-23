@@ -3059,7 +3059,7 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'instType' => $this->convert_to_instrument_type($market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType' => $this->convert_to_instrument_type($this->safe_string($market, 'type')), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // "instId": market["id"], // only applicable to SPOT/MARGIN
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
@@ -7952,11 +7952,11 @@ class okx extends Exchange {
         return $this->parse_borrow_rate_history($data, $code, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, float $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, float $amount, mixed $type, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -8124,7 +8124,7 @@ class okx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $type = ($this->safe_bool($market, 'spot', false)) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
+        $type = ($this->safe_bool($market, 'spot', false)) ? 'MARGIN' : $this->convert_to_instrument_type($this->safe_string($market, 'type'));
         $instFamily = $this->safe_string($market['info'], 'instFamily');
         if (($instFamily === null) || ($instFamily === '')) {
             if ($type !== 'MARGIN') {
@@ -8437,7 +8437,7 @@ class okx extends Exchange {
         if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
-        $type = $this->convert_to_instrument_type($market['type']);
+        $type = $this->convert_to_instrument_type($this->safe_string($market, 'type'));
         $uly = $this->safe_string($market['info'], 'uly');
         $request = array(
             'instType' => $type,
@@ -9005,7 +9005,7 @@ class okx extends Exchange {
             $symbolMarket = $this->market($symbol);
             $market = $symbolMarket;
             $request['instId'] = $symbolMarket['id'];
-            $request['instType'] = $this->convert_to_instrument_type($symbolMarket['type']);
+            $request['instType'] = $this->convert_to_instrument_type($this->safe_string($symbolMarket, 'type'));
         }
         if ($since !== null) {
             $request['begin'] = $since;

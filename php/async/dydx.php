@@ -1277,7 +1277,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function sign_message(mixed $message, mixed $privateKey): array {
+    public function sign_message(mixed $message, string $privateKey): array {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 

@@ -2677,11 +2677,11 @@ class polymarket extends Exchange {
         return Async\await($this->set_leverage($leverageInt, $symbol, $this->extend($request, $paramsOmitted)));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, float $amount, string $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, float $amount, string $type, $params = array()) {
         /**
          * @ignore
          * adds margin to an isolated position or removes some, the $amount is a $signed decimal in the $collateral asset

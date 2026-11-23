@@ -9842,7 +9842,7 @@ class bitget extends Exchange {
             }
         }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_funding_rate($data[0], $market);
+        return $this->parse_funding_rate($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {

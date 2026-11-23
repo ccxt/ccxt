@@ -2170,7 +2170,7 @@ class bitrue extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -2265,7 +2265,7 @@ class bitrue extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2485,7 +2485,7 @@ class bitrue extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {

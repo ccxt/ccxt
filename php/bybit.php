@@ -7183,7 +7183,7 @@ class bybit extends Exchange {
         }
         $market = $this->market($symbol);
         $position = $this->fetch_position($symbol, $params);
-        return $this->parse_leverage($position, $market);
+        return $this->parse_leverage($this->extend(array(), $position), $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {

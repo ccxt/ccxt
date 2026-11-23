@@ -612,7 +612,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          */
         $paramsResolved = $this->handleRouteAndParams('watchFundingRate', $params);
         $ticker = Async\await($this->watch_ticker($symbol, $paramsResolved));
-        return $this->parse_funding_rate($ticker['info'], $this->market($symbol));
+        return $this->parse_funding_rate($this->extend(array(), $ticker['info']), $this->market($symbol));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -645,7 +645,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         for ($i = 0; $i < $tickerSymbolsLength; $i++) {
             $symbol = $tickerSymbols[$i];
             $ticker = $tickers[$symbol];
-            $result[$symbol] = $this->parse_funding_rate($ticker['info'], $this->market($symbol));
+            $result[$symbol] = $this->parse_funding_rate($this->extend(array(), $ticker['info']), $this->market($symbol));
         }
         return $result;
     }
