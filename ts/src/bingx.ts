@@ -3504,7 +3504,7 @@ export default class bingx extends Exchange {
         return this.extend (request, paramsRequest);
     }
 
-    encodeTriggerPriceType (triggerPriceType: Str) {
+    encodeTriggerPriceType (triggerPriceType: Str): Str {
         const types: Dict = {
             'last': 'CONTRACT_PRICE',
             'mark': 'MARK_PRICE',

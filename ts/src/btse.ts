@@ -3787,7 +3787,7 @@ export default class btse extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    futuresRequestId (market: Market) {
+    futuresRequestId (market: Market): Str {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well

@@ -15,7 +15,7 @@ import { shortenJavaReferences } from './javaUtilImports.js';
 export const JAVA_STRING_RETURN_METHODS = new Set ([
     'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'outcomeSearchQuery', 'priceToPrecision',
     'walletAddressOrUndefined',
-    'createAuthToken', 'encodeTriggerPriceType', 'futuresRequestId', 'parseUnits',
+    'createAuthToken',
 ]);
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
@@ -8504,6 +8504,10 @@ function redundantCastsOperandIsString (printer, node, stringDecls) {
                 if (name === 'remove0xPrefix') {
                     const file = resolvedSignatureFile (printer, node);
                     return file !== undefined && HELPER_SOURCE_FILE.test (file); // base `public String`
+                }
+                // a sync method whose own declaration the printer retyped to a String signature
+                if (!isAsyncMethodCall (printer, node) && internalReturnLocalType (printer, node)?.type === 'String') {
+                    return true;
                 }
                 if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
                     // the signature hook retypes these declarations to String; async
