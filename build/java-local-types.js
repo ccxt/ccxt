@@ -18202,7 +18202,8 @@ export function installJavaMapArgAlreadyTyped (transpiler) {
         }
         try {
             const declared = String (printer.javaDeclaredTypeOf (arg) ?? '').replace (/^final\s+/, '').replace (/java\.util\./g, '').replace (/\s/g, '');
-            return declared === MAP_SLOT_TYPE;
+            // a destructured binding printed as a typed Pair Map read (`Map<String, Object> p = h.second()`)
+            return declared === MAP_SLOT_TYPE || javaPairBoundType (printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve ()) !== undefined;
         } catch (e) {
             return false;
         }
