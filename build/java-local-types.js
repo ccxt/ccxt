@@ -9448,8 +9448,13 @@ function javaDeclaredLocalTypeRecord (printer, node, identation, printed, declar
         return;
     }
     const declaration = node.declarations[0];
-    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier) {
         return;
+    }
+    // `let x: Dict;` prints `<type> x = null;`: kept apart, only the map-argument rule reads it
+    const uninitialized = declaration.initializer === undefined;
+    if (uninitialized) {
+        declaredTypes = printer._javaUninitializedDeclaredTypes ??= new WeakMap ();
     }
     const iden = printer.getIden (identation);
     const printedName = printer.printNode (declaration.name, 0);
@@ -18231,9 +18236,11 @@ export function installJavaMapArgAlreadyTyped (transpiler) {
             return false;
         }
         try {
-            const declared = String (printer.javaDeclaredTypeOf (arg) ?? '').replace (/^final\s+/, '').replace (/java\.util\./g, '').replace (/\s/g, '');
+            const symbolDeclaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve ();
+            const uninitialized = symbolDeclaration && printer._javaUninitializedDeclaredTypes?.get (symbolDeclaration);
+            const declared = String (uninitialized ?? printer.javaDeclaredTypeOf (arg) ?? '').replace (/^final\s+/, '').replace (/java\.util\./g, '').replace (/\s/g, '');
             // a destructured binding printed as a typed Pair Map read (`Map<String, Object> p = h.second()`)
-            return declared === MAP_SLOT_TYPE || javaPairBoundType (printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve ()) !== undefined;
+            return declared === MAP_SLOT_TYPE || javaPairBoundType (symbolDeclaration) !== undefined;
         } catch (e) {
             return false;
         }
