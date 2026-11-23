@@ -2656,7 +2656,6 @@ export default class okx extends okxRest {
 
     handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
-        return message;
     }
 
     handleErrorMessage (client: Client, message: Dict): Bool {

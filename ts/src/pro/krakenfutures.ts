@@ -1793,7 +1793,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleAuthenticate (client: Client, message: Dict): Dict {
+    handleAuthenticate (client: Client, message: Dict) {
         /**
          * @ignore
          * @method
@@ -1823,6 +1823,5 @@ export default class krakenfutures extends krakenfuturesRest {
                 delete client.subscriptions[messageHash];
             }
         }
-        return message;
     }
 }

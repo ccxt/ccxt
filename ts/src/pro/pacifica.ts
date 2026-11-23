@@ -1537,14 +1537,13 @@ export default class pacifica extends pacificaRest {
         };
     }
 
-    handlePong (client: Client, message: Dict): Dict {
+    handlePong (client: Client, message: Dict) {
         //
         //   {
         //       "channel": "pong"
         //   }
         //
         client.lastPong = this.safeInteger (message, 'pong', this.milliseconds ());
-        return message;
     }
 
     requestId (): int {
