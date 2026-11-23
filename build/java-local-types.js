@@ -9080,7 +9080,6 @@ export function patchJavaParamTypes (transpiler) {
 // them to `Object`, moving the declaration and every consumer together.
 export const JAVA_OBJECT_PARAM_POSITIONS = {
     'parseCurrency': [ 0 ],
-    'parseTransfer': [ 0 ],
     'parseWsTicker': [ 0 ],
 };
 
