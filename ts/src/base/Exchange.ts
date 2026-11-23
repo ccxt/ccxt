@@ -8112,7 +8112,7 @@ export class BaseExchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            results.push (this.extend (this.parseLastPrice (pricesData[marketId], market), params));
+            results.push (this.extend (this.parseLastPrice (this.extend ({}, pricesData[marketId]), market), params));
         }
         return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol');
     }

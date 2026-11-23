@@ -456,7 +456,7 @@ type IDerivedExchange interface {
 	ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry
 	ParseAccount(account map[string]any) map[string]any
 	ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry
-	ParseLastPrice(item any, optionalArgs ...any) map[string]any
+	ParseLastPrice(item map[string]any, optionalArgs ...any) map[string]any
 	ParseOrder(order any, optionalArgs ...any) Order
 	ParseTicker(ticker any, optionalArgs ...any) Ticker
 	ParseTickers(tickers any, optionalArgs ...any) map[string]any
