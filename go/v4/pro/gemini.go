@@ -244,7 +244,7 @@ func (this *Gemini) HandleTrade(client ccxt.ClientInterface, message map[string]
 	}
 	stored.Append(trade)
 	var messageHash string = "trades:" + *this.SafeString(trade, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Gemini) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -300,7 +300,7 @@ func (this *Gemini) HandleTrades(client ccxt.ClientInterface, message map[string
 			stored.Append(trade)
 		}
 		var messageHash string = "trades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
 }
 func (this *Gemini) HandleTradesForMultidata(client ccxt.ClientInterface, trades []any, timestamp *int64) {
@@ -338,7 +338,7 @@ func (this *Gemini) HandleTradesForMultidata(client ccxt.ClientInterface, trades
 		var symbol string = symbols[i]
 		var symbolStore any = storesForSymbols[symbol]
 		var messageHash string = "trades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(symbolStore, messageHash)
+		client.Resolve(symbolStore, messageHash)
 	}
 }
 
@@ -470,7 +470,7 @@ func (this *Gemini) HandleOHLCV(client ccxt.ClientInterface, message any) any {
 		stored.Append(ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, (changesLength-i)-1), market)))
 	}
 	var messageHash string = "ohlcv:" + *symbol + ":" + timeframeId
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	return message
 }
 
@@ -564,7 +564,7 @@ func (this *Gemini) HandleOrderBook(client ccxt.ClientInterface, message map[str
 			"asks": asksSnapshot,
 		}, symbol)
 		orderbook.Reset(snapshot)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 		return
 	}
 	for i := 0; i < len(changes); i++ {
@@ -581,7 +581,7 @@ func (this *Gemini) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	}
 	orderbook.SetSymbol(symbol)
 	this.Orderbooks[*symbol] = orderbook
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -717,7 +717,7 @@ func (this *Gemini) HandleBidsAsksForMultidata(client ccxt.ClientInterface, rawB
 		bidsAsksDict[*symbol] = currentBidAsk
 	}
 	this.Bidsasks[*symbol] = ccxt.TickerFromMap(currentBidAsk)
-	client.(ccxt.ClientInterface).Resolve(bidsAsksDict, messageHash)
+	client.Resolve(bidsAsksDict, messageHash)
 }
 func (this *Gemini) HelperForWatchMultipleConstructAsync(itemHashName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -827,7 +827,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client ccxt.ClientInterface, raw
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	this.Orderbooks[*symbol] = orderbook
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Gemini) HandleL2Updates(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -953,7 +953,7 @@ func (this *Gemini) HandleHeartbeat(client ccxt.ClientInterface, message map[str
 	//         "socket_sequence": 7
 	//     }
 	//
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message
 }
 func (this *Gemini) HandleSubscription(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -1003,7 +1003,7 @@ func (this *Gemini) HandleOrder(client ccxt.ClientInterface, message []any) {
 		var order map[string]any = this.ParseWsOrder(this.SafeValue(message, i))
 		orders.Append(order)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+	client.Resolve(this.Orders, messageHash)
 }
 func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//

@@ -22,12 +22,12 @@ func createOrderAfterDelayBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICor
 	}
 	return nil
 }
-func TestUnWatchPositionsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan ccxt.AsyncResult[any] {
+func TestUnWatchPositionsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go testUnWatchPositionsBody(ch, exchange, skippedProperties, symbol)
 	return ch
 }
-func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false

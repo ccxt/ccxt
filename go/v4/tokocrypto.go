@@ -3418,7 +3418,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Tokocrypto) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Tokocrypto) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if (code == 418) || (code == 429) {
 		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + " " + body))
 	}
@@ -3501,7 +3501,7 @@ func (this *Tokocrypto) HandleErrors(code int64, reason string, url string, meth
 	}
 	return nil
 }
-func (this *Tokocrypto) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Tokocrypto) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var paramsDict map[string]any = this.Extend(map[string]any{}, params)

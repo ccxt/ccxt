@@ -217,7 +217,7 @@ func (this *Modetrade) HandleOrderBook(client ccxt.ClientInterface, message map[
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.Reset(snapshot)
-	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
+	client.Resolve(orderbook, topic)
 }
 
 /**
@@ -338,7 +338,7 @@ func (this *Modetrade) HandleTicker(client ccxt.ClientInterface, message map[str
 	if wsKey, ok := market["symbol"].(string); ok {
 		this.Tickers[wsKey] = ccxt.TickerFromMap(ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, topic)
+	client.Resolve(ticker, topic)
 	return message
 }
 
@@ -423,7 +423,7 @@ func (this *Modetrade) HandleTickers(client ccxt.ClientInterface, message map[st
 		}
 		result = append(result, ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(result, topic)
+	client.Resolve(result, topic)
 }
 
 /**
@@ -502,7 +502,7 @@ func (this *Modetrade) HandleBidAsk(client ccxt.ClientInterface, message map[str
 		}
 		result = append(result, ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(result, topic)
+	client.Resolve(result, topic)
 }
 func (this *Modetrade) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -640,7 +640,7 @@ func (this *Modetrade) HandleOHLCV(client ccxt.ClientInterface, message map[stri
 		ohlcvCache, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	ohlcvCache.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(ohlcvCache, topic)
+	client.Resolve(ohlcvCache, topic)
 }
 
 /**
@@ -738,7 +738,7 @@ func (this *Modetrade) HandleTrade(client ccxt.ClientInterface, message map[stri
 	if symbol != nil {
 		this.Trades[*symbol] = trades
 	}
-	client.(ccxt.ClientInterface).Resolve(trades, topic)
+	client.Resolve(trades, topic)
 }
 func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -834,14 +834,14 @@ func (this *Modetrade) HandleAuth(client ccxt.ClientInterface, message map[strin
 	var success *bool = this.SafeBool(message, "success", false)
 	if success != nil && *success {
 		// client.resolve (message, messageHash)
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		var future *ccxt.Future = client.GetFutures()["authenticated"]
 		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		client.Reject(error, messageHash)
 		// allows further authentication attempts
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel("authenticated")
 		}
 	}
 }
@@ -866,8 +866,8 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		var secret string = this.Secret
@@ -1336,8 +1336,8 @@ func (this *Modetrade) HandleOrder(client ccxt.ClientInterface, message any, top
 			parsed["datetime"] = this.SafeString(order, "datetime")
 		}
 		cachedOrders.Append(parsed)
-		client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
-		client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add(ccxt.Add(topic, ":"), symbol))
+		client.Resolve(this.Orders, topic)
+		client.Resolve(this.Orders, ccxt.Add(ccxt.Add(topic, ":"), symbol))
 	}
 }
 func (this *Modetrade) HandleMyTrade(client ccxt.ClientInterface, message any) {
@@ -1381,13 +1381,13 @@ func (this *Modetrade) HandleMyTrade(client ccxt.ClientInterface, message any) {
 		this.MyTrades = trades
 	}
 	trades.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 	var symbolSpecificMessageHash *string = nil
 	if symbol != nil {
 		symbolSpecificMessageHashValue := messageHash + ":" + *symbol
 		symbolSpecificMessageHash = &symbolSpecificMessageHashValue
 	}
-	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
+	client.Resolve(trades, symbolSpecificMessageHash)
 }
 
 /**
@@ -1447,7 +1447,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
-		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
+		r1 := <-client.Future("fetchPositionsSnapshot")
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1481,8 +1481,8 @@ func (this *Modetrade) SetPositionsCache(client ccxt.ClientInterface, optionalAr
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}
 	} else {
@@ -1513,10 +1513,10 @@ func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 		}
 	}
 	// don't remove the future from the .futures cache
-	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	var future *ccxt.Future = client.GetFutures()[messageHash]
 	if future != nil {
 		future.Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, "positions")
+		client.Resolve(cache, "positions")
 	}
 	return nil
 }
@@ -1569,9 +1569,9 @@ func (this *Modetrade) HandlePositions(client ccxt.ClientInterface, message map[
 		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")
 		var messageHash string = "positions::" + marketSymbol
-		client.(ccxt.ClientInterface).Resolve(position, messageHash)
+		client.Resolve(position, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+	client.Resolve(newPositions, "positions")
 }
 func (this *Modetrade) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -1756,7 +1756,7 @@ func (this *Modetrade) HandleBalance(client ccxt.ClientInterface, message map[st
 		}
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
 func (this *Modetrade) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
@@ -1778,12 +1778,12 @@ func (this *Modetrade) HandleErrorMessage(client ccxt.ClientInterface, message m
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
-							client.(ccxt.ClientInterface).Reject(error, messageHash)
-							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+							client.Reject(error, messageHash)
+							if client.SubscriptionHas(messageHash) {
+								client.SubscriptionDel(messageHash)
 							}
 						} else {
-							client.(ccxt.ClientInterface).Reject(error)
+							client.Reject(error)
 						}
 						return true
 					}(this)
@@ -1879,7 +1879,7 @@ func (this *Modetrade) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Clie
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+	r := <-client.SendAsync(map[string]any{
 		"event": "pong",
 	})
 	if r.Err != nil {
@@ -1894,7 +1894,7 @@ func (this *Modetrade) HandlePong(client ccxt.ClientInterface, message map[strin
 	//
 	// { event: "pong", ts: 1614667590000 }
 	//
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message
 }
 func (this *Modetrade) HandleSubscribe(client ccxt.ClientInterface, message map[string]any) map[string]any {

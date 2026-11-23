@@ -2750,7 +2750,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal201115
 }
-func (this *Bitso) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bitso) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

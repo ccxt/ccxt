@@ -1210,7 +1210,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var market map[string]any = SafeMapTyped(response, i)
+		var market, _ = response[i].(map[string]any)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -4073,7 +4073,7 @@ func (this *Bitstamp) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(transfer)}
 	return nil
 }
-func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Bitstamp) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//    { status: 'ok' }
 	//
@@ -4184,7 +4184,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal284015
 }
-func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

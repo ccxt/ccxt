@@ -4615,7 +4615,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(firstResult, currency)}
 	return nil
 }
-func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Kraken) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
@@ -4955,7 +4955,7 @@ func (this *Kraken) transferBody(ch chan AsyncResult[TransferEntry], code string
 	}))}
 	return nil
 }
-func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Kraken) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -4969,7 +4969,7 @@ func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var result map[string]any = SafeMapTyped(transfer, "result")
+	var result, _ = transfer["result"].(map[string]any)
 	var refid *string = this.SafeString(result, "refid")
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
@@ -5067,7 +5067,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) map[string]any {
 func (this *Kraken) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Kraken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Kraken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if code == 520 {
 		panic(ExchangeNotAvailable(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason))
 	}

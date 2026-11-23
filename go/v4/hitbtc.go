@@ -3728,21 +3728,24 @@ func (this *Hitbtc) transferBody(ch chan AsyncResult[TransferEntry], code string
 		"destination": toId,
 	}
 
-	r1 := <-this.PrivatePostWalletTransfer(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostWalletTransfer(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	var response map[string]any = r1.Value
+	var response map[string]any = responseReply.Value
 
 	//
 	//     [
 	//         "2db6ebab-fb26-4537-9ef8-1a689472d235"
 	//     ]
 	//
-	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
+	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(map[string]any{}, currency)), map[string]any{
+		"id":   this.SafeString(response, 0),
+		"info": responseReply.Raw,
+	}))}
 	return nil
 }
-func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Hitbtc) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -4040,11 +4043,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297619 []any = r1.Value
-		if retRes297619 == nil {
+		var retRes297919 []any = r1.Value
+		if retRes297919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297919)}
 		}
 		return nil
 	}
@@ -4683,12 +4686,12 @@ func (this *Hitbtc) ParseFundingRate(contract any, optionalArgs ...any) FundingR
 		"interval":                 nil,
 	})
 }
-func (this *Hitbtc) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Hitbtc) ModifyMarginHelperAsync(symbol string, amount float64, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4824,12 +4827,12 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) map[s
  * @param {bool} [params.margin] true for reducing spot-margin
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hitbtc) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Hitbtc) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4859,12 +4862,12 @@ func (this *Hitbtc) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
  * @param {bool} [params.margin] true for adding spot-margin
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hitbtc) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Hitbtc) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5275,7 +5278,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	}
 	return marginMode, paramsMarginMode
 }
-func (this *Hitbtc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Hitbtc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	//
 	//     {
 	//       "error": {
@@ -5341,17 +5344,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394215 map[string]any = map[string]any{
+	var literal394515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394215["body"] = nil
+		literal394515["body"] = nil
 	} else {
-		literal394215["body"] = bodyString
+		literal394515["body"] = bodyString
 	}
-	return literal394215
+	return literal394515
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

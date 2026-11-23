@@ -139,7 +139,7 @@ func (this *Ndax) HandleTicker(client ccxt.ClientInterface, message map[string]a
 	}
 	var name string = "SubscribeLevel1"
 	var messageHash string = name + ":" + marketId
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 
 /**
@@ -268,7 +268,7 @@ func (this *Ndax) HandleTrades(client ccxt.ClientInterface, message map[string]a
 		}
 		var messageHash string = name + ":" + marketId
 		var symbolTrades ccxt.WsArrayCache = this.Trades[symbol]
-		client.(ccxt.ClientInterface).Resolve(symbolTrades, messageHash)
+		client.Resolve(symbolTrades, messageHash)
 	}
 }
 
@@ -463,7 +463,7 @@ func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 			var symbol *string = this.SafeString(market, "symbol", "")
 			var symbolOhlcv ccxt.WsArrayCache
 			symbolOhlcv, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
-			client.(ccxt.ClientInterface).Resolve(symbolOhlcv, messageHash)
+			client.Resolve(symbolOhlcv, messageHash)
 		}
 	}
 }
@@ -626,7 +626,7 @@ func (this *Ndax) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	var name string = "SubscribeLevel2"
 	var messageHash string = name + ":" + *marketId
 	this.Orderbooks[symbol] = orderbook
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Ndax) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	//
@@ -669,7 +669,7 @@ func (this *Ndax) HandleOrderBookSubscription(client ccxt.ClientInterface, messa
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	orderbook.Reset(snapshot)
 	var messageHash *string = this.SafeString(subscription, "messageHash")
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Ndax) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -680,7 +680,7 @@ func (this *Ndax) HandleSubscriptionStatus(client ccxt.ClientInterface, message 
 	//         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
 	//     }
 	//
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	var id *int64 = this.SafeInteger(message, "i")
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {

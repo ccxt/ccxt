@@ -197,7 +197,7 @@ func (this *Dydx) HandleTrades(client ccxt.ClientInterface, message map[string]a
 		stored.Append(parsedTrades[i])
 	}
 	var messageHash string = "trade" + ":" + symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -381,7 +381,7 @@ func (this *Dydx) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	orderbook.SetNonce(this.SafeInteger(message, "message_id"))
 	var messageHash string = "orderbook:" + *symbol
 	this.Orderbooks[*symbol] = orderbook
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Dydx) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	if ccxt.IsArray(delta) {
@@ -591,7 +591,7 @@ func (this *Dydx) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 		}
 	}
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Dydx) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 
@@ -604,7 +604,7 @@ func (this *Dydx) HandleErrorMessage(client ccxt.ClientInterface, message map[st
 					}
 					ret_ = func(this *Dydx) any {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(e)
+						client.Reject(e)
 						return nil
 					}(this)
 				}

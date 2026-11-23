@@ -1865,7 +1865,7 @@ func (this *Bitvavo) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Bitvavo) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "symbol")
@@ -3626,7 +3626,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal273415
 }
-func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -3645,7 +3645,7 @@ func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method 
 	}
 	return nil
 }
-func (this *Bitvavo) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Bitvavo) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var marketId *string = this.SafeString(params, "market")

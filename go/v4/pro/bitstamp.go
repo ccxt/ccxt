@@ -260,7 +260,7 @@ func (this *Bitstamp) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		return
 	}
 	this.HandleBookDelta(storedOrderBook, delta)
-	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
+	client.Resolve(storedOrderBook, messageHash)
 }
 func (this *Bitstamp) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var timestamp *int64 = this.SafeTimestamp(delta, "timestamp")
@@ -278,7 +278,7 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) any {
+func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) int64 {
 	// we will consider it a fail
 	var firstElement map[string]any
 	if 0 < len(deltas) {
@@ -296,10 +296,10 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) any {
 		var delta, _ = deltas[i].(map[string]any)
 		var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 		if deltaNonce == nonce || (deltaNonce != nil && nonce != nil && *deltaNonce == *nonce) {
-			return i + 1
+			return int64(i + 1)
 		}
 	}
-	return len(deltas)
+	return int64(len(deltas))
 }
 
 /**
@@ -481,7 +481,7 @@ func (this *Bitstamp) HandleTrade(client ccxt.ClientInterface, message map[strin
 		this.Trades[symbol] = tradesArray
 	}
 	tradesArray.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+	client.Resolve(tradesArray, messageHash)
 }
 
 /**
@@ -559,7 +559,7 @@ func (this *Bitstamp) HandleFundingRate(client ccxt.ClientInterface, message map
 	}
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data, market))
 	this.FundingRates[symbol] = fundingRate
-	client.(ccxt.ClientInterface).Resolve(fundingRate, "fundingRate:"+symbol)
+	client.Resolve(fundingRate, "fundingRate:"+symbol)
 }
 
 /**
@@ -815,7 +815,7 @@ func (this *Bitstamp) HandleMyTrades(client ccxt.ClientInterface, message map[st
 	if channel == nil {
 		subscription = nil
 	} else {
-		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
+		subscription = this.SafeDict(client.SubscriptionsSnapshot(), channel)
 	}
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
@@ -832,7 +832,7 @@ func (this *Bitstamp) HandleMyTrades(client ccxt.ClientInterface, message map[st
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var trade map[string]any = this.ParseWsMyTrade(data, market)
 	stored.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, channel)
+	client.Resolve(stored, channel)
 }
 func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -918,7 +918,7 @@ func (this *Bitstamp) HandleOrders(client ccxt.ClientInterface, message map[stri
 	if channel == nil {
 		subscription = nil
 	} else {
-		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
+		subscription = this.SafeDict(client.SubscriptionsSnapshot(), channel)
 	}
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
@@ -936,7 +936,7 @@ func (this *Bitstamp) HandleOrders(client ccxt.ClientInterface, message map[stri
 	order["event"] = this.SafeString(message, "event")
 	var parsed map[string]any = this.ParseWsOrder(order, market)
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
+	client.Resolve(this.Orders, channel)
 }
 func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -1099,7 +1099,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client ccxt.ClientInterface, me
 		return
 	}
 	var unsubHash string = "unsubscribe:" + *channel
-	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+	var subscription map[string]any = client.SubscriptionDict(unsubHash)
 	if subscription == nil {
 		return
 	}
@@ -1296,18 +1296,18 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		// goes through the client's own accessors in the ported languages
 		var messageHash string = "authenticateFlight"
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in this.options
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
 
 			return nil
 		}
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Bitstamp) (ret_ any) {
@@ -1320,7 +1320,7 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 							// catch block:
 							// reject the flight - all waiters throw and the next caller
 							// re-leads instead of deadlocking on a dead flight
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							client.Reject(e, messageHash)
 							return nil
 						}(this)
 					}
@@ -1358,7 +1358,7 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				}
 				// settle the flight: client.resolve deletes the future from
 				// client.futures and wakes every waiter parked on it
-				client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)
+				client.Resolve(sessionToken, messageHash)
 				return nil
 			}(this)
 

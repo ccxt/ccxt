@@ -2282,12 +2282,12 @@ func (this *Cex) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(transfer, filled))}
 	return nil
 }
-func (this *Cex) TransferBetweenMainAndSubAccountAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Cex) TransferBetweenMainAndSubAccountAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBetweenMainAndSubAccountBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2352,12 +2352,12 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[Transf
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(data, currency)}
 	return nil
 }
-func (this *Cex) TransferBetweenSubAccountsAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Cex) TransferBetweenSubAccountsAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBetweenSubAccountsBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2399,7 +2399,7 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[TransferEntr
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(data, currency)}
 	return nil
 }
-func (this *Cex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Cex) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transferBetweenSubAccounts
 	//
@@ -2503,7 +2503,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
 }
-func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Cex) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
@@ -2575,7 +2575,7 @@ func (this *Cex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Cex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Cex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	// in some cases, like from createOrder, exchange returns nested escaped JSON string:
 	//      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
 	// and because of `.parseJson` bug, we need extra fix

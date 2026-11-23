@@ -2650,10 +2650,10 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) Order {
 		},
 	})
 }
-func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Foxbit) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var network map[string]any = SafeMapTyped(depositAddress, "network")
+	var network, _ = depositAddress["network"].(map[string]any)
 	var networkId *string = this.SafeString(network, "code")
 	var currencyCode *string = this.SafeCurrencyCode(nil, currency)
 	var unifiedNetwork *string = this.NetworkIdToCode(networkId, currencyCode)
@@ -2883,7 +2883,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Foxbit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Foxbit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

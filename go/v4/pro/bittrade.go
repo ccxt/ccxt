@@ -152,7 +152,7 @@ func (this *Bittrade) HandleTicker(client ccxt.ClientInterface, message map[stri
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, ch)
+	client.Resolve(ticker, ch)
 	return message
 }
 
@@ -269,7 +269,7 @@ func (this *Bittrade) HandleTrades(client ccxt.ClientInterface, message map[stri
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{}), market))
 		tradesCache.Append(trade)
 	}
-	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
+	client.Resolve(tradesCache, ch)
 	return message
 }
 
@@ -393,7 +393,7 @@ func (this *Bittrade) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 	var tick, _ = message["tick"].(map[string]any)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, ch)
+	client.Resolve(stored, ch)
 }
 
 /**
@@ -511,7 +511,7 @@ func (this *Bittrade) HandleOrderBookSnapshot(client ccxt.ClientInterface, messa
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Bittrade) WatchOrderBookSnapshotAsync(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
@@ -534,8 +534,8 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 					}
 					ret_ = func(this *Bittrade) any {
 						// catch block:
-						client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
-						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						client.SubscriptionDel(messageHash)
+						client.Reject(e, messageHash)
 						return nil
 					}(this)
 				}
@@ -672,7 +672,7 @@ func (this *Bittrade) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 func (this *Bittrade) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
@@ -703,7 +703,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 	if id == nil {
 		return message
 	}
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
 		var method *string = this.SafeString(subscription, "method")
@@ -715,8 +715,8 @@ func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 			return nil
 		}
 		// clean up
-		if client.(ccxt.ClientInterface).SubscriptionHas(id) {
-			client.(ccxt.ClientInterface).SubscriptionDel(id)
+		if client.SubscriptionHas(id) {
+			client.SubscriptionDel(id)
 		}
 	}
 	return message
@@ -787,7 +787,7 @@ func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Clien
 	//     { ping: 1583491673714 }
 	//
 
-	r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+	r := <-client.SendAsync(map[string]any{
 		"pong": this.SafeInteger(message, "ping"),
 	})
 	if r.Err != nil {
@@ -814,7 +814,7 @@ func (this *Bittrade) HandleErrorMessage(client ccxt.ClientInterface, message ma
 		if id == nil {
 			return false
 		}
-		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
@@ -831,10 +831,10 @@ func (this *Bittrade) HandleErrorMessage(client ccxt.ClientInterface, message ma
 							ret_ = func(this *Bittrade) any {
 								// catch block:
 								var messageHash *string = this.SafeString(subscription, "messageHash")
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								client.(ccxt.ClientInterface).Reject(e, id)
-								if client.(ccxt.ClientInterface).SubscriptionHas(id) {
-									client.(ccxt.ClientInterface).SubscriptionDel(id)
+								client.Reject(e, messageHash)
+								client.Reject(e, id)
+								if client.SubscriptionHas(id) {
+									client.SubscriptionDel(id)
 								}
 								return nil
 							}(this)

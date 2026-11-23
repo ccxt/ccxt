@@ -2731,7 +2731,7 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}))})}
 	return nil
 }
-func (this *Bittrade) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Bittrade) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "currency": "usdt",
@@ -3149,7 +3149,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Bittrade) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bittrade) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

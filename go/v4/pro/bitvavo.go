@@ -269,10 +269,10 @@ func (this *Bitvavo) HandleTicker(client ccxt.ClientInterface, message map[strin
 		result = append(result, ticker)
 		if event != nil {
 			var messageHash string = *event + "@" + *this.SafeString(data, "market", "")
-			client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+			client.Resolve(ticker, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(result, event)
+	client.Resolve(result, event)
 }
 
 /**
@@ -329,9 +329,9 @@ func (this *Bitvavo) HandleBidAsk(client ccxt.ClientInterface, message map[strin
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(ticker)
 		result = append(result, ticker)
 		var messageHash string = event + ":" + symbol
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(result, event)
+	client.Resolve(result, event)
 }
 func (this *Bitvavo) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -423,7 +423,7 @@ func (this *Bitvavo) HandleTrade(client ccxt.ClientInterface, message map[string
 	}
 	tradesArray.Append(trade)
 	this.Trades[symbol] = tradesArray
-	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+	client.Resolve(tradesArray, messageHash)
 }
 
 /**
@@ -655,7 +655,7 @@ func (this *Bitvavo) HandleFetchOHLCV(client ccxt.ClientInterface, message map[s
 	var response, _ = message["response"].([]any)
 	var ohlcv []any = this.ParseOHLCVs(response, nil, nil, nil)
 	var messageHash *string = this.SafeString(message, "requestId")
-	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
+	client.Resolve(ohlcv, messageHash)
 }
 func (this *Bitvavo) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -703,9 +703,9 @@ func (this *Bitvavo) HandleOHLCV(client ccxt.ClientInterface, message map[string
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candle, market))
 		stored.Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	// watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
-	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, stored}, "multi:"+messageHash)
+	client.Resolve([]any{symbol, timeframe, stored}, "multi:"+messageHash)
 }
 
 /**
@@ -1184,14 +1184,14 @@ func (this *Bitvavo) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		return
 	}
 	if this.SafeInteger(orderbook, "nonce") == nil {
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
+		var subscription any = this.SafeValue(client.SubscriptionsSnapshot(), messageHash, map[string]any{})
 		// multi-symbol watches share one subscription object, so the
 		// snapshot-in-flight flag must be tracked per market
 		var flagKey string = "watchingOrderBookSnapshot@" + *this.SafeString(message, "market", "")
 		var watchingOrderBookSnapshot *bool = this.SafeBool(subscription, flagKey)
 		if watchingOrderBookSnapshot == nil {
 			ccxt.AddElementToObject(subscription, flagKey, true)
-			client.(ccxt.ClientInterface).SubscriptionSet(messageHash, subscription)
+			client.SubscriptionSet(messageHash, subscription)
 			var options, _ = this.Options["watchOrderBookSnapshot"].(map[string]any)
 			var delay *int64 = this.SafeInteger(options, "delay", this.RateLimit)
 			// fetch the snapshot in a separate async call after a warmup delay
@@ -1200,7 +1200,7 @@ func (this *Bitvavo) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 func (this *Bitvavo) WatchOrderBookSnapshotAsync(client ccxt.ClientInterface, message map[string]any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
@@ -1288,13 +1288,13 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client ccxt.ClientInterface, messag
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 	// getBook is a one-shot request but this.watch tracks it as a persistent
 	// subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
 	// instead of suppressing the request as an already-active subscription
 	var snapshotHash string = "getBook@" + *this.SafeString(response, "market", "")
-	if client.(ccxt.ClientInterface).SubscriptionHas(snapshotHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(snapshotHash)
+	if client.SubscriptionHas(snapshotHash) {
+		client.SubscriptionDel(snapshotHash)
 	}
 }
 func (this *Bitvavo) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
@@ -1330,7 +1330,7 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client ccxt.ClientInterface, m
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash string = name + "@" + *this.SafeString(marketIds, i, "")
 		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+			var subscription any = client.SubscriptionSafe(messageHash)
 			var method any = this.SafeValue(subscription, "method")
 			if method != nil {
 				ccxt.CallDynamically(method, client, message, subscription)
@@ -1399,16 +1399,16 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client ccxt.ClientInterface, mes
 	//
 	// the confirmation carries the remaining subscriptions without identifying
 	// which unsubscribe request it belongs to, so settle every pending unsubscription
-	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(key)) {
+		if !(client.SubscriptionHas(key)) {
 			continue
 		}
 		if !strings.HasPrefix(key, "unsubscribe:") {
 			continue
 		}
-		var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(key)
+		var subscription any = client.SubscriptionSafe(key)
 		var subHash string = strings.Replace(key, "unsubscribe:", "", 1)
 		this.CleanCache(subscription)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, key)
@@ -1416,8 +1416,8 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client ccxt.ClientInterface, mes
 		// unsubscribe time the sub future is usually already gone and cleanUnsubscription
 		// stashes the error in client.rejections instead - that stale entry
 		// would immediately reject the next subscribe's fresh future, so clear it here
-		if _, ok := client.(ccxt.ClientInterface).GetRejections()[subHash]; ok {
-			delete(client.(ccxt.ClientInterface).GetRejections(), subHash)
+		if _, ok := client.GetRejections()[subHash]; ok {
+			delete(client.GetRejections(), subHash)
 		}
 	}
 	return message
@@ -1794,7 +1794,7 @@ func (this *Bitvavo) HandleMultipleOrders(client ccxt.ClientInterface, message m
 	// client.resolve (orders, messageHash)
 	// messageHash = this.buildMessageHash (action, message)
 	var messageHash *string = this.SafeString(message, "requestId")
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 }
 
 /**
@@ -2068,7 +2068,7 @@ func (this *Bitvavo) HandleMyTrades(client ccxt.ClientInterface, message map[str
 	var trades []any = this.ParseTrades(response, nil, nil, nil)
 	// const messageHash = this.buildMessageHash (action, { 'market': marketId })
 	var messageHash *string = this.SafeString(message, "requestId")
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 }
 
 /**
@@ -2142,7 +2142,7 @@ func (this *Bitvavo) HandleWithdraw(client ccxt.ClientInterface, message map[str
 		response = map[string]any{}
 	}
 	var withdraw map[string]any = ccxt.TransactionToMap(this.ParseTransaction(response))
-	client.(ccxt.ClientInterface).Resolve(withdraw, messageHash)
+	client.Resolve(withdraw, messageHash)
 }
 
 /**
@@ -2218,7 +2218,7 @@ func (this *Bitvavo) HandleWithdraws(client ccxt.ClientInterface, message map[st
 	var withdrawals []any = this.ParseTransactions(response, nil, nil, nil, map[string]any{
 		"type": "withdrawal",
 	})
-	client.(ccxt.ClientInterface).Resolve(withdrawals, messageHash)
+	client.Resolve(withdrawals, messageHash)
 }
 
 /**
@@ -2344,7 +2344,7 @@ func (this *Bitvavo) HandleDeposits(client ccxt.ClientInterface, message map[str
 		"type": "deposit",
 	})
 	var messageHash *string = this.SafeString(message, "requestId")
-	client.(ccxt.ClientInterface).Resolve(deposits, messageHash)
+	client.Resolve(deposits, messageHash)
 }
 
 /**
@@ -2484,7 +2484,7 @@ func (this *Bitvavo) HandleFetchCurrencies(client ccxt.ClientInterface, message 
 		response = []any{}
 	}
 	var currencies map[string]any = this.ParseCurrencies(response)
-	client.(ccxt.ClientInterface).Resolve(currencies, messageHash)
+	client.Resolve(currencies, messageHash)
 }
 func (this *Bitvavo) HandleTradingFees(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -2502,7 +2502,7 @@ func (this *Bitvavo) HandleTradingFees(client ccxt.ClientInterface, message map[
 	var messageHash *string = this.SafeString(message, "requestId")
 	var response, _ = message["response"].(map[string]any)
 	var fees map[string]any = this.ParseTradingFees(response)
-	client.(ccxt.ClientInterface).Resolve(fees, messageHash)
+	client.Resolve(fees, messageHash)
 }
 
 /**
@@ -2563,7 +2563,7 @@ func (this *Bitvavo) HandleFetchBalance(client ccxt.ClientInterface, message map
 		response = []any{}
 	}
 	var balance map[string]any = this.ParseBalanceList(response)
-	client.(ccxt.ClientInterface).Resolve(balance, messageHash)
+	client.Resolve(balance, messageHash)
 }
 func (this *Bitvavo) HandleSingleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -2601,7 +2601,7 @@ func (this *Bitvavo) HandleSingleOrder(client ccxt.ClientInterface, message map[
 	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(response))
 	var messageHash *string = this.SafeString(message, "requestId")
-	client.(ccxt.ClientInterface).Resolve(order, messageHash)
+	client.Resolve(order, messageHash)
 }
 func (this *Bitvavo) HandleMarkets(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -2630,7 +2630,7 @@ func (this *Bitvavo) HandleMarkets(client ccxt.ClientInterface, message map[stri
 	}
 	var markets []any = this.ParseMarkets(response)
 	var messageHash *string = this.SafeString(message, "requestId")
-	client.(ccxt.ClientInterface).Resolve(markets, messageHash)
+	client.Resolve(markets, messageHash)
 }
 func (this *Bitvavo) BuildMessageHash(action *string, optionalArgs ...any) *string {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2693,7 +2693,7 @@ func (this *Bitvavo) HandleOrder(client ccxt.ClientInterface, message map[string
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	orders.Append(order)
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+	client.Resolve(this.Orders, messageHash)
 }
 func (this *Bitvavo) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -2722,7 +2722,7 @@ func (this *Bitvavo) HandleMyTrade(client ccxt.ClientInterface, message map[stri
 	}
 	var tradesArray ccxt.WsArrayCache = this.MyTrades
 	tradesArray.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+	client.Resolve(tradesArray, messageHash)
 }
 func (this *Bitvavo) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
@@ -2767,7 +2767,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+	var future any = client.SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var stringTimestamp string = strconv.FormatInt(timestamp, 10)
@@ -2787,7 +2787,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 			panic(r.Err)
 		}
 		future = r.Value
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
+		client.SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string
@@ -2813,13 +2813,13 @@ func (this *Bitvavo) HandleAuthenticationMessage(client ccxt.ClientInterface, me
 	var authenticated *bool = this.SafeBool(message, "authenticated", false)
 	if authenticated != nil && *authenticated {
 		// we resolve the future here permanently so authentication only happens once
-		client.(ccxt.ClientInterface).Resolve(message, messageHash)
+		client.Resolve(message, messageHash)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		client.Reject(error, messageHash)
 		// allows further authentication attempts
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel(messageHash)
 		}
 	}
 }
@@ -2859,20 +2859,20 @@ func (this *Bitvavo) HandleErrorMessage(client ccxt.ClientInterface, message map
 					ret_ = func(this *Bitvavo) any {
 						// catch block:
 						rejected = true
-						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						client.Reject(e, messageHash)
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
-			this.HandleErrors(this.ParseToInt(code), *error, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *error, message, map[string]any{}, "")
+			this.HandleErrors(this.ParseToInt(code), *error, client.GetUrl(), "", map[string]any{}, *error, message, map[string]any{}, nil)
 			return nil
 		}(this)
 
 	}
 	if !rejected {
 		feedback := ccxt.ExchangeError(this.Id + " " + this.Json(message))
-		client.(ccxt.ClientInterface).Reject(feedback, messageHash)
+		client.Reject(feedback, messageHash)
 		return true
 	}
 	return nil

@@ -1600,7 +1600,7 @@ func (this *Hollaex) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		panic(OrderNotFound(this.Id + " fetchOrder() could not find order id " + id))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response))}
 	return nil
 }
 
@@ -2056,7 +2056,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
 }
-func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Hollaex) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "currency":"usdt",
@@ -2281,12 +2281,12 @@ func (this *Hollaex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hollaex) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Hollaex) FetchWithdrawalAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Hollaex) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2809,7 +2809,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Hollaex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Hollaex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	// { "message": "Invalid token" }
 	if response == nil {
 		return nil

@@ -323,7 +323,7 @@ func (this *Phemex) HandleTicker(client ccxt.ClientInterface, message map[string
 			"datetime":  this.Iso8601(timestamp),
 		})
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
 }
 
@@ -445,7 +445,7 @@ func (this *Phemex) HandleBalance(client ccxt.ClientInterface, message any, type
 		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	}
 	var messageHash string = typeVar + ":balance"
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Phemex) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -490,7 +490,7 @@ func (this *Phemex) HandleTrades(client ccxt.ClientInterface, message map[string
 	for i := 0; i < len(parsed); i++ {
 		stored.Append(parsed[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Phemex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -551,7 +551,7 @@ func (this *Phemex) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		for i := 0; i < len(ohlcvs); i++ {
 			stored.Append(ohlcvs[i])
 		}
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
 }
 
@@ -1075,10 +1075,10 @@ func (this *Phemex) HandleUnSubscription(client ccxt.ClientInterface, message ma
 	//     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var subscriptionHashes []string = client.SubscriptionKeys()
 	for i := 0; i < len(subscriptionHashes); i++ {
 		var subscriptionHash string = subscriptionHashes[i]
-		var subscription any = client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash)
+		var subscription any = client.SubscriptionGet(subscriptionHash)
 		var isUnSubscription *bool = this.SafeBool(subscription, "unsubscribe", false)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
@@ -1087,8 +1087,8 @@ func (this *Phemex) HandleUnSubscription(client ccxt.ClientInterface, message ma
 			var error, _ = message["error"].(map[string]any)
 			if error != nil {
 				// the stream stays subscribed, so drop only the pending unsubscribe
-				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
-				client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id+" "+this.Json(error)), subscriptionHash)
+				client.SubscriptionDel(subscriptionHash)
+				client.Reject(ccxt.ExchangeError(this.Id+" "+this.Json(error)), subscriptionHash)
 				return
 			}
 			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1175,7 +1175,7 @@ func (this *Phemex) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 		orderbook.Reset(snapshot)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	} else {
 		if this.Orderbooks[symbol] != nil {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
@@ -1188,7 +1188,7 @@ func (this *Phemex) HandleOrderBook(client ccxt.ClientInterface, message map[str
 			orderbook.SetTimestamp(timestamp)
 			orderbook.SetDatetime(this.Iso8601(timestamp))
 			this.Orderbooks[symbol] = orderbook
-			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+			client.Resolve(orderbook, messageHash)
 		}
 	}
 }
@@ -1404,11 +1404,11 @@ func (this *Phemex) HandleMyTrades(client ccxt.ClientInterface, message []any) {
 	for i := 0; i < len(keys); i++ {
 		var market string = keys[i]
 		var hash string = channel + ":" + market
-		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
+		client.Resolve(cachedTrades, hash)
 	}
 	// generic subscription
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", typeVar))
-	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
+	client.Resolve(cachedTrades, messageHash)
 }
 
 /**
@@ -1715,11 +1715,11 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 	}
 	for i := 0; i < len(keys); i++ {
 		var currentMessageHash string = "orders" + ":" + keys[i]
-		client.(ccxt.ClientInterface).Resolve(this.Orders, currentMessageHash)
+		client.Resolve(this.Orders, currentMessageHash)
 	}
 	// resolve generic subscription (spot or swap)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", typeVar))
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+	client.Resolve(this.Orders, messageHash)
 }
 func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	//
@@ -1993,9 +1993,9 @@ func (this *Phemex) HandleMessage(client ccxt.ClientInterface, message map[strin
 	//     ]
 	// }
 	var id string = *this.SafeString(message, "id", "")
-	if client.(ccxt.ClientInterface).SubscriptionHas(id) {
-		var method any = client.(ccxt.ClientInterface).SubscriptionSafe(id)
-		client.(ccxt.ClientInterface).SubscriptionDel(id)
+	if client.SubscriptionHas(id) {
+		var method any = client.SubscriptionSafe(id)
+		client.SubscriptionDel(id)
 		if method != true {
 			this.HandleAuthenticate(client, message)
 			return
@@ -2063,12 +2063,12 @@ func (this *Phemex) HandleAuthenticate(client ccxt.ClientInterface, message map[
 	var status *string = this.SafeString(result, "status")
 	var messageHash string = "authenticated"
 	if status != nil && *status == "success" {
-		client.(ccxt.ClientInterface).Resolve(message, messageHash)
+		client.Resolve(message, messageHash)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.Reject(error, messageHash)
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel(messageHash)
 		}
 	}
 }
@@ -2134,7 +2134,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+	var future any = client.SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
 		var expiration int64 = this.Seconds() + expiryDelta
@@ -2148,8 +2148,8 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 		var subscriptionHash string = strconv.FormatInt(requestId, 10)
 		var message map[string]any = this.Extend(request, params)
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
-			client.(ccxt.ClientInterface).SubscriptionSet(subscriptionHash, this.HandleAuthenticate)
+		if !(client.SubscriptionHas(messageHash)) {
+			client.SubscriptionSet(subscriptionHash, this.HandleAuthenticate)
 		}
 
 		r := <-this.Watch(url, messageHash, message, messageHash)
@@ -2157,7 +2157,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 			panic(r.Err)
 		}
 		future = r.Value
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
+		client.SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string

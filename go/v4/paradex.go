@@ -2408,7 +2408,7 @@ func (this *Paradex) GetSystemConfigAsync() <-chan AsyncResult[map[string]any] {
 func (this *Paradex) getSystemConfigBody(ch chan AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if this.SafeDictMap(this.Options, "systemConfig") == nil {
+	if optionsEntry, _ := this.Options["systemConfig"].(map[string]any); optionsEntry == nil {
 
 		r := <-this.PublicGetSystemConfig()
 		if r.Err != nil {
@@ -2464,7 +2464,7 @@ func (this *Paradex) RetrieveAccountAsync() <-chan AsyncResult[map[string]any] {
 func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if this.SafeDictMap(this.Options, "paradexAccount") == nil {
+	if optionsEntry, _ := this.Options["paradexAccount"].(map[string]any); optionsEntry == nil {
 		this.CheckRequiredCredentials()
 
 		r := <-this.GetSystemConfigAsync()
@@ -4695,7 +4695,7 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(tagged, currency, since, limit))}
 	return nil
 }
-func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Paradex) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "id": "1718940471200201703989430000",
@@ -5908,7 +5908,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Paradex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Paradex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

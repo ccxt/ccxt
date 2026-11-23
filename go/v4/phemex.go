@@ -3986,7 +3986,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		order = this.SafeDict(rows, 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -5633,12 +5633,12 @@ func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) FundingR
  * @param {object} [params] parameters specific to the exchange API endpoint
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Phemex) SetMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Phemex) SetMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.setMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Phemex) setMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Phemex) setMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6390,7 +6390,7 @@ func (this *Phemex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
 }
-func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Phemex) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -7341,7 +7341,7 @@ func (this *Phemex) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   nil,
 	}
 }
-func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

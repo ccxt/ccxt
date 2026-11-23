@@ -3945,7 +3945,7 @@ func (this *Polymarket) ParseEvents(rawEvents []any) []any {
 	}
 	return result
 }
-func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	// the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg")
 	// map the known messages so callers can distinguish a dead book or a rejected order
 	// from a transport outage (the base otherwise maps a bare 404 to a retryable error)
@@ -4404,7 +4404,7 @@ func (this *Polymarket) HandleTextMessage(client ccxt.ClientInterface, message s
 	// Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
 	// client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
 	// base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 }
 func (this *Polymarket) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleMessageEvent(client, message)
@@ -4468,8 +4468,8 @@ func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, eve
 		"outcomeId": tokenId,
 		"market":    this.SafeString(outcomeObj, "market"),
 	})
-	client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("orderbook::", outcome))
-	client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("ticker::", outcome))
+	client.Resolve(orderbook, ccxt.Add("orderbook::", outcome))
+	client.Resolve(orderbook, ccxt.Add("ticker::", outcome))
 }
 func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event any) {
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
@@ -4509,8 +4509,8 @@ func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event 
 	for k := 0; k < len(updatedSymbols); k++ {
 		var outcome string = updatedSymbols[k]
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome]
-		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
-		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
+		client.Resolve(orderbook, "orderbook::"+outcome)
+		client.Resolve(orderbook, "ticker::"+outcome)
 	}
 }
 func (this *Polymarket) HandleTrade(client ccxt.ClientInterface, event any) {
@@ -4553,7 +4553,7 @@ func (this *Polymarket) HandleTrade(client ccxt.ClientInterface, event any) {
 		}
 	}
 	stored.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trades::", outcome))
+	client.Resolve(stored, ccxt.Add("trades::", outcome))
 }
 
 /**
@@ -4943,10 +4943,10 @@ func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, event any) {
 	var stored ccxt.WsArrayCache = this.Orders
 	var parsed map[string]any = this.ParsePredictionOrder(event)
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, "orders")
+	client.Resolve(stored, "orders")
 	var outcome *string = this.SafeString(parsed, "outcome")
 	if outcome != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, "orders::"+*outcome)
+		client.Resolve(stored, "orders::"+*outcome)
 	}
 }
 func (this *Polymarket) HandleMyTrade(client ccxt.ClientInterface, event any) {
@@ -4957,10 +4957,10 @@ func (this *Polymarket) HandleMyTrade(client ccxt.ClientInterface, event any) {
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var parsed any = this.ParsePredictionTrade(event)
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
+	client.Resolve(stored, "myTrades")
 	var outcome *string = this.SafeString(parsed, "outcome")
 	if outcome != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades::"+*outcome)
+		client.Resolve(stored, "myTrades::"+*outcome)
 	}
 }
 func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {

@@ -155,7 +155,7 @@ func (this *Luno) HandleTrades(client ccxt.ClientInterface, message map[string]a
 	if symbolValue != nil {
 		this.Trades[*symbolValue] = stored
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Luno) ParseTrade(trade any, optionalArgs ...any) ccxt.Trade {
 	//
@@ -313,7 +313,7 @@ func (this *Luno) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	}
 	var nonce *int64 = this.SafeInteger(message, "sequence")
 	orderbook.SetNonce(nonce)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol string, optionalArgs ...any) map[string]any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -528,18 +528,18 @@ func (this *Luno) IsOrderBookDeltaInSequence(client ccxt.ClientInterface, messag
 			marketId = *market.Id
 		}
 		var subscriptionHash string = "/stream/" + marketId
-		if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
+		if client.SubscriptionHas(subscriptionHash) {
+			client.SubscriptionDel(subscriptionHash)
 		}
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() received an out-of-sequence update for " + symbolValue + ", expected " + strconv.FormatInt(expectedSequence, 10) + " but got " + strconv.FormatInt(*messageSequence, 10))
-		client.(ccxt.ClientInterface).Reset(error)
-		delete(this.Clients, client.(ccxt.ClientInterface).GetUrl())
+		client.Reset(error)
+		delete(this.Clients, client.GetUrl())
 		return false
 	}
 	return true
 }
 func (this *Luno) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
-	var subscriptions []any = client.(ccxt.ClientInterface).SubscriptionValues()
+	var subscriptions []any = client.SubscriptionValues()
 	var subscriptionsLength int = len(subscriptions)
 	if subscriptionsLength == 0 {
 		// the subscription was dropped after a sequence gap, ignore the

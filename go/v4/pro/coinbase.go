@@ -675,7 +675,7 @@ func (this *Coinbase) HandleTickers(client ccxt.ClientInterface, message map[str
 			newTickers = append(newTickers, result)
 			if channel != nil {
 				var messageHash string = *channel + "::" + *symbol
-				client.(ccxt.ClientInterface).Resolve(result, messageHash)
+				client.Resolve(result, messageHash)
 				this.TryResolveUsdc(client, messageHash, result)
 			}
 		}
@@ -837,7 +837,7 @@ func (this *Coinbase) HandleOHLCV(client ccxt.ClientInterface, message any) {
 			}
 			stored.Append(parsed)
 			var messageHash string = "candles::" + *symbol
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			client.Resolve(stored, messageHash)
 			this.TryResolveUsdc(client, messageHash, stored)
 		}
 	}
@@ -1288,7 +1288,7 @@ func (this *Coinbase) HandleTrade(client ccxt.ClientInterface, message map[strin
 			tradesArray.Append(ccxt.TradeToMap(this.ParseTrade(this.SafeDict(currentTrades, (tradesLength-j)-1, map[string]any{}))))
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+	client.Resolve(tradesArray, messageHash)
 	this.TryResolveUsdc(client, messageHash, tradesArray)
 }
 func (this *Coinbase) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
@@ -1354,10 +1354,10 @@ func (this *Coinbase) HandleOrder(client ccxt.ClientInterface, message map[strin
 		var marketId string = marketIds[i]
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash string = "user::" + *symbol
-		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+		client.Resolve(this.Orders, messageHash)
 		this.TryResolveUsdc(client, messageHash, this.Orders)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, "user")
+	client.Resolve(this.Orders, "user")
 }
 func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -1464,7 +1464,7 @@ func (this *Coinbase) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
 		var messageHash string = "level2::" + *symbol
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+		var subscription map[string]any = client.SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var typeVar *string = this.SafeString(event, "type")
 		if typeVar != nil && *typeVar == "snapshot" {
@@ -1483,13 +1483,13 @@ func (this *Coinbase) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		orderbook.SetTimestamp(this.Parse8601(datetime))
 		orderbook.SetDatetime(datetime)
 		orderbook.SetSymbol(symbol)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 		this.TryResolveUsdc(client, messageHash, orderbook)
 	}
 }
 func (this *Coinbase) TryResolveUsdc(client ccxt.ClientInterface, messageHash string, result any) {
 	if strings.HasSuffix(messageHash, "/USD") || strings.HasSuffix(messageHash, "-USD") {
-		client.(ccxt.ClientInterface).Resolve(result, messageHash+"C") // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
+		client.Resolve(result, messageHash+"C") // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
 	}
 }
 func (this *Coinbase) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {

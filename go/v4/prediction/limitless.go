@@ -3995,7 +3995,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	var categoriesResponse []any = categoriesResponseRecv.Value
 	var categories []any = []any{}
 	if categoriesResponse != nil {
-		categories = ccxt.ArrayTyped(categoriesResponse)
+		categories = categoriesResponse
 	}
 	var wanted []string = []string{}
 	for i := 0; i < len(tags); i++ {
@@ -4123,7 +4123,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
  * @name limitless#handleErrors
  * @description maps limitless error responses to ccxt exceptions
  */
-func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

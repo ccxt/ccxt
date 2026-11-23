@@ -3430,7 +3430,7 @@ func (this *Lbank) ParseTransaction(transaction map[string]any, optionalArgs ...
 			"currency": code,
 		}
 	}
-	var literal254515 map[string]any = map[string]any{
+	var literal253915 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -3453,12 +3453,12 @@ func (this *Lbank) ParseTransaction(transaction map[string]any, optionalArgs ...
 		"fee":         fee,
 	}
 	if addressTo != nil {
-		literal254515["addressTo"] = *addressTo
+		literal253915["addressTo"] = *addressTo
 	}
 	if addressFrom != nil {
-		literal254515["addressFrom"] = *addressFrom
+		literal253915["addressFrom"] = *addressFrom
 	}
-	return TransactionFromMap(literal254515)
+	return TransactionFromMap(literal253915)
 }
 
 /**
@@ -3671,11 +3671,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes270623 map[string]any = r1.Value
-			if retRes270623 == nil {
+			var retRes270023 map[string]any = r1.Value
+			if retRes270023 == nil {
 				ch <- AsyncResult[map[string]any]{Value: nil}
 			} else {
-				ch <- AsyncResult[map[string]any]{Value: retRes270623}
+				ch <- AsyncResult[map[string]any]{Value: retRes270023}
 			}
 			return nil
 		}
@@ -3684,11 +3684,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes270819 map[string]any = r2.Value
-		if retRes270819 == nil {
+		var retRes270219 map[string]any = r2.Value
+		if retRes270219 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes270819}
+			ch <- AsyncResult[map[string]any]{Value: retRes270219}
 		}
 		return nil
 	}
@@ -3697,11 +3697,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var retRes271015 map[string]any = r3.Value
-	if retRes271015 == nil {
+	var retRes270415 map[string]any = r3.Value
+	if retRes270415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes271015}
+		ch <- AsyncResult[map[string]any]{Value: retRes270415}
 	}
 	return nil
 }
@@ -4293,7 +4293,7 @@ func (this *Lbank) ConvertSecretToPem(secret string) string {
 	}
 	return pem + "-----END PRIVATE KEY-----"
 }
-func (this *Lbank) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Lbank) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		panic(NullResponse(this.Id + " parseBalance() returned empty response"))
 	}

@@ -4195,16 +4195,17 @@ func (this *Nado) SignHash(hash any, privateKey string) string {
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))
 	return "0x" + this.PadHex(r, 64) + this.PadHex(s, 64) + v
 }
-func (this *Nado) RemoveMarketSuffix(marketId *string) any {
+func (this *Nado) RemoveMarketSuffix(marketId *string) *string {
 	if marketId == nil {
 		return nil
 	}
 	if strings.HasSuffix(*marketId, "-PERP") {
-		return (*marketId)[0 : len((*marketId))-5]
+		retStrVal := (*marketId)[0 : len((*marketId))-5]
+		return &retStrVal
 	}
 	return marketId
 }
-func (this *Nado) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Nado) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	// the gateway weighs a query by its 'type' param, the archive by the query key of the
 	// body, and every archive weight grows with the number of rows requested
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4297,7 +4298,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Nado) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Nado) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

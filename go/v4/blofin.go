@@ -3211,7 +3211,7 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(first, currency)}
 	return nil
 }
-func (this *Blofin) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Blofin) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
@@ -3381,15 +3381,15 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id string
  * @param {string} id withdrawal id
  * @param {string} [code] unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+ * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func (this *Blofin) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Blofin) FetchWithdrawalAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3397,7 +3397,9 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var clientId *string = this.SafeString(params, "clientId")
-	if (IsEqual(id, nil)) && (clientId == nil) {
+	// an undefined or empty id looks the withdrawal up by params['clientId']
+	var hasId bool = (true) && (id != "")
+	if !hasId && (clientId == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchWithdrawal() requires an id argument or a params[\"clientId\"]"))
 	}
 
@@ -3406,7 +3408,7 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 		panic(r.Err)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(id, nil) {
+	if hasId {
 		request["withdrawId"] = id
 	}
 	var currency map[string]any = nil
@@ -3428,8 +3430,8 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var matches bool = false
-		if !IsEqual(id, nil) {
-			matches = (IsEqual(this.SafeString(entry, "withdrawId"), id))
+		if hasId {
+			matches = (this.SafeString(entry, "withdrawId") != nil && *this.SafeString(entry, "withdrawId") == id)
 		} else {
 			matches = (this.SafeString(entry, "clientId") == clientId || (this.SafeString(entry, "clientId") != nil && clientId != nil && *this.SafeString(entry, "clientId") == *clientId))
 		}
@@ -3440,10 +3442,10 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 		}
 	}
 	var reference any
-	if !IsEqual(id, nil) {
+	if hasId {
 		reference = id
-	} else {
-		reference = clientId
+	} else if derefPtr := clientId; derefPtr != nil {
+		reference = *derefPtr
 	}
 	panic(ExchangeError(Add(this.Id+" fetchWithdrawal() could not find withdrawal ", reference)))
 }
@@ -3600,11 +3602,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes255019 []any = r1.Value
-		if retRes255019 == nil {
+		var retRes255219 []any = r1.Value
+		if retRes255219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes255019)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes255219)}
 		}
 		return nil
 	}
@@ -3706,7 +3708,7 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 	var feeCurrencyId *string = this.SafeString(transaction, "feeCurrency")
 	var feeCode *string = this.SafeCurrencyCode(feeCurrencyId)
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var literal263915 map[string]any = map[string]any{
+	var literal264115 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"currency":    code,
@@ -3732,12 +3734,12 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 		},
 	}
 	if id != nil {
-		literal263915["id"] = *id
+		literal264115["id"] = *id
 	}
 	if status != nil {
-		literal263915["status"] = *status
+		literal264115["status"] = *status
 	}
-	return TransactionFromMap(literal263915)
+	return TransactionFromMap(literal264115)
 }
 func (this *Blofin) ParseTransactionWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -3967,7 +3969,7 @@ func (this *Blofin) transferBody(ch chan AsyncResult[TransferEntry], code string
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(data, currency)}
 	return nil
 }
-func (this *Blofin) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Blofin) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transfer, "transferId")
@@ -4696,11 +4698,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333219 []any = r1.Value
-		if retRes333219 == nil {
+		var retRes333419 []any = r1.Value
+		if retRes333419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes333219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes333419)}
 		}
 		return nil
 	}
@@ -4940,12 +4942,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ternaryStr347228 string = "net_mode"
+	var ternaryStr347428 string = "net_mode"
 	if hedged {
-		ternaryStr347228 = "long_short_mode"
+		ternaryStr347428 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": ternaryStr347228,
+		"positionMode": ternaryStr347428,
 	}
 
 	//
@@ -5078,7 +5080,7 @@ func (this *Blofin) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5776,7 +5778,7 @@ func (this *Blofin) FetchDeposit(id string, options ...FetchDepositOptions) (Tra
  * @param {string} id withdrawal id
  * @param {string} [code] unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+ * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Blofin) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {

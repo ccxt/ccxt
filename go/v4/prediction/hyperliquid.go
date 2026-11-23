@@ -2976,7 +2976,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal226715
 }
-func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}
@@ -3003,7 +3003,7 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 	}
 	return nil
 }
-func (this *Hyperliquid) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Hyperliquid) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	if _, ok := config["byType"]; ok {

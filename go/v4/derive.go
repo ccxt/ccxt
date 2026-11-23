@@ -4887,7 +4887,7 @@ func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(transferEntry)}
 	return nil
 }
-func (this *Derive) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Derive) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
@@ -4988,7 +4988,12 @@ func (this *Derive) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	transfers, _ = result["transfers"].([]any)
 	var parsed []any = []any{}
 	for i := 0; i < len(transfers); i++ {
-		parsed = append(parsed, TransferEntryToMap(this.ParseTransfer(this.SafeDict(transfers, i, map[string]any{}))))
+		transfersDict381762, _ := transfers[i].(map[string]any)
+		if transfersDict381762 == nil {
+			transfersDict381762 = map[string]any{}
+		}
+		var transfer map[string]any = this.Extend(TransferEntryToMap(this.ParseTransfer(transfersDict381762)), map[string]any{})
+		parsed = append(parsed, transfer)
 	}
 	var sorted []any = this.SortBy(parsed, "timestamp")
 
@@ -5189,7 +5194,7 @@ func (this *Derive) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(sorted, code, since, limit))}
 	return nil
 }
-func (this *Derive) ParseBorrowInterest(info any, optionalArgs ...any) any {
+func (this *Derive) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
@@ -5529,9 +5534,9 @@ func (this *Derive) ParseTransaction(transaction map[string]any, optionalArgs ..
 	}
 	// withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
 	var addressTo *string = this.SafeString(transaction, "recipient")
-	var ternaryStr423320 string = "deposit"
+	var ternaryStr423420 string = "deposit"
 	if addressTo != nil {
-		ternaryStr423320 = "withdrawal"
+		ternaryStr423420 = "withdrawal"
 	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
@@ -5545,7 +5550,7 @@ func (this *Derive) ParseTransaction(transaction map[string]any, optionalArgs ..
 		"tag":         nil,
 		"tagFrom":     nil,
 		"tagTo":       nil,
-		"type":        ternaryStr423320,
+		"type":        ternaryStr423420,
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"currency":    code,
 		"status":      this.ParseTransactionStatus(this.SafeString2(transaction, "batch_status", "tx_status")),
@@ -5609,7 +5614,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) (*s
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS."))
 }
-func (this *Derive) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Derive) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

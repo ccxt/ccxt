@@ -3715,12 +3715,12 @@ func (this *Polymarket) setMarginModeBody(ch chan AsyncResult[map[string]any], m
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
  */
-func (this *Polymarket) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Polymarket) ModifyMarginHelperAsync(symbol string, amount float64, typeVar string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3788,12 +3788,12 @@ func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
  */
-func (this *Polymarket) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Polymarket) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Polymarket) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3822,12 +3822,12 @@ func (this *Polymarket) addMarginBody(ch chan AsyncResult[map[string]any], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
  */
-func (this *Polymarket) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Polymarket) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3867,12 +3867,12 @@ func (this *Polymarket) SignMessage(message any, privateKey any) string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
  */
-func (this *Polymarket) CreateProxyCredentialsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Polymarket) CreateProxyCredentialsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createProxyCredentialsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3949,7 +3949,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 	}
 	this.Options["proxyCredentials"] = credentials
 
-	ch <- AsyncResult[any]{Value: credentials}
+	ch <- AsyncResult[map[string]any]{Value: credentials}
 	return nil
 }
 
@@ -3992,7 +3992,11 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Value}
+	if r.Value == nil {
+		ch <- AsyncResult[any]{Value: nil}
+	} else {
+		ch <- AsyncResult[any]{Value: r.Value}
+	}
 	return nil
 }
 
@@ -4115,7 +4119,7 @@ func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	}
 	return &result
 }
-func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Polymarket) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	if path == "account/orders" {
@@ -4202,7 +4206,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal287315
 }
-func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}
@@ -5199,6 +5203,6 @@ func (this *Polymarket) CreateProxyCredentials(params ...any) (map[string]any, e
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }

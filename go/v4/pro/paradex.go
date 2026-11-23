@@ -87,7 +87,7 @@ func (this *Paradex) GetWsUrl() string {
 		return *url + "?sbeSchemaId=1&sbeSchemaVersion=" + schemaVersion
 	}
 }
-func (this *Paradex) GetOrderBookChannel(marketId any, optionalArgs ...any) any {
+func (this *Paradex) GetOrderBookChannel(marketId *string, optionalArgs ...any) any {
 	// the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
 	// takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
 	// see the order book channel description in https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
@@ -258,7 +258,7 @@ func (this *Paradex) UnsubscribedChannels(url string, channels any) []any {
 	var client ccxt.ClientInterface = this.Client(url)
 	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(channels, i))) {
+		if !(client.SubscriptionHas(ccxt.GetValue(channels, i))) {
 			result = append(result, i)
 		}
 	}
@@ -498,13 +498,13 @@ func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool
 		return nil
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var unsubHash string = keys[i]
 		if strings.Index(unsubHash, "unsubscribe:") != 0 {
 			continue
 		}
-		var unsubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+		var unsubscription map[string]any = client.SubscriptionDict(unsubHash)
 		var pendingHashes []any = ccxt.SafeListTyped(unsubscription, "subscribeHashes")
 		var pending bool = false
 		for j := 0; j < len(pendingHashes); j++ {
@@ -531,7 +531,7 @@ func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool
 					}()
 					// try block:
 
-					r := <-client.(ccxt.ClientInterface).Future(unsubHash)
+					r := <-client.Future(unsubHash)
 					if r.Err != nil {
 						panic(r.Err)
 					}
@@ -552,13 +552,13 @@ func (this *Paradex) ExpirePendingUnsubscribeAsync(client ccxt.ClientInterface, 
 func (this *Paradex) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, unsubHash string, requestId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var unsubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+	var unsubscription map[string]any = client.SubscriptionDict(unsubHash)
 	if unsubscription == nil {
 		unsubscription = map[string]any{}
 	}
 	if ccxt.IsEqual(this.SafeString(unsubscription, "id"), requestId) {
 		error := ccxt.RequestTimeout(this.Id + " " + unsubHash + " was not acknowledged")
-		client.(ccxt.ClientInterface).Reject(error, unsubHash)
+		client.Reject(error, unsubHash)
 		// the subscriptions are forgotten, so that the next watch subscribes them again
 		this.CleanUnsubscribed(client, unsubHash, unsubscription)
 	}
@@ -577,8 +577,8 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var url string = this.GetWsUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture("authenticated")
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 
 		r := <-this.AuthenticateRestAsync()
@@ -626,7 +626,7 @@ func (this *Paradex) HandleAuthenticationMessage(client ccxt.ClientInterface, me
 	//     }
 	//
 	// the future stays resolved, so later private watches on this connection skip the auth request
-	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future *ccxt.Future = client.GetFutures()["authenticated"]
 	if future != nil {
 		future.Resolve(true)
 	}
@@ -651,7 +651,7 @@ func (this *Paradex) HandleRequestReply(client ccxt.ClientInterface, message any
 	//
 	// only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
 	var requestId *string = this.SafeString(message, "id")
-	var authSubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("authenticated")
+	var authSubscription map[string]any = client.SubscriptionDict("authenticated")
 	var authRequestId *string = this.SafeString(authSubscription, "id")
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var isAuth bool = ((requestId != nil) && (requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId))) || (this.SafeString(result, "node_id") != nil)
@@ -662,10 +662,10 @@ func (this *Paradex) HandleRequestReply(client ccxt.ClientInterface, message any
 		this.HandleUnsubscribeReply(client, *requestId)
 		// sendRequest waits on the request id, a request without a subscription of its own is kept under it
 		var requestHash string = "request:" + *requestId
-		if client.(ccxt.ClientInterface).SubscriptionHas(requestHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(requestHash)
+		if client.SubscriptionHas(requestHash) {
+			client.SubscriptionDel(requestHash)
 		}
-		client.(ccxt.ClientInterface).Resolve(message, requestHash)
+		client.Resolve(message, requestHash)
 	}
 }
 func (this *Paradex) HandleUnsubscribeReply(client ccxt.ClientInterface, requestId string) {
@@ -684,13 +684,13 @@ func (this *Paradex) HandleUnsubscribeReply(client ccxt.ClientInterface, request
 	//         "result": { "channel": "markets_summary", "remove": [ "ETH-USD-PERP" ] }
 	//     }
 	//
-	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var unsubHash string = keys[i]
 		if strings.Index(unsubHash, "unsubscribe:") != 0 {
 			continue
 		}
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+		var subscription map[string]any = client.SubscriptionDict(unsubHash)
 		if subscription == nil {
 			subscription = map[string]any{}
 		}
@@ -703,13 +703,13 @@ func (this *Paradex) CleanUnsubscribed(client ccxt.ClientInterface, unsubHash st
 	var subscribeHashes []any = ccxt.SafeListTyped(subscription, "subscribeHashes")
 	for j := 0; j < len(subscribeHashes); j++ {
 		var subscribeHash string = *this.SafeString(subscribeHashes, j, "")
-		if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
+		if client.SubscriptionHas(subscribeHash) {
+			client.SubscriptionDel(subscribeHash)
 		}
 		// a market moved to the deltas feed goes back to the snapshots on its next watch
 		var requestedHash string = subscribeHash + ":requested"
-		if client.(ccxt.ClientInterface).SubscriptionHas(requestedHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(requestedHash)
+		if client.SubscriptionHas(requestedHash) {
+			client.SubscriptionDel(requestedHash)
 		}
 	}
 	var prefix *bool = this.SafeBool(subscription, "prefix", false)
@@ -718,7 +718,7 @@ func (this *Paradex) CleanUnsubscribed(client ccxt.ClientInterface, unsubHash st
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHashes[j], unsubHash, prefix)
 	}
 	this.CleanCache(subscription)
-	client.(ccxt.ClientInterface).Resolve(true, unsubHash)
+	client.Resolve(true, unsubHash)
 }
 
 /**
@@ -1089,7 +1089,7 @@ func (this *Paradex) HandleTrade(client ccxt.ClientInterface, message map[string
 		}
 	}
 	stored.Append(parsedTrade)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	if this.SafeString(data, "trade_type") != nil && *this.SafeString(data, "trade_type") == "LIQUIDATION" {
 		// one cache per market, kept in the options next to the request id counter: this.liquidations
 		// is typed as a single cache in some languages and initialized as a map in others
@@ -1107,14 +1107,14 @@ func (this *Paradex) HandleTrade(client ccxt.ClientInterface, message map[string
 		}
 		liquidations.(ccxt.Appender).Append(liquidation)
 		if symbol != nil {
-			client.(ccxt.ClientInterface).Resolve(liquidations, "liquidations:"+*symbol)
+			client.Resolve(liquidations, "liquidations:"+*symbol)
 		}
 	}
 	// an SBE frame names its market but not the subscription it was sent for,
 	// so the trades.ALL subscription is resolved from the per-market channel too
 	var isSbe *bool = this.SafeBool(message, "sbe", false)
 	if (isSbe != nil && *isSbe) && (messageHash == nil || *messageHash != "trades.ALL") {
-		client.(ccxt.ClientInterface).Resolve(stored, "trades.ALL")
+		client.Resolve(stored, "trades.ALL")
 	}
 	return message
 }
@@ -1193,8 +1193,8 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var feeds []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var feedMarket map[string]any = this.Market(symbolsNormalized[i])
-		feeds = append(feeds, this.GetOrderBookChannel(feedMarket["id"], true))
-		feeds = append(feeds, this.GetOrderBookChannel(feedMarket["id"], false))
+		feeds = append(feeds, this.GetOrderBookChannel(this.SafeString(feedMarket, "id"), true))
+		feeds = append(feeds, this.GetOrderBookChannel(this.SafeString(feedMarket, "id"), false))
 	}
 
 	r1 := <-this.WaitForPendingUnsubscribeAsync(url, feeds)
@@ -1206,22 +1206,22 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
-		var deltasChannel any = this.GetOrderBookChannel(market["id"], true)
-		var snapshotChannel any = this.GetOrderBookChannel(market["id"], false)
+		var deltasChannel any = this.GetOrderBookChannel(this.SafeString(market, "id"), true)
+		var snapshotChannel any = this.GetOrderBookChannel(this.SafeString(market, "id"), false)
 		// one feed per market on a connection: both send BookEvent frames, which do not name their channel,
 		// and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
 		// the market stays on the deltas feed from the first call that asks for it, a call made while the
 		// snapshot feed is being unsubscribed included
 		var deltasHash any = ccxt.Add(deltasChannel, ":requested")
-		var isDeltas bool = deltas || (client.(ccxt.ClientInterface).SubscriptionHas(deltasHash))
+		var isDeltas bool = deltas || (client.SubscriptionHas(deltasHash))
 		if isDeltas {
-			client.(ccxt.ClientInterface).SubscriptionSet(deltasHash, true)
+			client.SubscriptionSet(deltasHash, true)
 		}
-		if isDeltas && (client.(ccxt.ClientInterface).SubscriptionHas(snapshotChannel)) {
+		if isDeltas && (client.SubscriptionHas(snapshotChannel)) {
 			// the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
 			// arrives once the reply is in
 			var unsubscribe map[string]any = this.UnsubscribeRequest(snapshotChannel)
-			client.(ccxt.ClientInterface).SubscriptionDel(snapshotChannel)
+			client.SubscriptionDel(snapshotChannel)
 
 			r2 := <-this.SendRequestAsync(url, unsubscribe)
 			if r2.Err != nil {
@@ -1313,8 +1313,8 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		// the feed the market is on, a market is on one of them at a time
-		var deltasChannel any = this.GetOrderBookChannel(market["id"], true)
-		var snapshotChannel any = this.GetOrderBookChannel(market["id"], false)
+		var deltasChannel any = this.GetOrderBookChannel(this.SafeString(market, "id"), true)
+		var snapshotChannel any = this.GetOrderBookChannel(this.SafeString(market, "id"), false)
 		var channel any
 		if deltasOption == true {
 			channel = deltasChannel
@@ -1323,9 +1323,9 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		}
 		// a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
 		var requestedHash any = ccxt.Add(deltasChannel, ":requested")
-		if (client.(ccxt.ClientInterface).SubscriptionHas(deltasChannel)) || (client.(ccxt.ClientInterface).SubscriptionHas(requestedHash)) {
+		if (client.SubscriptionHas(deltasChannel)) || (client.SubscriptionHas(requestedHash)) {
 			channel = deltasChannel
-		} else if client.(ccxt.ClientInterface).SubscriptionHas(snapshotChannel) {
+		} else if client.SubscriptionHas(snapshotChannel) {
 			channel = snapshotChannel
 		}
 		channels = append(channels, channel)
@@ -1440,7 +1440,7 @@ func (this *Paradex) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		var deltasChannel any = this.GetOrderBookChannel(marketId, true)
 		var stored ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		// a delta applies only to the book of the deltas feed
-		if (stored == nil) || !(client.(ccxt.ClientInterface).SubscriptionHas(deltasChannel)) {
+		if (stored == nil) || !(client.SubscriptionHas(deltasChannel)) {
 			return
 		}
 		var storedNonce *int64 = this.SafeInteger(stored, "nonce")
@@ -1461,7 +1461,7 @@ func (this *Paradex) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		stored.SetNonce(nonce)
 		stored.SetTimestamp(timestamp)
 		stored.SetDatetime(this.Iso8601(timestamp))
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 		return
 	}
 	if !(this.Orderbooks[*symbol] != nil) {
@@ -1476,7 +1476,7 @@ func (this *Paradex) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	snapshot["nonce"] = nonce
 	orderbook.Reset(snapshot)
 	// a channel override in params still resolves, frames are routed by market and package type
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Paradex) HandleBookSideDeltas(bookside any, deltas []any) {
 	// a size of 0 removes the price level
@@ -1510,21 +1510,21 @@ func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], cli
 	var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
 	var subscribe map[string]any = this.SubscribeRequest(channel)
 	var unsubscribeHash string = "request:" + *this.SafeString(unsubscribe, "id", "")
-	client.(ccxt.ClientInterface).SubscriptionSet(unsubscribeHash, map[string]any{
+	client.SubscriptionSet(unsubscribeHash, map[string]any{
 		"id":            unsubscribe["id"],
 		"messageHashes": []any{},
 	})
-	client.(ccxt.ClientInterface).SubscriptionSet(channel, map[string]any{
+	client.SubscriptionSet(channel, map[string]any{
 		"id":            subscribe["id"],
 		"messageHashes": []any{messageHash},
 	})
 
-	r := <-client.(ccxt.ClientInterface).SendAsync(unsubscribe)
+	r := <-client.SendAsync(unsubscribe)
 	if r.Err != nil {
 		panic(r.Err)
 	}
 
-	r1 := <-client.(ccxt.ClientInterface).SendAsync(subscribe)
+	r1 := <-client.SendAsync(subscribe)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1626,13 +1626,13 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			panic(r2.Err)
 		}
 		var client ccxt.ClientInterface = this.Client(url)
-		if client.(ccxt.ClientInterface).SubscriptionHas(scopedHash) {
+		if client.SubscriptionHas(scopedHash) {
 			// a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
-			var subscribeHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+			var subscribeHashes []string = client.SubscriptionKeys()
 			for i := 0; i < len(subscribeHashes); i++ {
 				var subscribeHash string = subscribeHashes[i]
 				if (subscribeHash == scopedHash) || (strings.Index(subscribeHash, channel+".") == 0) {
-					client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
+					client.SubscriptionDel(subscribeHash)
 				}
 			}
 			var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
@@ -1754,7 +1754,7 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	} else {
 		tickerSymbols = symbolsNormalized
 	}
-	if (symbolsLength > 0) && (client.(ccxt.ClientInterface).SubscriptionHas(channel)) {
+	if (symbolsLength > 0) && (client.SubscriptionHas(channel)) {
 		// the all-markets subscription has no market filter to remove these from, their watchers are ended here
 		for i := 0; i < len(subMessageHashes); i++ {
 			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHashes[i], ccxt.Add("unsubscribe:", subMessageHashes[i]))
@@ -1769,14 +1769,14 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	}
 	// the markets left in the scoped subscription once these are removed
 	var othersRemain bool = false
-	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if (strings.Index(key, channel+".") == 0) && !this.InArray(key, subscribeHashes) {
 			othersRemain = true
 		}
 	}
-	if (symbolsLength == 0) || ((client.(ccxt.ClientInterface).SubscriptionHas(scopedHash)) && !othersRemain) {
+	if (symbolsLength == 0) || ((client.SubscriptionHas(scopedHash)) && !othersRemain) {
 		// a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
 		var channelSubscription map[string]any = map[string]any{
 			"topic":            "ticker",
@@ -1878,7 +1878,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 		panic(r.Err)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
+	if client.SubscriptionHas(channel) {
 
 		// the all-markets subscription carries these markets already
 		r1 := <-this.WatchMultiple(url, messageHashes, nil, []any{channel})
@@ -1900,7 +1900,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 		var marketId string = *this.SafeString(market, "id", "")
 		var subscribeHash string = channel + "." + marketId
 		subscribeHashes = append(subscribeHashes, subscribeHash)
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		if !(client.SubscriptionHas(subscribeHash)) {
 			missing = append(missing, marketId)
 			missingHashes = append(missingHashes, this.SafeString(messageHashes, i, ""))
 		}
@@ -1916,7 +1916,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 		return nil
 	}
 	var request map[string]any = nil
-	if client.(ccxt.ClientInterface).SubscriptionHas(scopedHash) {
+	if client.SubscriptionHas(scopedHash) {
 		request = map[string]any{
 			"jsonrpc": "2.0",
 			"id":      this.RequestId(),
@@ -2180,10 +2180,10 @@ func (this *Paradex) HandleBidAsk(client ccxt.ClientInterface, message map[strin
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(bidAsk)
 	}
 	if symbol != nil {
-		client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask:"+*symbol)
+		client.Resolve(bidAsk, "bidask:"+*symbol)
 	}
 	// an SBE frame does not tell bbo.ALL from the per-market channel
-	client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask")
+	client.Resolve(bidAsk, "bidask")
 }
 func (this *Paradex) ParseWsBidAsk(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -2326,10 +2326,10 @@ func (this *Paradex) HandleOrder(client ccxt.ClientInterface, message map[string
 	}
 	this.Orders.Append(parsed)
 	var messageHash string = "orders"
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+	client.Resolve(this.Orders, messageHash)
 	if symbol != nil {
 		var symbolMessageHash string = messageHash + ":" + *symbol
-		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
+		client.Resolve(this.Orders, symbolMessageHash)
 	}
 }
 
@@ -2454,9 +2454,9 @@ func (this *Paradex) HandleMyTrade(client ccxt.ClientInterface, message map[stri
 	var trades ccxt.WsArrayCache = this.MyTrades
 	trades.Append(trade)
 	var messageHash string = "myTrades"
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 	if symbol != nil {
-		client.(ccxt.ClientInterface).Resolve(trades, messageHash+":"+*symbol)
+		client.Resolve(trades, messageHash+":"+*symbol)
 	}
 }
 
@@ -2604,9 +2604,9 @@ func (this *Paradex) HandlePositions(client ccxt.ClientInterface, message map[st
 	}
 	cache.Append(position)
 	newPositions = append(newPositions, position)
-	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+	client.Resolve(newPositions, "positions")
 	if symbol != nil {
-		client.(ccxt.ClientInterface).Resolve(newPositions, "positions:"+*symbol)
+		client.Resolve(newPositions, "positions:"+*symbol)
 	}
 }
 
@@ -2707,7 +2707,7 @@ func (this *Paradex) HandleBalance(client ccxt.ClientInterface, message map[stri
 		this.Balance[key] = ccxt.GetValue(balance, key)
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
 func (this *Paradex) ParseWsBalance(data map[string]any) any {
 	// the account channel carries margin, not token holdings: the account value (collateral with
@@ -2766,10 +2766,10 @@ func (this *Paradex) HandleTicker(client ccxt.ClientInterface, message map[strin
 	var channel *string = this.SafeString(params, "channel")
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, channel)
+	client.Resolve(ticker, channel)
 	// watchTicker waits on the symbol whichever channel, per-market or all, carried it
 	var messageHash string = "markets_summary." + symbol
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 	return message
 }
 
@@ -2971,16 +2971,16 @@ func (this *Paradex) HandleFundingRate(client ccxt.ClientInterface, message map[
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	// watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
 	// watchFundingRate on fundingRate:<symbol>, the per-market and all-markets channels carry the same frame
-	client.(ccxt.ClientInterface).Resolve(fundingRate, "funding_data")
+	client.Resolve(fundingRate, "funding_data")
 	if symbol != nil {
-		client.(ccxt.ClientInterface).Resolve(fundingRate, "funding_data."+*symbol)
+		client.Resolve(fundingRate, "funding_data."+*symbol)
 	} else {
-		client.(ccxt.ClientInterface).Resolve(fundingRate, nil)
+		client.Resolve(fundingRate, nil)
 	}
 	if symbol != nil {
-		client.(ccxt.ClientInterface).Resolve(fundingRate, "fundingRate:"+*symbol)
+		client.Resolve(fundingRate, "fundingRate:"+*symbol)
 	} else {
-		client.(ccxt.ClientInterface).Resolve(fundingRate, nil)
+		client.Resolve(fundingRate, nil)
 	}
 }
 func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ...any) any {
@@ -3110,7 +3110,7 @@ func (this *Paradex) ParseSbeMessage(client ccxt.ClientInterface, message any) a
 		},
 	}
 }
-func (this *Paradex) SbeReadUint(frameHex string, offset any, length int64) any {
+func (this *Paradex) SbeReadUint(frameHex string, offset any, length int64) int64 {
 	// a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
 	var digits string = "0123456789abcdef"
 	var result any = 0
@@ -3365,7 +3365,7 @@ func (this *Paradex) ParseSbeMarketSummary(client ccxt.ClientInterface, frameHex
 	// decimals are decoded, like one still in flight after its market left the scoped filter
 	var marketId *string = this.SafeString(strings, 0, "")
 	var subscribeHash string = "markets_summary." + *marketId
-	if !(client.(ccxt.ClientInterface).SubscriptionHas("markets_summary")) && !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+	if !(client.SubscriptionHas("markets_summary")) && !(client.SubscriptionHas(subscribeHash)) {
 		return nil
 	}
 	// appended in 1:3: null outside the pre-expiry settlement window and for undated markets
@@ -3698,17 +3698,17 @@ func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message any
 						var requestId *string = this.SafeString(message, "id")
 						var handled bool = false
 						if requestId != nil {
-							var subscribeHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+							var subscribeHashes []string = client.SubscriptionKeys()
 							for i := 0; i < len(subscribeHashes); i++ {
 								var subscribeHash string = subscribeHashes[i]
-								var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscribeHash)
+								var subscription map[string]any = client.SubscriptionDict(subscribeHash)
 								if this.SafeString(subscription, "id") == requestId || (this.SafeString(subscription, "id") != nil && requestId != nil && *this.SafeString(subscription, "id") == *requestId) {
 									handled = true
-									client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
+									client.SubscriptionDel(subscribeHash)
 									// watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
 									var messageHashes []any = this.SafeListSlice(subscription, "messageHashes", []any{subscribeHash})
 									for j := 0; j < len(messageHashes); j++ {
-										client.(ccxt.ClientInterface).Reject(e, messageHashes[j])
+										client.Reject(e, messageHashes[j])
 									}
 								}
 							}
@@ -3716,10 +3716,10 @@ func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message any
 						if !handled {
 							// not a reply to a known request, every watcher on the connection gets the error,
 							// and the next private watch authenticates again instead of waiting on a rejected future
-							if client.(ccxt.ClientInterface).SubscriptionHas("authenticated") {
-								client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
+							if client.SubscriptionHas("authenticated") {
+								client.SubscriptionDel("authenticated")
 							}
-							client.(ccxt.ClientInterface).Reject(e)
+							client.Reject(e)
 						}
 						return nil
 					}(this)

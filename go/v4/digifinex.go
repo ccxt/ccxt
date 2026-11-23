@@ -2194,7 +2194,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	//
 	var candles []any = nil
 	if *this.SafeBool(market, "swap", false) {
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		candles = this.SafeListSlice(data, "candles", []any{})
 	} else {
 		candles = this.SafeListSlice(response, "data", []any{})
@@ -3598,7 +3598,7 @@ func (this *Digifinex) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 		panic(OrderNotFound(this.Id + " fetchOrder() order " + *idValue + " not found"))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -3927,14 +3927,14 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	if !isMargin && (marketType != nil && *marketType == "swap") {
 		ledger = this.SafeListSlice(response, "data", []any{})
 	} else {
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		ledger = this.SafeListSlice(data, "finance", []any{})
 	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}
 	return nil
 }
-func (this *Digifinex) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Digifinex) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "addressTag":"",
@@ -4268,7 +4268,7 @@ func (this *Digifinex) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Digifinex) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer between spot, margin and OTC
 	//
@@ -4544,7 +4544,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInter
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Digifinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
+func (this *Digifinex) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "amount": 0.0006103,
@@ -6012,12 +6012,12 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
  * @param {string} params.side the position side: 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Digifinex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Digifinex) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Digifinex) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6044,12 +6044,12 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[MarginModification], sy
  * @param {string} params.side the position side: 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Digifinex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Digifinex) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Digifinex) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6064,12 +6064,12 @@ func (this *Digifinex) reduceMarginBody(ch chan AsyncResult[MarginModification],
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount float64, typeVar any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Digifinex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6388,7 +6388,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Digifinex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Digifinex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fall back to default error handler
 	}

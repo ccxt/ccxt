@@ -2339,7 +2339,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(depositAddress)}
 	return nil
 }
-func (this *Hashkey) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Hashkey) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "canDeposit": true,
@@ -2779,7 +2779,7 @@ func (this *Hashkey) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Hashkey) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
@@ -5059,12 +5059,12 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
  * @param {string} params.side position side, either 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hashkey) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Hashkey) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5089,12 +5089,12 @@ func (this *Hashkey) addMarginBody(ch chan AsyncResult[MarginModification], symb
  * @param {string} params.side position side, either 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hashkey) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Hashkey) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5107,12 +5107,12 @@ func (this *Hashkey) reduceMarginBody(ch chan AsyncResult[MarginModification], s
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Hashkey) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Hashkey) ModifyMarginHelperAsync(symbol string, amount float64, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5589,7 +5589,7 @@ func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
 	result = strings.Replace(result, "%2C", ",", 1)
 	return result
 }
-func (this *Hashkey) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Hashkey) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

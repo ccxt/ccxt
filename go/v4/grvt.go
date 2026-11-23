@@ -2606,7 +2606,7 @@ func (this *Grvt) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(result, currency)}
 	return nil
 }
-func (this *Grvt) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Grvt) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -3069,7 +3069,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Grvt) ConvertToBigIntCustom(x any) any {
+func (this *Grvt) ConvertToBigIntCustom(x any) int64 {
 	return this.ParseToInt(x)
 }
 func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string) map[string]any {
@@ -4425,7 +4425,7 @@ func (this *Grvt) EipDomainData() map[string]any {
 		}(),
 	}
 }
-func (this *Grvt) FeeAmountMultiplier() any {
+func (this *Grvt) FeeAmountMultiplier() int64 {
 	return this.ConvertToBigIntCustom("10000") // multiply needed https://t.me/c/3396937126/88
 }
 func (this *Grvt) CreateSignedRequest(request map[string]any, structureType string, optionalArgs ...any) map[string]any {
@@ -4436,7 +4436,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	var messageData any = nil
 	var requestSignature, _ = request["signature"].(map[string]any)
 	if structureType == "EIP712_TRANSFER_TYPE" {
-		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
+		var amountMultiplier int64 = this.ConvertToBigIntCustom("1000000")
 		var amountInt *string = Precise.StringMul(this.SafeString(request, "num_tokens", "0"), this.NumberToString(amountMultiplier))
 		if currencyObj == nil {
 			panic(ExchangeError(this.Id + " createSignedRequest() missing currencyObj"))
@@ -4452,7 +4452,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 			"expiration":     requestSignature["expiration"],
 		}
 	} else if structureType == "EIP712_WITHDRAWAL_TYPE" {
-		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
+		var amountMultiplier int64 = this.ConvertToBigIntCustom("1000000")
 		if currencyObj == nil {
 			panic(ExchangeError(this.Id + " createSignedRequest() missing currencyObj"))
 		}
@@ -4467,7 +4467,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	} else if (structureType == "EIP712_ORDER_TYPE") || (structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") {
 		messageData = this.EipMessageForOrder(request, structureType)
 	} else if structureType == "EIP712_BUILDER_APPROVAL_TYPE" {
-		var amountMultiplier any = this.ConvertToBigIntCustom(this.FeeAmountMultiplier())
+		var amountMultiplier int64 = this.ConvertToBigIntCustom(this.FeeAmountMultiplier())
 		messageData = map[string]any{
 			"mainAccountID":    request["main_account_id"],
 			"builderAccountID": request["builder_account_id"],
@@ -4624,7 +4624,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Grvt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Grvt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if strings.HasSuffix(url, "auth/api_key/login") || strings.HasSuffix(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
 		if accountId != nil {

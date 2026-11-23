@@ -111,8 +111,8 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	var url *string = this.SafeString(wsUrls, "private")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
@@ -481,7 +481,7 @@ func (this *Hitbtc) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		var item any = ccxt.GetValue(data, marketId)
 		var messageHash string = "orderbooks::" + *symbol
 		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+			var subscription map[string]any = client.SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			if symbol != nil {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -506,7 +506,7 @@ func (this *Hitbtc) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		if symbol != nil {
 			this.Orderbooks[*symbol] = orderbook
 		}
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 func (this *Hitbtc) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
@@ -692,9 +692,9 @@ func (this *Hitbtc) HandleTicker(client ccxt.ClientInterface, message map[string
 		}
 		result = append(result, ticker)
 		var messageHash string = topic + "::" + *symbol
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(result, topic)
+	client.Resolve(result, topic)
 }
 func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
@@ -856,9 +856,9 @@ func (this *Hitbtc) HandleBidAsk(client ccxt.ClientInterface, message map[string
 		}
 		result = append(result, ticker)
 		var messageHash string = topic + "::" + *symbol
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(result, topic)
+	client.Resolve(result, topic)
 }
 func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1051,7 +1051,7 @@ func (this *Hitbtc) HandleTrades(client ccxt.ClientInterface, message map[string
 			stored.Append(ccxt.GetValue(trades, j))
 		}
 		var messageHash string = "trades::" + *symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
 	return message
 }
@@ -1283,15 +1283,15 @@ func (this *Hitbtc) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		// parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
 		var rawOhlcvs []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(rawOhlcvs); j++ {
-			var parsed any = this.ParseWsOHLCV(ccxt.DerefScalar(rawOhlcvs[j]), market)
+			var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(ccxt.DerefScalar(rawOhlcvs[j]), market))
 			stored.Append(parsed)
 		}
 		var messageHash string = channel + "::" + *symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
 	return message
 }
-func (this *Hitbtc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//    {
 	//        "t": 1626860340000,             // Message timestamp
@@ -1305,7 +1305,7 @@ func (this *Hitbtc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 
 /**
@@ -1457,11 +1457,11 @@ func (this *Hitbtc) HandleOrderHelper(client ccxt.ClientInterface, message map[s
 	var splitMethod []string = strings.Split(method, "_order")
 	var messageHash *string = this.SafeString(splitMethod, 0)
 	var symbol *string = this.SafeSymbol(marketId)
-	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))
+	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, order)))
 	orders.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 	if messageHash != nil {
-		client.(ccxt.ClientInterface).Resolve(orders, *messageHash+"::"+*symbol)
+		client.Resolve(orders, *messageHash+"::"+*symbol)
 	}
 }
 func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
@@ -2006,7 +2006,7 @@ func (this *Hitbtc) HandleBalance(client ccxt.ClientInterface, message map[strin
 		ccxt.AddElementToObject(this.Balance, key, balance[key])
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Hitbtc) HandleNotification(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
@@ -2046,7 +2046,7 @@ func (this *Hitbtc) HandleOrderRequest(client ccxt.ClientInterface, message map[
 	var rows, _ = message["result"].([]any)
 	if rows == nil {
 		var parsedOrder any = this.ParseWsOrder(this.SafeDict(message, "result", map[string]any{}))
-		client.(ccxt.ClientInterface).Resolve(parsedOrder, messageHash)
+		client.Resolve(parsedOrder, messageHash)
 	} else {
 		var parsedOrders []any = []any{}
 		var rowsLength int = len(rows)
@@ -2054,7 +2054,7 @@ func (this *Hitbtc) HandleOrderRequest(client ccxt.ClientInterface, message map[
 			var parsedOrder any = this.ParseWsOrder(rows[i])
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
-		client.(ccxt.ClientInterface).Resolve(parsedOrders, messageHash)
+		client.Resolve(parsedOrders, messageHash)
 	}
 	return message
 }
@@ -2132,9 +2132,9 @@ func (this *Hitbtc) HandleUnSubscription(client ccxt.ClientInterface, message ma
 	// the answers can arrive in a different order than the requests, so they are matched by id
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var subscriptionHashes []string = client.SubscriptionKeys()
 	for i := 0; i < len(subscriptionHashes); i++ {
-		var subscription any = client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHashes[i])
+		var subscription any = client.SubscriptionGet(subscriptionHashes[i])
 		var isUnSubscription *bool = this.SafeBool(subscription, "unsubscribe", false)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
@@ -2158,13 +2158,13 @@ func (this *Hitbtc) HandleAuthenticate(client ccxt.ClientInterface, message map[
 	var success *bool = this.SafeBool(message, "result", false)
 	var messageHash string = "authenticated"
 	if success != nil && *success {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.Reject(error, messageHash)
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel(messageHash)
 		}
 	}
 	return message
@@ -2192,23 +2192,23 @@ func (this *Hitbtc) HandleError(client ccxt.ClientInterface, message map[string]
 							var id *string = this.SafeString(message, "id")
 							if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 								var messageHash string = "authenticated"
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-									client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+								client.Reject(e, messageHash)
+								if client.SubscriptionHas(messageHash) {
+									client.SubscriptionDel(messageHash)
 								}
 							} else {
-								client.(ccxt.ClientInterface).Reject(e, id) // trade requests use the request id as the message hash
+								client.Reject(e, id) // trade requests use the request id as the message hash
 							}
 							// subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
 							// authentication errors included: a private channel the api key has no access to is refused with 1003
 							// the login request has no id, so a login error matches no subscription
-							var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+							var subscriptionHashes []string = client.SubscriptionKeys()
 							for i := 0; i < len(subscriptionHashes); i++ {
 								var subscriptionHash string = subscriptionHashes[i]
-								var subscriptionId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "id")
+								var subscriptionId *string = this.SafeString(client.SubscriptionGet(subscriptionHash), "id")
 								if (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
-									client.(ccxt.ClientInterface).Reject(e, subscriptionHash)
-									client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash) // so a retry sends the subscribe request again
+									client.Reject(e, subscriptionHash)
+									client.SubscriptionDel(subscriptionHash) // so a retry sends the subscribe request again
 								}
 							}
 							return true

@@ -1860,7 +1860,7 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	var tickers []any = []any{}
 	var rawTickers []any = []any{}
 	if response != nil {
-		rawTickers = ArrayTyped(response)
+		rawTickers = response
 	}
 	for i := 0; i < len(rawTickers); i++ {
 		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(rawTickers, i, map[string]any{})))
@@ -3032,7 +3032,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitteam) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bitteam) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

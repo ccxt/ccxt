@@ -2631,7 +2631,7 @@ func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response)}
 	return nil
 }
-func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Latoken) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -2733,7 +2733,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal204415
 }
-func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

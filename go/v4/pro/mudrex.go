@@ -330,7 +330,7 @@ func (this *Mudrex) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	}
 	stored.Append(parsed)
 	var messageHash *string = stream
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Mudrex) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	var data []map[string]any = this.SafeListMapsTyped(message, "data")
@@ -359,8 +359,8 @@ func (this *Mudrex) HandleTicker(client ccxt.ClientInterface, message map[string
 			this.Tickers[*symbol] = ccxt.TickerFromMap(result)
 		}
 		var messageHash string = "ticker:" + *symbol
-		client.(ccxt.ClientInterface).Resolve(result, messageHash)
-		client.(ccxt.ClientInterface).Resolve(result, "tickers")
+		client.Resolve(result, messageHash)
+		client.Resolve(result, "tickers")
 	}
 }
 

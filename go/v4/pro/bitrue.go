@@ -181,7 +181,7 @@ func (this *Bitrue) HandleBalance(client ccxt.ClientInterface, message map[strin
 	}
 	this.ParseWSBalances(balances)
 	var messageHash string = "balance"
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Bitrue) ParseWSBalances(balances []any) {
 	//
@@ -326,7 +326,7 @@ func (this *Bitrue) HandleOrder(client ccxt.ClientInterface, message map[string]
 	var orders ccxt.WsArrayCache = this.Orders
 	orders.Append(parsed)
 	var messageHash string = "orders"
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+	client.Resolve(this.Orders, messageHash)
 }
 func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -518,7 +518,7 @@ func (this *Bitrue) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote string) any {
 	// callers pass safeStringLower (parts, 2, ''), a plain string in every port
@@ -599,7 +599,7 @@ func (this *Bitrue) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash stri
 	_ = params
 	var url *string = this.UrlsApiSectionStrings["ws"]["futurePublic"]
 	var client ccxt.ClientInterface = this.Client(url)
-	if client.(ccxt.ClientInterface).SubscriptionHas(subHash) {
+	if client.SubscriptionHas(subHash) {
 		var request map[string]any = map[string]any{
 			"event": "unsub",
 			"params": map[string]any{
@@ -624,7 +624,7 @@ func (this *Bitrue) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash stri
 				}()
 				// try block:
 
-				r := <-client.(ccxt.ClientInterface).SendAsync(this.DeepExtend(request, params))
+				r := <-client.SendAsync(this.DeepExtend(request, params))
 				if r.Err != nil {
 					panic(r.Err)
 				}
@@ -786,7 +786,7 @@ func (this *Bitrue) HandleTrades(client ccxt.ClientInterface, message map[string
 		return
 	}
 	var messageHash string = "trades:" + *symbol
-	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+	if !(client.SubscriptionHas(messageHash)) {
 		// a late push for a channel that was unwatched - bitrue does not acknowledge
 		// an unsubscribe, so frames it sent before processing it can still arrive
 		return
@@ -806,7 +806,7 @@ func (this *Bitrue) HandleTrades(client ccxt.ClientInterface, message map[string
 		appended = true
 	}
 	if appended {
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
 }
 func (this *Bitrue) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1002,7 +1002,7 @@ func (this *Bitrue) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		return
 	}
 	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
-	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+	if !(client.SubscriptionHas(messageHash)) {
 		// a late push for a channel that was unwatched, see handleTrades
 		return
 	}
@@ -1010,7 +1010,7 @@ func (this *Bitrue) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	if tick == nil {
 		return
 	}
-	var parsed any = this.ParseWsOHLCV(tick, market)
+	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(tick, market))
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
@@ -1023,9 +1023,9 @@ func (this *Bitrue) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	var stored ccxt.WsArrayCache
 	stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
-func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
+func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) ccxt.OHLCV {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -1036,7 +1036,7 @@ func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
 	var close *float64 = this.SafeNumber(tick, "close")
 	var rawVol *float64 = this.SafeNumber(tick, "vol")
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)
-	return []any{timestamp, open, high, low, close, baseVolume}
+	return ccxt.OHLCVFromList([]any{timestamp, open, high, low, close, baseVolume})
 }
 
 /**
@@ -1125,7 +1125,7 @@ func (this *Bitrue) HandleTicker(client ccxt.ClientInterface, message map[string
 	var parsed map[string]any = this.ParseWsTicker(tick, market, timestamp)
 	this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 	var messageHash string = "ticker:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
+	client.Resolve(parsed, messageHash)
 }
 func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs ...any) map[string]any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1206,7 +1206,7 @@ func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientI
 		"pong": time,
 	}
 
-	r := <-client.(ccxt.ClientInterface).SendAsync(pong)
+	r := <-client.SendAsync(pong)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1260,11 +1260,11 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// lock rather than through an unsynchronized map write
 		var messageHash string = "authenticateFlight"
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey url is then in the options
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -1274,7 +1274,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 		// register before the first await, so a concurrent caller entering
 		// authenticate () while this one is inside the fetch sees the flight
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Bitrue) (ret_ any) {
@@ -1287,7 +1287,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 							// catch block:
 							// reject the flight - all waiters throw and the next caller
 							// re-leads instead of deadlocking on a dead flight
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							client.Reject(e, messageHash)
 							return nil
 						}(this)
 					}
@@ -1324,7 +1324,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 					panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
 				}
 				this.Options["listenKeyUrl"] = *wsUrl + "/stream?listenKey=" + *key
-				client.(ccxt.ClientInterface).Resolve(key, messageHash)
+				client.Resolve(key, messageHash)
 				return nil
 			}(this)
 

@@ -3297,7 +3297,7 @@ func (this *Predictfun) ParseOrderStatus(status *string) *string {
  * @param {object} requestBody the request body
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
-func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}
@@ -3782,8 +3782,8 @@ func (this *Predictfun) HandleSubscriptionError(client ccxt.ClientInterface, mes
 	// unregistered, so a rejected request has to take its own entry down - otherwise a retry
 	// would skip the send and wait forever on a topic the venue never accepted
 	var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
-		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
+	if (subscribeHash != nil) && (client.SubscriptionHas(subscribeHash)) {
+		client.SubscriptionDel(subscribeHash)
 	}
 	var messageHashes []any = []any{}
 	if this.SafeString(subscription, "topic") == nil || *this.SafeString(subscription, "topic") != "walletEvents" {
@@ -3800,7 +3800,7 @@ func (this *Predictfun) HandleSubscriptionError(client ccxt.ClientInterface, mes
 		panic(error)
 	}
 	for i := 0; i < messageHashesLength; i++ {
-		client.(ccxt.ClientInterface).Reject(error, this.SafeString(messageHashes, i, ""))
+		client.Reject(error, this.SafeString(messageHashes, i, ""))
 	}
 }
 
@@ -3833,8 +3833,8 @@ func (this *Predictfun) HandleUnSubscription(client ccxt.ClientInterface, subscr
 	// the subscription itself is keyed by the topic, which is what watchOrderBook registered -
 	// leaving it behind would make a later watch believe it is still subscribed
 	var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
-		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
+	if (subscribeHash != nil) && (client.SubscriptionHas(subscribeHash)) {
+		client.SubscriptionDel(subscribeHash)
 	}
 	// cleanCache drops a cache only when the subscription names that one topic, and the wallet
 	// topic backs two of them - so the caches it cannot reach are dropped here by the hashes
@@ -4147,7 +4147,7 @@ func (this *Predictfun) WalletEventMessageHashes(client ccxt.ClientInterface, op
 	messageHash := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = messageHash
 	var hashes []any = []any{"orders", "myTrades"}
-	var futures []string = client.(ccxt.ClientInterface).FutureKeys()
+	var futures []string = client.FutureKeys()
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
 		var future string = futures[i]
@@ -4411,7 +4411,7 @@ func (this *Predictfun) HandleOrderBook(client ccxt.ClientInterface, message map
 				"market":    this.SafeString(outcomeObj, "market"),
 				"nonce":     this.SafeInteger(data, "version"),
 			})
-			client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+*outcomeHandle)
+			client.Resolve(orderbook, "orderbook::"+*outcomeHandle)
 		}
 	}
 }
@@ -4496,10 +4496,10 @@ func (this *Predictfun) HandleWalletEventOrder(client ccxt.ClientInterface, orde
 	}
 	var stored ccxt.WsArrayCache = this.Orders
 	stored.Append(order)
-	client.(ccxt.ClientInterface).Resolve(stored, "orders")
+	client.Resolve(stored, "orders")
 	var outcomeHandle *string = this.SafeString(order, "outcome")
 	if outcomeHandle != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, "orders::"+*outcomeHandle)
+		client.Resolve(stored, "orders::"+*outcomeHandle)
 	}
 }
 
@@ -4520,10 +4520,10 @@ func (this *Predictfun) HandleWalletEventTrade(client ccxt.ClientInterface, even
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
 	stored.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
+	client.Resolve(stored, "myTrades")
 	var outcomeHandle *string = this.SafeString(trade, "outcome")
 	if outcomeHandle != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades::"+*outcomeHandle)
+		client.Resolve(stored, "myTrades::"+*outcomeHandle)
 	}
 }
 
@@ -4806,14 +4806,14 @@ func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Cli
 					ret_ = func(this *Predictfun) any {
 						// catch block:
 						error := ccxt.NetworkError(this.Id + " pong failed - " + this.ExceptionMessage(e))
-						client.(ccxt.ClientInterface).Reset(error)
+						client.Reset(error)
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			r := <-client.(ccxt.ClientInterface).SendAsync(reply)
+			r := <-client.SendAsync(reply)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4839,7 +4839,7 @@ func (this *Predictfun) HandleMessage(client ccxt.ClientInterface, message map[s
 		// it carries only the request id, so the subscription that request registered is found
 		// by it - see handleSubscriptionStatus in pro/binance.ts
 		var id *string = this.SafeString(message, "requestId")
-		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 		var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 		var success *bool = this.SafeBool(message, "success", false)
 		if !(success != nil && *success) {

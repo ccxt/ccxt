@@ -218,7 +218,7 @@ func (this *Bit2me) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	orderbook.Reset(snapshot)
-	client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook:"+*symbol)
+	client.Resolve(orderbook, "orderbook:"+*symbol)
 }
 
 /**
@@ -295,7 +295,7 @@ func (this *Bit2me) HandleTrades(client ccxt.ClientInterface, message map[string
 	}
 	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 	tradesArray.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(tradesArray, "trades:"+symbol)
+	client.Resolve(tradesArray, "trades:"+symbol)
 }
 func (this *Bit2me) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -465,8 +465,8 @@ func (this *Bit2me) HandleOrder(client ccxt.ClientInterface, message map[string]
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	orders.Append(order)
-	client.(ccxt.ClientInterface).Resolve(orders, "orders")
-	client.(ccxt.ClientInterface).Resolve(orders, "orders:"+*this.SafeString(order, "symbol", ""))
+	client.Resolve(orders, "orders")
+	client.Resolve(orders, "orders:"+*this.SafeString(order, "symbol", ""))
 }
 func (this *Bit2me) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -620,8 +620,8 @@ func (this *Bit2me) HandleMyTrade(client ccxt.ClientInterface, message map[strin
 	}
 	var myTrades ccxt.WsArrayCache = this.MyTrades
 	myTrades.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades")
-	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
+	client.Resolve(myTrades, "myTrades")
+	client.Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
 }
 
 /**
@@ -670,7 +670,7 @@ func (this *Bit2me) HandleBalance(client ccxt.ClientInterface, message map[strin
 		balances = []any{}
 	}
 	this.Balance = this.ParseBalanceList(balances)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
 
 /**
@@ -757,13 +757,13 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 func (this *Bit2me) SettleRequest(client ccxt.ClientInterface, messageHash string, result any, optionalArgs ...any) {
 	error := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = error
-	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+	if client.SubscriptionHas(messageHash) {
+		client.SubscriptionDel(messageHash)
 	}
 	if error != nil {
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		client.Reject(error, messageHash)
 	} else {
-		client.(ccxt.ClientInterface).Resolve(result, messageHash)
+		client.Resolve(result, messageHash)
 	}
 }
 func (this *Bit2me) HandleCreateOrder(client ccxt.ClientInterface, message map[string]any) {
@@ -1068,8 +1068,8 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		// the token is valid for one minute, it is only used to open the session
 
@@ -1114,13 +1114,13 @@ func (this *Bit2me) HandleAuthenticate(client ccxt.ClientInterface, message map[
 	var error *string = this.SafeString(message, "error")
 	if error == nil {
 		// the future is reusable, every later authenticate() call awaits the same resolved value
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(message)
 	} else {
 		exception := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
-		client.(ccxt.ClientInterface).Reject(exception, messageHash)
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.Reject(exception, messageHash)
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel(messageHash)
 		}
 	}
 }
@@ -1205,23 +1205,23 @@ func (this *Bit2me) HandleErrorMessage(client ccxt.ClientInterface, message map[
 		}
 		var messageHash *string = this.SafeString(hashes, name)
 		if messageHash != nil {
-			client.(ccxt.ClientInterface).Reject(exception, messageHash)
+			client.Reject(exception, messageHash)
 			if (name != nil && *name == "my-orders") || (name != nil && *name == "my-trades") {
 				// the private channels are account-wide, a symbol-scoped watchOrders / watchMyTrades waits on orders:SYMBOL / myTrades:SYMBOL
 				var scopedPrefix string = *messageHash + ":"
-				var pendingHashes []string = client.(ccxt.ClientInterface).FutureKeys()
+				var pendingHashes []string = client.FutureKeys()
 				for i := 0; i < len(pendingHashes); i++ {
 					var pendingHash string = pendingHashes[i]
 					if strings.HasPrefix(pendingHash, scopedPrefix) {
-						client.(ccxt.ClientInterface).Reject(exception, pendingHash)
+						client.Reject(exception, pendingHash)
 					}
 				}
 			}
-			if (name != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(name)) {
-				client.(ccxt.ClientInterface).SubscriptionDel(name)
+			if (name != nil) && (client.SubscriptionHas(name)) {
+				client.SubscriptionDel(name)
 			}
-			if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-				client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+			if client.SubscriptionHas(messageHash) {
+				client.SubscriptionDel(messageHash)
 			}
 		}
 	}

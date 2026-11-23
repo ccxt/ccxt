@@ -159,7 +159,7 @@ func (this *Cex) HandleBalance(client ccxt.ClientInterface, message map[string]a
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	var messageHash *string = this.SafeString(message, "oid")
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 
 /**
@@ -211,7 +211,7 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 		client = entry
 	}
 	if client != nil {
-		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+		var subscriptionKeys []string = client.SubscriptionKeys()
 		for i := 0; i < len(subscriptionKeys); i++ {
 			var subscriptionKey string = subscriptionKeys[i]
 			if subscriptionKey == subscriptionHash {
@@ -321,7 +321,7 @@ func (this *Cex) HandleTradesInner(client ccxt.ClientInterface, message map[stri
 	}
 	var messageHash string = "trades"
 	this.Trades[*symbol] = stored
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -517,11 +517,11 @@ func (this *Cex) HandleTicker(client ccxt.ClientInterface, message map[string]an
 	}
 	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	var messageHash string = "ticker:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
-	client.(ccxt.ClientInterface).Resolve(ticker, "tickers")
+	client.Resolve(ticker, messageHash)
+	client.Resolve(ticker, "tickers")
 	var oid *string = this.SafeString(message, "oid")
 	if oid != nil {
-		client.(ccxt.ClientInterface).Resolve(ticker, oid)
+		client.Resolve(ticker, oid)
 	}
 }
 func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
@@ -841,7 +841,7 @@ func (this *Cex) HandleMyTrades(client ccxt.ClientInterface, message map[string]
 	stored.Append(trade)
 	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "myTrades:" + tradeSymbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -1043,7 +1043,7 @@ func (this *Cex) HandleOrderUpdate(client ccxt.ClientInterface, message map[stri
 	var parsedOrder map[string]any = ccxt.OrderToMap(this.SafeOrder(this.Extend(order, orderUpdate)))
 	storedOrders.Append(parsedOrder)
 	var messageHash string = "orders:" + symbol
-	client.(ccxt.ClientInterface).Resolve(storedOrders, messageHash)
+	client.Resolve(storedOrders, messageHash)
 }
 func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) any {
 	//
@@ -1208,7 +1208,7 @@ func (this *Cex) HandleOrdersSnapshot(client ccxt.ClientInterface, message map[s
 	var messageHash string = "orders:" + symbol
 	var ordersLength int = len(myOrders.ToArray())
 	if ordersLength > 0 {
-		client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)
+		client.Resolve(myOrders, messageHash)
 	}
 }
 
@@ -1325,7 +1325,7 @@ func (this *Cex) HandleOrderBookSnapshot(client ccxt.ClientInterface, message ma
 	ccxt.AddElementToObject(this.Options["orderbook"], symbol, map[string]any{
 		"incrementalId": incrementalId,
 	})
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Cex) PairToSymbol(pair *string) string {
 	var parts []string = strings.Split(*pair, ":")
@@ -1365,9 +1365,9 @@ func (this *Cex) HandleOrderBookUpdate(client ccxt.ClientInterface, message map[
 	var messageHash string = "orderbook:" + symbol
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if (nonce == nil) || (incrementalId == nil || *incrementalId != *nonce+1) {
-		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.SubscriptionDel(messageHash)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() skipped a message")
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		client.Reject(error, messageHash)
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
@@ -1386,7 +1386,7 @@ func (this *Cex) HandleOrderBookUpdate(client ccxt.ClientInterface, message map[
 	storedOrderBook.SetTimestamp(timestamp)
 	storedOrderBook.SetDatetime(this.Iso8601(timestamp))
 	storedOrderBook.SetNonce(incrementalId)
-	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
+	client.Resolve(storedOrderBook, messageHash)
 }
 func (this *Cex) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
@@ -1522,7 +1522,7 @@ func (this *Cex) HandleInitOHLCV(client ccxt.ClientInterface, message map[string
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(sorted[i], market))
 		stored.Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Cex) HandleOHLCV24(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
@@ -1561,7 +1561,7 @@ func (this *Cex) HandleOHLCV1m(client ccxt.ClientInterface, message map[string]a
 	var stored ccxt.WsArrayCache
 	stored, _ = this.Ohlcvs[symbol]["unknown"].(ccxt.WsArrayCache)
 	stored.Append(ohlcv)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Cex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -1589,7 +1589,7 @@ func (this *Cex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any
 	}
 	var dataLength int = len(data)
 	if dataLength > 0 {
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
 }
 
@@ -1648,7 +1648,7 @@ func (this *Cex) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	}
 	response := r2.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(response, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -1778,7 +1778,7 @@ func (this *Cex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 	}
 	rawOrder := r2.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(rawOrder, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, rawOrder), market)}
 	return nil
 }
 
@@ -1850,7 +1850,7 @@ func (this *Cex) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string
 	}
 	response := r2.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(response, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -1909,7 +1909,7 @@ func (this *Cex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 	}
 	response := r2.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(response, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -2001,7 +2001,7 @@ func (this *Cex) ResolveData(client ccxt.ClientInterface, message any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var messageHash *string = this.SafeString(message, "oid")
-	client.(ccxt.ClientInterface).Resolve(data, messageHash)
+	client.Resolve(data, messageHash)
 }
 func (this *Cex) HandleConnected(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
@@ -2019,9 +2019,9 @@ func (this *Cex) HandleErrorMessage(client ccxt.ClientInterface, message map[str
 					ret_ = func(this *Cex) bool {
 						// catch block:
 						var messageHash *string = this.SafeString(message, "oid")
-						var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+						var future *ccxt.Future = client.FutureTyped(messageHash)
 						if future != nil {
-							client.(ccxt.ClientInterface).Reject(error, messageHash)
+							client.Reject(error, messageHash)
 							return true
 						} else {
 							panic(error)
@@ -2091,7 +2091,7 @@ func (this *Cex) HandleAuthenticationMessage(client ccxt.ClientInterface, messag
 	//         "timestamp":1448034593
 	//     }
 	//
-	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future *ccxt.Future = client.GetFutures()["authenticated"]
 	if future != nil {
 		future.Resolve(true)
 	}
@@ -2109,8 +2109,8 @@ func (this *Cex) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture("authenticated")
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Seconds(), 10)

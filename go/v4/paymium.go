@@ -647,7 +647,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(response, codes, false))}
 	return nil
 }
-func (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Paymium) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -846,7 +846,7 @@ func (this *Paymium) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Paymium) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -972,7 +972,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Paymium) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Paymium) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

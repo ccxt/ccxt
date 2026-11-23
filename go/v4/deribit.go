@@ -4288,7 +4288,7 @@ func (this *Deribit) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(result, currency)}
 	return nil
 }
-func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Deribit) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "updated_timestamp": 1550232862350,
@@ -5536,7 +5536,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Deribit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Deribit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

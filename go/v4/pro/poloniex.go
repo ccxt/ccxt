@@ -115,7 +115,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var url *string = this.SafeString(this.UrlsApi["ws"], "private", "")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+	var future any = client.SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var accessPath string = "/ws"
 		var requestString string = "GET\n" + accessPath + "\nsignTimestamp=" + *timestamp
@@ -158,7 +158,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		//        "channel": "auth"
 		//    }
 		//
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
+		client.SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string
@@ -578,7 +578,7 @@ func (this *Poloniex) HandleOrderRequest(client ccxt.ClientInterface, message ma
 		var parsedOrder map[string]any = this.ParseWsOrder(order)
 		orders = append(orders, parsedOrder)
 	}
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 }
 
 /**
@@ -1160,7 +1160,7 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(name + ":fetchBalanceSnapshot")
+		r2 := <-client.Future(name + ":fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1174,15 +1174,15 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	return nil
 }
 func (this *Poloniex) SetBalanceCache(client ccxt.ClientInterface, typeVar string) {
-	if client.(ccxt.ClientInterface).SubscriptionHas(typeVar) {
+	if client.SubscriptionHas(typeVar) {
 		return
 	}
 	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash string = typeVar + ":fetchBalanceSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	}
@@ -1234,14 +1234,14 @@ func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if client.FutureHas(messageHash) {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve()
-		client.(ccxt.ClientInterface).Resolve(this.Balance, typeVar)
+		client.Resolve(this.Balance, typeVar)
 	}
 	return nil
 }
-func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//    {
 	//        "symbol": "BTC_USDT",
@@ -1259,7 +1259,7 @@ func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "startTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "quantity")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, "startTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "quantity")})
 }
 func (this *Poloniex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
@@ -1297,7 +1297,7 @@ func (this *Poloniex) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		timeframes = map[string]any{}
 	}
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
-	var parsed any = this.ParseWsOHLCV(data, market)
+	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
@@ -1320,7 +1320,7 @@ func (this *Poloniex) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		stored.(ccxt.Appender).Append(parsed)
 		if channel != nil {
 			var messageHash string = *channel + "::" + *symbol
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			client.Resolve(stored, messageHash)
 		}
 	}
 	return message
@@ -1366,7 +1366,7 @@ func (this *Poloniex) HandleTrade(client ccxt.ClientInterface, message map[strin
 				}
 			}
 			tradesArray.Append(trade)
-			client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+			client.Resolve(tradesArray, messageHash)
 		}
 	}
 	return message
@@ -1671,9 +1671,9 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 		var market map[string]any = this.Market(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
 		var messageHash string = "orders::" + *symbol
-		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+		client.Resolve(orders, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(orders, "orders")
+	client.Resolve(orders, "orders")
 	return message
 }
 func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -1795,10 +1795,10 @@ func (this *Poloniex) HandleTicker(client ccxt.ClientInterface, message map[stri
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		if !this.IsEmpty(tickers) {
-			client.(ccxt.ClientInterface).Resolve(tickers, messageHash)
+			client.Resolve(tickers, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newTickers, "ticker")
+	client.Resolve(newTickers, "ticker")
 	return message
 }
 func (this *Poloniex) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
@@ -1863,7 +1863,7 @@ func (this *Poloniex) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		}
 		var name string = "book_lv2"
 		var messageHash string = name + "::" + *symbol
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+		var subscription map[string]any = client.SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var timestamp *int64 = this.SafeInteger(item, "ts")
 		var asks []any
@@ -1915,7 +1915,7 @@ func (this *Poloniex) HandleOrderBook(client ccxt.ClientInterface, message map[s
 			orderbook.SetSymbol(symbol)
 			orderbook.SetTimestamp(timestamp)
 			orderbook.SetDatetime(this.Iso8601(timestamp))
-			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+			client.Resolve(orderbook, messageHash)
 		}
 	}
 }
@@ -1979,7 +1979,7 @@ func (this *Poloniex) HandleBalance(client ccxt.ClientInterface, message map[str
 		}
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Poloniex) HandleMyTrades(client ccxt.ClientInterface, parsedTrade map[string]any) {
 	// emulated using the orders' stream
@@ -1991,12 +1991,12 @@ func (this *Poloniex) HandleMyTrades(client ccxt.ClientInterface, parsedTrade ma
 	}
 	var trades ccxt.WsArrayCache = this.MyTrades
 	trades.Append(parsedTrade)
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 	var symbolMessageHash string = messageHash + ":" + symbol
-	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
+	client.Resolve(trades, symbolMessageHash)
 }
 func (this *Poloniex) HandlePong(client ccxt.ClientInterface) {
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 }
 func (this *Poloniex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
@@ -2005,7 +2005,7 @@ func (this *Poloniex) HandleMessage(client ccxt.ClientInterface, message map[str
 	var typeVar *string = this.SafeString(message, "channel")
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "pong" {
-		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+		client.SetLastPong(this.Milliseconds())
 	}
 	if event != nil && *event == "unsubscribe" {
 		this.HandleUnsubscription(client, message)
@@ -2131,12 +2131,12 @@ func (this *Poloniex) HandleErrorMessage(client ccxt.ClientInterface, message ma
 							// catch block:
 							if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 								var messageHash string = "authenticated"
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-									client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+								client.Reject(e, messageHash)
+								if client.SubscriptionHas(messageHash) {
+									client.SubscriptionDel(messageHash)
 								}
 							} else {
-								client.(ccxt.ClientInterface).Reject(e, id)
+								client.Reject(e, id)
 							}
 							return true
 						}(this)
@@ -2168,12 +2168,12 @@ func (this *Poloniex) HandleAuthenticate(client ccxt.ClientInterface, message ma
 	var success *bool = this.SafeBool(data, "success", false)
 	var messageHash string = "authenticated"
 	if success != nil && *success {
-		client.(ccxt.ClientInterface).Resolve(message, messageHash)
+		client.Resolve(message, messageHash)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.Reject(error, messageHash)
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel(messageHash)
 		}
 	}
 	return message

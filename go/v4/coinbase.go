@@ -6121,7 +6121,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map
 	ch <- AsyncResult[map[string]DepositAddress]{Value: DepositAddressMapFromMap(this.IndexBy(addressStructures, "network"))}
 	return nil
 }
-func (this *Coinbase) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Coinbase) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//    {
 	//        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -6192,7 +6192,7 @@ func (this *Coinbase) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	} else {
 		currencyId = this.SafeString(depositAddress, "currency")
 	}
-	var addressInfo map[string]any = SafeMapTyped(depositAddress, "address_info")
+	var addressInfo, _ = depositAddress["address_info"].(map[string]any)
 	return DepositAddressFromMap(map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeCurrencyCode(currencyId, currency),
@@ -6790,7 +6790,7 @@ func (this *Coinbase) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(transfer)}
 	return nil
 }
-func (this *Coinbase) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Coinbase) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
@@ -7436,7 +7436,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinbase) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Coinbase) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

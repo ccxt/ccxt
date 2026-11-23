@@ -89,7 +89,7 @@ func (this *Bullish) HandlePong(client ccxt.ClientInterface, message map[string]
 	//         }
 	//     }
 	//
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message // current line is for transpilation compatibility
 }
 func (this *Bullish) WatchPublicAsync(url string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -275,7 +275,7 @@ func (this *Bullish) HandleTrades(client ccxt.ClientInterface, message map[strin
 	}
 	this.Trades[*symbol] = tradesArray
 	var messageHash string = "trades::" + *this.SafeString(market, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+	client.Resolve(tradesArray, messageHash)
 }
 
 /**
@@ -382,7 +382,7 @@ func (this *Bullish) HandleTicker(client ccxt.ClientInterface, message map[strin
 		this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 	}
 	var messageHash string = "ticker::" + *symbol
-	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
+	client.Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 }
 
 /**
@@ -482,7 +482,7 @@ func (this *Bullish) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Bullish) SeparateBidsOrAsks(entry any) []any {
 	var result []any = []any{}
@@ -647,7 +647,7 @@ func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[strin
 			}
 		}
 		var messageHash string = "orders"
-		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+		client.Resolve(orders, messageHash)
 		var keys []string = nil
 		if symbols != nil {
 			keys = make([]string, 0, len(symbols))
@@ -658,7 +658,7 @@ func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[strin
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = keys[i]
 			var symbolMessageHash string = messageHash + "::" + hashSymbol
-			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
+			client.Resolve(this.Orders, symbolMessageHash)
 		}
 	}
 }
@@ -803,7 +803,7 @@ func (this *Bullish) HandleMyTrades(client ccxt.ClientInterface, message map[str
 			}
 		}
 		var messageHash string = "myTrades"
-		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+		client.Resolve(trades, messageHash)
 		var keys []string = nil
 		if symbols != nil {
 			keys = make([]string, 0, len(symbols))
@@ -814,7 +814,7 @@ func (this *Bullish) HandleMyTrades(client ccxt.ClientInterface, message map[str
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = keys[i]
 			var symbolMessageHash string = messageHash + "::" + hashSymbol
-			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
+			client.Resolve(this.MyTrades, symbolMessageHash)
 		}
 	}
 }
@@ -954,8 +954,8 @@ func (this *Bullish) HandleBalance(client ccxt.ClientInterface, message map[stri
 	}
 	var messageHash string = "balance"
 	var tradingAccountIdHash string = "::" + *tradingAccountId
-	client.(ccxt.ClientInterface).Resolve(this.Balance[*tradingAccountId], messageHash)
-	client.(ccxt.ClientInterface).Resolve(this.Balance[*tradingAccountId], messageHash+tradingAccountIdHash)
+	client.Resolve(this.Balance[*tradingAccountId], messageHash)
+	client.Resolve(this.Balance[*tradingAccountId], messageHash+tradingAccountIdHash)
 }
 
 /**
@@ -1062,10 +1062,10 @@ func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[st
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var symbolPositions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(symbolPositions) {
-			client.(ccxt.ClientInterface).Resolve(symbolPositions, messageHash)
+			client.Resolve(symbolPositions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(positions, "positions")
+	client.Resolve(positions, "positions")
 }
 func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -1095,7 +1095,7 @@ func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map
 					}
 					ret_ = func(this *Bullish) any {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(e)
+						client.Reject(e)
 						return nil
 					}(this)
 				}

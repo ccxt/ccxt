@@ -72,10 +72,10 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	})
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptionsKey string = "upbitPublicSubscriptions"
-	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
-		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
+	if !(client.SubscriptionHas(subscriptionsKey)) {
+		client.SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionsKey)
+	var subscriptions map[string]any = client.SubscriptionDict(subscriptionsKey)
 	if subscriptions == nil {
 		subscriptions = map[string]any{}
 	}
@@ -393,7 +393,7 @@ func (this *Upbit) HandleTicker(client ccxt.ClientInterface, message map[string]
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		var messageHash string = "ticker:" + *symbol
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
 }
 func (this *Upbit) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
@@ -454,7 +454,7 @@ func (this *Upbit) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	}, symbol, timestamp)
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Upbit) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	// { type: "trade",
@@ -484,7 +484,7 @@ func (this *Upbit) HandleTrades(client ccxt.ClientInterface, message map[string]
 	}
 	stored.Append(trade)
 	var messageHash string = "trade:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Upbit) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	// {
@@ -505,7 +505,7 @@ func (this *Upbit) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "candle.1s:" + *symbol
 	var ohlcv any = ccxt.OHLCVToList(this.ParseOHLCV(message))
-	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
+	client.Resolve(ohlcv, messageHash)
 }
 func (this *Upbit) Authenticate(optionalArgs ...any) {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -566,10 +566,10 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol *strin
 	var client ccxt.ClientInterface = this.Client(url)
 	// Track private channel subscriptions to support multiple concurrent watches
 	var subscriptionsKey string = "upbitPrivateSubscriptions"
-	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
-		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
+	if !(client.SubscriptionHas(subscriptionsKey)) {
+		client.SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionsKey)
+	var subscriptions map[string]any = client.SubscriptionDict(subscriptionsKey)
 	if subscriptions == nil {
 		subscriptions = map[string]any{}
 	}
@@ -894,8 +894,8 @@ func (this *Upbit) HandleMyTrade(client ccxt.ClientInterface, message map[string
 	var trade map[string]any = this.ParseWsTrade(message)
 	myTrades.Append(trade)
 	var messageHash string = "myTrades"
-	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
-	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
+	client.Resolve(myTrades, messageHash)
+	client.Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
 }
 func (this *Upbit) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	var parsed map[string]any = this.ParseWsOrder(message)
@@ -956,8 +956,8 @@ func (this *Upbit) HandleOrder(client ccxt.ClientInterface, message map[string]a
 	}
 	cachedOrders.Append(parsed)
 	var messageHash string = "myOrder"
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
-	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))
+	client.Resolve(this.Orders, messageHash)
+	client.Resolve(this.Orders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))
 }
 
 /**
@@ -1039,7 +1039,7 @@ func (this *Upbit) HandleBalance(client ccxt.ClientInterface, message map[string
 		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	}
 	var messageHash *string = this.SafeString(message, "type")
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Upbit) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var methods map[string]any = map[string]any{

@@ -1767,7 +1767,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(addressess, index, map[string]any{}))}
 	return nil
 }
-func (this *Deepcoin) ParseDepositAddress(response any, optionalArgs ...any) DepositAddress {
+func (this *Deepcoin) ParseDepositAddress(response map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "chain": "TRC20",
@@ -2039,7 +2039,7 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(transfer)}
 	return nil
 }
-func (this *Deepcoin) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Deepcoin) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "retCode": 0,
@@ -4362,11 +4362,8 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 	}
 	var data []any
 	data, _ = response["data"].([]any)
-	if data == nil {
-		data = []any{}
-	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
@@ -4428,7 +4425,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var msg *string = this.SafeString(response, "msg")
 	var messageCode *string = this.SafeString(response, "code")

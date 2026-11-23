@@ -3545,7 +3545,7 @@ func (this *Gate) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(chainsIndexedById, selectedNetworkIdOrCode))}
 	return nil
 }
-func (this *Gate) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Gate) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         chain: "BTC",
@@ -8709,7 +8709,7 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Gate) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Gate) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//    {
 	//        "currency": "BTC",
@@ -9521,12 +9521,12 @@ func (this *Gate) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any 
  * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Gate) RepayIsolatedMarginAsync(symbol string, code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Gate) RepayIsolatedMarginAsync(symbol string, code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount any, optionalArgs ...any) any {
+func (this *Gate) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9577,12 +9577,12 @@ func (this *Gate) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbo
  * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Gate) RepayCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Gate) RepayCrossMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Gate) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9642,12 +9642,12 @@ func (this *Gate) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code str
  * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Gate) BorrowIsolatedMarginAsync(symbol string, code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Gate) BorrowIsolatedMarginAsync(symbol string, code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount any, optionalArgs ...any) any {
+func (this *Gate) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9713,12 +9713,12 @@ func (this *Gate) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symb
  * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Gate) BorrowCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Gate) BorrowCrossMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Gate) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9917,7 +9917,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest],
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Gate) ParseBorrowInterest(info any, optionalArgs ...any) any {
+func (this *Gate) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "currency_pair")
@@ -10174,18 +10174,18 @@ func (this *Gate) ParseMarginModification(data any, optionalArgs ...any) map[str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Gate) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Gate) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Gate) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.ModifyMarginHelperAsync(symbol, OpNeg(amount), params)
+	r := <-this.ModifyMarginHelperAsync(symbol, -amount, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -10204,12 +10204,12 @@ func (this *Gate) reduceMarginBody(ch chan AsyncResult[MarginModification], symb
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Gate) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Gate) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Gate) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11991,7 +11991,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(responseList, symbols, paramsValue))}
 	return nil
 }
-func (this *Gate) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Gate) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

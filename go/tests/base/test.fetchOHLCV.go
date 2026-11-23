@@ -7,12 +7,12 @@ import "github.com/ccxt/ccxt/go/v4"
 
 import "strconv"
 
-func TestFetchOHLCVAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan ccxt.AsyncResult[any] {
+func TestFetchOHLCVAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go testFetchOHLCVBody(ch, exchange, skippedProperties, symbol)
 	return ch
 }
-func testFetchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+func testFetchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "fetchOHLCV"
@@ -39,7 +39,7 @@ func testFetchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 		for j := 0; j < len(limitsArray); j++ {
 			var limit any = DerefScalar(limitsArray[j])
 
-			r := <-exchange.(ccxt.IFetchOHLCV).FetchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, sinceCurrent, limit)
+			r := <-exchange.(ccxt.IFetchOHLCV).FetchOHLCVAsync(symbol, chosenTimeframeKey, sinceCurrent, limit)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -56,7 +56,7 @@ func testFetchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }
-func HelperFetchOHLCVChecker(exchange ccxt.ICoreExchange, skippedProperties any, symbol any, ohlcvs any, timeframe any, since any, limit any) {
+func HelperFetchOHLCVChecker(exchange ccxt.ICoreExchange, skippedProperties any, symbol string, ohlcvs any, timeframe any, since any, limit any) {
 	var method string = "fetchOHLCV"
 	var logText any = LogTemplate(exchange, method, map[string]any{})
 	Assert(IsArray(ohlcvs), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), logText))

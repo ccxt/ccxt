@@ -4499,12 +4499,12 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) map[st
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Aster) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Aster) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, addOrReduce any, optionalArgs ...any) any {
+func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, addOrReduce any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4553,12 +4553,12 @@ func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
-func (this *Aster) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Aster) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Aster) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Aster) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4582,12 +4582,12 @@ func (this *Aster) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func (this *Aster) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Aster) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Aster) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Aster) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5739,7 +5739,7 @@ func (this *Aster) transferBody(ch chan AsyncResult[TransferEntry], code string,
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Aster) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "code")
@@ -6088,7 +6088,7 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 	ch <- AsyncResult[bool]{} // just c#
 	return nil
 }
-func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

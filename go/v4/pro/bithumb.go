@@ -62,7 +62,7 @@ func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Client
 	var ping *int64 = this.SafeInteger(message, "ping")
 	if ping != nil {
 
-		r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+		r := <-client.SendAsync(map[string]any{
 			"pong": ping,
 		})
 		if r.Err != nil {
@@ -70,7 +70,7 @@ func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Client
 		}
 	} else {
 
-		r1 := <-client.(ccxt.ClientInterface).SendAsync("PONG")
+		r1 := <-client.SendAsync("PONG")
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -81,7 +81,7 @@ func (this *Bithumb) HandlePing(client ccxt.ClientInterface, message any) {
 	this.Spawn(this.PongAsync, client, message)
 }
 func (this *Bithumb) HandlePong(client ccxt.ClientInterface, message any) {
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 }
 
 /**
@@ -352,7 +352,7 @@ func (this *Bithumb) HandleTicker(client ccxt.ClientInterface, message map[strin
 	var ticker map[string]any = this.ParseWsTicker(tickerMessage)
 	var messageHash string = "ticker:" + *symbol
 	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
+	client.Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 }
 func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
@@ -633,7 +633,7 @@ func (this *Bithumb) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		legacyOrderbook.SetTimestamp(&legacyTimestamp)
 		legacyOrderbook.SetDatetime(this.Iso8601(legacyTimestamp))
 		var legacyMessageHash string = "orderbook" + ":" + *legacySymbol
-		client.(ccxt.ClientInterface).Resolve(legacyOrderbook, legacyMessageHash)
+		client.Resolve(legacyOrderbook, legacyMessageHash)
 		return
 	}
 	var marketId *string = this.SafeString(message, "code")
@@ -679,7 +679,7 @@ func (this *Bithumb) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	}, symbol, timestamp)
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook" + ":" + *symbol
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Bithumb) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	//
@@ -847,7 +847,7 @@ func (this *Bithumb) HandleTrades(client ccxt.ClientInterface, message map[strin
 		var trades ccxt.WsArrayCache = this.Trades[*symbol]
 		trades.Append(parsed)
 		var messageHash string = "trade" + ":" + *symbol
-		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+		client.Resolve(trades, messageHash)
 	}
 }
 func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -941,7 +941,7 @@ func (this *Bithumb) HandleErrorMessage(client ccxt.ClientInterface, message map
 		} else {
 			addedMessage = ""
 		}
-		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id + " websocket error " + errorName + addedMessage))
+		client.Reject(ccxt.ExchangeError(this.Id + " websocket error " + errorName + addedMessage))
 		return false
 	}
 	if _, ok := message["status"]; !ok {
@@ -954,7 +954,7 @@ func (this *Bithumb) HandleErrorMessage(client ccxt.ClientInterface, message map
 				if e := recover(); e != nil {
 					ret_ = func(this *Bithumb) bool {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(e)
+						client.Reject(e)
 						return false
 					}(this)
 				}
@@ -1073,7 +1073,7 @@ func (this *Bithumb) HandleBalance(client ccxt.ClientInterface, message map[stri
 		this.Balance["datetime"] = nil
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 
 /**
@@ -1260,8 +1260,8 @@ func (this *Bithumb) HandleOrders(client ccxt.ClientInterface, message map[strin
 	}
 	var cachedOrders ccxt.WsArrayCache = this.Orders
 	cachedOrders.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)
-	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))
+	client.Resolve(cachedOrders, messageHash)
+	client.Resolve(cachedOrders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))
 }
 func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//

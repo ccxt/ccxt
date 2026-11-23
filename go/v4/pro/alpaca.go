@@ -140,7 +140,7 @@ func (this *Alpaca) HandleTicker(client ccxt.ClientInterface, message map[string
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 func (this *Alpaca) ParseTicker(ticker any, optionalArgs ...any) ccxt.Ticker {
 	//
@@ -278,7 +278,7 @@ func (this *Alpaca) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message))
 	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -381,7 +381,7 @@ func (this *Alpaca) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Alpaca) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "p", "s")
@@ -472,7 +472,7 @@ func (this *Alpaca) HandleTrades(client ccxt.ClientInterface, message map[string
 	var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(message))
 	stored.Append(parsed)
 	var messageHash string = "trade" + ":" + *symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -676,10 +676,10 @@ func (this *Alpaca) HandleOrder(client ccxt.ClientInterface, message map[string]
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 	orders.Append(order)
 	var messageHash string = "orders"
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 	var orderSymbol string = *this.SafeString(order, "symbol", "")
 	messageHash = "orders:" + orderSymbol
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 }
 func (this *Alpaca) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -749,9 +749,9 @@ func (this *Alpaca) HandleMyTrade(client ccxt.ClientInterface, message map[strin
 	myTrades.Append(trade)
 	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "myTrades:" + tradeSymbol
-	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+	client.Resolve(myTrades, messageHash)
 	messageHash = "myTrades"
-	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+	client.Resolve(myTrades, messageHash)
 }
 func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
 	//
@@ -842,8 +842,8 @@ func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any,
 	this.CheckRequiredCredentials()
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var request any = map[string]any{
 			"action": "auth",
@@ -983,7 +983,7 @@ func (this *Alpaca) HandleAuthenticate(client ccxt.ClientInterface, message any)
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var status *string = this.SafeString(data, "status")
 	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
-		var promise *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		var promise *ccxt.Future = client.GetFutures()["authenticated"]
 		promise.Resolve(ccxt.ToGetsLimit(message))
 		return
 	}

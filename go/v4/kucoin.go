@@ -4795,7 +4795,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan AsyncResult[DepositA
 	})}
 	return nil
 }
-func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Kucoin) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
@@ -11662,12 +11662,12 @@ func (this *Kucoin) transferBody(ch chan AsyncResult[TransferEntry], code string
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferUtaAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Kucoin) TransferUtaAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferUtaBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11779,12 +11779,12 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferClassicAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Kucoin) TransferClassicAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferClassicBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11887,7 +11887,7 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 func (this *Kucoin) IsHfOrMining(fromId string, toId string) bool {
 	return this.InArray(fromId, []any{"trade_hf", "pool"}) || this.InArray(toId, []any{"trade_hf", "pool"})
 }
-func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Kucoin) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer (spot)
 	//
@@ -12462,7 +12462,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil
 }
-func (this *Kucoin) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Kucoin) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var versions, _ = this.Options["versions"].(map[string]any)
@@ -12702,7 +12702,7 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit))}
 	return nil
 }
-func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
+func (this *Kucoin) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
 	//
 	// Cross
 	//
@@ -12763,7 +12763,7 @@ func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	if marketResolved.Symbol != "" {
 		symbol = &marketResolved.Symbol
 	}
-	var isolatedBase map[string]any = SafeMapTyped(info, "baseAsset")
+	var isolatedBase, _ = info["baseAsset"].(map[string]any)
 	var amountBorrowed *float64 = nil
 	var interest *float64 = nil
 	var currencyId *string = nil
@@ -13108,12 +13108,12 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
  * @param {string} [params.timeInForce] either IOC or FOK
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) BorrowCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Kucoin) BorrowCrossMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13171,12 +13171,12 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code 
  * @param {string} [params.timeInForce] either IOC or FOK
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) BorrowIsolatedMarginAsync(symbol string, code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Kucoin) BorrowIsolatedMarginAsync(symbol string, code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13238,12 +13238,12 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) RepayCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Kucoin) RepayCrossMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13299,12 +13299,12 @@ func (this *Kucoin) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code s
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) RepayIsolatedMarginAsync(symbol string, code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Kucoin) RepayIsolatedMarginAsync(symbol string, code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol string, code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -15018,12 +15018,12 @@ func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
  * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Kucoin) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Kucoin) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -15121,12 +15121,12 @@ func (this *Kucoin) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
  * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Kucoin) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Kucoin) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -16142,7 +16142,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal1195815
 }
-func (this *Kucoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Kucoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, body)
 		return nil

@@ -294,7 +294,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Mudrex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Mudrex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if (response == nil) || !IsObject(response) {
 		return nil
 	}
@@ -1871,12 +1871,12 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
  * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
  */
-func (this *Mudrex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Mudrex) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1932,18 +1932,18 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
  */
-func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Mudrex) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.AddMarginAsync(symbol, this.ParseNumber(Precise.StringNeg(this.NumberToString(amount))), params)
+	r := <-this.AddMarginAsync(symbol, -amount, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

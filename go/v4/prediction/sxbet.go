@@ -943,7 +943,7 @@ func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl *
  * @param {string} hex the hex string, no '0x' prefix
  * @returns {int} the parsed integer
  */
-func (this *Sxbet) HexToInt(hex any) any {
+func (this *Sxbet) HexToInt(hex any) int64 {
 	var digits string = "0123456789abcdef"
 	var lowerHex string = ccxt.ToLower(hex)
 	var hexLength int = len(lowerHex)
@@ -3111,7 +3111,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	// per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
 	var client ccxt.ClientInterface = this.Client(url)
-	var connectSent bool = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect") != nil
+	var connectSent bool = this.SafeValue(client.SubscriptionsSnapshot(), "connect") != nil
 	if !connectSent {
 		this.Options["wsConnected"] = false
 
@@ -3156,7 +3156,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	}
 
 	// connect is in flight, sent by a concurrent subscribe - wait on the shared reply future
-	r2 := <-client.(ccxt.ClientInterface).Future("centrifugoConnected")
+	r2 := <-client.Future("centrifugoConnected")
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3187,7 +3187,7 @@ func (this *Sxbet) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientIn
 	message := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = message
 
-	r := <-client.(ccxt.ClientInterface).SendAsync("{}")
+	r := <-client.SendAsync("{}")
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3267,14 +3267,14 @@ func (this *Sxbet) HandleCentrifugoFrame(client ccxt.ClientInterface, msg any) {
 			if subscription != nil && *subscription == "connect" {
 				this.Options["wsConnected"] = false
 			}
-			if (subscription != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscription)) {
-				client.(ccxt.ClientInterface).SubscriptionDel(subscription)
+			if (subscription != nil) && (client.SubscriptionHas(subscription)) {
+				client.SubscriptionDel(subscription)
 			}
 			this.Options["wsPendingRequests"] = this.Omit(pendingRequests, requestIdString)
-			client.(ccxt.ClientInterface).Reject(error, failedHash)
+			client.Reject(error, failedHash)
 		} else {
 			// an error that cannot be correlated to one command fails the whole connection
-			client.(ccxt.ClientInterface).Reject(error)
+			client.Reject(error)
 		}
 		return
 	}
@@ -3286,7 +3286,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client ccxt.ClientInterface, msg any) {
 	if connectReply != nil {
 		// connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
 		this.Options["wsConnected"] = true
-		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
+		client.Resolve(true, "centrifugoConnected")
 		return
 	}
 	var push map[string]any = ccxt.SafeMapTyped(msg, "push")
@@ -3366,7 +3366,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		panic(r1.Err)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var isNewSubscription bool = client.(ccxt.ClientInterface).SubscriptionSafe(channel) == nil
+	var isNewSubscription bool = client.SubscriptionSafe(channel) == nil
 	if this.Orderbooks[sym] == nil {
 		// seed from the REST snapshot so the book is served before the first publication
 		this.SetWsOption("wsWatchedBooks", sym, marketHash)
@@ -3396,7 +3396,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next publication
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], messageHash)
+		client.Resolve(this.Orderbooks[sym], messageHash)
 	}
 
 	r3 := <-future.(*ccxt.Future).Await()
@@ -3481,7 +3481,7 @@ func (this *Sxbet) HandleOrderBook(client ccxt.ClientInterface, rows []any) {
 		var refreshedLength int = len(refreshed)
 		for j := 0; j < refreshedLength; j++ {
 			var sym string = *this.SafeString(refreshed, j, "")
-			client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], "orderbook::"+sym)
+			client.Resolve(this.Orderbooks[sym], "orderbook::"+sym)
 		}
 	}
 }
@@ -3554,7 +3554,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	}
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if hydrated {
-		client.(ccxt.ClientInterface).Resolve(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), messageHash)
+		client.Resolve(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), messageHash)
 	}
 
 	r3 := <-future.(*ccxt.Future).Await()
@@ -3611,7 +3611,7 @@ func (this *Sxbet) HandleTicker(client ccxt.ClientInterface, rows []any) {
 			var outcomeObj map[string]any = this.Outcome(sym)
 			var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
 			this.SetWsOption("wsTickers", sym, ticker)
-			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+sym)
+			client.Resolve(ticker, "ticker::"+sym)
 		}
 	}
 }
@@ -3733,7 +3733,7 @@ func (this *Sxbet) HandleTrades(client ccxt.ClientInterface, rows []any) {
 		}
 		var stored ccxt.WsArrayCache = this.Trades[*sym]
 		stored.Append(trade)
-		client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
+		client.Resolve(stored, "trades::"+*sym)
 	}
 }
 
@@ -3808,8 +3808,8 @@ func (this *Sxbet) HandleMyTrade(client ccxt.ClientInterface, rows []any) {
 		}
 		var stored ccxt.WsArrayCache = this.MyTrades
 		stored.Append(trade)
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades::"+*sym)
+		client.Resolve(stored, "myTrades")
+		client.Resolve(stored, "myTrades::"+*sym)
 	}
 }
 
@@ -3880,14 +3880,14 @@ func (this *Sxbet) HandleOrder(client ccxt.ClientInterface, rows []any) {
 		}
 		var stored ccxt.WsArrayCache = this.Orders
 		stored.Append(order)
-		client.(ccxt.ClientInterface).Resolve(stored, "orders")
+		client.Resolve(stored, "orders")
 		var sym *string = this.SafeString(order, "outcome")
 		if sym != nil {
-			client.(ccxt.ClientInterface).Resolve(stored, "orders::"+*sym)
+			client.Resolve(stored, "orders::"+*sym)
 		}
 	}
 }
-func (this *Sxbet) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Sxbet) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	// sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
 	// map the known codes to ccxt errors so callers can distinguish a rejected order or a
 	// validation problem from a transport outage (the base otherwise maps a bare 4xx to the

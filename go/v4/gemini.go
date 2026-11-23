@@ -2716,7 +2716,7 @@ func (this *Gemini) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gemini) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Gemini) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//      {
 	//          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -2884,7 +2884,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersSigned,
 	}
 }
-func (this *Gemini) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Gemini) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		if true {
 			var feedback string = this.Id + " " + body

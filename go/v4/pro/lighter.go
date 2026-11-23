@@ -283,7 +283,7 @@ func (this *Lighter) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		this.HandleOrderBookMessage(client, message, orderbook)
 	}
 	var messageHash string = this.GetMessageHash("orderbook", symbol)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -447,8 +447,8 @@ func (this *Lighter) HandleTicker(client ccxt.ClientInterface, message map[strin
 			if symbol != nil {
 				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 			}
-			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
-			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
+			client.Resolve(ticker, this.GetMessageHash("ticker", symbol))
+			client.Resolve(ticker, this.GetMessageHash("ticker"))
 		}
 	} else {
 		var marketId *string = this.SafeString(data, "market_id")
@@ -458,7 +458,7 @@ func (this *Lighter) HandleTicker(client ccxt.ClientInterface, message map[strin
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
-		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
+		client.Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	}
 }
 
@@ -903,7 +903,7 @@ func (this *Lighter) HandleTrades(client ccxt.ClientInterface, message map[strin
 		stored.Append(trade)
 	}
 	var messageHash string = this.GetMessageHash("trade", symbol)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -1185,11 +1185,11 @@ func (this *Lighter) HandleMyTrades(client ccxt.ClientInterface, message map[str
 			var symbol *string = this.SafeString(trade, "symbol")
 			if symbol != nil {
 				var symbolSpecificMessageHash string = this.GetMessageHash("myTrades", symbol)
-				client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
+				client.Resolve(stored, symbolSpecificMessageHash)
 			}
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	return true
 }
 
@@ -1416,7 +1416,7 @@ func (this *Lighter) HandleLiquidation(client ccxt.ClientInterface, message map[
 		stored.(ccxt.Appender).Append(liquidation)
 	}
 	var messageHash string = this.GetMessageHash("liquidations", symbol)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -1638,7 +1638,7 @@ func (this *Lighter) HandleBalance(client ccxt.ClientInterface, message map[stri
 	}
 	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
+	client.Resolve(this.Balance[typeVar], messageHash)
 	return true
 }
 
@@ -1900,7 +1900,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	}
 	rawMessage := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(rawMessage, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, rawMessage), market)}
 	return nil
 }
 
@@ -1966,7 +1966,7 @@ func (this *Lighter) HandleWsSendtxApi(client ccxt.ClientInterface, message map[
 	//     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
 	//
 	var id string = *this.SafeString(message, "id", "")
-	client.(ccxt.ClientInterface).Resolve(message, "jsonapi/sendtx:"+id)
+	client.Resolve(message, "jsonapi/sendtx:"+id)
 }
 func (this *Lighter) HandleOrders(client ccxt.ClientInterface, message map[string]any) bool {
 	//
@@ -2016,11 +2016,11 @@ func (this *Lighter) HandleOrders(client ccxt.ClientInterface, message map[strin
 			var symbol *string = this.SafeString(order, "symbol")
 			if symbol != nil {
 				var symbolSpecificMessageHash string = this.GetMessageHash("orders", symbol)
-				client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
+				client.Resolve(stored, symbolSpecificMessageHash)
 			}
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	return true
 }
 func (this *Lighter) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
@@ -2084,22 +2084,22 @@ func (this *Lighter) HandleErrorMessage(client ccxt.ClientInterface, message map
 						var id *string = this.SafeString(message, "id")
 						var handled bool = false
 						if id != nil {
-							var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+							var subscriptionKeys []string = client.SubscriptionKeys()
 							for i := 0; i < len(subscriptionKeys); i++ {
 								var subscriptionHash string = subscriptionKeys[i]
-								var subscriptionId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "id")
-								var subscription *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "subscription")
+								var subscriptionId *string = this.SafeString(client.SubscriptionGet(subscriptionHash), "id")
+								var subscription *string = this.SafeString(client.SubscriptionGet(subscriptionHash), "subscription")
 								if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {
-									client.(ccxt.ClientInterface).Reject(e, subscriptionHash)
+									client.Reject(e, subscriptionHash)
 									handled = true
 									if subscription != nil {
-										client.(ccxt.ClientInterface).SubscriptionDel(subscription)
+										client.SubscriptionDel(subscription)
 									}
 								}
 							}
 						}
 						if !handled {
-							client.(ccxt.ClientInterface).Reject(e)
+							client.Reject(e)
 						}
 						return nil
 					}(this)
@@ -2231,27 +2231,27 @@ func (this *Lighter) HandleTickerUnSubscription(client ccxt.ClientInterface, mar
 		// it here would make the next watchTicker re-subscribe a channel the venue still
 		// considers subscribed, and its "30003 Already Subscribed" frame carries no id,
 		// so handleErrorMessage rejects every future on the socket
-		var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+		var subscriptionHashes []string = client.SubscriptionKeys()
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = subscriptionHashes[i]
 			if strings.HasPrefix(subscriptionHash, "ticker") {
-				var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
+				var subscription map[string]any = client.SubscriptionDict(subscriptionHash)
 				var subscriptionParams, _ = subscription["params"].(map[string]any)
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
-					client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
-					if client.(ccxt.ClientInterface).FutureHas(subscriptionHash) {
+					client.SubscriptionDel(subscriptionHash)
+					if client.FutureHas(subscriptionHash) {
 						error := ccxt.UnsubscribeError(this.Id + " " + subscriptionHash)
-						client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
+						client.Reject(error, subscriptionHash)
 					}
 				}
 			}
 		}
 		var allMessageHash string = "unsubscribe:" + this.GetMessageHash("ticker")
-		if client.(ccxt.ClientInterface).SubscriptionHas(allMessageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(allMessageHash)
+		if client.SubscriptionHas(allMessageHash) {
+			client.SubscriptionDel(allMessageHash)
 		}
-		client.(ccxt.ClientInterface).Resolve(true, allMessageHash)
+		client.Resolve(true, allMessageHash)
 		var tickersStructure map[string]any = map[string]any{
 			"topic": "ticker",
 		}
@@ -2325,7 +2325,7 @@ func (this *Lighter) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Client
 		"type": "pong",
 	}
 
-	r := <-client.(ccxt.ClientInterface).SendAsync(request)
+	r := <-client.SendAsync(request)
 	if r.Err != nil {
 		panic(r.Err)
 	}

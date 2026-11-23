@@ -3061,7 +3061,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, opti
 		order = this.SafeDict(order, 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -4781,7 +4781,7 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 	response := r1.Value
 	var order any = this.SafeDict(response, 0, response)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -4923,7 +4923,7 @@ func (this *Btse) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Btse) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Btse) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

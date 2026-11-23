@@ -2695,7 +2695,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		"marketId": marketId,
 	}
 	var subscriptionKey string = channel + ":" + *this.SafeString(subscribeMsg, "marketId", "")
-	var isNewSubscription bool = client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionKey) == nil
+	var isNewSubscription bool = client.SubscriptionSafe(subscriptionKey) == nil
 	if isNewSubscription {
 
 		r2 := <-this.SeedOrderBookAsync(outcome, sym, limit)
@@ -2706,7 +2706,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var future any = this.Watch(url, messageHash, subscribeMsg, subscriptionKey)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], messageHash)
+		client.Resolve(this.Orderbooks[*sym], messageHash)
 	}
 
 	r3 := <-future.(*ccxt.Future).Await()
@@ -2780,7 +2780,7 @@ func (this *Opinion) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	bookSide.(ccxt.IOrderBookSide).StoreArray([]any{price, size})
 	orderbook.Fields().Timestamp = nil
 	orderbook.Fields().Datetime = nil
-	client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+*sym)
+	client.Resolve(orderbook, "orderbook::"+*sym)
 }
 
 /**
@@ -2862,7 +2862,7 @@ func (this *Opinion) HandleTicker(client ccxt.ClientInterface, message map[strin
 	}
 	cachedTickers[*sym] = ticker
 	this.Options["wsTickers"] = cachedTickers
-	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
+	client.Resolve(ticker, "ticker::"+*sym)
 }
 
 /**
@@ -2963,7 +2963,7 @@ func (this *Opinion) HandleTrades(client ccxt.ClientInterface, message map[strin
 	}
 	var stored ccxt.WsArrayCache = this.Trades[*sym]
 	stored.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
+	client.Resolve(stored, "trades::"+*sym)
 }
 
 /**
@@ -3113,7 +3113,7 @@ func (this *Opinion) HandleOrder(client ccxt.ClientInterface, message map[string
 	}
 	var stored ccxt.WsArrayCache = this.Orders
 	stored.Append(order)
-	client.(ccxt.ClientInterface).Resolve(stored, "orders")
+	client.Resolve(stored, "orders")
 }
 
 /**
@@ -3223,9 +3223,9 @@ func (this *Opinion) HandleMyTrade(client ccxt.ClientInterface, message map[stri
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
 	stored.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
+	client.Resolve(stored, "myTrades")
 }
-func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

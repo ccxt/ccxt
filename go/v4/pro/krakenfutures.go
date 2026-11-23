@@ -95,8 +95,8 @@ func (this *Krakenfutures) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "challenge"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var request map[string]any = map[string]any{
 			"event":   "challenge",
@@ -626,10 +626,10 @@ func (this *Krakenfutures) HandlePositions(client ccxt.ClientInterface, message 
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
-			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
+			client.Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+	client.Resolve(newPositions, "positions")
 }
 func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
@@ -931,7 +931,7 @@ func (this *Krakenfutures) HandleTrade(client ccxt.ClientInterface, message map[
 			var trade any = this.ParseWsTrade(message)
 			tradesArray.Append(trade)
 		}
-		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+		client.Resolve(tradesArray, messageHash)
 	}
 }
 func (this *Krakenfutures) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1137,8 +1137,8 @@ func (this *Krakenfutures) HandleOrder(client ccxt.ClientInterface, message map[
 		if (previousOrder == nil) || (reason != nil && *reason == "edited_by_user") {
 			var parsed map[string]any = this.ParseWsOrder(order)
 			orders.Append(parsed)
-			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
+			client.Resolve(orders, messageHash)
+			client.Resolve(orders, messageHash+":"+*symbol)
 		} else {
 			var trade map[string]any = this.ParseWsTrade(order)
 			if ccxt.IsEqual(previousOrder["trades"], nil) {
@@ -1225,8 +1225,8 @@ func (this *Krakenfutures) HandleOrder(client ccxt.ClientInterface, message map[
 			}
 			// update the newUpdates count
 			orders.Append(ccxt.OrderToMap(this.SafeOrder(previousOrder)))
-			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
-			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+			client.Resolve(orders, messageHash+":"+*symbol)
+			client.Resolve(orders, messageHash)
 		}
 	} else {
 		var isCancel *bool = this.SafeBool(message, "is_cancel", false)
@@ -1258,8 +1258,8 @@ func (this *Krakenfutures) HandleOrder(client ccxt.ClientInterface, message map[
 						"status": status,
 						"info":   info,
 					}))
-					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-					client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*this.SafeString(currentOrder, "symbol", ""))
+					client.Resolve(orders, messageHash)
+					client.Resolve(orders, messageHash+":"+*this.SafeString(currentOrder, "symbol", ""))
 					break
 				}
 			}
@@ -1382,7 +1382,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client ccxt.ClientInterface, mess
 	}
 	var length int = ccxt.GetArrayLength(this.Orders)
 	if length > 0 {
-		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+		client.Resolve(this.Orders, messageHash)
 		var keys []string = nil
 		if symbols != nil {
 			keys = make([]string, 0, len(symbols))
@@ -1393,7 +1393,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client ccxt.ClientInterface, mess
 		for i := 0; i < len(keys); i++ {
 			var symbol string = keys[i]
 			var symbolMessageHash string = messageHash + ":" + symbol
-			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
+			client.Resolve(this.Orders, symbolMessageHash)
 		}
 	}
 }
@@ -1524,7 +1524,7 @@ func (this *Krakenfutures) HandleTicker(client ccxt.ClientInterface, message map
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
 		var messageHash string = this.GetMessageHash("ticker", nil, symbol)
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
 }
 func (this *Krakenfutures) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
@@ -1552,7 +1552,7 @@ func (this *Krakenfutures) HandleBidAsk(client ccxt.ClientInterface, message map
 			this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 		}
 		var messageHash string = this.GetMessageHash("bidask", nil, symbol)
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
 }
 func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
@@ -1672,7 +1672,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client ccxt.ClientInterface, 
 	var marketId *string = this.SafeString(message, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
-	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	var subscription map[string]any = client.SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
@@ -1691,7 +1691,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client ccxt.ClientInterface, 
 	}
 	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "qty")
 	orderbook.Reset(snapshot)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Krakenfutures) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -1722,7 +1722,7 @@ func (this *Krakenfutures) HandleOrderBook(client ccxt.ClientInterface, message 
 	}
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -1962,7 +1962,7 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 		}
 		this.Balance["margin"] = this.PruneStaleBalanceKeys(marginBalance, futuresSymbols)
 		this.Balance["margin"] = this.SafeBalance(this.Balance["margin"])
-		client.(ccxt.ClientInterface).Resolve(this.Balance["margin"], messageHash+":futures")
+		client.Resolve(this.Balance["margin"], messageHash+":futures")
 	}
 	if flexFutures != nil {
 		var flexFutureCurrencies, _ = flexFutures["currencies"].(map[string]any)
@@ -2002,18 +2002,18 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 		}
 		this.Balance["flex"] = this.PruneStaleBalanceKeys(flexBalance, flexCodes)
 		this.Balance["flex"] = this.SafeBalance(this.Balance["flex"])
-		client.(ccxt.ClientInterface).Resolve(this.Balance["flex"], messageHash+":flex_futures")
+		client.Resolve(this.Balance["flex"], messageHash+":flex_futures")
 	}
 	// resolve the plain hash exactly once per message, with the unified
 	// balance of the account the message updated (cash first, matching the
 	// legacy behaviour): a second resolve on the same hash is not portable
 	// (the rust client hands the consumer the LAST resolved value)
 	if holding != nil {
-		client.(ccxt.ClientInterface).Resolve(this.Balance["cash"], messageHash)
+		client.Resolve(this.Balance["cash"], messageHash)
 	} else if futures != nil {
-		client.(ccxt.ClientInterface).Resolve(this.Balance["margin"], messageHash)
+		client.Resolve(this.Balance["margin"], messageHash)
 	} else if flexFutures != nil {
-		client.(ccxt.ClientInterface).Resolve(this.Balance["flex"], messageHash)
+		client.Resolve(this.Balance["flex"], messageHash)
 	}
 }
 
@@ -2095,9 +2095,9 @@ func (this *Krakenfutures) HandleMyTrades(client ccxt.ClientInterface, message m
 	for i := 0; i < len(tradeSymbolKeys); i++ {
 		var symbol string = tradeSymbolKeys[i]
 		var messageHash string = "myTrades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
+	client.Resolve(stored, "myTrades")
 }
 func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -2202,7 +2202,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 }
 func (this *Krakenfutures) SubscriptionExistsForHash(url *string, hash string) bool {
 	var client ccxt.ClientInterface = this.Client(url)
-	return (client.(ccxt.ClientInterface).SubscriptionHas(hash))
+	return (client.SubscriptionHas(hash))
 }
 func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
@@ -2249,7 +2249,7 @@ func (this *Krakenfutures) HandleErrorMessage(client ccxt.ClientInterface, messa
 				if error := recover(); error != nil {
 					ret_ = func(this *Krakenfutures) bool {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(error)
+						client.Reject(error)
 						return false
 					}(this)
 				}
@@ -2271,7 +2271,7 @@ func (this *Krakenfutures) HandleMessage(client ccxt.ClientInterface, message ma
 	} else if event != nil && *event == "alert" {
 		this.HandleErrorMessage(client, message)
 	} else if event != nil && *event == "pong" {
-		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+		client.SetLastPong(this.Milliseconds())
 	} else if event == nil {
 		var feed *string = this.SafeString(message, "feed")
 		var methods map[string]any = map[string]any{
@@ -2322,13 +2322,13 @@ func (this *Krakenfutures) HandleAuthenticate(client ccxt.ClientInterface, messa
 			this.Options["challenge"] = nil
 		}
 		this.Options["signedChallenge"] = signature
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.Reject(error, messageHash)
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel(messageHash)
 		}
 	}
 	return message

@@ -4263,7 +4263,7 @@ func (this *Whitebit) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
 }
-func (this *Whitebit) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Whitebit) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -4440,19 +4440,21 @@ func (this *Whitebit) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		"to":     toAccountId,
 	}
 
-	responseRecv := <-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))
-	if responseRecv.Err != nil {
-		panic(responseRecv.Err)
+	r1 := <-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var response []any = responseRecv.Value
+	response := r1.Raw
 
 	//
 	//    []
 	//
-	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
+	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(map[string]any{}, currency)), map[string]any{
+		"info": response,
+	}))}
 	return nil
 }
-func (this *Whitebit) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Whitebit) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//    []
 	//
@@ -4590,9 +4592,9 @@ func (this *Whitebit) ParseTransaction(transaction map[string]any, optionalArgs 
 	} else if method != nil && *method == "2" {
 		addressTo = address
 	}
-	var ternaryStr326220 string = "withdrawal"
+	var ternaryStr326420 string = "withdrawal"
 	if method != nil && *method == "1" {
-		ternaryStr326220 = "deposit"
+		ternaryStr326420 = "deposit"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString(transaction, "uniqueId"),
@@ -4604,7 +4606,7 @@ func (this *Whitebit) ParseTransaction(transaction map[string]any, optionalArgs 
 		"address":     address,
 		"addressTo":   addressTo,
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        ternaryStr326220,
+		"type":        ternaryStr326420,
 		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -4918,7 +4920,7 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowIntere
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
 }
-func (this *Whitebit) ParseBorrowInterest(info any, optionalArgs ...any) any {
+func (this *Whitebit) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "positionId": 191823,
@@ -5980,11 +5982,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes426619 []any = r.Value
-		if retRes426619 == nil {
+		var retRes426819 []any = r.Value
+		if retRes426819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes426619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes426819)}
 		}
 		return nil
 	}
@@ -6095,19 +6097,19 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var literal435515 map[string]any = map[string]any{
+	var literal435715 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if isPrivate {
-		literal435515["headers"] = privateHeaders
+		literal435715["headers"] = privateHeaders
 	} else {
-		literal435515["headers"] = publicHeaders
+		literal435715["headers"] = publicHeaders
 	}
-	return literal435515
+	return literal435715
 }
-func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if (code == 418) || (code == 429) {
 		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + " " + body))
 	}

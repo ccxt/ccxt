@@ -3722,7 +3722,7 @@ func (this *Bitrue) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(coins, codes, "coin"))}
 	return nil
 }
-func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Bitrue) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     fetchTransfers
 	//
@@ -4029,12 +4029,12 @@ func (this *Bitrue) ParseMarginModification(data any, optionalArgs ...any) map[s
  * @param {object} [params] parameters specific to the exchange API endpoint
  * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
  */
-func (this *Bitrue) SetMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Bitrue) SetMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.setMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4175,7 +4175,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Bitrue) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bitrue) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if (code == 418) || (code == 429) {
 		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + (" " + body)))
 	}
@@ -4241,7 +4241,7 @@ func (this *Bitrue) HandleErrors(code int64, reason string, url string, method s
 	}
 	return nil
 }
-func (this *Bitrue) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Bitrue) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var paramsSymbol *string = this.SafeString(params, "symbol")

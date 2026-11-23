@@ -2402,7 +2402,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Alpaca) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -2548,7 +2548,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		var filtered []any = []any{}
 		var ledger []any = []any{}
 		if activities != nil {
-			ledger = ArrayTyped(activities)
+			ledger = activities
 		}
 		for i := 0; i < len(ledger); i++ {
 			var entry any = ledger[i]
@@ -2593,7 +2593,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 	var results []any = []any{}
 	var transfers []any = []any{}
 	if response != nil {
-		transfers = ArrayTyped(response)
+		transfers = response
 	}
 	for i := 0; i < len(transfers); i++ {
 		var entry any = transfers[i]
@@ -3091,7 +3091,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Alpaca) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Alpaca) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // default error handler
 	}

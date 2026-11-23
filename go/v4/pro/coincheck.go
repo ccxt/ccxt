@@ -136,7 +136,7 @@ func (this *Coincheck) HandleOrderBook(client ccxt.ClientInterface, message []an
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot)
 	this.Orderbooks[*symbol] = orderbook
 	var messageHash string = "orderbook:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -226,7 +226,7 @@ func (this *Coincheck) HandleTrades(client ccxt.ClientInterface, message []any) 
 		stored.Append(trade)
 	}
 	var messageHash string = "trade:" + symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//

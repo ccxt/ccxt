@@ -830,7 +830,7 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) map[string]any {
 		"limits":    map[string]any{},
 	})
 }
-func (this *Coinsph) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Coinsph) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var hasSymbolParam bool = (this.SafeString(params, "symbol") != nil)
@@ -2954,7 +2954,7 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Coinsph) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Coinsph) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "coin": "ETH",
@@ -3061,7 +3061,7 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Coinsph) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Coinsph) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

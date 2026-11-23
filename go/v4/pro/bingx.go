@@ -342,7 +342,7 @@ func (this *Bingx) HandleTicker(client ccxt.ClientInterface, message map[string]
 	}
 	var marketId *string = this.SafeString(data, "s")
 	// const marketId = messageHash.split('@')[0]
-	var isSwap bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
+	var isSwap bool = (strings.Index(client.GetUrl(), "swap") >= 0)
 	var marketType string = "spot"
 	if isSwap {
 		marketType = "swap"
@@ -352,12 +352,12 @@ func (this *Bingx) HandleTicker(client ccxt.ClientInterface, message map[string]
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
 	var inverseUrl *string = this.SafeString(this.UrlsApi["ws"], "inverse")
-	var isInverse bool = (inverseUrl != nil) && (strings.Index(client.(ccxt.ClientInterface).GetUrl(), *inverseUrl) == 0)
+	var isInverse bool = (inverseUrl != nil) && (strings.Index(client.GetUrl(), *inverseUrl) == 0)
 	var ticker map[string]any = this.ParseWsTicker(data, market, isInverse)
 	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
+	client.Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	if this.SafeString(message, "dataType") != nil && *this.SafeString(message, "dataType") == "all@ticker" {
-		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
+		client.Resolve(ticker, this.GetMessageHash("ticker"))
 	}
 }
 func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
@@ -675,7 +675,7 @@ func (this *Bingx) HandleTrades(client ccxt.ClientInterface, message map[string]
 	var rawHash string = *this.SafeString(message, "dataType", "")
 	var hashParts []string = strings.Split(rawHash, "@")
 	var marketId *string = this.SafeString(hashParts, 0)
-	var isSwap bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
+	var isSwap bool = (strings.Index(client.GetUrl(), "swap") >= 0)
 	var marketType string = "spot"
 	if isSwap {
 		marketType = "swap"
@@ -698,7 +698,7 @@ func (this *Bingx) HandleTrades(client ccxt.ClientInterface, message map[string]
 	for j := 0; j < len(trades); j++ {
 		stored.Append(trades[j])
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -904,7 +904,7 @@ func (this *Bingx) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	var firstPart *string = this.SafeString(parts, 0)
 	var isAllEndpoint bool = (firstPart != nil && *firstPart == "all")
 	var marketId *string = this.SafeString(data, "symbol", firstPart)
-	var isSwap bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
+	var isSwap bool = (strings.Index(client.GetUrl(), "swap") >= 0)
 	var marketType string = "spot"
 	if isSwap {
 		marketType = "swap"
@@ -915,7 +915,7 @@ func (this *Bingx) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	if orderbook == nil {
 		// const limit = [ 5, 10, 20, 50, 100 ]
 		var subscriptionHash *string = dataType
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
+		var subscription map[string]any = client.SubscriptionDict(subscriptionHash)
 		// see handleOHLCV — subscription.limit may be missing for non-orderbook callers
 		// default to a reasonable depth instead of throwing NPE in the Java port.
 		var limit *int64 = this.SafeInteger(subscription, "limit", 100)
@@ -940,14 +940,14 @@ func (this *Bingx) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	}
 	orderbook.Reset(snapshot)
 	var messageHash string = this.GetMessageHash("orderbook", symbol)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 	// resolve for "all"
 	if isAllEndpoint {
 		var messageHashForAll string = this.GetMessageHash("orderbook")
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHashForAll)
+		client.Resolve(orderbook, messageHashForAll)
 	}
 }
-func (this *Bingx) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bingx) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//    {
 	//        "c": "28909.0",
@@ -976,7 +976,7 @@ func (this *Bingx) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 			timestamp = "T"
 		}
 	}
-	return []any{this.SafeInteger(ohlcv, timestamp), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, timestamp), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 func (this *Bingx) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -1043,7 +1043,7 @@ func (this *Bingx) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	//         }
 	//     }
 	//
-	var isSwap bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
+	var isSwap bool = (strings.Index(client.GetUrl(), "swap") >= 0)
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = strings.Split(*dataType, "@")
 	var firstPart *string = this.SafeString(parts, 0)
@@ -1080,7 +1080,7 @@ func (this *Bingx) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[symbol], unifiedTimeframe), nil) {
 		var subscriptionHash *string = dataType
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
+		var subscription map[string]any = client.SubscriptionDict(subscriptionHash)
 		// subscription.limit is only set when watchOHLCV registers the subscription
 		// when handleMessage routes a non-ccxt.OHLCV-originated subscription here (or the
 		// subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -1095,16 +1095,16 @@ func (this *Bingx) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
-		var parsed any = this.ParseWsOHLCV(candle, market)
+		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(candle, market))
 		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	var messageHash string = this.GetMessageHash("ohlcv", symbol, unifiedTimeframe)
-	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
+	client.Resolve(resolveData, messageHash)
 	// resolve for "all"
 	if isAllEndpoint {
 		var messageHashForAll string = this.GetMessageHash("ohlcv", nil, unifiedTimeframe)
-		client.(ccxt.ClientInterface).Resolve(resolveData, messageHashForAll)
+		client.Resolve(resolveData, messageHashForAll)
 	}
 }
 
@@ -1541,7 +1541,7 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	awaitBalanceSnapshot, _ := this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)
 	if fetchBalanceSnapshot && awaitBalanceSnapshot {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(*typeVar + ":fetchBalanceSnapshot")
+		r2 := <-client.Future(*typeVar + ":fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1559,14 +1559,14 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	return nil
 }
 func (this *Bingx) SetBalanceCache(client ccxt.ClientInterface, typeVar string, subType any, subscriptionHash string, params any) {
-	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
+	if client.SubscriptionHas(subscriptionHash) {
 		return
 	}
 	fetchBalanceSnapshot, _ := this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	if fetchBalanceSnapshot {
 		var messageHash string = typeVar + ":fetchBalanceSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar, subType)
 		}
 	} else {
@@ -1595,10 +1595,10 @@ func (this *Bingx) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	}
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve()
-		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
+		client.Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
@@ -1676,7 +1676,7 @@ func (this *Bingx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	}
 	if fetchPositionsSnapshot && awaitPositionsSnapshot && (this.Positions == nil) {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
+		r2 := <-client.Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1719,8 +1719,8 @@ func (this *Bingx) SetPositionsCache(client ccxt.ClientInterface, typeVar *strin
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = *typeVar + ":fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
@@ -1754,10 +1754,10 @@ func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		}
 	}
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, "swap:positions")
+		client.Resolve(cache, "swap:positions")
 	}
 	return nil
 }
@@ -1890,10 +1890,10 @@ func (this *Bingx) HandlePositions(client ccxt.ClientInterface, message map[stri
 		var filteredSymbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", filteredSymbols, false)
 		if !this.IsEmpty(positions) {
-			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
+			client.Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, "swap:positions")
+	client.Resolve(newPositions, "swap:positions")
 }
 func (this *Bingx) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
@@ -1916,7 +1916,7 @@ func (this *Bingx) HandleErrorMessage(client ccxt.ClientInterface, message map[s
 					}
 					ret_ = func(this *Bingx) any {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(e)
+						client.Reject(e)
 						return nil
 					}(this)
 				}
@@ -1966,10 +1966,10 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 							}
 							var url string = *baseUrl + "?listenKey=" + *listenKey
 							var client ccxt.ClientInterface = this.Client(url)
-							var messageHashes []string = client.(ccxt.ClientInterface).FutureKeys()
+							var messageHashes []string = client.FutureKeys()
 							for j := 0; j < len(messageHashes); j++ {
 								var messageHash string = messageHashes[j]
-								client.(ccxt.ClientInterface).Reject(error, messageHash)
+								client.Reject(error, messageHash)
 							}
 						}
 						this.Options["listenKey"] = nil
@@ -2020,11 +2020,11 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		// entry under the same lock in every port
 		var messageHash string = "authenticate"
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -2034,7 +2034,7 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Bingx) (ret_ any) {
@@ -2048,7 +2048,7 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 							// reject the flight - waiters throw and the next caller re-leads.
 							// no rethrow here, the trailing suspension point rethrows to this
 							// caller AND attaches the handler an alone leader needs
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							client.Reject(e, messageHash)
 							return nil
 						}(this)
 					}
@@ -2073,7 +2073,7 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter
-				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+				client.Resolve(listenKey, messageHash)
 				return nil
 			}(this)
 
@@ -2105,7 +2105,7 @@ func (this *Bingx) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientIn
 					ret_ = func(this *Bingx) any {
 						// catch block:
 						error := ccxt.NetworkError(this.Id + " pong failed with error " + this.ExceptionMessage(e))
-						client.(ccxt.ClientInterface).Reset(error)
+						client.Reset(error)
 						return nil
 					}(this)
 				}
@@ -2113,7 +2113,7 @@ func (this *Bingx) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientIn
 			// try block:
 			if ccxt.IsEqual(message, "Ping") {
 
-				r := <-client.(ccxt.ClientInterface).SendAsync("Pong")
+				r := <-client.SendAsync("Pong")
 				if r.Err != nil {
 					panic(r.Err)
 				}
@@ -2121,7 +2121,7 @@ func (this *Bingx) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientIn
 				var ping *string = this.SafeString(message, "ping")
 				var time *string = this.SafeString(message, "time")
 
-				r1 := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+				r1 := <-client.SendAsync(map[string]any{
 					"pong": ping,
 					"time": time,
 				})
@@ -2258,8 +2258,8 @@ func (this *Bingx) HandleOrder(client ccxt.ClientInterface, message map[string]a
 	if isSpot {
 		messageHash = spotHash
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash+":"+symbol)
+	client.Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash+":"+symbol)
 }
 func (this *Bingx) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -2342,8 +2342,8 @@ func (this *Bingx) HandleMyTrades(client ccxt.ClientInterface, message map[strin
 		messageHash = spotHash
 	}
 	cachedTrades.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
-	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash+":"+symbol)
+	client.Resolve(cachedTrades, messageHash)
+	client.Resolve(cachedTrades, messageHash+":"+symbol)
 }
 func (this *Bingx) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	// spot
@@ -2386,7 +2386,7 @@ func (this *Bingx) HandleBalance(client ccxt.ClientInterface, message map[string
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp *int64 = this.SafeInteger2(message, "T", "E")
 	var spotUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
-	var isSpot bool = (spotUrl != nil) && (strings.Index(client.(ccxt.ClientInterface).GetUrl(), *spotUrl) == 0)
+	var isSpot bool = (spotUrl != nil) && (strings.Index(client.GetUrl(), *spotUrl) == 0)
 	var typeVar string = "swap"
 	if isSpot {
 		typeVar = "spot"
@@ -2419,7 +2419,7 @@ func (this *Bingx) HandleBalance(client ccxt.ClientInterface, message map[string
 		}
 	}
 	this.Balance[typeVar] = this.SafeBalance(typeBalance)
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
+	client.Resolve(this.Balance[typeVar], typeVar+":balance")
 }
 
 // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
@@ -2505,7 +2505,7 @@ func (this *Bingx) HandleSubscriptionStatus(client ccxt.ClientInterface, message
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSubMessage != nil && *isUnSubMessage {

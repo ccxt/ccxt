@@ -178,7 +178,7 @@ func (this *Toobit) HandleMessage(client ccxt.ClientInterface, message any) {
 	}
 }
 func (this *Toobit) HandleIncomingPong(client ccxt.ClientInterface, pongTimestamp *int64) {
-	client.(ccxt.ClientInterface).SetLastPong(pongTimestamp)
+	client.SetLastPong(pongTimestamp)
 }
 
 /**
@@ -320,7 +320,7 @@ func (this *Toobit) HandleTrades(client ccxt.ClientInterface, message map[string
 		stored.Append(parsedTrades[i])
 	}
 	var messageHash string = "trade::" + symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Toobit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -507,7 +507,7 @@ func (this *Toobit) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var parsed any = this.ParseWsOHLCV(data[i], market)
+		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
 		stored.Append(parsed)
 	}
 	var messageHash *string = nil
@@ -516,9 +516,9 @@ func (this *Toobit) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		messageHash = &messageHashValue
 	}
 	var resolveData []any = []any{symbol, timeframe, stored}
-	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
+	client.Resolve(resolveData, messageHash)
 }
-func (this *Toobit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Toobit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//             {
 	//                 t: 1757251200000,
@@ -535,7 +535,7 @@ func (this *Toobit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
-	return parsed
+	return ccxt.OHLCVFromList(parsed)
 }
 
 /**
@@ -692,9 +692,9 @@ func (this *Toobit) HandleTickers(client ccxt.ClientInterface, message map[strin
 		if symbol != nil {
 			newTickers[*symbol] = parsed
 		}
-		client.(ccxt.ClientInterface).Resolve(parsed, "ticker::"+*this.SafeString(parsed, "symbol", ""))
+		client.Resolve(parsed, "ticker::"+*this.SafeString(parsed, "symbol", ""))
 	}
-	client.(ccxt.ClientInterface).Resolve(newTickers, "tickers")
+	client.Resolve(newTickers, "tickers")
 }
 func (this *Toobit) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -845,7 +845,7 @@ func (this *Toobit) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		if symbol != nil {
 			this.Orderbooks[*symbol] = orderBook
 		}
-		client.(ccxt.ClientInterface).Resolve(orderBook, messageHash)
+		client.Resolve(orderBook, messageHash)
 	}
 }
 func (this *Toobit) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
@@ -898,7 +898,7 @@ func (this *Toobit) SetOrderBookSnapshot(client ccxt.ClientInterface, message ma
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 
@@ -954,7 +954,7 @@ func (this *Toobit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	var url string = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, *marketType, subscriptionHash, paramsMarketType)
-	client.(ccxt.ClientInterface).Future(typeVar + ":fetchBalanceSnapshot")
+	client.Future(typeVar + ":fetchBalanceSnapshot")
 
 	r2 := <-this.Watch(url, messageHash, paramsMarketType, subscriptionHash)
 	if r2.Err != nil {
@@ -968,7 +968,7 @@ func (this *Toobit) SetBalanceCache(client ccxt.ClientInterface, marketType stri
 	_ = subscriptionHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if (subscriptionHash == nil) || (client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash)) {
+	if (subscriptionHash == nil) || (client.SubscriptionHas(subscriptionHash)) {
 		return
 	}
 	var typeVar string = "contract"
@@ -976,8 +976,8 @@ func (this *Toobit) SetBalanceCache(client ccxt.ClientInterface, marketType stri
 		typeVar = "spot"
 	}
 	var messageHash string = typeVar + ":fetchBalanceSnapshot"
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-		client.(ccxt.ClientInterface).Future(messageHash)
+	if _, ok := client.GetFutures()[messageHash]; !ok {
+		client.Future(messageHash)
 		this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, marketType)
 	}
 }
@@ -1050,7 +1050,7 @@ func (this *Toobit) HandleBalance(client ccxt.ClientInterface, message map[strin
 		}
 	}
 	this.Balance[typeVar] = this.SafeBalance(typeBalance)
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
+	client.Resolve(this.Balance[typeVar], typeVar+":balance")
 }
 func (this *Toobit) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, marketType string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
@@ -1077,11 +1077,11 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve()
-		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":fetchBalanceSnapshot")
-		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance") // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+		client.Resolve(this.Balance[typeVar], typeVar+":fetchBalanceSnapshot")
+		client.Resolve(this.Balance[typeVar], typeVar+":balance") // we should also resolve right away after snapshot, so user doesn't double-fetch balance
 	}
 	return nil
 }
@@ -1187,9 +1187,9 @@ func (this *Toobit) HandleOrder(client ccxt.ClientInterface, message map[string]
 	var order map[string]any = this.ParseWsOrder(message)
 	orders.Append(order)
 	var messageHash string = "orders"
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 	messageHash = "orders:" + *this.SafeString(order, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 }
 func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1327,9 +1327,9 @@ func (this *Toobit) HandleMyTrade(client ccxt.ClientInterface, message map[strin
 	var trade any = this.ParseMyTrade(message)
 	myTrades.Append(trade)
 	var messageHash string = "myTrades:" + *this.SafeString(trade, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+	client.Resolve(myTrades, messageHash)
 	messageHash = "myTrades"
-	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+	client.Resolve(myTrades, messageHash)
 }
 func (this *Toobit) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1415,7 +1415,7 @@ func (this *Toobit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	if cache == nil {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(typeVar + ":fetchPositionsSnapshot")
+		r2 := <-client.Future(typeVar + ":fetchPositionsSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1458,8 +1458,8 @@ func (this *Toobit) SetPositionsCache(client ccxt.ClientInterface, typeVar strin
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = typeVar + ":fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
@@ -1490,10 +1490,10 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 		cache.Append(position)
 	}
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, typeVar+":positions")
+		client.Resolve(cache, typeVar+":positions")
 	}
 	return nil
 }
@@ -1543,10 +1543,10 @@ func (this *Toobit) HandlePositions(client ccxt.ClientInterface, message map[str
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(filtered) {
-			client.(ccxt.ClientInterface).Resolve(filtered, messageHash)
+			client.Resolve(filtered, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, accountType+":positions")
+	client.Resolve(newPositions, accountType+":positions")
 }
 func (this *Toobit) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1603,11 +1603,11 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// client.resolve () / client.reject () settle and remove the entry under the same lock in every port
 		var messageHash string = "authenticate"
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -1617,7 +1617,7 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Toobit) (ret_ any) {
@@ -1632,7 +1632,7 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 							// no rethrow here, the trailing suspension point rethrows to this
 							// caller AND attaches the handler an alone leader needs
 							err := ccxt.AuthenticationError(this.Id + " " + this.ExceptionMessage(e))
-							client.(ccxt.ClientInterface).Reject(err, messageHash)
+							client.Reject(err, messageHash)
 							return nil
 						}(this)
 					}
@@ -1655,7 +1655,7 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter
-				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+				client.Resolve(listenKey, messageHash)
 				return nil
 			}(this)
 
@@ -1699,10 +1699,10 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 						// catch block:
 						var url string = this.GetUserStreamUrl()
 						var client ccxt.ClientInterface = this.Client(url)
-						var messageHashes []string = client.(ccxt.ClientInterface).FutureKeys()
+						var messageHashes []string = client.FutureKeys()
 						for i := 0; i < len(messageHashes); i++ {
 							var messageHash string = messageHashes[i]
-							client.(ccxt.ClientInterface).Reject(error, messageHash)
+							client.Reject(error, messageHash)
 						}
 						this.SetWsOptions(map[string]any{
 							"listenKey":             nil,
@@ -1751,7 +1751,7 @@ func (this *Toobit) HandleErrorMessage(client ccxt.ClientInterface, message any)
 		var desc string = *this.SafeString(message, "desc", "")
 		var msg string = this.Id + " code: " + *code + " message: " + desc
 		exception := ccxt.ExchangeError(msg) // c# fix
-		client.(ccxt.ClientInterface).Reject(exception)
+		client.Reject(exception)
 		return true
 	}
 	return false

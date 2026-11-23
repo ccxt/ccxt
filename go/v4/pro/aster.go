@@ -623,13 +623,13 @@ func (this *Aster) HandleTicker(client ccxt.ClientInterface, message map[string]
 	//             "T": 1754668800000
 	//     }
 	//
-	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	var parsed map[string]any = this.ParseWsTicker(message, &marketType)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if symbol != nil {
 		var messageHash string = "ticker:" + *symbol
 		this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
-		client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
+		client.Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 	}
 }
 func (this *Aster) ParseWsTicker(message map[string]any, marketType *string) map[string]any {
@@ -839,7 +839,7 @@ func (this *Aster) HandleBidAsk(client ccxt.ClientInterface, message map[string]
 	//             "E": 1754896692926
 	//     }
 	//
-	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var ticker map[string]any = this.ParseWsBidAsk(message, market)
@@ -848,7 +848,7 @@ func (this *Aster) HandleBidAsk(client ccxt.ClientInterface, message map[string]
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var messageHash string = "bidask:" + *this.SafeString(ticker, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 func (this *Aster) ParseWsBidAsk(message map[string]any, market map[string]any) map[string]any {
 	var timestamp *int64 = this.SafeInteger(message, "T")
@@ -1114,7 +1114,7 @@ func (this *Aster) HandleTrade(client ccxt.ClientInterface, message map[string]a
 	//         "m": false
 	//     }
 	//
-	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var parsed map[string]any = this.ParseWsTrade(message, market)
@@ -1128,7 +1128,7 @@ func (this *Aster) HandleTrade(client ccxt.ClientInterface, message map[string]a
 	}
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
+	client.Resolve(stored, "trade::"+*symbol)
 }
 func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -1552,7 +1552,7 @@ func (this *Aster) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	//             ]
 	//     }
 	//
-	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var timestamp *int64 = this.SafeInteger(message, "T")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
@@ -1572,7 +1572,7 @@ func (this *Aster) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -1866,7 +1866,7 @@ func (this *Aster) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	//             }
 	//     }
 	//
-	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string
@@ -1894,16 +1894,16 @@ func (this *Aster) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	if symbol != nil {
 		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
-	var parsed any = this.ParseWsOHLCV(kline)
+	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(kline))
 	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	var resolveData []any = []any{symbol, timeframe, stored}
-	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
+	client.Resolve(resolveData, messageHash)
 }
-func (this *Aster) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Aster) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 func (this *Aster) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
@@ -1934,11 +1934,11 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		// under the same lock in every port
 		var messageHash string = "authenticate:" + typeVar
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -1948,7 +1948,7 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Aster) (ret_ any) {
@@ -1962,7 +1962,7 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 							// reject the flight - waiters throw and the next caller re-leads.
 							// no rethrow here, the trailing suspension point rethrows to this
 							// caller AND attaches the handler an alone leader needs
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							client.Reject(e, messageHash)
 							return nil
 						}(this)
 					}
@@ -2008,7 +2008,7 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, keepAliveParams)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter
-				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+				client.Resolve(listenKey, messageHash)
 				return nil
 			}(this)
 
@@ -2050,10 +2050,10 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 						// catch block:
 						var url string = *this.SafeString(this.UrlsApiSections["ws"]["private"], typeVar, "") + "/" + *listenKey
 						var client ccxt.ClientInterface = this.Client(url)
-						var messageHashes []string = client.(ccxt.ClientInterface).FutureKeys()
+						var messageHashes []string = client.FutureKeys()
 						for i := 0; i < len(messageHashes); i++ {
 							var messageHash string = messageHashes[i]
-							client.(ccxt.ClientInterface).Reject(error, messageHash)
+							client.Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(this.Options["listenKey"], typeVar, nil)
 						var lastAuthenticatedTimes map[string]any
@@ -2146,7 +2146,7 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(*typeMarketType + ":fetchBalanceSnapshot")
+		r2 := <-client.Future(*typeMarketType + ":fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -2162,15 +2162,15 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	return nil
 }
 func (this *Aster) SetBalanceCache(client ccxt.ClientInterface, typeVar string) {
-	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
+	if _, ok := this.Balance[typeVar]; (client.SubscriptionHas(typeVar)) && ok {
 		return
 	}
 	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash string = typeVar + ":fetchBalanceSnapshot"
-		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if !(client.FutureHas(messageHash)) {
+			client.Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
@@ -2199,10 +2199,10 @@ func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	}
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve()
-		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
+		client.Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
@@ -2260,7 +2260,7 @@ func (this *Aster) HandleBalance(client ccxt.ClientInterface, message map[string
 	//         }
 	//     }
 	//
-	var accountType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var accountType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	var messageHash string = accountType + ":balance"
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
@@ -2298,7 +2298,7 @@ func (this *Aster) HandleBalance(client ccxt.ClientInterface, message map[string
 		balance["datetime"] = nil
 	}
 	this.Balance[accountType] = this.SafeBalance(balance)
-	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
+	client.Resolve(this.Balance[accountType], messageHash)
 }
 
 /**
@@ -2360,7 +2360,7 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
-		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
+		r2 := <-client.Future("fetchPositionsSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -2401,8 +2401,8 @@ func (this *Aster) SetPositionsCache(client ccxt.ClientInterface) {
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}
 	} else {
@@ -2433,10 +2433,10 @@ func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		}
 	}
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, "positions")
+		client.Resolve(cache, "positions")
 	}
 	return nil
 }
@@ -2506,9 +2506,9 @@ func (this *Aster) HandlePositions(client ccxt.ClientInterface, message map[stri
 		for i := 0; i < len(newPositions); i++ {
 			var position any = newPositions[i]
 			var symbolMessageHash string = messageHash + "::" + *this.SafeString(position, "symbol", "")
-			client.(ccxt.ClientInterface).Resolve(position, symbolMessageHash)
+			client.Resolve(position, symbolMessageHash)
 		}
-		client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+		client.Resolve(newPositions, "positions")
 	}
 }
 func (this *Aster) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
@@ -2730,7 +2730,7 @@ func (this *Aster) HandleMyTrade(client ccxt.ClientInterface, message any) {
 	var messageHash string = "myTrades"
 	var executionType *string = this.SafeString(message, "x")
 	if executionType != nil && *executionType == "TRADE" {
-		var isSwap bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "fstream") >= 0)
+		var isSwap bool = (strings.Index(client.GetUrl(), "fstream") >= 0)
 		var typeVar string = "spot"
 		if isSwap {
 			typeVar = "swap"
@@ -2828,9 +2828,9 @@ func (this *Aster) HandleMyTrade(client ccxt.ClientInterface, message any) {
 		}
 		var myTrades ccxt.WsArrayCache = this.MyTrades
 		myTrades.Append(trade)
-		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
+		client.Resolve(this.MyTrades, messageHash)
 		var messageHashSymbol string = messageHash + "::" + *this.SafeString(trade, "symbol", "")
-		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHashSymbol)
+		client.Resolve(this.MyTrades, messageHashSymbol)
 	}
 }
 func (this *Aster) HandleOrder(client ccxt.ClientInterface, message any) {
@@ -2921,8 +2921,8 @@ func (this *Aster) HandleOrder(client ccxt.ClientInterface, message any) {
 	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
 		var symbolMessageHash string = messageHash + "::" + symbol
-		client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)
-		client.(ccxt.ClientInterface).Resolve(cache, messageHash)
+		client.Resolve(cache, symbolMessageHash)
+		client.Resolve(cache, messageHash)
 	}
 }
 func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -2994,7 +2994,7 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 }
 func (this *Aster) GetMarketFromOrder(client ccxt.ClientInterface, order any) any {
 	var marketId *string = this.SafeString(order, "s")
-	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.GetUrl())
 	return this.SafeMarket(marketId, nil, nil, marketType)
 }
 func (this *Aster) HandleBalanceAndPosition(client ccxt.ClientInterface, message map[string]any) {

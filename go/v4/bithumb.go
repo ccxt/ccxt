@@ -3659,12 +3659,12 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[[]map[stri
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bithumb) FetchWithdrawalAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3689,7 +3689,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id an
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(id, nil) {
+	if true {
 		request["uuid"] = id
 	}
 
@@ -4150,7 +4150,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(response, codes, false, map[string]any{}))}
 	return nil
 }
-func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) DepositAddress {
+func (this *Bithumb) ParseDepositAddress(response map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	// generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
 	//
@@ -4323,7 +4323,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal341415
 }
-func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

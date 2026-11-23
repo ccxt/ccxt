@@ -3490,10 +3490,10 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		}
 	}
 
-	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(data, currency)}
+	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(this.Extend(map[string]any{}, data), currency)}
 	return nil
 }
-func (this *Bullish) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Bullish) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(depositAddress, "symbol")
@@ -3940,7 +3940,7 @@ func (this *Bullish) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(transfer)}
 	return nil
 }
-func (this *Bullish) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Bullish) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// fetchTransfers
 	//     {
@@ -4404,7 +4404,7 @@ func (this *Bullish) handleTokenBody(ch chan AsyncResult[*string], optionalArgs 
 		return nil
 	}
 }
-func (this *Bullish) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bullish) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

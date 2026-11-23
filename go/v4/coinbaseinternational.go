@@ -1764,7 +1764,7 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchBalance", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchBalance", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1778,9 +1778,9 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 		panic(r1.Err)
 	}
 	var code *string = this.SafeString(paramsResolved, "code")
-	var paramsOmitted any = paramsResolved
+	var paramsOmitted map[string]any = this.Extend(map[string]any{}, paramsResolved)
 	if this.IsNativeDeribitCredentials() {
-		paramsOmitted = this.Omit(paramsResolved, "code")
+		paramsOmitted = this.OmitDict(paramsResolved, "code")
 	}
 	var response map[string]any = nil
 	if this.IsNativeDeribitCredentials() && (code != nil) {
@@ -2211,7 +2211,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
 }
-func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Coinbaseinternational) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "balance": 3001.22270418,
@@ -2244,7 +2244,7 @@ func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...a
 	_ = currency
 	var transactionTimestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	var currencyId *string = this.SafeString(transfer, "currency")
-	var info map[string]any = SafeMapTyped(transfer, "info")
+	var info, _ = transfer["info"].(map[string]any)
 	var amount *float64 = this.SafeNumber(transfer, "change")
 	var fromAccount *string = this.SafeString(transfer, "username")
 	var toAccount *string = this.SafeString(info, "other_user")
@@ -3660,12 +3660,13 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan AsyncResult[[]Ord
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchOpenOrders", params)
+	paginate, paramsFinal := this.HandleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false)
+	var nativeDeribit bool = this.IsNativeDeribitCredentials()
+	if nativeDeribit && paginate {
+		panic(NotSupported(this.Id + " fetchOpenOrders() does not support pagination"))
+	}
 	var paramsPaginate any = paramsResolved
-	if this.IsNativeDeribitCredentials() {
-		paginate, paramsFinal := this.HandleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false)
-		if paginate {
-			panic(NotSupported(this.Id + " fetchOpenOrders() does not support pagination"))
-		}
+	if nativeDeribit {
 		paramsPaginate = paramsFinal
 	}
 	if this.Markets == nil {
@@ -3769,12 +3770,13 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan AsyncResult[[]Trade
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paramsResolved any = this.HandleRouteAndParams("fetchMyTrades", params)
+	paginate, paramsFinal := this.HandleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false)
+	var nativeDeribit bool = this.IsNativeDeribitCredentials()
+	if nativeDeribit && paginate {
+		panic(NotSupported(this.Id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters"))
+	}
 	var paramsPaginate any = paramsResolved
-	if this.IsNativeDeribitCredentials() {
-		paginate, paramsFinal := this.HandleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false)
-		if paginate {
-			panic(NotSupported(this.Id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters"))
-		}
+	if nativeDeribit {
 		paramsPaginate = paramsFinal
 	}
 	if this.Markets == nil {
@@ -3981,7 +3983,7 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		}
 		takerOrMaker = this.SafeString(liquidities, this.SafeString(trade, "liquidity"))
 	}
-	var literal303831 map[string]any = map[string]any{
+	var literal304031 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"order":        this.SafeString(trade, "order_id"),
@@ -3997,9 +3999,9 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		"fee":          fee,
 	}
 	if takerOrMaker != nil {
-		literal303831["takerOrMaker"] = *takerOrMaker
+		literal304031["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafeTrade(literal303831, marketResolved)
+	return this.SafeTrade(literal304031, marketResolved)
 }
 
 /**
@@ -4515,7 +4517,7 @@ func (this *Coinbaseinternational) ResolveRoute(optionalArgs ...any) bool {
 	}
 	return (len(this.ApiKey) == 8) && (len(this.Secret) == 43)
 }
-func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	//
 	//     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
 	//

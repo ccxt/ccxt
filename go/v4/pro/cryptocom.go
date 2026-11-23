@@ -85,14 +85,14 @@ func (this *Cryptocom) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.Clie
 					ret_ = func(this *Cryptocom) any {
 						// catch block:
 						error := ccxt.NetworkError(this.Id + " pong failed with error " + this.ExceptionMessage(e))
-						client.(ccxt.ClientInterface).Reset(error)
+						client.Reset(error)
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+			r := <-client.SendAsync(map[string]any{
 				"id":     this.SafeInteger(message, "id"),
 				"method": "public/respond-heartbeat",
 			})
@@ -432,7 +432,7 @@ func (this *Cryptocom) HandleOrderBook(client ccxt.ClientInterface, message map[
 	orderbook.SetNonce(nonce)
 	this.Orderbooks[*symbol] = orderbook
 	var messageHash string = "orderbook:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -656,8 +656,8 @@ func (this *Cryptocom) HandleTrades(client ccxt.ClientInterface, message map[str
 	var channelName string = *this.SafeString(message, "channel", "")
 	var marketIdName string = *this.SafeString(message, "instrument_name", "")
 	var channelReplaced string = strings.Replace(channelName, "."+marketIdName, "", 1)
-	client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
-	client.(ccxt.ClientInterface).Resolve(stored, channelReplaced)
+	client.Resolve(stored, symbolSpecificMessageHash)
+	client.Resolve(stored, channelReplaced)
 }
 
 /**
@@ -939,7 +939,7 @@ func (this *Cryptocom) HandleTicker(client ccxt.ClientInterface, message map[str
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 		}
-		client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
+		client.Resolve(parsed, messageHash)
 	}
 }
 func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -1076,7 +1076,7 @@ func (this *Cryptocom) HandleBidAsk(client ccxt.ClientInterface, message map[str
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(parsedTicker)
 	}
 	var messageHash string = "bidask." + symbol
-	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
+	client.Resolve(parsedTicker, messageHash)
 }
 func (this *Cryptocom) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1233,7 +1233,7 @@ func (this *Cryptocom) HandleOHLCV(client ccxt.ClientInterface, message map[stri
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 		stored.Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -1341,10 +1341,10 @@ func (this *Cryptocom) HandleOrders(client ccxt.ClientInterface, message any, op
 		for i := 0; i < len(parsed); i++ {
 			stored.Append(parsed[i])
 		}
-		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
+		client.Resolve(stored, symbolSpecificMessageHash)
 		// non-symbol specific
-		client.(ccxt.ClientInterface).Resolve(stored, channel) // channel might have a symbol-specific suffix
-		client.(ccxt.ClientInterface).Resolve(stored, "user.order")
+		client.Resolve(stored, channel) // channel might have a symbol-specific suffix
+		client.Resolve(stored, "user.order")
 	}
 }
 
@@ -1410,7 +1410,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
-		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
+		r2 := <-client.Future("fetchPositionsSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1450,8 +1450,8 @@ func (this *Cryptocom) SetPositionsCache(client ccxt.ClientInterface, typeVar an
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}
 	} else {
@@ -1482,10 +1482,10 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 		}
 	}
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, "positions")
+		client.Resolve(cache, "positions")
 	}
 	return nil
 }
@@ -1542,10 +1542,10 @@ func (this *Cryptocom) HandlePositions(client ccxt.ClientInterface, message map[
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
-			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
+			client.Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+	client.Resolve(newPositions, "positions")
 }
 
 /**
@@ -1637,10 +1637,10 @@ func (this *Cryptocom) HandleBalance(client ccxt.ClientInterface, message map[st
 		}
 		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 	var messageHashRequest *string = this.SafeString(message, "id")
 	if messageHashRequest != nil {
-		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHashRequest)
+		client.Resolve(this.Balance, messageHashRequest)
 	}
 }
 
@@ -1760,7 +1760,7 @@ func (this *Cryptocom) HandleOrder(client ccxt.ClientInterface, message map[stri
 		rawOrder = map[string]any{}
 	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
-	client.(ccxt.ClientInterface).Resolve(order, messageHash)
+	client.Resolve(order, messageHash)
 }
 
 /**
@@ -1875,7 +1875,7 @@ func (this *Cryptocom) HandleCancelAllOrders(client ccxt.ClientInterface, messag
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	client.(ccxt.ClientInterface).Resolve(message, messageHash)
+	client.Resolve(message, messageHash)
 }
 func (this *Cryptocom) WatchPublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -2062,12 +2062,12 @@ func (this *Cryptocom) HandleErrorMessage(client ccxt.ClientInterface, message m
 						// catch block:
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+							client.Reject(e, messageHash)
+							if client.SubscriptionHas(messageHash) {
+								client.SubscriptionDel(messageHash)
 							}
 						} else {
-							client.(ccxt.ClientInterface).Reject(e, id)
+							client.Reject(e, id)
 						}
 						return true
 					}(this)
@@ -2184,8 +2184,8 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var method string = "public/auth"
 		var nonceValue int64 = this.IncrementingNonce()
@@ -2226,19 +2226,19 @@ func (this *Cryptocom) HandleAuthenticate(client ccxt.ClientInterface, message m
 	//
 	//  { id: 1648132625434, method: "public/auth", code: 0 }
 	//
-	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future *ccxt.Future = client.GetFutures()["authenticated"]
 	future.Resolve(true)
 }
 func (this *Cryptocom) HandleUnsubscribe(client ccxt.ClientInterface, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
-	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var messageHash string = keys[i]
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+		if !(client.SubscriptionHas(messageHash)) {
 			continue
 		}
 		if strings.HasPrefix(messageHash, "unsubscribe") {
-			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+			var subscription any = client.SubscriptionSafe(messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue

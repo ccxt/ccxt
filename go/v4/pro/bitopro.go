@@ -169,7 +169,7 @@ func (this *Bitopro) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	orderbook.Reset(snapshot)
 	if event != nil {
 		var messageHash string = *event + ":" + symbol
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 
@@ -264,7 +264,7 @@ func (this *Bitopro) HandleTrade(client ccxt.ClientInterface, message map[string
 	this.Trades[symbol] = tradesCache
 	if event != nil {
 		var messageHash string = *event + ":" + symbol
-		client.(ccxt.ClientInterface).Resolve(tradesCache, messageHash)
+		client.Resolve(tradesCache, messageHash)
 	}
 }
 
@@ -374,9 +374,9 @@ func (this *Bitopro) HandleMyTrade(client ccxt.ClientInterface, message map[stri
 	var trades ccxt.WsArrayCache = this.MyTrades
 	var parsed map[string]any = this.ParseWsTrade(data)
 	trades.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 	if messageHash != nil {
-		client.(ccxt.ClientInterface).Resolve(trades, *messageHash+":"+symbol)
+		client.Resolve(trades, *messageHash+":"+symbol)
 	}
 }
 func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -535,7 +535,7 @@ func (this *Bitopro) HandleTicker(client ccxt.ClientInterface, message map[strin
 	this.Tickers[symbol] = ccxt.TickerFromMap(result)
 	if event != nil {
 		var messageHash string = *event + ":" + symbol
-		client.(ccxt.ClientInterface).Resolve(result, messageHash)
+		client.Resolve(result, messageHash)
 	}
 }
 func (this *Bitopro) Authenticate(url string) {
@@ -680,7 +680,7 @@ func (this *Bitopro) HandleBalance(client ccxt.ClientInterface, message map[stri
 		}
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, event)
+	client.Resolve(this.Balance, event)
 }
 func (this *Bitopro) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var methods map[string]any = map[string]any{

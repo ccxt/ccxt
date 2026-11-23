@@ -156,7 +156,7 @@ func (this *Hollaex) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		}
 		if channel != nil {
 			var messageHash string = *channel + ":" + marketIdValue
-			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+			client.Resolve(orderbook, messageHash)
 		}
 	}
 }
@@ -252,9 +252,9 @@ func (this *Hollaex) HandleTrades(client ccxt.ClientInterface, message map[strin
 	}
 	if channel != nil {
 		var messageHash string = *channel + ":" + marketIdValue
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, channel)
+	client.Resolve(stored, channel)
 }
 
 /**
@@ -364,7 +364,7 @@ func (this *Hollaex) HandleMyTrades(client ccxt.ClientInterface, message map[str
 		}
 	}
 	// non-symbol specific
-	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
+	client.Resolve(this.MyTrades, channel)
 	var keys []string = nil
 	if marketIds != nil {
 		keys = make([]string, 0, len(marketIds))
@@ -376,7 +376,7 @@ func (this *Hollaex) HandleMyTrades(client ccxt.ClientInterface, message map[str
 		var marketId string = keys[i]
 		if channel != nil {
 			var messageHash string = *channel + ":" + marketId
-			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
+			client.Resolve(this.MyTrades, messageHash)
 		}
 	}
 }
@@ -529,7 +529,7 @@ func (this *Hollaex) HandleOrder(client ccxt.ClientInterface, message map[string
 		}
 	}
 	// non-symbol specific
-	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
+	client.Resolve(this.Orders, channel)
 	var keys []string = nil
 	if marketIds != nil {
 		keys = make([]string, 0, len(marketIds))
@@ -541,7 +541,7 @@ func (this *Hollaex) HandleOrder(client ccxt.ClientInterface, message map[string
 		var marketId string = keys[i]
 		if channel != nil {
 			var messageHash string = *channel + ":" + marketId
-			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+			client.Resolve(this.Orders, messageHash)
 		}
 	}
 }
@@ -638,7 +638,7 @@ func (this *Hollaex) HandleBalance(client ccxt.ClientInterface, message map[stri
 		}
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Hollaex) WatchPublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -858,7 +858,7 @@ func (this *Hollaex) Ping(client ccxt.ClientInterface) any {
 	}
 }
 func (this *Hollaex) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message
 }
 func (this *Hollaex) OnError(client any, error any) {

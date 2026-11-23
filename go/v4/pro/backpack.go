@@ -249,7 +249,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		var symbol string = *this.SafeString(market, "symbol", "")
 		var messageHash string = kind + ":" + symbol + "@" + topic
 		var subscriptionKey string = "marketData:" + topic
-		var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionKey)
+		var subscriptions map[string]any = client.SubscriptionDict(subscriptionKey)
 		if subscriptions == nil {
 			subscriptions = map[string]any{}
 		}
@@ -268,7 +268,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			}
 			messageHashes = append(messageHashes, messageHash)
 		}
-		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionKey, subscriptions)
+		client.SubscriptionSet(subscriptionKey, subscriptions)
 		var subscriptionHashes []string = nil
 		if subscriptions != nil {
 			subscriptionHashes = make([]string, 0, len(subscriptions))
@@ -298,7 +298,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			}, payload)
 			var messageHash string = "unsubscribe:marketData:" + ccxt.Join(topics, ",")
 			this.WatchMultiple(url, []any{messageHash}, request)
-			client.(ccxt.ClientInterface).Resolve(true, messageHash)
+			client.Resolve(true, messageHash)
 		}
 	} else {
 
@@ -625,7 +625,7 @@ func (this *Backpack) HandleTicker(client ccxt.ClientInterface, message map[stri
 		ticker = map[string]any{}
 	}
 	var stream string = *this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
+	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -648,7 +648,7 @@ func (this *Backpack) HandleTicker(client ccxt.ClientInterface, message map[stri
 		var parsedTicker map[string]any = this.ParseWsTicker(mappedTicker, market)
 		parsedTicker["info"] = ticker
 		this.Tickers[*symbol] = ccxt.TickerFromMap(parsedTicker)
-		client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
+		client.Resolve(parsedTicker, messageHash)
 	}
 	if hashesLength > 0 {
 		return
@@ -661,7 +661,7 @@ func (this *Backpack) HandleTicker(client ccxt.ClientInterface, message map[stri
 	if fallbackSymbol != nil {
 		this.Tickers[*fallbackSymbol] = ccxt.TickerFromMap(fallbackTicker)
 	}
-	client.(ccxt.ClientInterface).Resolve(fallbackTicker, fallbackHash)
+	client.Resolve(fallbackTicker, fallbackHash)
 }
 func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -727,7 +727,7 @@ func (this *Backpack) HandleStockTicker(client ccxt.ClientInterface, message map
 		data = map[string]any{}
 	}
 	var stream string = *this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
+	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -758,7 +758,7 @@ func (this *Backpack) HandleStockTicker(client ccxt.ClientInterface, message map
 		} else {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 		}
-		client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
+		client.Resolve(parsed, messageHash)
 	}
 	return (hashesLength > 0)
 }
@@ -851,7 +851,7 @@ func (this *Backpack) HandleBidAsk(client ccxt.ClientInterface, message map[stri
 		data = map[string]any{}
 	}
 	var stream string = *this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
+	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -870,7 +870,7 @@ func (this *Backpack) HandleBidAsk(client ccxt.ClientInterface, message map[stri
 		var market map[string]any = this.Market(symbol)
 		var parsedBidAsk map[string]any = this.ParseWsBidAsk(data, market)
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedBidAsk)
-		client.(ccxt.ClientInterface).Resolve(parsedBidAsk, messageHash)
+		client.Resolve(parsedBidAsk, messageHash)
 	}
 	if hashesLength > 0 {
 		return
@@ -883,7 +883,7 @@ func (this *Backpack) HandleBidAsk(client ccxt.ClientInterface, message map[stri
 	if fallbackSymbol != nil {
 		this.Bidsasks[*fallbackSymbol] = ccxt.TickerFromMap(fallbackBidAsk)
 	}
-	client.(ccxt.ClientInterface).Resolve(fallbackBidAsk, fallbackHash)
+	client.Resolve(fallbackBidAsk, fallbackHash)
 }
 func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -1203,12 +1203,12 @@ func (this *Backpack) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 	}
 	var ohlcv ccxt.WsArrayCache
 	ohlcv, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
-	var parsed any = this.ParseWsOHLCV(data)
+	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data))
 	ohlcv.Append(parsed)
 	var messageHash string = "candles:" + symbol + ":" + *timeframe
-	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, ohlcv}, messageHash)
+	client.Resolve([]any{symbol, timeframe, ohlcv}, messageHash)
 }
-func (this *Backpack) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//     {
 	//         E: '1754519557526056',
@@ -1227,7 +1227,7 @@ func (this *Backpack) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.Parse8601(this.SafeString(ohlcv, "t")), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	return ccxt.OHLCVFromList([]any{this.Parse8601(this.SafeString(ohlcv, "t")), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")})
 }
 
 /**
@@ -1489,8 +1489,8 @@ func (this *Backpack) HandleTrades(client ccxt.ClientInterface, message map[stri
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	cache.Append(trade)
 	var messageHash string = "trades:" + symbol
-	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
-	client.(ccxt.ClientInterface).Resolve(cache, "trades")
+	client.Resolve(cache, messageHash)
+	client.Resolve(cache, "trades")
 }
 func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -1818,7 +1818,7 @@ func (this *Backpack) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		return
 	}
 	this.HandleBookDelta(storedOrderBook, data)
-	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
+	client.Resolve(storedOrderBook, messageHash)
 }
 func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var microseconds int64 = *this.SafeInteger(delta, "T", 0)
@@ -1839,7 +1839,7 @@ func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
+func (this *Backpack) GetCacheIndex(orderbook any, cache []any) int64 {
 	//
 	// {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
 	var firstDelta map[string]any
@@ -1850,7 +1850,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
 	var cacheLength int = len(cache)
 	if nonce == nil {
-		return cacheLength
+		return int64(cacheLength)
 	}
 	if firstDeltaStart == nil {
 		return int64(-1)
@@ -1863,13 +1863,13 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
 		if (deltaStart == nil) || (deltaEnd == nil) {
-			return cacheLength
+			return int64(cacheLength)
 		}
 		if (*nonce >= (*deltaStart - 1)) && (deltaEnd != nil && (nonce == nil || *nonce < *deltaEnd)) {
-			return i
+			return int64(i)
 		}
 	}
-	return cacheLength
+	return int64(cacheLength)
 }
 
 /**
@@ -2079,9 +2079,9 @@ func (this *Backpack) HandleOrder(client ccxt.ClientInterface, message map[strin
 		this.Orders = orders
 	}
 	orders.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+	client.Resolve(orders, messageHash)
 	var symbolSpecificMessageHash string = messageHash + ":" + symbol
-	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
+	client.Resolve(orders, symbolSpecificMessageHash)
 }
 
 /**
@@ -2286,7 +2286,7 @@ func (this *Backpack) HandleBalance(client ccxt.ClientInterface, message map[str
 		parsed["info"] = assets
 	}
 	this.Balance = parsed
-	client.(ccxt.ClientInterface).Resolve(parsed, "balance")
+	client.Resolve(parsed, "balance")
 	return true
 }
 func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -2571,8 +2571,8 @@ func (this *Backpack) HandlePositions(client ccxt.ClientInterface, message map[s
 	}
 	cache.Append(parsedPosition)
 	var symbolSpecificMessageHash string = messageHash + ":" + *this.SafeString(parsedPosition, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
-	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolSpecificMessageHash)
+	client.Resolve([]any{parsedPosition}, messageHash)
+	client.Resolve([]any{parsedPosition}, symbolSpecificMessageHash)
 }
 func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -2702,7 +2702,7 @@ func (this *Backpack) HandleErrorMessage(client ccxt.ClientInterface, message ma
 					}
 					ret_ = func(this *Backpack) any {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(e)
+						client.Reject(e)
 						return nil
 					}(this)
 				}

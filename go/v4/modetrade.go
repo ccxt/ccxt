@@ -3277,9 +3277,13 @@ func (this *Modetrade) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 	//     }
 	// }
 	//
-	var orders any = this.SafeDict(response, "data", response)
+	var orders map[string]any
+	orders, _ = response["data"].(map[string]any)
+	if orders == nil {
+		orders = response
+	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(orders, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, orders), market)}
 	return nil
 }
 
@@ -4841,7 +4845,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Modetrade) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Modetrade) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

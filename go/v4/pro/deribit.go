@@ -188,7 +188,7 @@ func (this *Deribit) HandleBalance(client ccxt.ClientInterface, message map[stri
 		this.Balance[*currencyCode] = balance
 	}
 	var messageHash string = "balance"
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 
 /**
@@ -383,7 +383,7 @@ func (this *Deribit) HandleTicker(client ccxt.ClientInterface, message map[strin
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 
 /**
@@ -480,7 +480,7 @@ func (this *Deribit) HandleBidAsk(client ccxt.ClientInterface, message map[strin
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var messageHash *string = this.SafeString(params, "channel")
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -637,7 +637,7 @@ func (this *Deribit) HandleTrades(client ccxt.ClientInterface, message map[strin
 	}
 	var interval string = *this.SafeString(parts, 2, "")
 	var messageHash string = "trades|" + *symbol + "|" + interval
-	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
+	client.Resolve(this.Trades[*symbol], messageHash)
 }
 
 /**
@@ -765,7 +765,7 @@ func (this *Deribit) HandleMyTrades(client ccxt.ClientInterface, message map[str
 			marketIds[*symbol] = true
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(cachedTrades, channel)
+	client.Resolve(cachedTrades, channel)
 }
 
 /**
@@ -941,7 +941,7 @@ func (this *Deribit) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		this.Orderbooks[*symbol] = storedOrderBook
 	}
 	var messageHash string = "book|" + *symbol + "|" + descriptor
-	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
+	client.Resolve(storedOrderBook, messageHash)
 }
 func (this *Deribit) CleanOrderBook(data map[string]any) map[string]any {
 	var bids []any = ccxt.SafeListTyped(data, "bids")
@@ -1129,7 +1129,7 @@ func (this *Deribit) HandleOrders(client ccxt.ClientInterface, message map[strin
 	for i := 0; i < len(orders); i++ {
 		cachedOrders.Append(orders[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
+	client.Resolve(this.Orders, channel)
 }
 
 /**
@@ -1287,16 +1287,16 @@ func (this *Deribit) HandleOHLCV(client ccxt.ClientInterface, message map[string
 		ohlcv = map[string]any{}
 	}
 	// data contains a single ccxt.OHLCV candle
-	var parsed any = this.ParseWsOHLCV(ohlcv, market)
+	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(ohlcv, market))
 	stored.Append(parsed)
 	if unifiedTimeframe != nil && this.Ohlcvs[symbol] != nil {
 		this.Ohlcvs[symbol][*unifiedTimeframe] = stored
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	var messageHash string = "chart.trades|" + symbol + "|" + *this.SafeString(parts, 3, "")
-	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
+	client.Resolve(resolveData, messageHash)
 }
-func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//    {
 	//        "c": "28909.0",
@@ -1310,7 +1310,7 @@ func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 func (this *Deribit) WatchMultipleWrapperAsync(channelName string, channelDescriptor any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -1500,7 +1500,7 @@ func (this *Deribit) HandleAuthenticationMessage(client ccxt.ClientInterface, me
 	//     }
 	//
 	var messageHash string = "authenticated"
-	client.(ccxt.ClientInterface).Resolve(message, messageHash)
+	client.Resolve(message, messageHash)
 	return message
 }
 func (this *Deribit) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
@@ -1519,7 +1519,7 @@ func (this *Deribit) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var timeString *string = this.NumberToString(time)
 	var nonce *string = timeString
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+	var future any = client.SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		this.CheckRequiredCredentials()
 		var requestId int64 = this.RequestId()
@@ -1544,7 +1544,7 @@ func (this *Deribit) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 			panic(r.Err)
 		}
 		future = r.Value
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
+		client.SubscriptionSet(messageHash, future)
 	}
 
 	var resolved *string

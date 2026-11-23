@@ -1355,7 +1355,7 @@ func (this *Bit2me) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
 	//     }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -2385,7 +2385,7 @@ func (this *Bit2me) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(response, currency, since, limit))}
 	return nil
 }
-func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Bit2me) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -2538,7 +2538,7 @@ func (this *Bit2me) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bit2me) HandleErrors(httpCode int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bit2me) HandleErrors(httpCode int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

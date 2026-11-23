@@ -140,7 +140,7 @@ func (this *Independentreserve) HandleTrades(client ccxt.ClientInterface, messag
 	if symbol != nil {
 		this.Trades[*symbol] = stored
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -278,7 +278,7 @@ func (this *Independentreserve) HandleOrderBook(client ccxt.ClientInterface, mes
 		orderBook = map[string]any{}
 	}
 	var messageHash string = "orderbook:" + symbol + ":" + depth
-	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	var subscription map[string]any = client.SubscriptionDict(messageHash)
 	if subscription == nil {
 		subscription = map[string]any{}
 	}
@@ -294,7 +294,7 @@ func (this *Independentreserve) HandleOrderBook(client ccxt.ClientInterface, mes
 		orderbook.Reset(snapshot)
 		// write through the parent index: php copies arrays by value, so
 		// mutating the local bind would not persist the flag
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, this.Extend(subscription, map[string]any{
+		client.SubscriptionSet(messageHash, this.Extend(subscription, map[string]any{
 			"receivedSnapshot": true,
 		}))
 	} else {
@@ -334,14 +334,14 @@ func (this *Independentreserve) HandleOrderBook(client ccxt.ClientInterface, mes
 		var responseChecksum *int64 = this.SafeInteger(orderBook, "Crc32")
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
 			error := ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(&symbol))
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+			client.SubscriptionDel(messageHash)
 			delete(this.Orderbooks, symbol)
-			client.(ccxt.ClientInterface).Reject(error, messageHash)
+			client.Reject(error, messageHash)
 			return
 		}
 	}
 	if receivedSnapshot != nil && *receivedSnapshot {
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 func (this *Independentreserve) ValueToChecksum(value *float64) any {

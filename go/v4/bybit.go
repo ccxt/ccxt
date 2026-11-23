@@ -8168,7 +8168,7 @@ func (this *Bybit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
-func (this *Bybit) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Bybit) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "chainType": "ERC20",
@@ -10533,7 +10533,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]a
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.ParseBorrowRateHistory(rows, code, sinceResolved, limit))}
 	return nil
 }
-func (this *Bybit) ParseBorrowInterest(info any, optionalArgs ...any) any {
+func (this *Bybit) ParseBorrowInterest(info map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "tokenId": "BTC",
@@ -10747,12 +10747,12 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Bybit) BorrowCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Bybit) BorrowCrossMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Bybit) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Bybit) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10807,12 +10807,12 @@ func (this *Bybit) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Bybit) RepayCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
+func (this *Bybit) RepayCrossMarginAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginLoan] {
 	ch := make(chan AsyncResult[MarginLoan], 1)
 	go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Bybit) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount any, optionalArgs ...any) any {
+func (this *Bybit) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10894,7 +10894,7 @@ func (this *Bybit) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bybit) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Bybit) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -11771,12 +11771,7 @@ func (this *Bybit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	var result, _ = response["result"].(map[string]any)
 	var data []any
 	data, _ = result["list"].([]any)
-	var greeks map[string]any
-	if len(data) > 0 {
-		greeks = GreeksToMap(this.ParseGreeks(data[0], market))
-	} else {
-		greeks = GreeksToMap(this.ParseGreeks(nil, market))
-	}
+	var greeks map[string]any = GreeksToMap(this.ParseGreeks(this.SafeDict(data, 0, map[string]any{}), market))
 
 	ch <- AsyncResult[Greeks]{Value: GreeksFromMap(this.Extend(greeks, map[string]any{
 		"timestamp": timestamp,
@@ -13846,7 +13841,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bybit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bybit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

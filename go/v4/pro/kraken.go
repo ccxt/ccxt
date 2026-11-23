@@ -416,7 +416,7 @@ func (this *Kraken) HandleCreateEditOrder(client ccxt.ClientInterface, message m
 	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(result))
 	var messageHash *string = this.SafeString2(message, "reqid", "req_id")
-	client.(ccxt.ClientInterface).Resolve(order, messageHash)
+	client.Resolve(order, messageHash)
 }
 
 /**
@@ -606,7 +606,7 @@ func (this *Kraken) HandleCancelOrder(client ccxt.ClientInterface, message map[s
 	//     }
 	//
 	var reqId *string = this.SafeString(message, "req_id")
-	client.(ccxt.ClientInterface).Resolve(message, reqId)
+	client.Resolve(message, reqId)
 }
 
 /**
@@ -676,7 +676,7 @@ func (this *Kraken) HandleCancelAllOrders(client ccxt.ClientInterface, message m
 	//     }
 	//
 	var reqId *string = this.SafeString(message, "req_id")
-	client.(ccxt.ClientInterface).Resolve(message, reqId)
+	client.Resolve(message, reqId)
 }
 func (this *Kraken) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -740,7 +740,7 @@ func (this *Kraken) HandleTicker(client ccxt.ClientInterface, message map[string
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(result)
 	}
-	client.(ccxt.ClientInterface).Resolve(result, messageHash)
+	client.Resolve(result, messageHash)
 }
 func (this *Kraken) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -784,7 +784,7 @@ func (this *Kraken) HandleTrades(client ccxt.ClientInterface, message map[string
 	for i := 0; i < len(parsed); i++ {
 		stored.Append(parsed[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Kraken) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -846,7 +846,7 @@ func (this *Kraken) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		var parsed []any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
 		stored.Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Kraken) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
@@ -1398,7 +1398,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 	return nil
 }
 func (this *Kraken) Ping(client ccxt.ClientInterface) any {
-	var url string = client.(ccxt.ClientInterface).GetUrl()
+	var url string = client.GetUrl()
 	var request map[string]any = map[string]any{}
 	if strings.Index(url, "v2") >= 0 {
 		request["method"] = "ping"
@@ -1408,7 +1408,7 @@ func (this *Kraken) Ping(client ccxt.ClientInterface) any {
 	return request
 }
 func (this *Kraken) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message
 }
 func (this *Kraken) WatchHeartbeatAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
@@ -1443,7 +1443,7 @@ func (this *Kraken) HandleHeartbeat(client ccxt.ClientInterface, message map[str
 	//     { "channel": "heartbeat" }
 	//
 	var event *string = this.SafeString(message, "channel")
-	client.(ccxt.ClientInterface).Resolve(message, event)
+	client.Resolve(message, event)
 }
 func (this *Kraken) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -1537,7 +1537,7 @@ func (this *Kraken) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		orderbook.SetDatetime(datetime)
 	} else {
 		// snapshot
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+		var subscription map[string]any = client.SubscriptionDict(messageHash)
 		// size the book from the subscribed depth (10 by default), not from
 		// the level count of this snapshot: a thin market's snapshot can
 		// carry fewer levels than the subscription and must not cap the book
@@ -1619,15 +1619,15 @@ func (this *Kraken) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		var localChecksum int64 = this.Crc32(payload, false)
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol))
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+			client.SubscriptionDel(messageHash)
 			if symbol != nil {
 				delete(this.Orderbooks, *symbol)
 			}
-			client.(ccxt.ClientInterface).Reject(error, messageHash)
+			client.Reject(error, messageHash)
 			return
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Kraken) CustomHandleDeltas(bookside any, deltas []any) {
 	// const sortOrder = (key === 'bids') ? true : false
@@ -1690,7 +1690,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var authenticated string = "authenticated"
-	var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(authenticated)
+	var subscription any = client.SubscriptionSafe(authenticated)
 	var now int64 = this.Seconds()
 	var start *int64 = this.SafeInteger(subscription, "start")
 	var expires *int64 = this.SafeInteger(subscription, "expires", int64(-1))
@@ -1707,20 +1707,20 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// through client.resolve () / client.reject () so every write to
 		// that map stays behind the client's own lock
 		var messageHash string = "authenticateFlight"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in the subscriptions bucket
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
+			subscription = this.SafeDict(client.SubscriptionsSnapshot(), authenticated)
 
 			ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(subscription, "token")}
 			return nil
 		}
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Kraken) (ret_ any) {
@@ -1733,7 +1733,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 							// catch block:
 							// reject the flight - all waiters throw and the next caller
 							// re-leads instead of deadlocking on a dead flight
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							client.Reject(e, messageHash)
 							return nil
 						}(this)
 					}
@@ -1762,10 +1762,10 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				if token == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty token"))
 				}
-				client.(ccxt.ClientInterface).SubscriptionSet(authenticated, subscription)
+				client.SubscriptionSet(authenticated, subscription)
 				// settle the flight and wake every waiter - resolve () also
 				// clears the registry entry, so the next refresh re-leads
-				client.(ccxt.ClientInterface).Resolve(token, messageHash)
+				client.Resolve(token, messageHash)
 				return nil
 			}(this)
 
@@ -1777,7 +1777,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
+		subscription = this.SafeDict(client.SubscriptionsSnapshot(), authenticated)
 	}
 
 	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(subscription, "token")}
@@ -1938,7 +1938,7 @@ func (this *Kraken) HandleMyTrades(client ccxt.ClientInterface, message map[stri
 			}
 		}
 		var name string = "myTrades"
-		client.(ccxt.ClientInterface).Resolve(this.MyTrades, name)
+		client.Resolve(this.MyTrades, name)
 		var keys []string = nil
 		if symbols != nil {
 			keys = make([]string, 0, len(symbols))
@@ -1948,7 +1948,7 @@ func (this *Kraken) HandleMyTrades(client ccxt.ClientInterface, message map[stri
 		}
 		for i := 0; i < len(keys); i++ {
 			var messageHash string = name + ":" + keys[i]
-			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
+			client.Resolve(this.MyTrades, messageHash)
 		}
 	}
 }
@@ -2137,7 +2137,7 @@ func (this *Kraken) HandleOrders(client ccxt.ClientInterface, message map[string
 			}
 		}
 		var name string = "orders"
-		client.(ccxt.ClientInterface).Resolve(this.Orders, name)
+		client.Resolve(this.Orders, name)
 		var keys []string = nil
 		if symbols != nil {
 			keys = make([]string, 0, len(symbols))
@@ -2147,7 +2147,7 @@ func (this *Kraken) HandleOrders(client ccxt.ClientInterface, message map[string
 		}
 		for i := 0; i < len(keys); i++ {
 			var messageHash string = name + ":" + keys[i]
-			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+			client.Resolve(this.Orders, messageHash)
 		}
 	}
 }
@@ -2373,7 +2373,7 @@ func (this *Kraken) HandleBalance(client ccxt.ClientInterface, message map[strin
 	}
 	this.Balance[typeVar] = this.SafeBalance(balance)
 	var channel *string = this.SafeString(message, "channel")
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], channel)
+	client.Resolve(this.Balance[typeVar], channel)
 }
 func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
@@ -2420,7 +2420,7 @@ func (this *Kraken) HandleSubscriptionStatus(client ccxt.ClientInterface, messag
 	//
 	var channelId *string = this.SafeString(message, "channelID")
 	if channelId != nil {
-		client.(ccxt.ClientInterface).SubscriptionSet(channelId, message)
+		client.SubscriptionSet(channelId, message)
 	}
 }
 func (this *Kraken) HandleUnsubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -2491,7 +2491,7 @@ func (this *Kraken) HandleErrorMessage(client ccxt.ClientInterface, message map[
 			exception = ccxt.CallDynamically(ccxt.GetValue(broad, broadKey), errorMessage)
 		}
 		if requestId != nil {
-			client.(ccxt.ClientInterface).Reject(exception, requestId)
+			client.Reject(exception, requestId)
 		}
 		return false
 	}

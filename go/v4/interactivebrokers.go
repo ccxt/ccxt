@@ -1229,8 +1229,8 @@ func (this *Interactivebrokers) ibkrGatewaySignInBody(ch chan AsyncResult[any], 
 	if !(authenticated != nil && *authenticated) {
 		// the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
 		var lostTimestamp any = this.IbkrGatewayOnSessionLost()
-		var regainDelay any = this.IbkrGatewayRegainDelay()
-		if IsLessThanOrEqual(regainDelay, 0) {
+		var regainDelay int64 = this.IbkrGatewayRegainDelay()
+		if regainDelay <= 0 {
 			var gatewayUrl *string = this.SafeString(this.Options, "gatewayUrl")
 			panic(AuthenticationError(this.Id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at " + *gatewayUrl + " in a browser or set options.autoRegainSession to take it back automatically, " + this.Json(response)))
 		}
@@ -1254,7 +1254,7 @@ func (this *Interactivebrokers) ibkrGatewaySignInBody(ch chan AsyncResult[any], 
 			// try again options.autoRegainSession seconds later
 			this.Options["gatewaySessionLostTimestamp"] = this.Milliseconds()
 			this.IbkrGatewayScheduleRegain()
-			var retryDatetime *string = this.Iso8601(this.Sum(this.Milliseconds(), regainDelay))
+			var retryDatetime *string = this.Iso8601(this.Milliseconds() + regainDelay)
 			if retryDatetime != nil {
 				messageText := this.Id + " failed to take back the brokerage session of the client portal gateway, retrying at " + *retryDatetime + " (options.autoRegainSession), " + this.Json(response)
 				panic(AuthenticationError(messageText))
@@ -1334,7 +1334,7 @@ func (this *Interactivebrokers) ibkrGatewayRegainSessionBody(ch chan AsyncResult
  * @ignore
  * @returns {int} the delay in milliseconds
  */
-func (this *Interactivebrokers) IbkrGatewayRegainDelay() any {
+func (this *Interactivebrokers) IbkrGatewayRegainDelay() int64 {
 	var seconds *float64 = this.SafeNumber(this.Options, "autoRegainSession", 0)
 	if (seconds == nil) || (!(*seconds > 0)) {
 		return 0
@@ -1371,13 +1371,13 @@ func (this *Interactivebrokers) IbkrGatewayOnSessionLost() any {
  * @returns {boolean} true if it was scheduled
  */
 func (this *Interactivebrokers) IbkrGatewayScheduleRegain() any {
-	var regainDelay any = this.IbkrGatewayRegainDelay()
-	if (IsLessThanOrEqual(regainDelay, 0)) || (*this.SafeBool(this.Options, "gatewayRegainScheduled", false)) {
+	var regainDelay int64 = this.IbkrGatewayRegainDelay()
+	if (regainDelay <= 0) || (*this.SafeBool(this.Options, "gatewayRegainScheduled", false)) {
 		return false
 	}
 	var lostTimestamp *int64 = this.SafeInteger(this.Options, "gatewaySessionLostTimestamp", this.Milliseconds())
-	var wait any = Subtract(this.Sum(lostTimestamp, regainDelay), this.Milliseconds())
-	if IsLessThanOrEqual(wait, 0) {
+	var wait any = ((*lostTimestamp + regainDelay) - this.Milliseconds())
+	if wait.(int64) <= 0 {
 		wait = regainDelay
 	}
 
@@ -1424,7 +1424,7 @@ func (this *Interactivebrokers) ibkrGatewayRegainLoopBody(ch chan AsyncResult[an
 	this.Options["gatewayRegainScheduled"] = false
 	var useGateway *bool = this.SafeBool(this.Options, "useGateway", false)
 	var lostTimestamp *int64 = this.SafeInteger(this.Options, "gatewaySessionLostTimestamp")
-	if !(useGateway != nil && *useGateway) || (lostTimestamp == nil) || (IsLessThanOrEqual(this.IbkrGatewayRegainDelay(), 0)) {
+	if !(useGateway != nil && *useGateway) || (lostTimestamp == nil) || (this.IbkrGatewayRegainDelay() <= 0) {
 
 		ch <- AsyncResult[any]{Value: nil} // already regained, or disabled
 		return nil
@@ -3126,8 +3126,9 @@ func (this *Interactivebrokers) fetchTickersBody(ch chan AsyncResult[map[string]
 	fields := GetValue(fieldsqueryVariable, 0)
 	query := GetValue(fieldsqueryVariable, 1)
 	var fieldsString string = Join(fields, ",")
+	var readyFields []string = []string{"31", "84", "86"}
 
-	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, fieldsString, query)
+	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, fieldsString, readyFields, query)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3163,22 +3164,20 @@ func (this *Interactivebrokers) fetchTickersBody(ch chan AsyncResult[map[string]
  * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
  * @param {string[]} symbols unified market symbols
  * @param {string} fields comma-separated snapshot field ids
+ * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
  * @returns {object[]} the raw snapshot items
  */
-func (this *Interactivebrokers) IbkrFetchSnapshotAsync(symbols []string, fields string, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Interactivebrokers) IbkrFetchSnapshotAsync(symbols []string, fields string, readyFields []string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
-	go this.ibkrFetchSnapshotBody(ch, symbols, fields, optionalArgs...)
+	go this.ibkrFetchSnapshotBody(ch, symbols, fields, readyFields, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], symbols []string, fields string, optionalArgs ...any) any {
+func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], symbols []string, fields string, readyFields []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var readyFields []string = GetArgStringSlice(optionalArgs, 1, nil)
-	_ = readyFields
 	var conids []any = []any{}
 	for i := 0; i < len(symbols); i++ {
 		var market map[string]any = this.Market(symbols[i])
@@ -3193,6 +3192,7 @@ func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], 
 	}
 	var response any = []any{}
 	for i := 0; int64(i) <= retries; i++ {
+
 		r := <-this.WebapiGetV1ApiIserverMarketdataSnapshot(this.Extend(request, params))
 		if r.Err != nil {
 			panic(r.Err)
@@ -3210,24 +3210,16 @@ func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], 
 	ch <- AsyncResult[any]{Value: response}
 	return nil
 }
-func (this *Interactivebrokers) IbkrSnapshotReady(response any, optionalArgs ...any) bool {
-	var readyFields []string = GetArgStringSlice(optionalArgs, 0, nil)
-	_ = readyFields
+func (this *Interactivebrokers) IbkrSnapshotReady(response any, fieldIds []string) bool {
 	var numItems int = GetArrayLength(response)
 	if numItems == 0 {
 		return false
 	}
-	var fieldIds any
-	if readyFields == nil {
-		fieldIds = []any{"31", "84", "86"}
-	} else {
-		fieldIds = readyFields
-	}
-	var numFields int = GetArrayLength(fieldIds)
+	var numFields int = len(fieldIds)
 	for i := 0; i < numItems; i++ {
 		var found bool = false
 		for j := 0; j < numFields; j++ {
-			if this.SafeString(GetValue(response, i), GetValue(fieldIds, j)) != nil {
+			if this.SafeString(GetValue(response, i), fieldIds[j]) != nil {
 				found = true
 				break
 			}
@@ -3280,7 +3272,7 @@ func (this *Interactivebrokers) fetchBidsAsksBody(ch chan AsyncResult[map[string
 	var fields string = *this.SafeString(params, "fields", "84,85,86,88")
 	var query map[string]any = this.OmitDict(params, "fields")
 
-	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, fields, query, []any{"84", "86"})
+	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, fields, []string{"84", "86"}, query)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3331,7 +3323,7 @@ func (this *Interactivebrokers) fetchLastPricesBody(ch chan AsyncResult[map[stri
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, "31", params, []any{"31"})
+	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, "31", []string{"31"}, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3397,7 +3389,7 @@ func (this *Interactivebrokers) fetchMarkPricesBody(ch chan AsyncResult[map[stri
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, "7635", params, []any{"7635"})
+	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, "7635", []string{"7635"}, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3455,7 +3447,7 @@ func (this *Interactivebrokers) fetchOpenInterestsBody(ch chan AsyncResult[map[s
 	}
 	// 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
 
-	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, "31,7697,7638", params, []any{"7697", "7638"})
+	r2 := <-this.IbkrFetchSnapshotAsync(symbolsNormalized, "31,7697,7638", []string{"7697", "7638"}, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -4092,7 +4084,10 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
-	result := r4.Value
+	var result any = nil
+	if r4.Value != nil {
+		result = r4.Value
+	}
 
 	//
 	//     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
@@ -4274,12 +4269,12 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar any, s
  * @param {string} methodName the calling method name
  * @returns {object} the accepted order entry
  */
-func (this *Interactivebrokers) IbkrHandleOrderRepliesAsync(response any, methodName string) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Interactivebrokers) IbkrHandleOrderRepliesAsync(response any, methodName string) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.ibkrHandleOrderRepliesBody(ch, response, methodName)
 	return ch
 }
-func (this *Interactivebrokers) ibkrHandleOrderRepliesBody(ch chan AsyncResult[any], response any, methodName string) any {
+func (this *Interactivebrokers) ibkrHandleOrderRepliesBody(ch chan AsyncResult[map[string]any], response any, methodName string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var options, _ = this.Options["createOrder"].(map[string]any)
@@ -4305,7 +4300,7 @@ func (this *Interactivebrokers) ibkrHandleOrderRepliesBody(ch chan AsyncResult[a
 		var orderId *string = this.SafeString2(first, "order_id", "orderId")
 		if orderId != nil {
 
-			ch <- AsyncResult[any]{Value: first}
+			ch <- AsyncResult[map[string]any]{Value: first}
 			return nil
 		}
 		//
@@ -4402,7 +4397,10 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
-	result := r4.Value
+	var result any = nil
+	if r4.Value != nil {
+		result = r4.Value
+	}
 	var order map[string]any = OrderToMap(this.ParseOrder(result, market))
 	order["type"] = typeVar
 	order["side"] = side
@@ -6009,7 +6007,7 @@ func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path any, 
 
 	return nil
 }
-func (this *Interactivebrokers) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Interactivebrokers) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if (code == 401) && (*this.SafeBool(this.Options, "useGateway", false)) {
 		// the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
 		this.Options["gatewayAuthenticatedTimestamp"] = nil

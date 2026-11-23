@@ -3791,7 +3791,7 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) []any {
 	var currentyNetworkId *string = this.SafeString(networkEntry, "currencyNetworkId")
 	return []any{currentyNetworkId, paramsNetworkCode}
 }
-func (this *Woo) ParseDepositAddress(depositEntry any, optionalArgs ...any) DepositAddress {
+func (this *Woo) ParseDepositAddress(depositEntry map[string]any, optionalArgs ...any) DepositAddress {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositEntry, "address")
@@ -4394,7 +4394,7 @@ func (this *Woo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit, paramsOmitted))}
 	return nil
 }
-func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Woo) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//    fetchTransfers
 	//     {
@@ -4445,8 +4445,8 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
 			status = "failed"
 		}
 	}
-	var fromAccount map[string]any = SafeMapTyped(transfer, "from")
-	var toAccount map[string]any = SafeMapTyped(transfer, "to")
+	var fromAccount, _ = transfer["from"].(map[string]any)
+	var toAccount, _ = transfer["to"].(map[string]any)
 	return TransferEntryFromMap(map[string]any{
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,
@@ -4721,7 +4721,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal357715
 }
-func (this *Woo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Woo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5442,12 +5442,12 @@ func (this *Woo) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
  * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Woo) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Woo) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Woo) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Woo) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5477,12 +5477,12 @@ func (this *Woo) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
  * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Woo) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Woo) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Woo) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Woo) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5500,12 +5500,12 @@ func (this *Woo) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	}
 	return nil
 }
-func (this *Woo) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Woo) ModifyMarginHelperAsync(symbol string, amount float64, typeVar string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Woo) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Woo) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

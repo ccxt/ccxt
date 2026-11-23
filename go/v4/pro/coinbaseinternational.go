@@ -128,7 +128,7 @@ func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) string {
 }
 func (this *Coinbaseinternational) Ping(client ccxt.ClientInterface) any {
 	var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
-	var isPrivateClient bool = (client.(ccxt.ClientInterface).GetUrl() == this.GetWsUrl(true))
+	var isPrivateClient bool = (client.GetUrl() == this.GetWsUrl(true))
 	if isPrivateClient && (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) {
 		// re-authenticate in-band before the session expires, also while no watch call is pending
 		// retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
@@ -332,7 +332,7 @@ func (this *Coinbaseinternational) HandleBalance(client ccxt.ClientInterface, me
 	}
 	var parsed map[string]any = this.ParseBalanceList(data, []any{data})
 	this.Balance = this.DeepExtend(this.Balance, parsed)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
 
 /**
@@ -453,7 +453,7 @@ func (this *Coinbaseinternational) HandleMyTrades(client ccxt.ClientInterface, m
 	for i := 0; i < tradesLength; i++ {
 		this.MyTrades.Append(trades[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
+	client.Resolve(this.MyTrades, channel)
 }
 
 /**
@@ -530,12 +530,12 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]cc
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) WatchOrdersForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Coinbaseinternational) WatchOrdersForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -642,7 +642,7 @@ func (this *Coinbaseinternational) HandleOrders(client ccxt.ClientInterface, mes
 	for i := 0; i < ordersLength; i++ {
 		this.Orders.Append(orders[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
+	client.Resolve(this.Orders, channel)
 }
 
 /**
@@ -806,7 +806,7 @@ func (this *Coinbaseinternational) HandlePositions(client ccxt.ClientInterface, 
 		}
 		this.Positions.Append(position)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
+	client.Resolve(this.Positions, channel)
 }
 
 /**
@@ -1392,7 +1392,7 @@ func (this *Coinbaseinternational) HandleTicker(client ccxt.ClientInterface, mes
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, channel)
+	client.Resolve(ticker, channel)
 }
 func (this *Coinbaseinternational) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
@@ -1407,7 +1407,7 @@ func (this *Coinbaseinternational) HandleBidAsk(client ccxt.ClientInterface, mes
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var channel *string = this.SafeString(params, "channel")
-	client.(ccxt.ClientInterface).Resolve(ticker, channel)
+	client.Resolve(ticker, channel)
 }
 func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1666,15 +1666,15 @@ func (this *Coinbaseinternational) HandleOHLCV(client ccxt.ClientInterface, mess
 	if data == nil {
 		data = map[string]any{}
 	}
-	var parsed any = this.ParseWsOHLCV(data, market)
+	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
-	client.(ccxt.ClientInterface).Resolve(resolved, messageHash)
+	client.Resolve(resolved, messageHash)
 }
-func (this *Coinbaseinternational) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**
@@ -1878,7 +1878,7 @@ func (this *Coinbaseinternational) HandleTrades(client ccxt.ClientInterface, mes
 		tradesArray.Append(trade)
 	}
 	this.Trades[*symbol] = tradesArray
-	client.(ccxt.ClientInterface).Resolve(tradesArray, channel)
+	client.Resolve(tradesArray, channel)
 	return message
 }
 
@@ -2102,10 +2102,10 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 			if symbol != nil {
 				delete(this.Orderbooks, *symbol)
 			}
-			if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
-				client.(ccxt.ClientInterface).SubscriptionDel(channel)
+			if client.SubscriptionHas(channel) {
+				client.SubscriptionDel(channel)
 			}
-			client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id+" order book update has a nonce mismatch"), channel)
+			client.Reject(ccxt.ExchangeError(this.Id+" order book update has a nonce mismatch"), channel)
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
@@ -2130,7 +2130,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 		this.Orderbooks[*symbol] = orderbook
 	}
 	if channel != nil {
-		client.(ccxt.ClientInterface).Resolve(orderbook, channel)
+		client.Resolve(orderbook, channel)
 	}
 }
 func (this *Coinbaseinternational) ResubscribeOrderBookAsync(channel any) <-chan ccxt.AsyncResult[any] {
@@ -2166,12 +2166,12 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 
-	r1 := <-client.(ccxt.ClientInterface).SendAsync(request)
+	r1 := <-client.SendAsync(request)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
-		client.(ccxt.ClientInterface).SubscriptionDel(channel)
+	if client.SubscriptionHas(channel) {
+		client.SubscriptionDel(channel)
 	}
 
 	r2 := <-this.SubscribeAsync([]any{channel}, []any{channel}, isPrivate, map[string]any{})
@@ -2222,11 +2222,11 @@ func (this *Coinbaseinternational) HandleErrorMessage(client ccxt.ClientInterfac
 						} else if derefPtr := requestId; derefPtr != nil {
 							messageHash = *derefPtr
 						}
-						if (messageHash == "authenticated") && (client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+						if (messageHash == "authenticated") && (client.SubscriptionHas(messageHash)) {
 							// allow the next authenticate () call to retry
-							client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+							client.SubscriptionDel(messageHash)
 						}
-						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						client.Reject(e, messageHash)
 						return nil
 					}(this)
 				}
@@ -2253,7 +2253,7 @@ func (this *Coinbaseinternational) handleHeartbeatBody(ch chan ccxt.AsyncResult[
 	var data *string = this.SafeString(params, "data")
 	if data != nil && *data == "test_request" {
 
-		r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+		r := <-client.SendAsync(map[string]any{
 			"jsonrpc": "2.0",
 			"id":      this.RequestId(),
 			"method":  "public/test",
@@ -2306,14 +2306,14 @@ func (this *Coinbaseinternational) HandleMessage(client ccxt.ClientInterface, me
 	if requestId != nil {
 		var result, _ = message["result"].(map[string]any)
 		if this.SafeString(result, "version") != nil {
-			client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+			client.SetLastPong(this.Milliseconds())
 		}
 		var authRequestId *string = this.SafeString(this.Options, "wsAuthRequestId")
 		if requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId) {
 			this.HandleAuthenticationMessage(client, message)
 			return
 		}
-		client.(ccxt.ClientInterface).Resolve(this.SafeValue(message, "result", message), requestId)
+		client.Resolve(this.SafeValue(message, "result", message), requestId)
 	}
 }
 func (this *Coinbaseinternational) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) {
@@ -2344,8 +2344,8 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client ccxt.Clien
 	}
 	var now int64 = this.Milliseconds()
 	this.Options["wsAuthRefreshAt"] = now + this.ParseToInt(float64((expiresIn*1000))*refreshRatio)
-	client.(ccxt.ClientInterface).SetLastPong(now)
-	client.(ccxt.ClientInterface).Resolve(result, "authenticated")
+	client.SetLastPong(now)
+	client.Resolve(result, "authenticated")
 }
 
 /**
@@ -2373,12 +2373,12 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var url string = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
+	var future any = client.SubscriptionSafe(messageHash)
 	var subscribed bool = (!ccxt.IsEqual(future, nil))
 	if subscribed {
 		var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {
+			client.SubscriptionDel(messageHash)
 			subscribed = false
 		}
 	}
@@ -2403,9 +2403,9 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 			"method":  "public/auth",
 			"params":  paramsAuth,
 		}
-		future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		future = client.ReusableFuture(messageHash)
 		this.Watch(url, messageHash, this.Extend(request, paramsResolved), messageHash)
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
+		client.SubscriptionSet(messageHash, future)
 	}
 
 	r := <-future.(*ccxt.Future).Await()
@@ -2690,7 +2690,7 @@ func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[cc
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(result, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -2794,7 +2794,7 @@ func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccx
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(result, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -3281,7 +3281,7 @@ func (this *Coinbaseinternational) logoutWsBody(ch chan ccxt.AsyncResult[any], o
 		"params":  paramsResolved,
 	}
 
-	r1 := <-client.(ccxt.ClientInterface).SendAsync(request)
+	r1 := <-client.SendAsync(request)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

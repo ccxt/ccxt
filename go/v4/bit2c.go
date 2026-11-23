@@ -1399,7 +1399,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Bit2c) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1470,7 +1470,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Bit2c) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Bit2c) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

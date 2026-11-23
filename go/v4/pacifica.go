@@ -4832,7 +4832,7 @@ func (this *Pacifica) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	}))}
 	return nil
 }
-func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Pacifica) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// {
 	//   "success": true,
@@ -5185,7 +5185,7 @@ func (this *Pacifica) HandleOriginAndSingleAddress(methodName string, params any
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params"))
 }
-func (this *Pacifica) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Pacifica) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5268,7 +5268,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal372415
 }
-func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+func (this *Pacifica) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var cost string = *this.SafeString(config, "cost", "1")

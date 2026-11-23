@@ -502,12 +502,12 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan ccxt.AsyncResu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseexchange) WatchOrdersForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Coinbaseexchange) WatchOrdersForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -753,7 +753,7 @@ func (this *Coinbaseexchange) HandleTrade(client ccxt.ClientInterface, message m
 			}
 		}
 		tradesArray.Append(trade)
-		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+		client.Resolve(tradesArray, messageHash)
 	}
 	return message
 }
@@ -769,7 +769,7 @@ func (this *Coinbaseexchange) HandleMyTrade(client ccxt.ClientInterface, message
 		}
 		var tradesArray ccxt.WsArrayCache = this.MyTrades
 		tradesArray.Append(trade)
-		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+		client.Resolve(tradesArray, messageHash)
 	}
 	return message
 }
@@ -995,7 +995,7 @@ func (this *Coinbaseexchange) HandleOrder(client ccxt.ClientInterface, message m
 		if previousOrder == nil {
 			var parsed map[string]any = this.ParseWsOrder(message)
 			orders.Append(parsed)
-			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+			client.Resolve(orders, messageHash)
 		} else {
 			var sequence *int64 = this.SafeInteger(message, "sequence")
 			if sequence == nil {
@@ -1080,7 +1080,7 @@ func (this *Coinbaseexchange) HandleOrder(client ccxt.ClientInterface, message m
 					}
 					// update the newUpdates count
 					orders.Append(previousOrder)
-					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+					client.Resolve(orders, messageHash)
 				} else if (typeVar != nil && *typeVar == "received") || (typeVar != nil && *typeVar == "done") {
 					var info map[string]any = this.Extend(previousInfo, message)
 					var order map[string]any = this.ParseWsOrder(info)
@@ -1103,7 +1103,7 @@ func (this *Coinbaseexchange) HandleOrder(client ccxt.ClientInterface, message m
 						return
 					}
 					orders.Append(previousOrder)
-					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+					client.Resolve(orders, messageHash)
 				}
 			}
 		}
@@ -1190,8 +1190,8 @@ func (this *Coinbaseexchange) HandleTicker(client ccxt.ClientInterface, message 
 		}
 		var messageHash string = "ticker:" + *this.SafeString(ticker, "symbol", "")
 		var idMessageHash string = "ticker:" + *marketId
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
-		client.(ccxt.ClientInterface).Resolve(ticker, idMessageHash)
+		client.Resolve(ticker, messageHash)
+		client.Resolve(ticker, idMessageHash)
 	}
 	return message
 }
@@ -1292,7 +1292,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client ccxt.ClientInterface, messa
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var name string = "level2"
 	var messageHash string = name + ":" + *this.SafeString(market, "id", "")
-	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	var subscription map[string]any = client.SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if typeVar != nil && *typeVar == "snapshot" {
 		if !(this.Orderbooks[*symbol] != nil) {
@@ -1301,7 +1301,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client ccxt.ClientInterface, messa
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol)
 		orderbook.Reset(snapshot)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	} else if typeVar != nil && *typeVar == "l2update" {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.Parse8601(this.SafeString(message, "time"))
@@ -1321,7 +1321,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client ccxt.ClientInterface, messa
 		}
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 func (this *Coinbaseexchange) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -1362,7 +1362,7 @@ func (this *Coinbaseexchange) HandleErrorMessage(client ccxt.ClientInterface, me
 				if error := recover(); error != nil {
 					ret_ = func(this *Coinbaseexchange) bool {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(error)
+						client.Reject(error)
 						return true
 					}(this)
 				}
@@ -1390,7 +1390,7 @@ func (this *Coinbaseexchange) HandleMessage(client ccxt.ClientInterface, message
 		"done":      this.HandleOrder,
 		"error":     this.HandleErrorMessage,
 	}
-	var authenticated bool = strings.HasSuffix(client.(ccxt.ClientInterface).GetUrl(), "?")
+	var authenticated bool = strings.HasSuffix(client.GetUrl(), "?")
 	var method any = this.SafeValue(methods, typeVar)
 	if method == nil {
 		if typeVar != nil && *typeVar == "match" {

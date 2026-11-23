@@ -2261,7 +2261,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Luno) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "account_id": "string",
@@ -2382,7 +2382,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Luno) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Luno) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

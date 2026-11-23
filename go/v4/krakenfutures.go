@@ -4572,7 +4572,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 	}
 	return tiers
 }
-func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Krakenfutures) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -4912,7 +4912,7 @@ func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) Leve
 		"shortLeverage": leverageValue,
 	})
 }
-func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

@@ -5673,7 +5673,7 @@ func (this *Xt) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], cod
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
 }
-func (this *Xt) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Xt) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -6128,12 +6128,12 @@ func (this *Xt) setLeverageBody(ch chan AsyncResult[map[string]any], leverage in
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Xt) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Xt) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Xt) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6158,12 +6158,12 @@ func (this *Xt) addMarginBody(ch chan AsyncResult[MarginModification], symbol st
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Xt) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Xt) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Xt) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6176,12 +6176,12 @@ func (this *Xt) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Xt) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Xt) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Xt) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, addOrReduce string, optionalArgs ...any) any {
+func (this *Xt) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, addOrReduce string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7166,15 +7166,14 @@ func (this *Xt) IndexPositionBreakList(breakList any) map[string]any {
  * @param {object} entry a single entry from a position/list response
  * @param {object} breakBySymbolSide the result of indexPositionBreakList()
  */
-func (this *Xt) MergePositionBreakInfo(entry any, breakBySymbolSide map[string]any) any {
+func (this *Xt) MergePositionBreakInfo(entry any, breakBySymbolSide map[string]any) map[string]any {
 	var breakEntry map[string]any = SafeMapTyped(breakBySymbolSide, *this.SafeString(entry, "symbol", "")+"_"+*this.SafeString(entry, "positionSide", ""))
-	if breakEntry == nil {
-		return entry
+	var extra map[string]any = map[string]any{}
+	if breakEntry != nil {
+		extra["breakPrice"] = this.SafeString(breakEntry, "breakPrice")
+		extra["calMarkPrice"] = this.SafeString(breakEntry, "calMarkPrice")
 	}
-	return this.Extend(entry, map[string]any{
-		"breakPrice":   this.SafeString(breakEntry, "breakPrice"),
-		"calMarkPrice": this.SafeString(breakEntry, "calMarkPrice"),
-	})
+	return this.Extend(entry, extra)
 }
 
 /**
@@ -7274,7 +7273,7 @@ func (this *Xt) fetchPositionBody(ch chan AsyncResult[Position], symbol string, 
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
 		var positionSize *string = this.SafeString(entry, "positionSize")
 		if positionSize == nil || *positionSize != "0" {
-			var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
+			var merged map[string]any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
 
 			ch <- AsyncResult[Position]{Value: this.ParsePosition(merged, marketInner)}
 			return nil
@@ -7377,7 +7376,7 @@ func (this *Xt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs
 		var entry any = positions[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
+		var merged map[string]any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
 		result = append(result, PositionToMap(this.ParsePosition(merged, marketInner)))
 	}
 
@@ -7661,7 +7660,7 @@ func (this *Xt) transferBody(ch chan AsyncResult[TransferEntry], code string, am
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Xt) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Xt) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return TransferEntryFromMap(map[string]any{
@@ -7881,7 +7880,7 @@ func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol stri
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "result", map[string]any{}), market)}
 	return nil
 }
-func (this *Xt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Xt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	//
 	// spot: error
 	//

@@ -789,7 +789,7 @@ func (this *Pacifica) HandleOrderBook(client ccxt.ClientInterface, message map[s
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	orderbook.Reset(snapshot)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -1138,7 +1138,7 @@ func (this *Pacifica) HandleWsTickers(client ccxt.ClientInterface, message map[s
 		parsedTickers = append(parsedTickers, ticker)
 	}
 	var tickers map[string]any = this.IndexBy(parsedTickers, "symbol")
-	client.(ccxt.ClientInterface).Resolve(tickers, "tickers")
+	client.Resolve(tickers, "tickers")
 	return true
 }
 func (this *Pacifica) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
@@ -1195,11 +1195,11 @@ func (this *Pacifica) HandleMyTrades(client ccxt.ClientInterface, message map[st
 	}
 	for i := 0; i < len(keys); i++ {
 		var currentMessageHash string = "myTrades:" + keys[i]
-		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
+		client.Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
 	var messageHash string = "myTrades"
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 }
 
 /**
@@ -1381,7 +1381,7 @@ func (this *Pacifica) HandleTrades(client ccxt.ClientInterface, message map[stri
 		var trade map[string]any = this.ParseWsTrade(data)
 		trades.Append(trade)
 	}
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 }
 func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -1675,7 +1675,7 @@ func (this *Pacifica) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
+	client.Resolve(ohlcv, messageHash)
 }
 
 /**
@@ -1888,9 +1888,9 @@ func (this *Pacifica) HandleOrder(client ccxt.ClientInterface, message map[strin
 	for i := 0; i < len(keys); i++ {
 		var symbol string = keys[i]
 		var innerMessageHash string = messageHash + ":" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
+		client.Resolve(stored, innerMessageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Pacifica) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	//
@@ -1925,14 +1925,14 @@ func (this *Pacifica) HandleErrorMessage(client ccxt.ClientInterface, message ma
 					}
 					ret_ = func(this *Pacifica) any {
 						// catch block:
-						client.(ccxt.ClientInterface).Reject(e, id)
+						client.Reject(e, id)
 						return true
 
 					}(this)
 				}
 			}()
 			// try block:
-			this.HandleErrors(0, error, "", postType, wsHeadersFinal, this.Json(data), message, map[string]any{}, "")
+			this.HandleErrors(0, error, "", postType, wsHeadersFinal, this.Json(data), message, map[string]any{}, nil)
 			return nil
 		}(this)
 
@@ -2131,7 +2131,7 @@ func (this *Pacifica) HandlePong(client ccxt.ClientInterface, message map[string
 	//       "channel": "pong"
 	//   }
 	//
-	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
+	client.SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
 	return message
 }
 func (this *Pacifica) RequestId() int64 {
@@ -2183,7 +2183,7 @@ func (this *Pacifica) HandleWsPost(client ccxt.ClientInterface, message map[stri
 	// }
 	//
 	var id *string = this.SafeString(message, "id")
-	client.(ccxt.ClientInterface).Resolve(message, id)
+	client.Resolve(message, id)
 }
 
 func NewPacifica(userConfig map[string]any) *Pacifica {

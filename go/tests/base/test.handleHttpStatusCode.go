@@ -179,7 +179,7 @@ func TestHandleHttpStatusCode() {
 	// a derived handleErrors that wants to surface it must throw on its own
 	var skip any = exchange.HandleErrors(406, "Not Acceptable", "url", "GET", map[string]any{}, "{\"success\":false}", map[string]any{
 		"success": false,
-	}, map[string]any{}, "")
+	}, map[string]any{}, nil)
 	assert((skip == nil), "the base handleErrors stub should return undefined")
 	exchange.HandleHttpStatusCode(406, "Not Acceptable", "url", "GET", "{\"success\":false}")
 }

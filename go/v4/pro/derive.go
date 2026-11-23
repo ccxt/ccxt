@@ -195,7 +195,7 @@ func (this *Derive) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		if topic == nil {
 			subscription = nil
 		} else {
-			subscription = client.(ccxt.ClientInterface).SubscriptionGet(topic)
+			subscription = client.SubscriptionGet(topic)
 		}
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -204,7 +204,7 @@ func (this *Derive) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.Reset(snapshot)
-	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
+	client.Resolve(orderbook, topic)
 }
 
 /**
@@ -444,9 +444,9 @@ func (this *Derive) HandleTicker(client ccxt.ClientInterface, message map[string
 			"info":      data,
 		}, market))
 		this.Bidsasks[*tickerSymbol] = ccxt.TickerFromMap(bidAsk)
-		client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask:"+*tickerSymbol)
+		client.Resolve(bidAsk, "bidask:"+*tickerSymbol)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, topic)
+	client.Resolve(ticker, topic)
 	return message
 }
 
@@ -632,9 +632,9 @@ func (this *Derive) HandleTickerUnSubscription(client ccxt.ClientInterface, topi
 	}
 	// the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
 	var bidAskHash string = "bidask:" + symbol
-	if client.(ccxt.ClientInterface).FutureHas(bidAskHash) {
+	if client.FutureHas(bidAskHash) {
 		error := ccxt.UnsubscribeError(this.Id + " " + bidAskHash)
-		client.(ccxt.ClientInterface).Reject(error, bidAskHash)
+		client.Reject(error, bidAskHash)
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
 }
@@ -769,7 +769,7 @@ func (this *Derive) HandleTrade(client ccxt.ClientInterface, message map[string]
 		tradesArray.Append(trade)
 	}
 	this.Trades[symbol] = tradesArray
-	client.(ccxt.ClientInterface).Resolve(tradesArray, topic)
+	client.Resolve(tradesArray, topic)
 }
 func (this *Derive) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
@@ -785,8 +785,8 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var requestId int64 = this.RequestId(url)
 		var now *string = this.NumberToString(this.Nonce())
@@ -1020,11 +1020,11 @@ func (this *Derive) HandleOrder(client ccxt.ClientInterface, message map[string]
 			cachedOrders.Append(parsed)
 			if topic != nil {
 				var messageHashSymbol string = *topic + ":" + *symbol
-				client.(ccxt.ClientInterface).Resolve(this.Orders, messageHashSymbol)
+				client.Resolve(this.Orders, messageHashSymbol)
 			}
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
+	client.Resolve(this.Orders, topic)
 }
 
 /**
@@ -1164,10 +1164,10 @@ func (this *Derive) HandleMyTrade(client ccxt.ClientInterface, message map[strin
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(rawTrades, i, map[string]any{})))
 		myTrades.Append(trade)
-		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
+		client.Resolve(myTrades, topic)
 		if topic != nil {
 			var messageHash string = *topic + ":" + *this.SafeString(trade, "symbol", "")
-			client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
+			client.Resolve(myTrades, messageHash)
 		}
 	}
 }
@@ -1566,11 +1566,11 @@ func (this *Derive) HandleBalance(client ccxt.ClientInterface, message map[strin
 		if subaccountIdKey != nil {
 			this.Balance[*subaccountIdKey] = this.SafeBalance(subBalance)
 		}
-		client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Balance, subaccountIdKey), topic)
+		client.Resolve(this.SafeValue(this.Balance, subaccountIdKey), topic)
 	}
 	var positionUpdatesLength int = len(positionUpdates)
 	if positionUpdatesLength > 0 {
-		client.(ccxt.ClientInterface).Resolve(positionUpdates, "positions:"+*topic)
+		client.Resolve(positionUpdates, "positions:"+*topic)
 	}
 }
 func (this *Derive) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
@@ -1593,12 +1593,12 @@ func (this *Derive) HandleErrorMessage(client ccxt.ClientInterface, message map[
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
-							client.(ccxt.ClientInterface).Reject(error, messageHash)
-							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+							client.Reject(error, messageHash)
+							if client.SubscriptionHas(messageHash) {
+								client.SubscriptionDel(messageHash)
 							}
 						} else {
-							client.(ccxt.ClientInterface).Reject(error)
+							client.Reject(error)
 						}
 						return true
 					}(this)
@@ -1654,10 +1654,10 @@ func (this *Derive) HandleMessage(client ccxt.ClientInterface, message map[strin
 	if _, ok := message["id"]; ok {
 		var id *string = this.SafeString(message, "id")
 		// the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+		var subscriptionKeys []string = client.SubscriptionKeys()
 		var matched bool = false
 		for i := 0; i < len(subscriptionKeys); i++ {
-			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionKeys[i])
+			var subscription map[string]any = client.SubscriptionDict(subscriptionKeys[i])
 			var subscriptionId *string = this.SafeString(subscription, "id")
 			if (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
 				matched = true
@@ -1692,14 +1692,14 @@ func (this *Derive) HandleAuth(client ccxt.ClientInterface, message map[string]a
 	var idsLength int = len(ids)
 	if idsLength > 0 {
 		// client.resolve (message, messageHash)
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		var future *ccxt.Future = client.GetFutures()["authenticated"]
 		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		client.Reject(error, messageHash)
 		// allows further authentication attempts
-		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
+		if client.SubscriptionHas(messageHash) {
+			client.SubscriptionDel("authenticated")
 		}
 	}
 }

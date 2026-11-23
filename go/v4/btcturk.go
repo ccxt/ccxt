@@ -1513,7 +1513,7 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal114315
 }
-func (this *Btcturk) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Btcturk) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	var errorCode string = *this.SafeString(response, "code", "0")
 	var message *string = this.SafeString(response, "message")
 	var feedback string = this.Id + " " + body

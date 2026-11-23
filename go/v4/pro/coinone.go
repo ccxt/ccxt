@@ -170,7 +170,7 @@ func (this *Coinone) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	var messageHash string = "orderbook:" + symbol
 	this.Orderbooks[symbol] = orderbook
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Coinone) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "price", "qty")
@@ -266,7 +266,7 @@ func (this *Coinone) HandleTicker(client ccxt.ClientInterface, message map[strin
 	}
 	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	var messageHash string = "ticker:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
+	client.Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 }
 func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -421,7 +421,7 @@ func (this *Coinone) HandleTrades(client ccxt.ClientInterface, message map[strin
 	}
 	stored.Append(trade)
 	var messageHash string = "trade:" + symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -540,7 +540,7 @@ func (this *Coinone) HandlePong(client ccxt.ClientInterface, message map[string]
 	//         "response_type":"PONG"
 	//     }
 	//
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message
 }
 

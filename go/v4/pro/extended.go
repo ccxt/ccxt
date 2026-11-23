@@ -140,7 +140,7 @@ func (this *Extended) HandleOrderBook(client ccxt.ClientInterface, message map[s
 	var typeVar *string = this.SafeString(message, "type", this.SafeString(data, "t"))
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+		var subscription map[string]any = client.SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
@@ -151,17 +151,17 @@ func (this *Extended) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
 		snapshot["nonce"] = nonce
 		orderbook.Reset(snapshot)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 		return
 	}
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (previousNonce != nil) && (nonce == nil || *nonce != *previousNonce+1) {
-		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+		client.SubscriptionDel(messageHash)
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
-		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		client.Reject(error, messageHash)
 		return
 	}
 	var deltas1238 []any
@@ -179,7 +179,7 @@ func (this *Extended) HandleOrderBook(client ccxt.ClientInterface, message map[s
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	orderbook.SetNonce(nonce)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *Extended) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeFloat(delta, "p")
@@ -400,7 +400,7 @@ func (this *Extended) HandleBalance(client ccxt.ClientInterface, message map[str
 		this.Balance["datetime"] = nil
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
 
 /**
@@ -521,14 +521,14 @@ func (this *Extended) HandleMyTrades(client ccxt.ClientInterface, message map[st
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var messageHash string = "myTrades:" + key
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.Resolve(stored, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
-	var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	client.Resolve(stored, "myTrades")
+	var subscriptions []string = client.SubscriptionKeys()
 	for i := 0; i < len(subscriptions); i++ {
 		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "myTrades:") == 0 {
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			client.Resolve(stored, messageHash)
 		}
 	}
 }
@@ -656,10 +656,10 @@ func (this *Extended) HandlePositions(client ccxt.ClientInterface, message map[s
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(filtered) {
-			client.(ccxt.ClientInterface).Resolve(filtered, messageHash)
+			client.Resolve(filtered, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+	client.Resolve(newPositions, "positions")
 }
 func (this *Extended) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -725,14 +725,14 @@ func (this *Extended) HandleOrders(client ccxt.ClientInterface, message map[stri
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var messageHash string = "orders:" + key
-		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+		client.Resolve(orders, messageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(orders, "orders")
-	var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	client.Resolve(orders, "orders")
+	var subscriptions []string = client.SubscriptionKeys()
 	for i := 0; i < len(subscriptions); i++ {
 		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "orders:") == 0 {
-			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+			client.Resolve(orders, messageHash)
 		}
 	}
 }
@@ -804,7 +804,7 @@ func (this *Extended) HandleFundingRate(client ccxt.ClientInterface, message map
 	var symbol string = *this.SafeString(fundingRate, "symbol", "")
 	this.FundingRates[symbol] = fundingRate
 	var messageHash string = "fundingRate:" + symbol
-	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
+	client.Resolve(fundingRate, messageHash)
 }
 func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -914,7 +914,7 @@ func (this *Extended) HandleMarkPrice(client ccxt.ClientInterface, message map[s
 	}, market))
 	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	var messageHash string = "markPrice:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 
 /**
@@ -1004,7 +1004,7 @@ func (this *Extended) HandleTrades(client ccxt.ClientInterface, message map[stri
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + symbol
-	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	var subscription map[string]any = client.SubscriptionDict(messageHash)
 	if subscription == nil {
 		subscription = map[string]any{}
 	}
@@ -1029,7 +1029,7 @@ func (this *Extended) HandleTrades(client ccxt.ClientInterface, message map[stri
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{}), market))
 		stored.Append(trade)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -1168,13 +1168,13 @@ func (this *Extended) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data[i]))
 		stored.Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Extended) FindSubscription(client ccxt.ClientInterface, name string) any {
-	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), key)
+		var subscription any = this.SafeDict(client.SubscriptionsSnapshot(), key)
 		var subscriptionName *string = this.SafeString(subscription, "name")
 		if subscriptionName != nil && *subscriptionName == name {
 			return subscription

@@ -484,7 +484,7 @@ func (this *P2b) HandleOHLCV(client ccxt.ClientInterface, message map[string]any
 		stored.Append(parsed)
 		if channel != nil {
 			var messageHash string = *channel + "::" + *symbol
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			client.Resolve(stored, messageHash)
 		}
 	}
 	return message
@@ -528,7 +528,7 @@ func (this *P2b) HandleTrade(client ccxt.ClientInterface, message map[string]any
 		tradesArray.Append(trade)
 	}
 	var messageHash string = "deals::" + symbol
-	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+	client.Resolve(tradesArray, messageHash)
 	return message
 }
 func (this *P2b) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -589,7 +589,7 @@ func (this *P2b) HandleTicker(client ccxt.ClientInterface, message map[string]an
 	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 	if messageHashStart != nil {
 		var messageHash string = *messageHashStart + "::" + symbol
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		client.Resolve(ticker, messageHash)
 	}
 	return message
 }
@@ -626,7 +626,7 @@ func (this *P2b) HandleOrderBook(client ccxt.ClientInterface, message map[string
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook::" + *symbol
-	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	var subscription map[string]any = client.SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if orderbook == nil {
@@ -659,7 +659,7 @@ func (this *P2b) HandleOrderBook(client ccxt.ClientInterface, message map[string
 		}
 	}
 	orderbook.SetSymbol(symbol)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 func (this *P2b) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
@@ -709,7 +709,7 @@ func (this *P2b) HandlePong(client ccxt.ClientInterface, message map[string]any)
 	//        id: 1706539608030
 	//    }
 	//
-	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "id", this.Milliseconds()))
+	client.SetLastPong(this.SafeInteger(message, "id", this.Milliseconds()))
 	return message
 }
 func (this *P2b) OnError(client any, error any) {

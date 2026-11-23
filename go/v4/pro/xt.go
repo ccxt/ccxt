@@ -106,23 +106,23 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 		}
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var token *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "token")
+	var token *string = this.SafeString(client.SubscriptionsSnapshot(), "token")
 	if token == nil {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
 		// concurrent callers each minted their own token, last write won, and the losers
 		// carried an orphaned token into name + '@' + listenKey so their streams went dead
 		var messageHash string = "authenticate:" + tradeType
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		if _, ok := client.GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in the bucket
 
-			r := <-client.(ccxt.ClientInterface).Future(messageHash)
+			r := <-client.Future(messageHash)
 			if r.Err != nil {
 				panic(r.Err)
 			}
 
 			var resolved *string
-			switch resolvedBox := client.(ccxt.ClientInterface).SubscriptionGet("token").(type) {
+			switch resolvedBox := client.SubscriptionGet("token").(type) {
 			case *string:
 				resolved = resolvedBox
 			case string:
@@ -135,7 +135,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 		}
 		// client.futures is the same registry ccxt.Exchange.watch () dedupes on, so registering
 		// the flight here, before any suspension point, makes concurrent callers wait
-		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.ReusableFuture(messageHash)
 
 		{
 			func(this *Xt) (ret_ any) {
@@ -149,7 +149,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 							// hand the failure to every waiter so the next caller re-leads instead of
 							// deadlocking on a dead flight. no throw here: the trailing future rethrows
 							// to this caller and keeps a waiterless rejection from crashing the process
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							client.Reject(e, messageHash)
 							return nil
 						}(this)
 					}
@@ -204,8 +204,8 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " getListenKey() received an empty listen key"))
 				}
-				client.(ccxt.ClientInterface).SubscriptionSet("token", listenKey)
-				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+				client.SubscriptionSet("token", listenKey)
+				client.Resolve(listenKey, messageHash)
 				return nil
 			}(this)
 
@@ -218,7 +218,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 	}
 
 	var resolved1 *string
-	switch resolved1Box := client.(ccxt.ClientInterface).SubscriptionGet("token").(type) {
+	switch resolved1Box := client.SubscriptionGet("token").(type) {
 	case *string:
 		resolved1 = resolved1Box
 	case string:
@@ -229,7 +229,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 	ch <- ccxt.AsyncResult[*string]{Value: resolved1}
 	return nil
 }
-func (this *Xt) GetCacheIndex(orderbook any, cache []any) any {
+func (this *Xt) GetCacheIndex(orderbook any, cache []any) int64 {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any
@@ -244,10 +244,10 @@ func (this *Xt) GetCacheIndex(orderbook any, cache []any) any {
 		var delta, _ = cache[i].(map[string]any)
 		var deltaNonce *int64 = this.SafeInteger2(delta, "i", "u")
 		if (deltaNonce != nil) && (nonce != nil) && (*deltaNonce >= *nonce) {
-			return i
+			return int64(i)
 		}
 	}
-	return len(cache)
+	return int64(len(cache))
 }
 func (this *Xt) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	orderbook.SetNonce(this.SafeInteger2(delta, "i", "u"))
@@ -1148,7 +1148,7 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && this.IsEmpty(cache) {
 
-		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
+		r1 := <-client.Future("fetchPositionsSnapshot")
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1291,7 +1291,7 @@ func (this *Xt) HandleFundingRate(client ccxt.ClientInterface, message map[strin
 		var event *string = this.SafeString(message, "event")
 		if event != nil {
 			var messageHash string = *event + "::contract"
-			client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
+			client.Resolve(fundingRate, messageHash)
 		}
 	}
 	return message
@@ -1303,8 +1303,8 @@ func (this *Xt) SetPositionsCache(client ccxt.ClientInterface) {
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot") == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}
 	}
@@ -1333,10 +1333,10 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 		}
 	}
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, "position::contract")
+		client.Resolve(cache, "position::contract")
 	}
 	return nil
 }
@@ -1390,10 +1390,10 @@ func (this *Xt) HandlePosition(client ccxt.ClientInterface, message map[string]a
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
-			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
+			client.Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve([]any{position}, "position::contract")
+	client.Resolve([]any{position}, "position::contract")
 }
 func (this *Xt) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
@@ -1477,7 +1477,7 @@ func (this *Xt) HandleTicker(client ccxt.ClientInterface, message map[string]any
 		}
 		if event != nil {
 			var messageHash string = *event + "::" + messageHashTail
-			client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+			client.Resolve(ticker, messageHash)
 		}
 	}
 	return message
@@ -1584,10 +1584,10 @@ func (this *Xt) HandleTickers(client ccxt.ClientInterface, message map[string]an
 		var tickersSymbols []string = ccxt.ObjectKeys(tickers)
 		var numTickers int = len(tickersSymbols)
 		if numTickers > 0 {
-			client.(ccxt.ClientInterface).Resolve(tickers, messageHash)
+			client.Resolve(tickers, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(ccxt.TickerMapToMap(this.Tickers), messageHashStart)
+	client.Resolve(ccxt.TickerMapToMap(this.Tickers), messageHashStart)
 	return message
 }
 func (this *Xt) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -1659,7 +1659,7 @@ func (this *Xt) HandleOHLCV(client ccxt.ClientInterface, message map[string]any)
 		var event *string = this.SafeString(message, "event")
 		if event != nil {
 			var messageHash string = *event + "::" + tradeType
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			client.Resolve(stored, messageHash)
 		}
 	}
 	return message
@@ -1720,7 +1720,7 @@ func (this *Xt) HandleTrade(client ccxt.ClientInterface, message map[string]any)
 		tradesArray.Append(trade)
 		if event != nil {
 			var messageHash string = *event + "::" + tradeType
-			client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+			client.Resolve(tradesArray, messageHash)
 		}
 	}
 	return message
@@ -1805,7 +1805,7 @@ func (this *Xt) HandleOrderBook(client ccxt.ClientInterface, message map[string]
 		var obBids []any = ccxt.SafeListTyped(data, "b")
 		var messageHash string = event + "::" + tradeType
 		if !(this.Orderbooks[*symbol] != nil) {
-			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+			var subscription map[string]any = client.SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
@@ -1841,7 +1841,7 @@ func (this *Xt) HandleOrderBook(client ccxt.ClientInterface, message map[string]
 		orderbook.SetTimestamp(timestamp)
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 		orderbook.SetSymbol(symbol)
-		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		client.Resolve(orderbook, messageHash)
 	}
 }
 func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
@@ -2049,7 +2049,7 @@ func (this *Xt) HandleOrder(client ccxt.ClientInterface, message map[string]any)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var parsed map[string]any = this.ParseWsOrder(order, market)
 		orders.Append(parsed)
-		client.(ccxt.ClientInterface).Resolve(orders, "order::"+tradeType)
+		client.Resolve(orders, "order::"+tradeType)
 	}
 	return message
 }
@@ -2103,7 +2103,7 @@ func (this *Xt) HandleBalance(client ccxt.ClientInterface, message map[string]an
 	if _, ok := data["coin"]; ok {
 		tradeType = "contract"
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance::"+tradeType)
+	client.Resolve(this.Balance, "balance::"+tradeType)
 }
 func (this *Xt) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -2161,17 +2161,17 @@ func (this *Xt) HandleMyTrades(client ccxt.ClientInterface, message map[string]a
 	if market.Contract {
 		tradeType = "contract"
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)
+	client.Resolve(stored, "trade::"+tradeType)
 }
 func (this *Xt) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	if message == "pong" {
-		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+		client.SetLastPong(this.Milliseconds())
 	}
 }
 func (this *Xt) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "pong" {
-		client.(ccxt.ClientInterface).OnPong()
+		client.OnPong()
 	} else if event != nil {
 		var topic *string = this.SafeString(message, "topic")
 		var methods map[string]any = map[string]any{
@@ -2211,7 +2211,7 @@ func (this *Xt) HandleMessage(client ccxt.ClientInterface, message map[string]an
 	}
 }
 func (this *Xt) Ping(client ccxt.ClientInterface) any {
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return "ping"
 }
 func (this *Xt) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -2231,7 +2231,7 @@ func (this *Xt) HandleSubscriptionStatus(client ccxt.ClientInterface, message ma
 	//     }
 	//
 	var id *string = this.SafeString(message, "id")
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	if id != nil {
 		var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
@@ -2266,14 +2266,14 @@ func (this *Xt) HandleErrorMessage(client ccxt.ClientInterface, message map[stri
 	//
 	var msg *string = this.SafeString(message, "msg")
 	if (msg != nil && *msg == "invalid_listen_key") || (msg != nil && *msg == "token expire") {
-		if client.(ccxt.ClientInterface).SubscriptionHas("token") {
-			client.(ccxt.ClientInterface).SubscriptionDel("token")
+		if client.SubscriptionHas("token") {
+			client.SubscriptionDel("token")
 		}
 		this.GetListenKeyAsync(true)
 		return
 	}
 	error := ccxt.ExchangeError(this.Id + " " + this.Json(message))
-	client.(ccxt.ClientInterface).Reject(error)
+	client.Reject(error)
 }
 
 func NewXt(userConfig map[string]any) *Xt {

@@ -717,7 +717,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	ch <- ccxt.AsyncResult[map[string]ccxt.PredictionOutcome]{Value: ccxt.PredictionOutcomeMapFromMap(this.Outcomes)}
 	return nil
 }
-func (this *Kalshi) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Kalshi) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	// kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
 	// errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
 	// outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall

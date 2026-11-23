@@ -1321,13 +1321,12 @@ func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], sy
 		"side":     this.EncodeOrderSide(side),
 		"quantity": this.NumberToString(amount),
 	}
-	var requestMethod string = "publicGetApiV1StockIndicativeQuote"
 
-	r1 := <-this.CallDynamically(requestMethod, this.Extend(query, request))
+	r1 := <-this.PublicGetApiV1StockIndicativeQuote(this.Extend(query, request))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- AsyncResult[any]{Value: r1.Value}
+	ch <- AsyncResult[any]{Value: r1.Raw}
 	return nil
 }
 
@@ -1386,7 +1385,7 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	var cost *float64 = this.SafeNumber(order, "cost")
 	var fee map[string]any = SafeMapTyped(order, "fee")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
-	var literal111915 map[string]any = map[string]any{
+	var literal111815 map[string]any = map[string]any{
 		"info":         this.SafeDict(order, "info"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1397,16 +1396,16 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 		"fee":          this.SafeNumber(fee, "cost"),
 	}
 	if fromIsBase {
-		literal111915["fromAmount"] = filled
+		literal111815["fromAmount"] = filled
 	} else {
-		literal111915["fromAmount"] = cost
+		literal111815["fromAmount"] = cost
 	}
 	if fromIsBase {
-		literal111915["toAmount"] = cost
+		literal111815["toAmount"] = cost
 	} else {
-		literal111915["toAmount"] = filled
+		literal111815["toAmount"] = filled
 	}
-	return ConversionFromMap(literal111915)
+	return ConversionFromMap(literal111815)
 }
 
 /**
@@ -1523,7 +1522,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
 	var toCurrency *string = this.SafeCurrencyCode(toCode)
 
-	var literal120515 map[string]any = map[string]any{
+	var literal120415 map[string]any = map[string]any{
 		"info":         quote,
 		"timestamp":    this.SafeInteger(quote, "publishedAt"),
 		"datetime":     this.Iso8601(this.SafeInteger(quote, "publishedAt")),
@@ -1534,16 +1533,16 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		"fee":          nil,
 	}
 	if fromIsBase {
-		literal120515["fromAmount"] = baseAmount
+		literal120415["fromAmount"] = baseAmount
 	} else {
-		literal120515["fromAmount"] = quoteAmount
+		literal120415["fromAmount"] = quoteAmount
 	}
 	if fromIsBase {
-		literal120515["toAmount"] = quoteAmount
+		literal120415["toAmount"] = quoteAmount
 	} else {
-		literal120515["toAmount"] = baseAmount
+		literal120415["toAmount"] = baseAmount
 	}
-	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120515)}
+	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120415)}
 	return nil
 }
 
@@ -3305,7 +3304,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Backpack) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Backpack) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -4704,7 +4703,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts string, recvWindow str
 	}
 	return payload
 }
-func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

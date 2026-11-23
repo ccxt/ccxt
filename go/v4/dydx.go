@@ -2716,7 +2716,7 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response)}
 	return nil
 }
-func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Dydx) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// {
 	//     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2742,8 +2742,8 @@ func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry
 	var currencyId *string = this.SafeString(transfer, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var amount *float64 = this.SafeNumber(transfer, "size")
-	var sender map[string]any = SafeMapTyped(transfer, "sender")
-	var recipient map[string]any = SafeMapTyped(transfer, "recipient")
+	var sender, _ = transfer["sender"].(map[string]any)
+	var recipient, _ = transfer["recipient"].(map[string]any)
 	var fromAccount *string = this.SafeString(sender, "address")
 	var toAccount *string = this.SafeString(recipient, "address")
 	var timestamp *int64 = this.Parse8601(this.SafeString(transfer, "createdAt"))
@@ -3467,7 +3467,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Dydx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Dydx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

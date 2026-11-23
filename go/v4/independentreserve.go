@@ -1465,7 +1465,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[Depo
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response)}
 	return nil
 }
-func (this *Independentreserve) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Independentreserve) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//    {
 	//        Tag: '3307446684',

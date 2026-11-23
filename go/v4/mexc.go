@@ -3702,7 +3702,7 @@ func (this *Mexc) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 		//         }
 		//     }
 		//
-		data = this.SafeValue(response, "data")
+		data = this.SafeDict(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
@@ -4385,18 +4385,21 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 				panic(BadRequest(this.Id + " cancelOrder() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			r1 := <-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query))
+			marginRowsRecv := <-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query))
+			if marginRowsRecv.Err != nil {
+				panic(marginRowsRecv.Err)
+			}
+			var marginRows []any = marginRowsRecv.Value
+
+			ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(marginRows, 0, map[string]any{}), market)}
+			return nil
+		} else {
+
+			r1 := <-this.SpotPrivateDeleteOrder(this.Extend(requestInner, query))
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
 			data = r1.Raw
-		} else {
-
-			r2 := <-this.SpotPrivateDeleteOrder(this.Extend(requestInner, query))
-			if r2.Err != nil {
-				panic(r2.Err)
-			}
-			data = r2.Raw
 		}
 	} else {
 		var trigger *bool = this.SafeBool2(query, "stop", "trigger")
@@ -4408,11 +4411,11 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		var response map[string]any = nil
 		if method == "contractPrivatePostOrderCancel" {
 
-			r3 := <-this.ContractPrivatePostOrderCancel([]any{id})
-			if r3.Err != nil {
-				panic(r3.Err)
+			r2 := <-this.ContractPrivatePostOrderCancel([]any{id})
+			if r2.Err != nil {
+				panic(r2.Err)
 			}
-			response = r3.Value // the request cannot be changed or extended. This is the only way to send.
+			response = r2.Value // the request cannot be changed or extended. This is the only way to send.
 		} else if method == "contractPrivatePostPlanorderCancel" {
 			if symbol == nil {
 				panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument for trigger orders"))
@@ -4422,11 +4425,11 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 				"orderId": id,
 			}
 
-			r4 := <-this.ContractPrivatePostPlanorderCancel([]any{cancelRequest})
-			if r4.Err != nil {
-				panic(r4.Err)
+			r3 := <-this.ContractPrivatePostPlanorderCancel([]any{cancelRequest})
+			if r3.Err != nil {
+				panic(r3.Err)
 			}
-			response = r4.Value // the request cannot be changed or extended. This is the only way to send.
+			response = r3.Value // the request cannot be changed or extended. This is the only way to send.
 		} else {
 			panic(NotSupported(this.Id + " cancelOrder() not support this method"))
 		}
@@ -4452,12 +4455,16 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 			}, market)} // planorder/cancel answers without data, failures are raised by handleErrors
 			return nil
 		}
-		data = this.SafeValue(response, "data")
-		var order map[string]any = SafeMapTyped(data, 0)
-		var errorMsg string = *this.SafeString(order, "errorMsg", "")
+		var rows []any
+		rows, _ = response["data"].([]any)
+		data = this.SafeDict(rows, 0, map[string]any{})
+		var errorMsg string = *this.SafeString(data, "errorMsg", "")
 		if errorMsg != "success" {
 			panic(InvalidOrder(this.Id + " cancelOrder() the order with id " + id + " cannot be cancelled: " + errorMsg))
 		}
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+		return nil
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
@@ -5619,12 +5626,12 @@ func (this *Mexc) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, query))}
 	return nil
 }
-func (this *Mexc) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Mexc) ModifyMarginHelperAsync(symbol string, amount float64, addOrReduce string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
 	return ch
 }
-func (this *Mexc) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], symbol string, amount any, addOrReduce string, optionalArgs ...any) any {
+func (this *Mexc) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, addOrReduce string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5671,12 +5678,12 @@ func (this *Mexc) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Mexc) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Mexc) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5686,11 +5693,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445715 map[string]any = r.Value
-	if retRes445715 == nil {
+	var retRes445915 map[string]any = r.Value
+	if retRes445915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445715}
+		ch <- AsyncResult[map[string]any]{Value: retRes445915}
 	}
 	return nil
 }
@@ -5705,12 +5712,12 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Mexc) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Mexc) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5720,11 +5727,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes447115 map[string]any = r.Value
-	if retRes447115 == nil {
+	var retRes447315 map[string]any = r.Value
+	if retRes447315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes447115}
+		ch <- AsyncResult[map[string]any]{Value: retRes447315}
 	}
 	return nil
 }
@@ -6298,7 +6305,7 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any 
 	}
 	return tiers
 }
-func (this *Mexc) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Mexc) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//    {
 	//        coin: "USDT",
@@ -7433,7 +7440,7 @@ func (this *Mexc) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}))}
 	return nil
 }
-func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Mexc) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	// spot: fetchTransfer
 	//
@@ -8421,18 +8428,18 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal649715 map[string]any = map[string]any{
+	var literal649915 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal649715["body"] = *requestBody
+		literal649915["body"] = *requestBody
 	}
-	return literal649715
+	return literal649915
 }
-func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
 		return nil
 	}

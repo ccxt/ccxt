@@ -362,7 +362,7 @@ func (this *Bitget) HandleTicker(client ccxt.ClientInterface, message map[string
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var messageHash string = "ticker:" + *this.SafeString(ticker, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -595,7 +595,7 @@ func (this *Bitget) HandleBidAsk(client ccxt.ClientInterface, message map[string
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var messageHash string = "bidask:" + *this.SafeString(ticker, "symbol", "")
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -894,7 +894,7 @@ func (this *Bitget) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	}
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var parsed any = this.ParseWsOHLCV(data[i], market)
+		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
 		stored.Append(parsed)
 	}
 	var messageHash string
@@ -903,9 +903,9 @@ func (this *Bitget) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	} else {
 		messageHash = "candles:" + *timeframe + ":" + symbol
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
-func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	//     [
 	//         "1701871620000",  // timestamp
@@ -943,7 +943,7 @@ func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	var low *float64 = this.SafeNumber2(ohlcv, "low", 3)
 	var close *float64 = this.SafeNumber2(ohlcv, "close", 4)
 	var volume *float64 = this.SafeNumber2(ohlcv, "volume", volumeIndex)
-	return []any{timestamp, open, high, low, close, volume}
+	return ccxt.OHLCVFromList([]any{timestamp, open, high, low, close, volume})
 }
 
 /**
@@ -1338,7 +1338,7 @@ func (this *Bitget) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
 		orderbook.Reset(parsedOrderbook)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*symbol], messageHash)
+	client.Resolve(this.Orderbooks[*symbol], messageHash)
 }
 func (this *Bitget) HandleCheckSumErrorAsync(client ccxt.ClientInterface, symbol string, messageHash string, checksumMessage string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
@@ -1354,7 +1354,7 @@ func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], clie
 		panic(r.Err)
 	}
 	error := ccxt.ChecksumError(this.Id + " " + checksumMessage)
-	client.(ccxt.ClientInterface).Reject(error, messageHash)
+	client.Reject(error, messageHash)
 	return nil
 }
 func (this *Bitget) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
@@ -1620,7 +1620,7 @@ func (this *Bitget) HandleTrades(client ccxt.ClientInterface, message map[string
 		stored.Append(parsed)
 	}
 	var messageHash string = "trade:" + symbol
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -1982,10 +1982,10 @@ func (this *Bitget) HandlePositions(client ccxt.ClientInterface, message map[str
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
-			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
+			client.Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, instType+":positions")
+	client.Resolve(newPositions, instType+":positions")
 }
 func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
@@ -2405,17 +2405,17 @@ func (this *Bitget) HandleOrder(client ccxt.ClientInterface, message map[string]
 		} else if channel != nil && *channel == "orders-isolated" {
 			innerMessageHash = innerMessageHash + ":isolated"
 		}
-		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
+		client.Resolve(stored, innerMessageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	if isLinearSwap {
-		client.(ccxt.ClientInterface).Resolve(stored, "order:linear")
+		client.Resolve(stored, "order:linear")
 	}
 	if isInverseSwap {
-		client.(ccxt.ClientInterface).Resolve(stored, "order:inverse")
+		client.Resolve(stored, "order:inverse")
 	}
 	if isUSDCFutures {
-		client.(ccxt.ClientInterface).Resolve(stored, "order:usdcfutures")
+		client.Resolve(stored, "order:usdcfutures")
 	}
 }
 func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -2946,9 +2946,9 @@ func (this *Bitget) HandleMyTrades(client ccxt.ClientInterface, message map[stri
 		stored.Append(parsed)
 		var symbol string = *this.SafeString(parsed, "symbol", "")
 		var symbolSpecificMessageHash string = "myTrades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
+		client.Resolve(stored, symbolSpecificMessageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -3233,7 +3233,7 @@ func (this *Bitget) HandleBalance(client ccxt.ClientInterface, message map[strin
 		messageHashValue := "balance:" + *instType
 		messageHash = &messageHashValue
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	client.Resolve(this.Balance, messageHash)
 }
 func (this *Bitget) WatchPublicAsync(uta any, messageHash string, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -3445,8 +3445,8 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = this.SafeString(params, "url", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		var auth string = timestamp + "GET" + "/user/verify"
@@ -3533,7 +3533,7 @@ func (this *Bitget) HandleAuthenticate(client ccxt.ClientInterface, message map[
 	//  { event: "login", code: 0 }
 	//
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	var future *ccxt.Future = client.GetFutures()[messageHash]
 	future.Resolve(true)
 }
 func (this *Bitget) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
@@ -3549,13 +3549,13 @@ func (this *Bitget) HandleErrorMessage(client ccxt.ClientInterface, message map[
 						// catch block:
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-								client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+							client.Reject(e, messageHash)
+							if client.SubscriptionHas(messageHash) {
+								client.SubscriptionDel(messageHash)
 							}
 						} else {
 							// Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
-							client.(ccxt.ClientInterface).Reject(e)
+							client.Reject(e)
 						}
 						return true
 					}(this)
@@ -3717,7 +3717,7 @@ func (this *Bitget) Ping(client ccxt.ClientInterface) any {
 	return "ping"
 }
 func (this *Bitget) HandlePong(client ccxt.ClientInterface, message any) any {
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	client.SetLastPong(this.Milliseconds())
 	return message
 }
 func (this *Bitget) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
@@ -3751,17 +3751,17 @@ func (this *Bitget) HandleOrderBookUnSubscription(client ccxt.ClientInterface, m
 	if this.Orderbooks[symbol] != nil {
 		delete(this.Orderbooks, symbol)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
+	if client.SubscriptionHas(subMessageHash) {
+		client.SubscriptionDel(subMessageHash)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+	if client.SubscriptionHas(messageHash) {
+		client.SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " orderbook " + symbol)
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
-		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+	if _, ok := client.GetFutures()[subMessageHash]; ok {
+		client.Reject(error, subMessageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(true, messageHash)
+	client.Resolve(true, messageHash)
 }
 func (this *Bitget) HandleTradesUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -3781,17 +3781,17 @@ func (this *Bitget) HandleTradesUnSubscription(client ccxt.ClientInterface, mess
 	if _, ok := this.Trades[symbol]; ok {
 		delete(this.Trades, symbol)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
+	if client.SubscriptionHas(subMessageHash) {
+		client.SubscriptionDel(subMessageHash)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+	if client.SubscriptionHas(messageHash) {
+		client.SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " trades " + symbol)
-	if client.(ccxt.ClientInterface).FutureHas(subMessageHash) {
-		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+	if client.FutureHas(subMessageHash) {
+		client.Reject(error, subMessageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(true, messageHash)
+	client.Resolve(true, messageHash)
 }
 func (this *Bitget) HandleTickerUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
@@ -3811,17 +3811,17 @@ func (this *Bitget) HandleTickerUnSubscription(client ccxt.ClientInterface, mess
 	if _, ok := this.Tickers[symbol]; ok {
 		delete(this.Tickers, symbol)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
+	if client.SubscriptionHas(subMessageHash) {
+		client.SubscriptionDel(subMessageHash)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+	if client.SubscriptionHas(messageHash) {
+		client.SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " ticker " + symbol)
-	if client.(ccxt.ClientInterface).FutureHas(subMessageHash) {
-		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+	if client.FutureHas(subMessageHash) {
+		client.Reject(error, subMessageHash)
 	}
-	client.(ccxt.ClientInterface).Resolve(true, messageHash)
+	client.Resolve(true, messageHash)
 }
 func (this *Bitget) HandleOHLCVUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//

@@ -4412,7 +4412,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url *s
 	// connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
 	var client ccxt.ClientInterface = this.Client(url)
-	if !(client.(ccxt.ClientInterface).SubscriptionHas("connect")) {
+	if !(client.SubscriptionHas("connect")) {
 		this.Options["wsConnected"] = false
 		var requestId int64 = this.RequestId(url)
 		// give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -4450,7 +4450,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url *s
 	}
 
 	// connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
-	r1 := <-client.(ccxt.ClientInterface).Future("centrifugoConnected")
+	r1 := <-client.Future("centrifugoConnected")
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4481,7 +4481,7 @@ func (this *Myriad) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientI
 	var message map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = message
 
-	r := <-client.(ccxt.ClientInterface).SendAsync("{}")
+	r := <-client.SendAsync("{}")
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -4546,7 +4546,7 @@ func (this *Myriad) HandleCentrifugoFrame(client ccxt.ClientInterface, msg any) 
 	if connectReply != nil {
 		// connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
 		this.Options["wsConnected"] = true
-		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
+		client.Resolve(true, "centrifugoConnected")
 		return
 	}
 	var push map[string]any = ccxt.SafeMapTyped(msg, "push")
@@ -4627,7 +4627,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		panic(r1.Err)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var isNewSubscription bool = !(client.(ccxt.ClientInterface).SubscriptionHas(channel))
+	var isNewSubscription bool = !(client.SubscriptionHas(channel))
 	if isNewSubscription {
 		// the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
 		// fresh subscription (first call or after a reconnect that cleared client.(*ccxt.WSClient).Subscriptions)
@@ -4647,7 +4647,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], messageHash)
+		client.Resolve(this.Orderbooks[*sym], messageHash)
 	}
 
 	r3 := <-future.(*ccxt.Future).Await()
@@ -4728,7 +4728,7 @@ func (this *Myriad) HandleOrderBook(client ccxt.ClientInterface, data map[string
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
 		var sym string = updatedSymbols[k]
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], "orderbook::"+sym)
+		client.Resolve(this.Orderbooks[sym], "orderbook::"+sym)
 	}
 }
 
@@ -4899,7 +4899,7 @@ func (this *Myriad) HandleTrades(client ccxt.ClientInterface, data any) {
 	}
 	var stored ccxt.WsArrayCache = this.Trades[*sym]
 	stored.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
+	client.Resolve(stored, "trades::"+*sym)
 	// also surface the wallet's own fills (taker or maker leg) with their real execution prices
 	var myWallet any = this.WalletAddressOrUndefined()
 	if myWallet != nil {
@@ -4952,7 +4952,7 @@ func (this *Myriad) HandleTrades(client ccxt.ClientInterface, data any) {
 			for k := 0; k < myLegsLength; k++ {
 				myStored.Append(myLegs[k])
 			}
-			client.(ccxt.ClientInterface).Resolve(myStored, "myTrades")
+			client.Resolve(myStored, "myTrades")
 		}
 	}
 }
@@ -5063,7 +5063,7 @@ func (this *Myriad) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		}
 	}
 
-	r2 := <-client.(ccxt.ClientInterface).Future("tickers")
+	r2 := <-client.Future("tickers")
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -5169,10 +5169,10 @@ func (this *Myriad) HandleTicker(client ccxt.ClientInterface, data any) {
 			"info":          oc,
 		}, market)
 		cachedTickers[*sym] = ticker
-		client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
+		client.Resolve(ticker, "ticker::"+*sym)
 	}
 	this.Options["wsTickers"] = cachedTickers
-	client.(ccxt.ClientInterface).Resolve(cachedTickers, "tickers")
+	client.Resolve(cachedTickers, "tickers")
 }
 
 /**
@@ -5281,9 +5281,9 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data any) {
 	})
 	var stored ccxt.WsArrayCache = this.Orders
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, "orders")
+	client.Resolve(stored, "orders")
 	if sym != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, "orders::"+*sym)
+		client.Resolve(stored, "orders::"+*sym)
 	}
 }
 
@@ -5332,7 +5332,7 @@ func (this *Myriad) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var isNewSubscription bool = !(client.(ccxt.ClientInterface).SubscriptionHas(channel))
+	var isNewSubscription bool = !(client.SubscriptionHas(channel))
 	if isNewSubscription {
 		// the channel pushes only signed deltas; seed absolute share balances from REST so
 		// handlePosition can maintain a running contracts figure
@@ -5403,7 +5403,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan ccxt.AsyncResult[bool], tra
 	var balances map[string]any = map[string]any{}
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		var p map[string]any = ccxt.SafeMapTyped(positions, i)
+		var p, _ = positions[i].(map[string]any)
 		var id *string = this.SafeString(p, "id")
 		if id != nil {
 			if ptrValue := this.NumberToString(this.SafeNumber(p, "contracts", 0)); ptrValue != nil {
@@ -5483,7 +5483,7 @@ func (this *Myriad) HandlePosition(client ccxt.ClientInterface, data any) {
 	})
 	var stored ccxt.WsArrayCache = this.Positions
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, "positions")
+	client.Resolve(stored, "positions")
 }
 func (this *Myriad) WalletAddressFromKeys() string {
 	// the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
@@ -5497,7 +5497,7 @@ func (this *Myriad) WalletAddressFromKeys() string {
 	}
 	return strings.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 }
-func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
+func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
 	if response == nil {
 		return nil
