@@ -256,8 +256,7 @@ mod nonce_override_from_lifted_sign_tests {
     fn subclass_reaches_the_parent_nonce_override() {
         let b = crate::exchanges::binanceusdm::Binanceusdm::new(None);
         let before_ms = b.milliseconds();
-        let n = <crate::exchanges::binanceusdm::Binanceusdm as ExchangeBase>::nonce(&b);
-        let Value::Int(n) = n else { panic!("nonce must be an Int, got {n:?}") };
+        let n: i64 = <crate::exchanges::binanceusdm::Binanceusdm as ExchangeBase>::nonce(&b);
         assert!(n >= before_ms, "binanceusdm reached the base nonce (seconds): {n} < {before_ms}");
     }
 }
