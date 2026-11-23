@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LastPrice, LastPrices, LedgerEntry, LeverageTier, LeverageTiers, Liquidation, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LastPrice, LastPrices, LedgerEntry, LeverageTier, LeverageTiers, Liquidation, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -7252,7 +7252,7 @@ class htx(Exchange, ImplicitAPI):
         bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
@@ -7893,7 +7893,9 @@ class htx(Exchange, ImplicitAPI):
             #
         data = self.safe_value(response, 'data')
         if self.safe_bool(market, 'linear', False):
-            return self.parse_position(self.safe_dict(data, 0, {}), market)
+            positionRows = self.safe_list(response, 'data', [])
+            positionRow = self.safe_dict(positionRows, 0, {})
+            return self.parse_position(positionRow, market)
         account = None
         if (marginModeOption is None) or (marginModeOption == 'cross'):
             account = data

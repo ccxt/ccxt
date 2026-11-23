@@ -4250,7 +4250,7 @@ class aster(Exchange, ImplicitAPI):
                 self.options['builderFee'] = False  # disable if err
         return None  # just c#
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

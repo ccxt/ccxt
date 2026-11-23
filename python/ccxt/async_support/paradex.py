@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, AllGreeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Balances, Bool, Currency, FundingHistory, Greeks, AllGreeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -3858,7 +3858,7 @@ class paradex(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

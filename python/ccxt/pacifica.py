@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Bool, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -2598,7 +2598,8 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_position(self.safe_dict(data, i, {}), None))
+            parsedPosition = self.parse_position(self.safe_dict(data, i, {}), None)
+            result.append(parsedPosition)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -3436,7 +3437,7 @@ class pacifica(Exchange, ImplicitAPI):
             return [address1, paramsAccount]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

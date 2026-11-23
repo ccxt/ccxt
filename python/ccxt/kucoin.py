@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Bool, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -9897,7 +9897,6 @@ class kucoin(Exchange, ImplicitAPI):
         uta = self.is_uta_enabled()
         utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchPosition', 'uta', uta)
         response: dict
-        position = {}
         if utaOption:
             request['accountMode'] = 'unified'
             response = self.utaPrivateGetAccountModePositionOpenList(self.extend(request, paramsUta))
@@ -9926,7 +9925,7 @@ class kucoin(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_list(response, 'data', [])
-            position = self.safe_dict(data, 0, {})
+            return self.parse_position(self.safe_dict(data, 0, {}), market)
         else:
             response = self.futuresPrivateGetPosition(self.extend(request, paramsUta))
             #
@@ -9974,7 +9973,7 @@ class kucoin(Exchange, ImplicitAPI):
             #    }
             #
             position = self.safe_dict(response, 'data', {})
-        return self.parse_position(position, market)
+            return self.parse_position(position, market)
 
     def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -11172,7 +11171,7 @@ class kucoin(Exchange, ImplicitAPI):
             headersResult = headersSigned
         return {'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None

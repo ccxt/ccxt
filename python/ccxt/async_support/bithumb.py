@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1587,7 +1587,7 @@ class bithumb(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             if side is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a side')
-            amount = self.safe_value(rawOrder, 'amount')
+            amount = self.safe_number(rawOrder, 'amount')
             price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
@@ -1615,7 +1615,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'batch_orders_response', [])
         return self.parse_orders(data, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> dict:
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build the request *for generation 2 createOrder and createOrders only*
@@ -3165,7 +3165,7 @@ class bithumb(Exchange, ImplicitAPI):
                 }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         # generation 2:

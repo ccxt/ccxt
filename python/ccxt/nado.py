@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.nado import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -3099,7 +3099,7 @@ class nado(Exchange, ImplicitAPI):
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

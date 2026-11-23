@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -3372,7 +3372,7 @@ class woo(Exchange, ImplicitAPI):
             requestHeaders = signedHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.backpack import ImplicitAPI
-from ccxt.base.types import Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, MarketInterface
+from ccxt.base.types import Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -3141,7 +3141,7 @@ class backpack(Exchange, ImplicitAPI):
                 payload += 'timestamp=' + ts + '&window=' + recvWindow
         return payload
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

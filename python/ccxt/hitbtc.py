@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OrderBooks, OpenInterests, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OrderBooks, OpenInterests, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -2889,7 +2889,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketType = 'swap'
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchPositions', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response = []
         if marginMode is not None:
             response = self.privateGetMarginAccount(self.extend(request, paramsOmitted))
         else:
@@ -2933,7 +2933,8 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            result.append(self.parse_position(self.safe_dict(response, i, {})))
+            position = self.parse_position(self.safe_dict(response, i, {}))
+            result.append(position)
         return result
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
@@ -3648,7 +3649,7 @@ class hitbtc(Exchange, ImplicitAPI):
             return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         #
         #     {
         #       "error": {

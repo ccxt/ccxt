@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, AllGreeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Bool, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, AllGreeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -6078,7 +6078,8 @@ class okx(Exchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(positions)):
-            result.append(self.parse_position(self.safe_dict(positions, i, {})))
+            parsedPosition = self.parse_position(self.safe_dict(positions, i, {}))
+            result.append(parsedPosition)
         return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols))
 
     async def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
@@ -9035,7 +9036,7 @@ class okx(Exchange, ImplicitAPI):
                 }
         return result
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

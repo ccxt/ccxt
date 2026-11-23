@@ -4350,7 +4350,7 @@ class hashkey(Exchange, ImplicitAPI):
         result = result.replace('%2C', ',')
         return result
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         errorInArray = False

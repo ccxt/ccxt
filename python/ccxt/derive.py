@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
-from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, FundingHistory, Greeks, Int, Market, Num, Option, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Greeks, Int, Market, Num, Option, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -1839,7 +1839,7 @@ class derive(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def hash_order_message(self, order: object) -> str:
+    def hash_order_message(self, order: list) -> str:
         accountHash = self.hash(self.eth_abi_encode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
@@ -1852,7 +1852,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order: object, privateKey: str) -> str:
+    def sign_order(self, order: list, privateKey: str) -> str:
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder, privateKey)
 
@@ -4076,7 +4076,7 @@ class derive(Exchange, ImplicitAPI):
             return [self.walletAddress, self.extend(paramsDeriveWalletAddress)]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')

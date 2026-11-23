@@ -2929,7 +2929,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         """
  @ignore
         maps limitless error responses to ccxt exceptions

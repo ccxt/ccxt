@@ -6,7 +6,7 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.predictfun import ImplicitAPI
 from ccxt.async_support.base.ws.cache import ArrayCacheByOutcomeById
-from ccxt.base.types import Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2501,7 +2501,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         """
  @ignore
         maps the venue's error slugs and messages onto the unified exceptions

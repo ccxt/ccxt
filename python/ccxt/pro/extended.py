@@ -404,11 +404,10 @@ class extended(ccxt.async_support.extended):
         if first is None:
             return
         for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
-            marketId = self.safe_string(rawPosition, 'market')
+            marketId = self.safe_string(rawPositions[i], 'market')
             if marketId is None:
                 continue
-            position = self.parse_position(rawPosition)
+            position = self.parse_position(self.safe_dict(rawPositions, i, {}))
             newPositions.append(position)
             stored.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')

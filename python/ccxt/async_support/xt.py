@@ -8,7 +8,7 @@ from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -5482,7 +5482,7 @@ class xt(Exchange, ImplicitAPI):
             return self.parse_order(response, market)
         return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         #
         # spot: error
         #

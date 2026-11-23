@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, MarketInterface
+from ccxt.base.types import ADL, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -3432,7 +3432,8 @@ class delta(Exchange, ImplicitAPI):
         #
         # {"result":{},"success":true}
         #
-        position = self.parse_position(self.safe_dict(response, 'result', {}))
+        positionRow = self.safe_dict(response, 'result', {})
+        position = self.parse_position(positionRow)
         return [position]
 
     async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
@@ -4093,7 +4094,7 @@ class delta(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         #

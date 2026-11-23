@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -3639,7 +3639,8 @@ class digifinex(Exchange, ImplicitAPI):
         positions = self.safe_list(response, positionRequest, [])
         result = []
         for i in range(0, len(positions)):
-            result.append(self.parse_position(self.safe_dict(positions, i, {}), market))
+            parsedPosition = self.parse_position(self.safe_dict(positions, i, {}), market)
+            result.append(parsedPosition)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
@@ -4431,7 +4432,7 @@ class digifinex(Exchange, ImplicitAPI):
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fall back to default error handler
         codeError = self.safe_string(response, 'code')

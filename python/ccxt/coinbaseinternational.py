@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbaseinternational import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Leverage, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, Int, Leverage, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -3228,7 +3228,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return False
         return(len(self.apiKey) == 8) and (len(self.secret) == 43)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         #
         #     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         #

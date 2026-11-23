@@ -7,7 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.sxbet import ImplicitAPI
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2441,7 +2441,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             if sym is not None:
                 client.resolve(stored, 'orders::' + sym)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         # map the known codes to ccxt errors so callers can distinguish a rejected order or a
         # validation problem from a transport outage (the base otherwise maps a bare 4xx to the

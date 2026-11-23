@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lighter import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -847,14 +847,14 @@ class lighter(Exchange, ImplicitAPI):
             takeProfitOrderLimitPrice = self.safe_number_2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice)
             # amount should be 0 for child orders
             if stopLoss is not None:
-                orderObj = self.safe_dict(self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, self.extend(paramsRequest, {
+                orderObj = self.safe_dict(self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, 0.0, stopLossOrderLimitPrice, self.extend(paramsRequest, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': True,
                 })), 0, {})
                 orderObj['client_order_index'] = 0
                 orders.append(orderObj)
             if takeProfit is not None:
-                orderObj = self.safe_dict(self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, self.extend(paramsRequest, {
+                orderObj = self.safe_dict(self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, 0.0, takeProfitOrderLimitPrice, self.extend(paramsRequest, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': True,
                 })), 0, {})
@@ -3239,7 +3239,7 @@ class lighter(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

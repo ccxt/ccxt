@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -3150,10 +3150,10 @@ class cryptocom(Exchange, ImplicitAPI):
         positions = self.safe_list(responseResult, 'data', [])
         result = []
         for i in range(0, len(positions)):
-            entry = positions[i]
-            marketId = self.safe_string(entry, 'instrument_name')
+            marketId = self.safe_string(positions[i], 'instrument_name')
             marketInner = self.safe_market(marketId, None, None, 'contract')
-            result.append(self.parse_position(entry, marketInner))
+            position = self.parse_position(self.safe_dict(positions, i, {}), marketInner)
+            result.append(position)
         return self.filter_by_array_positions(result, 'symbol', None)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -3441,7 +3441,7 @@ class cryptocom(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         errorCode = self.safe_string(response, 'code')
         if errorCode != '0':
             feedback = self.id + ' ' + body

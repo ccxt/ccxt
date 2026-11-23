@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.interactivebrokers import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Int, LastPrice, LastPrices, Market, Num, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, OpenInterest, OpenInterests, Trade
+from ccxt.base.types import Account, Balances, Bool, Int, LastPrice, LastPrices, Market, Num, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, OpenInterest, OpenInterests, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -977,7 +977,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         :param str [params.accountId]: the account id to use
         :returns Array: the account id and the params without accountId
         """
-        accountIdFromParams, query = self.handle_option_and_params(params, 'loadAccountId', 'accountId')
+        accountIdFromParams, query = self.handle_option_string_and_params(params, 'loadAccountId', 'accountId')
         accountId = accountIdFromParams
         if accountId is None:
             self.fetch_accounts()
@@ -3772,7 +3772,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 self.sleep(retryDelay)
         return None
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (code == 401) and self.safe_bool(self.options, 'useGateway', False):
             # the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             self.options['gatewayAuthenticatedTimestamp'] = None

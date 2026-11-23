@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.dydx import ImplicitAPI
 import math
-from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -1210,7 +1210,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: dict, authenticators: object, fee: object = None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: dict, memo: Str, chainId: Str, account: dict, authenticators: object, fee: dict = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         signatureR = self.safe_string(signature, 'r', '')
@@ -2405,7 +2405,7 @@ class dydx(Exchange, ImplicitAPI):
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

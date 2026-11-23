@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -8475,7 +8475,6 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        result = None
         uta, paramsUTA = self.handle_uta_and_params(paramsProductType, 'fetchPosition', False)
         if uta is True:
             request['category'] = productType
@@ -8519,7 +8518,8 @@ class bitget(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_dict(response, 'data', {})
-            result = self.safe_list(data, 'list', [])
+            utaPositionRows = self.safe_list(data, 'list', [])
+            return self.parse_position(self.safe_dict(utaPositionRows, 0, {}), market)
         else:
             request['marginCoin'] = market['settleId']
             request['productType'] = productType
@@ -8554,8 +8554,8 @@ class bitget(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            result = self.safe_list(response, 'data', [])
-        return self.parse_position(self.safe_dict(result, 0, {}), market)
+            singlePositionRows = self.safe_list(response, 'data', [])
+            return self.parse_position(self.safe_dict(singlePositionRows, 0, {}), market)
 
     def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -11607,7 +11607,7 @@ class bitget(Exchange, ImplicitAPI):
             'longShortRatio': self.safe_number_2(info, 'longShortRatio', 'longShortAccountRatio'),
         }
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

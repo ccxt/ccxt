@@ -1975,7 +1975,7 @@ class gemini(Exchange, ImplicitAPI):
             bodyResolved = self.json(query)
         return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             if isinstance(body, str):
                 feedback = self.id + ' ' + body

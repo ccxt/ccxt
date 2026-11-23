@@ -6504,9 +6504,12 @@ classic accounts only/ spot not supported*  fetches information on an order made
             rawPosition = positions[i]
             if ('data' in rawPosition) and ('is_valid' in rawPosition):
                 # futures only
-                results.append(self.parse_position(self.safe_dict(rawPosition, 'data', {})))
+                futuresData = self.safe_dict(rawPosition, 'data', {})
+                futuresPosition = self.parse_position(futuresData)
+                results.append(futuresPosition)
             else:
-                results.append(self.parse_position(self.safe_dict(positions, i, {})))
+                parsedPosition = self.parse_position(self.safe_dict(positions, i, {}))
+                results.append(parsedPosition)
         return self.filter_by_array_positions(results, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -9603,7 +9606,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

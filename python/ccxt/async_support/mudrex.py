@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mudrex import ImplicitAPI
-from ccxt.base.types import Balances, Int, Leverage, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry
+from ccxt.base.types import Balances, Bool, Int, Leverage, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -216,7 +216,7 @@ class mudrex(Exchange, ImplicitAPI):
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)

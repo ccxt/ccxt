@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2483,7 +2483,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             result.append(self.parse_event(rawEvents[i]))
         return result
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         # map the known messages so callers can distinguish a dead book or a rejected order
         # from a transport outage (the base otherwise maps a bare 404 to a retryable error)

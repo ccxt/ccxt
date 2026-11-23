@@ -8,7 +8,7 @@ from ccxt.abstract.prediction.myriad import ImplicitAPI
 import asyncio
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3499,7 +3499,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a walletAddress or privateKey to watch private channels')
         return self.eth_get_address_from_private_key(self.privateKey).lower()
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if response is None:
             return None
