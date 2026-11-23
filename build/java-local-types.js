@@ -9094,7 +9094,6 @@ export const JAVA_OBJECT_PARAM_POSITIONS = {
     'parseCurrency': [ 0 ],
     'parseTransfer': [ 0 ],
     'parseWsTicker': [ 0 ],
-    'handleErrorMessage': [ 1 ],
 };
 
 export function installJavaObjectParamPositions (transpiler) {
