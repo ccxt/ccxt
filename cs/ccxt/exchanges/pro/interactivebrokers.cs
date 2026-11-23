@@ -194,7 +194,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            object subscription = getValue(client.subscriptions, keys[i]);
+            object subscription = (client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null);
             if ((subscription is IDictionary<string, object>))
             {
                 string? request = this.safeString(subscription, "request");
@@ -294,7 +294,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            object subscription = getValue(client.subscriptions, keys[i]);
+            object subscription = (client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null);
             if ((subscription is IDictionary<string, object>))
             {
                 string? request = this.safeString(subscription, "request");
@@ -391,7 +391,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the updated ticker
      */
-    public async virtual Task<object> ibkrWatchMarketData(string topic, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<object> ibkrWatchMarketData(string topic, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -466,7 +466,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true
      */
-    public async virtual Task<object> ibkrUnWatchMarketData(string topic, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<object> ibkrUnWatchMarketData(string topic, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -2851,7 +2851,7 @@ public partial class mexc : Exchange
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, string? marginMode = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(IDictionary<string, object> market, string? type, string? side, double? amount, object price = null, string? marginMode = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2928,7 +2928,7 @@ public partial class mexc : Exchange
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSwapOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, string? marginMode = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateSwapOrder(IDictionary<string, object> market, string? type, string? side, double? amount, object price = null, string? marginMode = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3854,7 +3854,6 @@ public partial class mexc : Exchange
             {
                 throw new InvalidOrder (((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
-            return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
         }
         return this.parseOrder(((IDictionary<string, object>)data), market);
     }
@@ -4863,7 +4862,7 @@ public partial class mexc : Exchange
         return this.parseTrades(trades, market, since, limit, query);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string addOrReduce, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, string addOrReduce, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? positionId = this.safeInteger(parameters, "positionId");
@@ -6777,7 +6776,7 @@ public partial class mexc : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverageList(data, market));
     }
 
-    public virtual object parseLeverageList(IList<object> leverages, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseLeverageList(IList<object> leverages, IDictionary<string, object>? market = null)
     {
         string? marginMode = null;
         Int64? longLeverage = null;

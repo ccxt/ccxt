@@ -70,7 +70,7 @@ public partial class bitvavo : ccxt.bitvavo
         });
     }
 
-    public async virtual Task<object> watchPublic(string name, object symbol, object parameters = null)
+    public async virtual Task<T> watchPublic<T>(string name, object symbol, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -88,10 +88,10 @@ public partial class bitvavo : ccxt.bitvavo
 }} },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch<T>(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPublicMultiple(string methodName, string channelName, IList<object> symbols, object parameters = null)
+    public async virtual Task<object> watchPublicMultiple(string methodName, string channelName, IList<object> symbols, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -130,7 +130,7 @@ public partial class bitvavo : ccxt.bitvavo
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTicker(await this.watchPublic("ticker24h", symbol, parameters));
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic<object>("ticker24h", symbol, parameters));
     }
 
     /**
@@ -276,13 +276,13 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         string? symbolValue = this.symbol(symbol);
-        object trades = await this.watchPublic("trades", symbolValue, parameters);
+        ccxt.pro.ArrayCache trades = await this.watchPublic<ccxt.pro.ArrayCache>("trades", symbolValue, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -1859,14 +1859,14 @@ public partial class bitvavo : ccxt.bitvavo
         return messageHash;
     }
 
-    public virtual string? actionAndMarketMessageHash(string action, object parameters = null)
+    public virtual string? actionAndMarketMessageHash(string action, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(parameters, "market", "");
         return ((string?)((object)((action + symbol))));
     }
 
-    public virtual string? actionAndOrderIdMessageHash(string action, object parameters = null)
+    public virtual string? actionAndOrderIdMessageHash(string action, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? orderId = this.safeString(parameters, "orderId");

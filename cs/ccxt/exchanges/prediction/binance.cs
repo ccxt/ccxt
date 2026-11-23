@@ -232,7 +232,7 @@ public partial class binance : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawTopics(object maxTopics, IDictionary<string, object>? rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawTopics(Int64? maxTopics, IDictionary<string, object>? rest = null)
     {
         rest ??= new Dictionary<string, object>();
         Int64? maxTopicsOption = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);

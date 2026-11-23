@@ -2014,7 +2014,7 @@ public partial class toobit : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2986,7 +2986,7 @@ public partial class toobit : Exchange
         return await this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchDepositsOrWithdrawalsHelper(string type, string? code, object since, object limit, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchDepositsOrWithdrawalsHelper(string type, string? code, Int64? since, Int64? limit, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -654,7 +654,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.WatchTicker(symbol, paramsResolved));
-        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate((ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null), this.market(symbol)));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(this.extend(new Dictionary<string, object>() {}, (ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null)), this.market(symbol)));
     }
 
     /**
@@ -688,7 +688,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             string? symbol = ((string)(tickerSymbols != null && i < tickerSymbols.Count ? tickerSymbols[i] : null));
             IDictionary<string, object> ticker = ((IDictionary<string, object>)(tickers != null && symbol != null && tickers.ContainsKey(symbol) ? tickers[symbol] : null));
-            result[(string)symbol] = this.parseFundingRate((ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null), this.market(symbol));
+            result[(string)symbol] = this.parseFundingRate(this.extend(new Dictionary<string, object>() {}, (ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null)), this.market(symbol));
         }
         return ccxt.BaseExchange.ToFundingRates(result);
     }
@@ -1081,7 +1081,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49898 && ((hxArr49898 is IList<object>) || (hxArr49898.GetType().IsGenericType && hxArr49898.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49934 && ((hxArr49934 is IList<object>) || (hxArr49934.GetType().IsGenericType && hxArr49934.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }

@@ -76,7 +76,7 @@ public partial class modetrade : ccxt.modetrade
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(string messageHash, IDictionary<string, object> message)
+    public async virtual Task<T> watchPublic<T>(string messageHash, IDictionary<string, object> message)
     {
         IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
         IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
@@ -96,7 +96,7 @@ public partial class modetrade : ccxt.modetrade
             { "id", requestId },
         };
         Dictionary<string, object> request = this.extend(subscribe, message);
-        return await this.watch(url, messageHash, request, messageHash, subscribe);
+        return await this.watch<T>(url, messageHash, request, messageHash, subscribe);
     }
 
     /**
@@ -125,7 +125,7 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, message));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic<object>(topic, message));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -193,7 +193,7 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, message));
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic<object>(topic, message));
     }
 
     public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
@@ -291,7 +291,7 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object tickers = await this.watchPublic(topic, message);
+        object tickers = await this.watchPublic<object>(topic, message);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsNormalized));
     }
 
@@ -357,7 +357,7 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object tickers = await this.watchPublic(topic, message);
+        object tickers = await this.watchPublic<object>(topic, message);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsNormalized));
     }
 
@@ -450,13 +450,13 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object ohlcv = await this.watchPublic(topic, message);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.watchPublic<ccxt.pro.ArrayCacheByTimestamp>(topic, message);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = ((Int64?)ohlcv.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -530,13 +530,13 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object trades = await this.watchPublic(topic, message);
+        ccxt.pro.ArrayCache trades = await this.watchPublic<ccxt.pro.ArrayCache>(topic, message);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), (market.ContainsKey("symbol") ? market["symbol"] : null), since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limitResolved, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -721,7 +721,7 @@ public partial class modetrade : ccxt.modetrade
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchPrivate<T>(string messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
@@ -738,7 +738,7 @@ public partial class modetrade : ccxt.modetrade
             { "id", requestId },
         };
         Dictionary<string, object> request = this.extend(subscribe, message);
-        return await this.watch(url, messageHash, request, messageHash, subscribe);
+        return await this.watch<T>(url, messageHash, request, messageHash, subscribe);
     }
 
     public async virtual Task<object> watchPrivateMultiple(IList<object> messageHashes, IDictionary<string, object> message, IDictionary<string, object> parameters = null)
@@ -801,13 +801,13 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, paramsOmitted);
-        object orders = await this.watchPrivate(messageHash, message);
+        ccxt.pro.ArrayCache orders = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, message);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -850,13 +850,13 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, paramsOmitted);
-        object orders = await this.watchPrivate(messageHash, message);
+        ccxt.pro.ArrayCache orders = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, message);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
@@ -1385,7 +1385,7 @@ public partial class modetrade : ccxt.modetrade
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, message));
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate<object>(messageHash, message));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)

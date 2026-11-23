@@ -439,15 +439,15 @@ public partial class deribit : ccxt.deribit
         {
             await this.authenticate();
         }
-        object trades = await this.watchMultipleWrapper("trades", interval, symbols, paramsInterval);
+        ccxt.pro.ArrayCache trades = await this.watchMultipleWrapper<ccxt.pro.ArrayCache>("trades", interval, symbols, paramsInterval);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -648,7 +648,7 @@ public partial class deribit : ccxt.deribit
         {
             paramsResolved = paramsGroup;
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper("book", descriptor, symbols, paramsResolved));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper<object>("book", descriptor, symbols, paramsResolved));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -926,11 +926,11 @@ public partial class deribit : ccxt.deribit
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39727 && ((hxArr39727 is IList<object>) || (hxArr39727.GetType().IsGenericType && hxArr39727.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39739 && ((hxArr39739 is IList<object>) || (hxArr39739.GetType().IsGenericType && hxArr39739.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
-        var symboltimeframecandlesVariable = await this.watchMultipleWrapper("chart.trades", null, symbolsAndTimeframes, parameters);
+        var symboltimeframecandlesVariable = await this.watchMultipleWrapper<object>("chart.trades", null, symbolsAndTimeframes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
@@ -1006,7 +1006,7 @@ public partial class deribit : ccxt.deribit
         return new List<object> {this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public async virtual Task<object> watchMultipleWrapper(string channelName, object channelDescriptor, IList<object> symbolsArray = null, object parameters = null)
+    public async virtual Task<T> watchMultipleWrapper<T>(string channelName, object channelDescriptor, IList<object> symbolsArray = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1061,7 +1061,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ExchangeError ((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
         }
-        return await this.watchMultiple(url, messageHashes, extendedRequest, rawSubscriptions);
+        return await this.watchMultiple<T>(url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

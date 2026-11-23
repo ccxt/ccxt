@@ -2541,7 +2541,7 @@ public partial class weex : Exchange
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, double amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2636,7 +2636,7 @@ public partial class weex : Exchange
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2803,7 +2803,6 @@ public partial class weex : Exchange
                 throw new BadRequest ((this.id + " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")) ;
             }
             request["clientAlgoId"] = clientOrderId;
-            string? orderType = null;
             if (isStopLoss)
             {
                 string? stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType");
@@ -2814,10 +2813,10 @@ public partial class weex : Exchange
                 parameters["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
                 if (isMarketOrder)
                 {
-                    orderType = "STOP_MARKET";
+                    parameters["type"] = "STOP_MARKET";
                 } else
                 {
-                    orderType = "STOP";
+                    parameters["type"] = "STOP";
                 }
             } else if (isTakeProfit)
             {
@@ -2829,13 +2828,12 @@ public partial class weex : Exchange
                 parameters["triggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
                 if (isMarketOrder)
                 {
-                    orderType = "TAKE_PROFIT_MARKET";
+                    parameters["type"] = "TAKE_PROFIT_MARKET";
                 } else
                 {
-                    orderType = "TAKE_PROFIT";
+                    parameters["type"] = "TAKE_PROFIT";
                 }
             }
-            parameters["type"] = orderType;
         } else
         {
             if (!isMarketOrder && (timeInForce == null))
@@ -4895,7 +4893,7 @@ public partial class weex : Exchange
         return await this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, paramsMarginMode));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, Int64 type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, Int64 type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

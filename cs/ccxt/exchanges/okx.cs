@@ -4035,7 +4035,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instType", this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null)) },
+            { "instType", this.convertToInstrumentType(this.safeString(market, "type")) },
         };
         if ((this.safeBool(market, "spot", false) == true))
         {
@@ -9117,7 +9117,7 @@ public partial class okx : Exchange
         return this.parseBorrowRateHistory(data,code, since, limit);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double amount, string? type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9285,7 +9285,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? type = (this.safeBool(market, "spot", false) == true) ? "MARGIN" : this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
+        string? type = (this.safeBool(market, "spot", false) == true) ? "MARGIN" : this.convertToInstrumentType(this.safeString(market, "type"));
         string? instFamily = this.safeString((market.ContainsKey("info") ? market["info"] : null), "instFamily");
         if (((instFamily == null)) || (instFamily == ""))
         {
@@ -9612,7 +9612,7 @@ public partial class okx : Exchange
         {
             throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
-        string? type = this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
+        string? type = this.convertToInstrumentType(this.safeString(market, "type"));
         string? uly = this.safeString((market.ContainsKey("info") ? market["info"] : null), "uly");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", type },
@@ -10238,7 +10238,7 @@ public partial class okx : Exchange
             Dictionary<string, object> symbolMarket = this.market(symbol);
             market = symbolMarket;
             request["instId"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
-            request["instType"] = this.convertToInstrumentType((symbolMarket != null && symbolMarket.ContainsKey("type") ? symbolMarket["type"] : null));
+            request["instType"] = this.convertToInstrumentType(this.safeString(symbolMarket, "type"));
         }
         if ((since != null))
         {

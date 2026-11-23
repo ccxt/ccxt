@@ -97,7 +97,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public async virtual Task<object> subscribeMultiple(string name, IList<object>? symbols = null, string? messageHashStart = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(string name, IList<object>? symbols = null, string? messageHashStart = null, IDictionary<string, object>? parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
@@ -126,7 +126,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
         }
-        if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
+        if (parameters.ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
             url = (url + "?");

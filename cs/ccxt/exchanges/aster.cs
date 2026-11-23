@@ -2295,7 +2295,7 @@ public partial class aster : Exchange
         //         "time": 1750146970000
         //     }
         //
-        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(this.extend(new Dictionary<string, object>() {}, response), market));
     }
 
     /**
@@ -3203,7 +3203,7 @@ public partial class aster : Exchange
         return this.parseOrders(response);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3371,7 +3371,7 @@ public partial class aster : Exchange
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             string? pricePrecision = this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "price");
             bool isPricePrecisionAvailable = ((pricePrecision != null));
@@ -3387,7 +3387,7 @@ public partial class aster : Exchange
         {
             if ((stopPrice == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a stopPrice extra param for a ") + (type)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a stopPrice extra param for a ") + type) + " order")) ;
             }
             request["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
         }
@@ -3842,7 +3842,7 @@ public partial class aster : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, Int64 addOrReduce, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double amount, Int64 addOrReduce, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();

@@ -419,7 +419,7 @@ public partial class bybit : ccxt.bybit
             throw new BadRequest ((this.id + " watchTicker() only supports name tickers for contract markets")) ;
         }
         List<object> topics = new List<object>() {((topic + ".") + this.safeString(market, "id", ""))};
-        return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, paramsValue));
+        return ccxt.BaseExchange.ToTicker(await this.watchTopics<object>(url, new List<object>() {messageHash}, topics, paramsValue));
     }
 
     /**
@@ -453,7 +453,7 @@ public partial class bybit : ccxt.bybit
             topics.Add(((topic + ".") + marketId));
             messageHashes.Add(("ticker:" + this.safeString(symbolsValue, i, "")));
         }
-        object ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
+        object ticker = await this.watchTopics<object>(url, messageHashes, topics, paramsValue);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -708,7 +708,7 @@ public partial class bybit : ccxt.bybit
             topics.Add(topic);
             messageHashes.Add(("bidask:" + this.safeString(symbolsValue, i, "")));
         }
-        object ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
+        object ticker = await this.watchTopics<object>(url, messageHashes, topics, paramsValue);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(ticker);
@@ -828,7 +828,7 @@ public partial class bybit : ccxt.bybit
             rawHashes.Add(((("kline." + timeframeId) + ".") + marketId));
             messageHashes.Add(((("ohlcv::" + symbolString) + "::") + (unfiedTimeframe)));
         }
-        var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
+        var symboltimeframestoredVariable = await this.watchTopics<object>(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
         var stored = ((IList<object>) symboltimeframestoredVariable)[2];
@@ -1064,7 +1064,7 @@ public partial class bybit : ccxt.bybit
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchTopics(url, messageHashes, topics, paramsValue));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchTopics<object>(url, messageHashes, topics, paramsValue));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -1281,15 +1281,15 @@ public partial class bybit : ccxt.bybit
             string messageHash = ("trade:" + symbol);
             messageHashes.Add(messageHash);
         }
-        object trades = await this.watchTopics(url, messageHashes, topics, paramsValue);
+        ccxt.pro.ArrayCache trades = await this.watchTopics<ccxt.pro.ArrayCache>(url, messageHashes, topics, paramsValue);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -1536,13 +1536,13 @@ public partial class bybit : ccxt.bybit
         {
             topic = "execution.fast";
         }
-        object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsExecutionFast);
+        ccxt.pro.ArrayCache trades = await this.watchTopics<ccxt.pro.ArrayCache>(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsExecutionFast);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -1789,7 +1789,7 @@ public partial class bybit : ccxt.bybit
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
-        object newPositions = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"position"}, parameters);
+        object newPositions = await this.watchTopics<object>(url, new List<object>() {messageHash}, new List<object>() {"position"}, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -1993,7 +1993,7 @@ public partial class bybit : ccxt.bybit
         string messageHash = ("liquidations::" + symbolValue);
         string? marketId = this.safeString(market, "id", "");
         string topic = ((method + ".") + marketId);
-        object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsMethod);
+        object newLiquidation = await this.watchTopics<object>(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsMethod);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidation);
@@ -2032,7 +2032,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88594 && ((hxArr88594 is IList<object>) || (hxArr88594.GetType().IsGenericType && hxArr88594.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88630 && ((hxArr88630 is IList<object>) || (hxArr88630.GetType().IsGenericType && hxArr88630.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2159,13 +2159,13 @@ public partial class bybit : ccxt.bybit
                 topics.Add("stopOrder");
             }
         }
-        object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
+        ccxt.pro.ArrayCache orders = await this.watchTopics<ccxt.pro.ArrayCache>(url, new List<object>() {messageHash}, topics, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -2430,7 +2430,7 @@ public partial class bybit : ccxt.bybit
             topic = "outboundAccountInfo";
         }
         List<object> topics = new List<object>() {topic};
-        return ccxt.BaseExchange.ToBalances(await this.watchTopics(url, new List<object>() {messageHash}, topics, paramsSubType));
+        return ccxt.BaseExchange.ToBalances(await this.watchTopics<object>(url, new List<object>() {messageHash}, topics, paramsSubType));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -2703,7 +2703,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
+    public async virtual Task<T> watchTopics<T>(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var client = this.client(url);
@@ -2764,7 +2764,7 @@ public partial class bybit : ccxt.bybit
                 { "topics", newTopics },
             };
         }
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple<T>(url, messageHashes, message, messageHashes, subscription);
     }
 
     public async virtual Task<object> unWatchTopics(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object topics, object parameters = null, IDictionary<string, object>? subExtension = null)

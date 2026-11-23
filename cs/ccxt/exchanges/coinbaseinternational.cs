@@ -1261,7 +1261,7 @@ public partial class coinbaseinternational : Exchange
 
     public override Dictionary<string, object> parseFundingRateHistory(object info, IDictionary<string, object> market = null)
     {
-        Dictionary<string, object> fundingRate = this.parseFundingRate(info, market);
+        Dictionary<string, object> fundingRate = this.parseFundingRate(this.extend(new Dictionary<string, object>() {}, info), market);
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", (fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null) },

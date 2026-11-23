@@ -1490,7 +1490,7 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported ((this.id + " fetchSettlements() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> safePredictionOrder(object outcomeOrder, object outcomeObj = null)
+    public virtual Dictionary<string, object> safePredictionOrder(object outcomeOrder, IDictionary<string, object> outcomeObj = null)
     {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
@@ -1831,7 +1831,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public virtual IList<object> parsePredictionTrades(IList<object> trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual IList<object> parsePredictionTrades(IList<object> trades, IDictionary<string, object> outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -1842,7 +1842,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionTrade(((IDictionary<string, object>)rows[i]),((IDictionary<string, object>)outcomeObj));
+            Dictionary<string, object> parsed = this.parsePredictionTrade(((IDictionary<string, object>)rows[i]), outcomeObj);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
             results.Add(trade);
         }
@@ -1863,7 +1863,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public virtual IList<object> parsePredictionOrders(IList<object> orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual IList<object> parsePredictionOrders(IList<object> orders, IDictionary<string, object> outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         parameters ??= new Dictionary<string, object>();
@@ -1871,7 +1871,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)rows[i]),((IDictionary<string, object>)outcomeObj));
+            Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)rows[i]), outcomeObj);
             Dictionary<string, object> order = this.extend(parsed, parameters);
             results.Add(order);
         }

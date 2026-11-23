@@ -158,7 +158,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribePrivate(object name, string messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(object name, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -175,7 +175,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "signed_challenge", (this.options != null && this.options.ContainsKey("signedChallenge") ? this.options["signedChallenge"] : null) },
         };
         Dictionary<string, object> request = this.extend(subscribe, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch<T>(url, messageHash, request, messageHash);
     }
 
     /**
@@ -339,7 +339,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));
         }
         messageHash = ("positions" + messageHash);
-        object newPositions = await this.subscribePrivate("open_positions", messageHash, parameters);
+        object newPositions = await this.subscribePrivate<object>("open_positions", messageHash, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -519,13 +519,13 @@ public partial class krakenfutures : ccxt.krakenfutures
             Dictionary<string, object> market = this.market(symbol);
             messageHash = messageHash + (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object orders = await this.subscribePrivate(name, messageHash, paramsVerbose);
+        ccxt.pro.ArrayCache orders = await this.subscribePrivate<ccxt.pro.ArrayCache>(name, messageHash, paramsVerbose);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -553,13 +553,13 @@ public partial class krakenfutures : ccxt.krakenfutures
             Dictionary<string, object> market = this.market(symbol);
             messageHash = (("myTrades" + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object trades = await this.subscribePrivate(name, messageHash, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribePrivate<ccxt.pro.ArrayCache>(name, messageHash, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -591,7 +591,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             messageHash = messageHash + (":" + account);
         }
-        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, messageHash, paramsAccount));
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate<object>(name, messageHash, paramsAccount));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -1822,7 +1822,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }));
     }
 
-    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

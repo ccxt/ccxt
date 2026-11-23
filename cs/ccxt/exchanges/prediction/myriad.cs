@@ -748,7 +748,7 @@ public partial class myriad : PredictionExchange
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string side, double amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string side, double? amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1199,7 +1199,7 @@ public partial class myriad : PredictionExchange
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
@@ -1427,7 +1427,7 @@ public partial class myriad : PredictionExchange
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    public virtual object getOrderResponseFromParams(string? id, object parameters = null)
+    public virtual object getOrderResponseFromParams(string? id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> orderResponse = this.safeDict(parameters, "orderResponse");

@@ -235,7 +235,7 @@ public partial class bitget : ccxt.bitget
             topics.Add(args);
             messageHashes.Add(("ticker:" + symbol));
         }
-        object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, paramsValue);
+        object tickers = await this.watchPublicMultiple<object>(uta, messageHashes, topics, paramsValue);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -505,7 +505,7 @@ public partial class bitget : ccxt.bitget
             topics.Add(args);
             messageHashes.Add(("bidask:" + symbol));
         }
-        object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, paramsValue);
+        object tickers = await this.watchPublicMultiple<object>(uta, messageHashes, topics, paramsValue);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -915,7 +915,7 @@ public partial class bitget : ccxt.bitget
         return await this.unWatchChannel(symbol, channel, "orderbook", "watchOrderBook", paramsOmitted);
     }
 
-    public async virtual Task<object> unWatchChannel(object symbol, string channel, string messageHashTopic, string methodName, object parameters = null)
+    public async virtual Task<object> unWatchChannel(object symbol, string channel, string messageHashTopic, string methodName, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1039,7 +1039,7 @@ public partial class bitget : ccxt.bitget
         {
             paramsCursor["uta"] = true;
         }
-        object orderbook = await this.watchPublicMultiple(isStockOrUta, messageHashes, topics, paramsCursor);
+        object orderbook = await this.watchPublicMultiple<object>(isStockOrUta, messageHashes, topics, paramsCursor);
         if (incrementalFeed)
         {
             return (orderbook as IOrderBook).limit().Copy();
@@ -1329,15 +1329,15 @@ public partial class bitget : ccxt.bitget
                 { "uta", true },
             });
         }
-        object trades = await this.watchPublicMultiple(uta, messageHashes, topics, paramsRequest);
+        ccxt.pro.ArrayCache trades = await this.watchPublicMultiple<ccxt.pro.ArrayCache>(uta, messageHashes, topics, paramsRequest);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         (bool?, IDictionary<string, object>) ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "watchTrades", "ignoreDuplicates", true);
         bool? ignoreDuplicates = ignoreDuplicatesVariable.Item1;
         if ((ignoreDuplicates == true))
@@ -3010,7 +3010,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch<T>(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> unWatchPublic(object uta, string messageHash, IDictionary<string, object> args, object parameters = null)
+    public async virtual Task<object> unWatchPublic(object uta, string messageHash, IDictionary<string, object> args, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPublic") ? this.urlsApiSections["ws"]["utaPublic"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null);
@@ -3037,7 +3037,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> unWatchPrivate(object uta, object messageHash, object args, object parameters = null)
+    public async virtual Task<object> unWatchPrivate(object uta, object messageHash, object args, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isUta = ((uta is true));
@@ -3068,7 +3068,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPublicMultiple(object uta, object messageHashes, object argsArray, object parameters = null)
+    public async virtual Task<T> watchPublicMultiple<T>(object uta, object messageHashes, IList<object> argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPublic") ? this.urlsApiSections["ws"]["utaPublic"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null);
@@ -3087,7 +3087,7 @@ public partial class bitget : ccxt.bitget
             { "args", argsArray },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        return await this.watchMultiple<T>(url, messageHashes, message, messageHashes);
     }
 
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)

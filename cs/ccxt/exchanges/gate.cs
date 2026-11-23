@@ -3706,14 +3706,14 @@ public partial class gate : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i);
-            IDictionary<string, object> funding = ((IDictionary<string, object>)this.parseFundingHistory(entry));
+            Dictionary<string, object> funding = this.parseFundingHistory(entry);
             result.Add(funding);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return ((IList<object>)((object)(this.filterBySymbolSinceLimit(sorted, symbol, since, limit))));
     }
 
-    public virtual object parseFundingHistory(IDictionary<string, object> info, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseFundingHistory(IDictionary<string, object> info, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -8796,7 +8796,7 @@ public partial class gate : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

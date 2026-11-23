@@ -1821,7 +1821,7 @@ public partial class deepcoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         /**
         * @method
@@ -1859,7 +1859,7 @@ public partial class deepcoin : Exchange
         }
     }
 
-    public virtual Dictionary<string, object> createRegularOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createRegularOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         /**
         * @method
@@ -1993,7 +1993,7 @@ public partial class deepcoin : Exchange
         return this.extend(request, paramsRequest);
     }
 
-    public virtual Dictionary<string, object> createTriggerOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createTriggerOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         /**
         * @method
@@ -2089,7 +2089,7 @@ public partial class deepcoin : Exchange
         return this.extend(request, paramsMrgPosition);
     }
 
-    public virtual List<object> handleTypePostOnlyAndTimeInForce(string? type, object parameters)
+    public virtual List<object> handleTypePostOnlyAndTimeInForce(string? type, IDictionary<string, object> parameters)
     {
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
@@ -2511,7 +2511,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
-            request["instType"] = this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
+            request["instType"] = this.convertToInstrumentType(this.safeString(market, "type"));
             //
             //     {
             //         "code": "0",
@@ -2979,7 +2979,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? instrumentType = this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
+        string? instrumentType = this.convertToInstrumentType(this.safeString(market, "type"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", instrumentType },
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },

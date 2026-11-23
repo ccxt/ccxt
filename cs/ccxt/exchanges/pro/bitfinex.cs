@@ -115,7 +115,7 @@ public partial class bitfinex : ccxt.bitfinex
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivate(string messageHash)
+    public async virtual Task<T> subscribePrivate<T>(string messageHash)
     {
         if ((this.markets == null))
         {
@@ -123,7 +123,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
         await this.authenticate();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null));
-        return await this.watch(url, messageHash, null, 1);
+        return await this.watch<T>(url, messageHash, null, 1);
     }
 
     /**
@@ -359,13 +359,13 @@ public partial class bitfinex : ccxt.bitfinex
             string? marketId = this.safeString(market, "id", "");
             messageHash = ("myTrade:" + marketId);
         }
-        object trades = await this.subscribePrivate(messageHash);
+        ccxt.pro.ArrayCache trades = await this.subscribePrivate<ccxt.pro.ArrayCache>(messageHash);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
 
     /**
@@ -937,7 +937,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
         string? balanceType = this.safeString(parameters, "wallet", "exchange"); // exchange, margin
         string messageHash = ("balance:" + balanceType);
-        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash));
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate<object>(messageHash));
     }
 
     public virtual void handleBalance(WebSocketClient client, IList<object> message, object subscription)
@@ -1228,13 +1228,13 @@ public partial class bitfinex : ccxt.bitfinex
             string? marketId = this.safeString(market, "id", "");
             messageHash = ("orders:" + marketId);
         }
-        object orders = await this.subscribePrivate(messageHash);
+        ccxt.pro.ArrayCache orders = await this.subscribePrivate<ccxt.pro.ArrayCache>(messageHash);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, IList<object> message, object subscription)

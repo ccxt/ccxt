@@ -3337,9 +3337,9 @@ public partial class bitstamp : Exchange
         return code.ToLower();
     }
 
-    public virtual bool isFiat(object code)
+    public virtual bool isFiat(string? code)
     {
-        return (code is "USD") || (code is "EUR") || (code is "GBP");
+        return (code == "USD") || (code == "EUR") || (code == "GBP");
     }
 
     /**

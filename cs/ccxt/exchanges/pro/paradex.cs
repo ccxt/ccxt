@@ -173,7 +173,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each subscribe request
      * @returns {object} the first update
      */
-    public async virtual Task<object> subscribeChannels(object url, IList<object> messageHashes, IList<object> channels, object parameters = null)
+    public async virtual Task<T> subscribeChannels<T>(object url, IList<object> messageHashes, IList<object> channels, object parameters = null)
     {
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
@@ -198,7 +198,7 @@ public partial class paradex : ccxt.paradex
         int missingLength = (missing?.Count ?? 0);
         if ((missingLength == 0))
         {
-            return await this.watchMultiple(url, messageHashes, null, channels);
+            return await this.watchMultiple<T>(url, messageHashes, null, channels);
         }
         Int64? index = ((Int64?)(missing != null && 0 < missing.Count ? missing[0] : (Int64?)null));
         Dictionary<string, object> request = this.subscribeRequest((channels != null && index != null && index < channels.Count ? channels[(int)index] : null));
@@ -207,7 +207,7 @@ public partial class paradex : ccxt.paradex
             { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {(messageHashes != null && index != null && index < messageHashes.Count ? messageHashes[(int)index] : null)} },
         };
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {(channels != null && index != null && index < channels.Count ? channels[(int)index] : null)}, subscription);
+        return await this.watchMultiple<T>(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {(channels != null && index != null && index < channels.Count ? channels[(int)index] : null)}, subscription);
     }
 
     public virtual List<Int64> unsubscribedChannels(object url, IList<object> channels)
@@ -638,15 +638,15 @@ public partial class paradex : ccxt.paradex
         }
         string? url = this.getWsUrl();
         // handleTrade resolves the channel of each market
-        object trades = await this.subscribeChannels(url, channels, channels, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribeChannels<ccxt.pro.ArrayCache>(url, channels, channels, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -720,13 +720,13 @@ public partial class paradex : ccxt.paradex
         string channel = ("trades." + marketId);
         string messageHash = ("liquidations:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? url = this.getWsUrl();
-        object liquidations = await this.subscribeChannels(url, new List<object>() {messageHash}, new List<object>() {channel}, parameters);
+        ccxt.pro.ArrayCache liquidations = await this.subscribeChannels<ccxt.pro.ArrayCache>(url, new List<object>() {messageHash}, new List<object>() {channel}, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(liquidations, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = ((Int64?)liquidations.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToLiquidationList(this.filterBySinceLimit(this.toArray(liquidations), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToLiquidationList(this.filterBySinceLimit(liquidations, since, limitResolved, "timestamp", true));
     }
 
     public virtual Dictionary<string, object> parseWsLiquidation(IDictionary<string, object> liquidation, IDictionary<string, object>? market = null)
@@ -908,7 +908,7 @@ public partial class paradex : ccxt.paradex
             channels.Add(channel);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribeChannels(url, messageHashes, channels, paramsDeltas));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribeChannels<object>(url, messageHashes, channels, paramsDeltas));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -1364,7 +1364,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
      */
-    public async virtual Task<object> subscribeMarketsSummary(IList<object> symbols, IList<object> messageHashes, object parameters = null)
+    public async virtual Task<object> subscribeMarketsSummary(IList<object> symbols, IList<object> messageHashes, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.getWsUrl();
@@ -1508,7 +1508,7 @@ public partial class paradex : ccxt.paradex
             channels.Add("bbo.ALL");
             messageHashes.Add("bidask");
         }
-        object newBidAsk = await this.subscribeChannels(url, messageHashes, channels, parameters);
+        object newBidAsk = await this.subscribeChannels<object>(url, messageHashes, channels, parameters);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -2080,7 +2080,7 @@ public partial class paradex : ccxt.paradex
         string? url = this.getWsUrl();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         string messageHash = ("fundingRate:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        return ccxt.BaseExchange.ToFundingRate(await this.subscribeChannels(url, new List<object>() {messageHash}, new List<object>() {channel}, parameters));
+        return ccxt.BaseExchange.ToFundingRate(await this.subscribeChannels<object>(url, new List<object>() {messageHash}, new List<object>() {channel}, parameters));
     }
 
     /**

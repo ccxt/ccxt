@@ -2062,7 +2062,7 @@ public partial class bitfinex : Exchange
         }, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2097,7 +2097,7 @@ public partial class bitfinex : Exchange
          */
         Dictionary<string, object> market = this.market(symbol);
         string? amountString = this.amountToPrecision(symbol, amount);
-        if (!(side == "buy"))
+        if ((side != "buy"))
         {
             amountString = Precise.stringNeg(amountString);
         }
@@ -2140,7 +2140,7 @@ public partial class bitfinex : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() does not allow market IOC and FOK orders")) ;
         }
-        if ((!(type == "market")) && ((triggerPrice == null)))
+        if (((type != "market")) && ((triggerPrice == null)))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2954,7 +2954,7 @@ public partial class bitfinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseTransactionRow(IList<object> transaction, IDictionary<string, object>? currency = null)
+    public virtual Dictionary<string, object> parseTransactionRow(IList<object> transaction, IDictionary<string, object>? currency = null)
     {
         //
         // withdraw

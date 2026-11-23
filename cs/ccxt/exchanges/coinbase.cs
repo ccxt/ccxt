@@ -5873,7 +5873,7 @@ public partial class coinbase : Exchange
         return (this.secret.Length == 88) || (this.safeBool(this.options, "v2CloudAPiKey", false) == true) || this.secret.EndsWith("=");
     }
 
-    public virtual string? createAuthToken(object seconds, string url, string? method = null, bool? useEddsa = null)
+    public virtual string? createAuthToken(Int64 seconds, string url, string? method = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication

@@ -86,7 +86,7 @@ public partial class bullish : ccxt.bullish
         return message;  // current line is for transpilation compatibility
     }
 
-    public async virtual Task<object> watchPublic(string url, string messageHash, object request = null, object parameters = null)
+    public async virtual Task<object> watchPublic(string url, string messageHash, object request = null, IDictionary<string, object>? parameters = null)
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -106,7 +106,7 @@ public partial class bullish : ccxt.bullish
         return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, string subscribeHash, object request = null, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, string subscribeHash, object request = null, IDictionary<string, object>? parameters = null)
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();

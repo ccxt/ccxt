@@ -2407,7 +2407,7 @@ public partial class paradex : Exchange
         return instruction;
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -4067,7 +4067,7 @@ public partial class paradex : Exchange
         // }
         //
         List<object> configs = this.safeList(response, "configs");
-        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(this.safeDict(configs, 0), market));
+        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(this.safeDict(configs, 0, new Dictionary<string, object>() {}), market));
     }
 
     public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)

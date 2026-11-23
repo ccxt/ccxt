@@ -87,7 +87,7 @@ public partial class weex : ccxt.weex
         return requestId;
     }
 
-    public async virtual Task<object> subscribePublic(object messageHashes, object channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<T> subscribePublic<T>(object messageHashes, object channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -105,7 +105,7 @@ public partial class weex : ccxt.weex
             { "params", channels },
         };
         Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
-            { "id", id.ToString() },
+            { "id", ((object)id).ToString() },
         });
         string type = "spot";
         if (isContract == true)
@@ -113,10 +113,10 @@ public partial class weex : ccxt.weex
             type = "contract";
         }
         string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), type, "") + "/public");
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended);
+        return await this.watchMultiple<T>(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string channel, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<T> subscribePrivate<T>(object messageHash, object subscribeHash, string channel, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -141,9 +141,9 @@ public partial class weex : ccxt.weex
             { "params", new List<object>() {channel} },
         };
         Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
-            { "id", id.ToString() },
+            { "id", ((object)id).ToString() },
         });
-        return await this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscriptionExtended);
+        return await this.watch<T>(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscriptionExtended);
     }
 
     public virtual void authenticate(string url)
@@ -245,7 +245,7 @@ public partial class weex : ccxt.weex
             messageHashes.Add(messageHash);
             channels.Add(channelName);
         }
-        object newTicker = await this.subscribePublic(messageHashes, channels, isContract, parameters);
+        object newTicker = await this.subscribePublic<object>(messageHashes, channels, isContract, parameters);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -318,7 +318,7 @@ public partial class weex : ccxt.weex
             { "subMessageHashes", subHashes },
             { "topic", topic },
         };
-        return await this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription);
+        return await this.subscribePublic<object>(unSubHashes, channels, isContract, parameters, subscription);
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -468,15 +468,15 @@ public partial class weex : ccxt.weex
             messageHashes.Add(messageHash);
             channels.Add(channelName);
         }
-        object trades = await this.subscribePublic(messageHashes, channels, isContract, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribePublic<ccxt.pro.ArrayCache>(messageHashes, channels, isContract, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -538,7 +538,7 @@ public partial class weex : ccxt.weex
             { "subMessageHashes", subHashes },
             { "topic", "trades" },
         };
-        return await this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription);
+        return await this.subscribePublic<object>(unSubHashes, channels, isContract, parameters, subscription);
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -713,7 +713,7 @@ public partial class weex : ccxt.weex
             channels.Add(channel);
             messageHashes.Add(messageHash);
         }
-        var symboltimeframestoredVariable = await this.subscribePublic(messageHashes, channels, isContract, paramsPriceType);
+        var symboltimeframestoredVariable = await this.subscribePublic<object>(messageHashes, channels, isContract, paramsPriceType);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
         var stored = ((IList<object>) symboltimeframestoredVariable)[2];
@@ -807,7 +807,7 @@ public partial class weex : ccxt.weex
             { "subMessageHashes", subHashes },
             { "topic", "ohlcv" },
         };
-        return await this.subscribePublic(unSubHashes, channels, isContract, paramsPriceType, subscription);
+        return await this.subscribePublic<object>(unSubHashes, channels, isContract, paramsPriceType, subscription);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -956,7 +956,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "limit", limit },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic(messageHashes, channels, isContract, paramsDepth, subscription));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic<object>(messageHashes, channels, isContract, paramsDepth, subscription));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -1027,7 +1027,7 @@ public partial class weex : ccxt.weex
             { "subMessageHashes", subHashes },
             { "topic", "orderbook" },
         };
-        return await this.subscribePublic(unSubHashes, channels, isContract, paramsDepth, subscription);
+        return await this.subscribePublic<object>(unSubHashes, channels, isContract, paramsDepth, subscription);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -1126,7 +1126,7 @@ public partial class weex : ccxt.weex
             messageHashes.Add(messageHash);
             channels.Add(channelName);
         }
-        object newTicker = await this.subscribePublic(messageHashes, channels, false, parameters);
+        object newTicker = await this.subscribePublic<object>(messageHashes, channels, false, parameters);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1184,7 +1184,7 @@ public partial class weex : ccxt.weex
             { "subMessageHashes", subHashes },
             { "topic", "bidsasks" },
         };
-        return await this.subscribePublic(unSubHashes, channels, false, parameters, subscription);
+        return await this.subscribePublic<object>(unSubHashes, channels, false, parameters, subscription);
     }
 
     public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
@@ -1277,13 +1277,13 @@ public partial class weex : ccxt.weex
             messageHash = messageHash + ("::" + symbolResolved);
         }
         string channel = "fill";
-        object trades = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        ccxt.pro.ArrayCache trades = await this.subscribePrivate<ccxt.pro.ArrayCache>(messageHash, subscriptionHash, channel, isContract, paramsMarketType);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -1322,7 +1322,7 @@ public partial class weex : ccxt.weex
             { "topic", "myTrades" },
             { "subHashIsPrefix", true },
         };
-        return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
+        return await this.subscribePrivate<object>(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -1516,13 +1516,13 @@ public partial class weex : ccxt.weex
             messageHash = messageHash + ("::" + symbolResolved);
         }
         string channel = "orders";
-        object orders = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        ccxt.pro.ArrayCache orders = await this.subscribePrivate<ccxt.pro.ArrayCache>(messageHash, subscriptionHash, channel, isContract, paramsMarketType);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -1560,7 +1560,7 @@ public partial class weex : ccxt.weex
             { "topic", "orders" },
             { "subHashIsPrefix", true },
         };
-        return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
+        return await this.subscribePrivate<object>(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -1848,7 +1848,7 @@ public partial class weex : ccxt.weex
         {
             await client.future((type + ":fetchBalanceSnapshot"));
         }
-        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate((type + ":balance"), type, "account", isContract, paramsMarketType));
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate<object>((type + ":balance"), type, "account", isContract, paramsMarketType));
     }
 
     public virtual void setBalanceCache(WebSocketClient client, string type)
@@ -2017,7 +2017,7 @@ public partial class weex : ccxt.weex
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
-        object newPositions = await this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters);
+        object newPositions = await this.subscribePrivate<object>(messageHash, subscriptionHash, channel, true, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -2085,7 +2085,7 @@ public partial class weex : ccxt.weex
             { "topic", "positions" },
             { "subHashIsPrefix", true },
         };
-        return await this.subscribePrivate(unSubHash, unSubHash, channel, true, parameters, subscription);
+        return await this.subscribePrivate<object>(unSubHash, unSubHash, channel, true, parameters, subscription);
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)

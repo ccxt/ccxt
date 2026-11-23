@@ -1587,7 +1587,7 @@ public partial class phemex : Exchange
         {
             return amount;
         }
-        return this.toEn(amount, this.safeInteger(market, "valueScale"));
+        return this.toEn(amount, this.safeInteger(this.safeDict(market, "info"), "valueScale"));
     }
 
     public virtual object toEp(object price, IDictionary<string, object> market = null)
@@ -1596,7 +1596,7 @@ public partial class phemex : Exchange
         {
             return price;
         }
-        return this.toEn(price, this.safeInteger(market, "priceScale"));
+        return this.toEn(price, this.safeInteger(this.safeDict(market, "info"), "priceScale"));
     }
 
     public virtual string? fromEn(object en, object scale)
@@ -1617,7 +1617,7 @@ public partial class phemex : Exchange
         {
             return ((string?)((object)(ep)));
         }
-        return ((string?)((object)(this.fromEn(ep, this.safeInteger(market, "priceScale")))));
+        return ((string?)((object)(this.fromEn(ep, this.safeInteger(this.safeDict(market, "info"), "priceScale")))));
     }
 
     public virtual string? fromEv(object ev, object market = null)
@@ -1626,7 +1626,7 @@ public partial class phemex : Exchange
         {
             return ((string?)((object)(ev)));
         }
-        return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
+        return ((string?)((object)(this.fromEn(ev, this.safeInteger(this.safeDict(market, "info"), "valueScale")))));
     }
 
     public virtual string? fromEr(object er, IDictionary<string, object> market = null)
@@ -1635,7 +1635,7 @@ public partial class phemex : Exchange
         {
             return ((string?)((object)(er)));
         }
-        return ((string?)((object)(this.fromEn(er, this.safeInteger(market, "ratioScale")))));
+        return ((string?)((object)(this.fromEn(er, this.safeInteger(this.safeDict(market, "info"), "ratioScale")))));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
@@ -3668,9 +3668,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList170884))
+        if ((data is IList<object> hxList171004))
         {
-            int numOrders = hxList170884.Count;
+            int numOrders = hxList171004.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))

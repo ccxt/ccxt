@@ -3873,7 +3873,7 @@ public partial class deribit : Exchange
         List<object> result = this.safeList(response, "result", new List<object>() {});
         for (int i = 0; i < result.Count; i++)
         {
-            IDictionary<string, object> fr = this.safeDict(result, i);
+            IDictionary<string, object> fr = this.safeDict(result, i, new Dictionary<string, object>() {});
             Dictionary<string, object> rate = this.parseFundingRate(fr, market);
             rates.Add(rate);
         }

@@ -1106,7 +1106,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the iserver/auth/status response
      */
-    public async virtual Task<Dictionary<string, object>> ibkrGatewaySignIn(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> ibkrGatewaySignIn(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.webapiPostV1ApiIserverAuthStatus(parameters);
@@ -1182,7 +1182,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the last iserver/auth/status response
      */
-    public async virtual Task<Dictionary<string, object>> ibkrGatewayRegainSession(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> ibkrGatewayRegainSession(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> initRequest = this.safeDict(this.options, "signInInitRequest", new Dictionary<string, object>() {});
@@ -1794,13 +1794,13 @@ public partial class interactivebrokers : Exchange
      * @param {object[]} markets parsed markets
      * @returns {object[]} the markets with unique symbols
      */
-    public virtual List<object> ibkrDisambiguateContractSymbols(object markets)
+    public virtual List<object> ibkrDisambiguateContractSymbols(IList<object> markets)
     {
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); i++)
+        for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, getValue(markets, i));
+            Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, (markets != null && i < markets.Count ? markets[i] : null));
             string symbol = this.safeString(market, "symbol");
             bool? isContract = this.safeBool(market, "contract", false);
             if ((((symbol != null) && (seen?.ContainsKey(symbol) == true))) && (isContract == true))
@@ -1896,7 +1896,7 @@ public partial class interactivebrokers : Exchange
         return entries;
     }
 
-    public async virtual Task<object> fetchForexMarkets(object parameters = null)
+    public async virtual Task<object> fetchForexMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -1931,7 +1931,7 @@ public partial class interactivebrokers : Exchange
         return this.parseMarkets(detailMarkets);
     }
 
-    public async virtual Task<object> fetchCryptoMarkets(object parameters = null)
+    public async virtual Task<object> fetchCryptoMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -1951,10 +1951,10 @@ public partial class interactivebrokers : Exchange
         List<object> neededSecTypes = new List<object>() {"CRYPTO"}; // CFD, OPT - they should already be fetched in other calls
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object result = results[i];
-            for (int j = 0; j < getArrayLength(result); j++)
+            List<object> result = this.safeList(results, i, new List<object>() {});
+            for (int j = 0; j < result.Count; j++)
             {
-                object entry = getValue(result, j);
+                object entry = result[j];
                 List<object> sections = this.safeList(entry, "sections", new List<object>() {});
                 for (int k = 0; k < sections.Count; k++)
                 {
@@ -2043,7 +2043,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<List<object>> fetchFuturesAndSwapMarkets(object parameters = null)
+    public async virtual Task<List<object>> fetchFuturesAndSwapMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
@@ -2132,7 +2132,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchCfdMarkets(object parameters = null)
+    public async virtual Task<object> fetchCfdMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -2150,10 +2150,10 @@ public partial class interactivebrokers : Exchange
         List<object> responses = await promiseAll(promises);
         for (int i = 0; i < (responses?.Count ?? 0); i++)
         {
-            object cfds = responses[i];
-            for (int j = 0; j < getArrayLength(cfds); j++)
+            List<object> cfds = this.safeList(responses, i, new List<object>() {});
+            for (int j = 0; j < cfds.Count; j++)
             {
-                object cfd = getValue(cfds, j);
+                object cfd = cfds[j];
                 string conid = this.safeString(cfd, "conid");
                 entries[(string)conid] = cfd;
             }
@@ -2189,7 +2189,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<List<object>> fetchBondMarkets(object parameters = null)
+    public async virtual Task<List<object>> fetchBondMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -2219,10 +2219,10 @@ public partial class interactivebrokers : Exchange
         List<object> contractPromises = new List<object>() {};
         for (int i = 0; i < (searchResults?.Count ?? 0); i++)
         {
-            object searchResult = searchResults[i];
-            for (int j = 0; j < getArrayLength(searchResult); j++)
+            List<object> searchResult = this.safeList(searchResults, i, new List<object>() {});
+            for (int j = 0; j < searchResult.Count; j++)
             {
-                List<object> issuers = this.safeList(getValue(searchResult, j), "issuers", new List<object>() {});
+                List<object> issuers = this.safeList(searchResult[j], "issuers", new List<object>() {});
                 for (int k = 0; k < issuers.Count; k++)
                 {
                     Dictionary<string, object> contractsRequest = new Dictionary<string, object>() {
@@ -2262,10 +2262,10 @@ public partial class interactivebrokers : Exchange
         //
         for (int i = 0; i < (contractResults?.Count ?? 0); i++)
         {
-            object contracts = contractResults[i];
-            for (int j = 0; j < getArrayLength(contracts); j++)
+            List<object> contracts = this.safeList(contractResults, i, new List<object>() {});
+            for (int j = 0; j < contracts.Count; j++)
             {
-                object contract = getValue(contracts, j);
+                object contract = contracts[j];
                 string? conid = this.safeString(contract, "conid");
                 if ((conid != null))
                 {
@@ -2302,7 +2302,7 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchStockMarkets(object parameters = null)
+    public async virtual Task<object> fetchStockMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -3324,7 +3324,7 @@ public partial class interactivebrokers : Exchange
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
      * @returns {object[]} the raw response from the exchange
      */
-    public async virtual Task<List<object>> fetchPortfolioAccounts(object parameters = null)
+    public async virtual Task<List<object>> fetchPortfolioAccounts(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -3899,7 +3899,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrdersByStatusFilter(string status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrdersByStatusFilter(string status, object symbol = null, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -4580,14 +4580,14 @@ public partial class interactivebrokers : Exchange
         return ((string?)((object)(((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length))))));  // strip the 'v=' prefix
     }
 
-    public virtual string? ibkrBaseString(object method, string url, object parameters, object prepend = null)
+    public virtual string? ibkrBaseString(object method, string url, IDictionary<string, object> parameters, object prepend = null)
     {
         prepend ??= "";
         string query = this.rawencode(this.keysort(parameters));
         return ((string?)((object)(add(add(add(add(add(prepend, method), "&"), this.ibkrEncrypt(url)), "&"), this.ibkrEncrypt(query)))));
     }
 
-    public virtual string? ibkrAuthHeader(object parameters)
+    public virtual string? ibkrAuthHeader(IDictionary<string, object> parameters)
     {
         Dictionary<string, object> sorted = this.keysort(parameters);
         List<object> keys = new List<object>(sorted.Keys);
@@ -4602,7 +4602,7 @@ public partial class interactivebrokers : Exchange
         return ((("OAuth realm=\"" + realm) + "\", ") + String.Join(", ", parts.ToArray()));
     }
 
-    public virtual object ibkrOauthBase(object consumerKey, string consumerAccessToken)
+    public virtual Dictionary<string, object> ibkrOauthBase(object consumerKey, string consumerAccessToken)
     {
         return new Dictionary<string, object>() {
             { "oauth_consumer_key", consumerKey },
@@ -4778,7 +4778,7 @@ public partial class interactivebrokers : Exchange
             };
         }
         this.ibkrCheckOauthCredentials();
-        Dictionary<string, object> oauthParams = ((Dictionary<string, object>)this.ibkrOauthBase((this.options != null && this.options.ContainsKey("consumer_key") ? this.options["consumer_key"] : null), this.apiKey));
+        Dictionary<string, object> oauthParams = this.ibkrOauthBase((this.options != null && this.options.ContainsKey("consumer_key") ? this.options["consumer_key"] : null), this.apiKey);
         if (isLiveSessionTokenRequest)
         {
             // the live session token request is signed with RSA-SHA256,

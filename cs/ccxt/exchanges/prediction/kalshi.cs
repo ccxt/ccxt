@@ -2851,14 +2851,14 @@ public partial class kalshi : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSeriesEvents(IList<object> seriesTickers, object status, Int64 limit, IDictionary<string, object>? rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSeriesEvents(IList<object> seriesTickers, object status, Int64? limit, IDictionary<string, object>? rest = null)
     {
         rest ??= new Dictionary<string, object>();
         List<object> rawEvents = new List<object>() {};
         int seriesTickersLength = seriesTickers?.Count ?? 0;
         Int64? pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 200));
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
-        bool hasLimit = (!(((object)(limit)) == null));
+        bool hasLimit = (!(limit == null));
         object limitOrZero = hasLimit ? limit : 0;
         Int64? limitValue = this.parseToInt(limitOrZero);
         for (int si = 0; si < seriesTickersLength; si++)

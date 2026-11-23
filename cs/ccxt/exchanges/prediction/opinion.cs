@@ -1366,7 +1366,7 @@ public partial class opinion : PredictionExchange
             { "filled", this.safeNumber(order, "filledShares") },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, ((object)market));
+        }, market);
     }
 
     /**
@@ -1947,7 +1947,7 @@ public partial class opinion : PredictionExchange
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public async virtual Task<T> subscribeOpinionChannel<T>(string? messageHash, string channel, object marketId)
+    public async virtual Task<T> subscribeOpinionChannel<T>(string? messageHash, string channel, Int64? marketId)
     {
         await this.loadApiKey();
         string? url = this.opinionWsUrl();

@@ -2768,7 +2768,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, double amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

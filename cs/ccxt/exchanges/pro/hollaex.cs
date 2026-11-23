@@ -506,7 +506,7 @@ public partial class hollaex : ccxt.hollaex
         client.resolve(this.balance, messageHash);
     }
 
-    public async virtual Task<object> watchPublic(string messageHash, object parameters = null)
+    public async virtual Task<object> watchPublic(string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -518,7 +518,7 @@ public partial class hollaex : ccxt.hollaex
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

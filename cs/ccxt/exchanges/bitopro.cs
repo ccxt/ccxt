@@ -1011,7 +1011,7 @@ public partial class bitopro : Exchange
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        int length = candles?.Count ?? 0;
+        int length = (candles?.Count ?? 0);
         if ((length == 0))
         {
             return candles;
@@ -1028,7 +1028,7 @@ public partial class bitopro : Exchange
             timestamp = since;
         }
         Int64 i = 0;
-        int candleLength = candles?.Count ?? 0;
+        int candleLength = (candles?.Count ?? 0);
         Int64 resultLength = 0;
         while ((resultLength < limit) && (i < candleLength))
         {

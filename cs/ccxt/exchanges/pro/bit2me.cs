@@ -49,7 +49,7 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the resolved value of the subscription
      */
-    public async virtual Task<object> subscribePublic(string name, object symbol, string messageHash, object parameters = null)
+    public async virtual Task<object> subscribePublic(string name, object symbol, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

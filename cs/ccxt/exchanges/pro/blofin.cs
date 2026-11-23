@@ -107,15 +107,15 @@ public partial class blofin : ccxt.blofin
         {
             await this.loadMarkets();
         }
-        object trades = await this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters);
+        ccxt.pro.ArrayCache trades = await this.watchMultipleWrapper<ccxt.pro.ArrayCache>(true, "trades", "watchTradesForSymbols", symbols, parameters);
         IDictionary<string, object> firstMarket = this.safeDict(trades, 0);
         string? firstSymbol = this.safeString(firstMarket, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, firstSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(firstSymbol, limit));
         }
-        IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
@@ -243,7 +243,7 @@ public partial class blofin : ccxt.blofin
         {
             throw new NotSupported ((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, paramsChannel));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper<object>(true, channelName, callerMethodName, symbols, paramsChannel));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -335,7 +335,7 @@ public partial class blofin : ccxt.blofin
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of symbols")) ;
         }
-        object ticker = await this.watchMultipleWrapper(true, "tickers", "watchTickers", symbols, parameters);
+        object ticker = await this.watchMultipleWrapper<object>(true, "tickers", "watchTickers", symbols, parameters);
         if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
@@ -507,7 +507,7 @@ public partial class blofin : ccxt.blofin
         {
             await this.loadMarkets();
         }
-        object result = await this.watchMultipleWrapper(true, "candle", "watchOHLCVForSymbols", symbolsAndTimeframes, parameters);
+        object result = await this.watchMultipleWrapper<object>(true, "candle", "watchOHLCVForSymbols", symbolsAndTimeframes, parameters);
         string? symbol = this.safeString(result, 0, "");
         string? timeframe = this.safeString(result, 1, "");
         object candles = this.safeValue(result, 2);
@@ -552,7 +552,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr24496 && ((hxArr24496 is IList<object>) || (hxArr24496.GetType().IsGenericType && hxArr24496.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr24508 && ((hxArr24508 is IList<object>) || (hxArr24508.GetType().IsGenericType && hxArr24508.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -730,7 +730,7 @@ public partial class blofin : ccxt.blofin
         {
             channel = "orders-algo";
         }
-        object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted);
+        object orders = await this.watchMultipleWrapper<object>(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted);
         // every symbol shares one orders cache, so filter by the requested symbols and count
         // per symbol only when exactly one is requested
         IList<object> requestedSymbols = null;
@@ -836,7 +836,7 @@ public partial class blofin : ccxt.blofin
         {
             await this.loadMarkets();
         }
-        object newPositions = await this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters);
+        object newPositions = await this.watchMultipleWrapper<object>(false, "positions", "watchPositions", symbols, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -932,7 +932,7 @@ public partial class blofin : ccxt.blofin
         client.resolve(fundingRate, messageHash);
     }
 
-    public async virtual Task<object> watchMultipleWrapper(bool? isPublic, object channelName, object callerMethodName, object symbolsArray = null, object parameters = null)
+    public async virtual Task<T> watchMultipleWrapper<T>(bool? isPublic, object channelName, object callerMethodName, object symbolsArray = null, object parameters = null)
     {
         // underlier method for all watch-multiple symbols
         parameters ??= new Dictionary<string, object>();
@@ -1009,7 +1009,7 @@ public partial class blofin : ccxt.blofin
         }
         IDictionary<string, object> typeUrls = this.safeDict((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType, new Dictionary<string, object>() {});
         string? url = this.safeString(typeUrls, privateOrPublic);
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
+        return await this.watchMultiple<T>(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 
     public async virtual Task<object> unsubscribeMultipleWrapper(string channelName, string callerMethodName, IList<object> symbolsArray, IDictionary<string, object> parameters = null)

@@ -1098,7 +1098,7 @@ public partial class pacifica : Exchange
         }
     }
 
-    public virtual object parseLeverageFromSetting(string? symbol, IDictionary<string, object> setting)
+    public virtual Dictionary<string, object> parseLeverageFromSetting(string? symbol, IDictionary<string, object> setting)
     {
         // {
         //   "WLFI/USDC:USDC": {
@@ -1125,7 +1125,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public virtual object parseLeverageFromMarket(IDictionary<string, object> market)
+    public virtual Dictionary<string, object> parseLeverageFromMarket(IDictionary<string, object> market)
     {
         IDictionary<string, object> marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
         IDictionary<string, object> leverageLimits = this.safeDict(marketLimits, "leverage", new Dictionary<string, object>() {});
@@ -1255,7 +1255,7 @@ public partial class pacifica : Exchange
         }
     }
 
-    public virtual object parseMarginModeFromSetting(string? symbol, IDictionary<string, object> setting)
+    public virtual Dictionary<string, object> parseMarginModeFromSetting(string? symbol, IDictionary<string, object> setting)
     {
         // {
         //       "symbol": "WLFI",
@@ -1990,7 +1990,7 @@ public partial class pacifica : Exchange
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        int lenActions = actions?.Count ?? 0;
+        int lenActions = (actions?.Count ?? 0);
         object maxLenOption = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if ((maxLenOption != null))
         {

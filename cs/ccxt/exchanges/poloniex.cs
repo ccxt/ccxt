@@ -3302,7 +3302,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object prepared = this.prepareRequestForDepositAddress(code, parameters);
+        Dictionary<string, object> prepared = this.prepareRequestForDepositAddress(code, parameters);
         IDictionary<string, object> request = this.safeDict(prepared, "request");
         IDictionary<string, object> paramsValue = this.safeDict(prepared, "query");
         Dictionary<string, object> currency = this.currency(code);
@@ -3329,7 +3329,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object prepared = this.prepareRequestForDepositAddress(code, parameters);
+        Dictionary<string, object> prepared = this.prepareRequestForDepositAddress(code, parameters);
         IDictionary<string, object> request = this.safeDict(prepared, "request");
         IDictionary<string, object> paramsValue = this.safeDict(prepared, "query");
         Dictionary<string, object> currency = this.currency(code);
@@ -3349,7 +3349,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddressSpecial(response, currency, networkEntry));
     }
 
-    public virtual object prepareRequestForDepositAddress(string code, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> prepareRequestForDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!((this.currenciesDict != null && code != null && this.currenciesDict.ContainsKey(code))))
@@ -3387,7 +3387,7 @@ public partial class poloniex : Exchange
         };
     }
 
-    public virtual object parseDepositAddressSpecial(IDictionary<string, object> response, IDictionary<string, object> currency, IDictionary<string, object> networkEntry)
+    public virtual Dictionary<string, object> parseDepositAddressSpecial(IDictionary<string, object> response, IDictionary<string, object> currency, IDictionary<string, object> networkEntry)
     {
         string? address = this.safeString(response, "address");
         if ((address == null))
@@ -4413,7 +4413,7 @@ public partial class poloniex : Exchange
         });
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

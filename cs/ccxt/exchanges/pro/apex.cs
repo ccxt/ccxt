@@ -258,7 +258,7 @@ public partial class apex : ccxt.apex
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
+    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, IDictionary<string, object>? parameters = null)
     {
         // apex's server rejects a subscribe whose args include any
         // already-subscribed topic ("topic:already subscribed ..."). Since the

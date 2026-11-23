@@ -3941,7 +3941,7 @@ public partial class bitget : Exchange
         string? category = this.safeString(market, "category");
         if ((category != null))
         {
-            IDictionary<string, object> utaMarket = ((IDictionary<string, object>)this.parseUtaMarket(market, stock));
+            Dictionary<string, object> utaMarket = this.parseUtaMarket(market, stock);
             return this.safeMarketStructure(this.extend(new Dictionary<string, object>() {}, utaMarket));
         }
         string? marketId = this.safeString(market, "symbol");
@@ -4254,7 +4254,7 @@ public partial class bitget : Exchange
      * @param {boolean} stock whether the instrument has a stock underlying
      * @returns {object} a unified market
      */
-    public virtual object parseUtaMarket(object market, bool? stock)
+    public virtual Dictionary<string, object> parseUtaMarket(object market, bool? stock)
     {
         string? category = this.safeString(market, "category");
         string? marketId = this.safeString(market, "symbol");
@@ -8029,7 +8029,7 @@ public partial class bitget : Exchange
         return this.extend(request, paramsProductType);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -8096,7 +8096,7 @@ public partial class bitget : Exchange
         }
         if ((type == "limit"))
         {
-            request["price"] = this.priceToPrecision(((string)symbol), price);
+            request["price"] = this.priceToPrecision(symbol, price);
         }
         string? triggerPriceType = this.safeString2(paramsMarketType, "triggerPriceType", "triggerType", "mark_price");
         bool? reduceOnly = this.safeBool(paramsMarketType, "reduceOnly", false);
@@ -8131,7 +8131,7 @@ public partial class bitget : Exchange
         if ((marketType == "swap") || (marketType == "future"))
         {
             request["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
-            request["size"] = this.amountToPrecision(((string)symbol), amount);
+            request["size"] = this.amountToPrecision(symbol, amount);
             string? productType = null;
             IList<object> productTypeparamsMarketTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarketType);
             productType = (string)productTypeparamsMarketTypeVariable[0];
@@ -8156,31 +8156,31 @@ public partial class bitget : Exchange
                     throw new ArgumentsRequired ((this.id + " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
                 }
                 request["planType"] = "track_plan";
-                request["triggerPrice"] = this.priceToPrecision(((string)symbol), trailingTriggerPrice);
+                request["triggerPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
                 request["callbackRatio"] = trailingPercent;
             } else if (isTriggerOrder)
             {
                 request["planType"] = "normal_plan";
-                request["triggerPrice"] = this.priceToPrecision(((string)symbol), triggerPrice);
+                request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
                 if ((price != null))
                 {
-                    request["executePrice"] = this.priceToPrecision(((string)symbol), price);
+                    request["executePrice"] = this.priceToPrecision(symbol, price);
                 }
                 if (hasStopLoss)
                 {
                     string? slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
-                    request["stopLossTriggerPrice"] = this.priceToPrecision(((string)symbol), slTriggerPrice);
+                    request["stopLossTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                     string? slPrice = this.safeString(stopLoss, "price");
-                    request["stopLossExecutePrice"] = this.priceToPrecision(((string)symbol), slPrice);
+                    request["stopLossExecutePrice"] = this.priceToPrecision(symbol, slPrice);
                     string? slType = this.safeString(stopLoss, "type", "mark_price");
                     request["stopLossTriggerType"] = slType;
                 }
                 if (hasTakeProfit)
                 {
                     string? tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
-                    request["stopSurplusTriggerPrice"] = this.priceToPrecision(((string)symbol), tpTriggerPrice);
+                    request["stopSurplusTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
                     string? tpPrice = this.safeString(takeProfit, "price");
-                    request["stopSurplusExecutePrice"] = this.priceToPrecision(((string)symbol), tpPrice);
+                    request["stopSurplusExecutePrice"] = this.priceToPrecision(symbol, tpPrice);
                     string? tpType = this.safeString(takeProfit, "type", "mark_price");
                     request["stopSurplusTriggerType"] = tpType;
                 }
@@ -8188,7 +8188,7 @@ public partial class bitget : Exchange
             {
                 if ((price != null))
                 {
-                    request["executePrice"] = this.priceToPrecision(((string)symbol), price);
+                    request["executePrice"] = this.priceToPrecision(symbol, price);
                     if (request.ContainsKey("price"))
                     {
                         request.Remove("price");
@@ -8203,11 +8203,11 @@ public partial class bitget : Exchange
                 }
                 if (isStopLossTriggerOrder)
                 {
-                    request["triggerPrice"] = this.priceToPrecision(((string)symbol), stopLossTriggerPrice);
+                    request["triggerPrice"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                     request["planType"] = "pos_loss";
                 } else if (isTakeProfitTriggerOrder)
                 {
-                    request["triggerPrice"] = this.priceToPrecision(((string)symbol), takeProfitTriggerPrice);
+                    request["triggerPrice"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                     request["planType"] = "pos_profit";
                 }
             } else
@@ -8219,13 +8219,13 @@ public partial class bitget : Exchange
                     {
                         throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
-                    request["presetStopLossPrice"] = this.priceToPrecision(((string)symbol), slTriggerPrice);
+                    request["presetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                     double? slLimitPrice = this.safeNumber(stopLoss, "price");
                     if ((slLimitPrice != null))
                     {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
-                        request["presetStopLossExecutePrice"] = this.priceToPrecision(((string)symbol), slLimitPrice);
+                        request["presetStopLossExecutePrice"] = this.priceToPrecision(symbol, slLimitPrice);
                     }
                 }
                 if (hasTakeProfit)
@@ -8235,11 +8235,11 @@ public partial class bitget : Exchange
                     {
                         throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
-                    request["presetStopSurplusPrice"] = this.priceToPrecision(((string)symbol), tpTriggerPrice);
+                    request["presetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
                     double? tpLimitPrice = this.safeNumber(takeProfit, "price");
                     if ((tpLimitPrice != null))
                     {
-                        request["presetStopSurplusExecutePrice"] = this.priceToPrecision(((string)symbol), tpLimitPrice);
+                        request["presetStopSurplusExecutePrice"] = this.priceToPrecision(symbol, tpLimitPrice);
                     }
                 }
             }
@@ -8292,7 +8292,7 @@ public partial class bitget : Exchange
                 paramsMarketType = this.omit(paramsMarketType, "cost");
                 if ((cost != null))
                 {
-                    quantity = this.costToPrecision(((string)symbol), cost);
+                    quantity = this.costToPrecision(symbol, cost);
                 } else if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if ((price == null))
@@ -8303,16 +8303,16 @@ public partial class bitget : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         string? quoteAmount = Precise.stringMul(amountString, priceString);
-                        quantity = this.costToPrecision(((string)symbol), quoteAmount);
+                        quantity = this.costToPrecision(symbol, quoteAmount);
                     }
                 } else
                 {
-                    quantity = this.costToPrecision(((string)symbol), amount);
+                    quantity = this.costToPrecision(symbol, amount);
                 }
             } else
             {
                 planType = "amount";
-                quantity = this.amountToPrecision(((string)symbol), amount);
+                quantity = this.amountToPrecision(symbol, amount);
             }
             if ((clientOrderId != null))
             {
@@ -8338,10 +8338,10 @@ public partial class bitget : Exchange
                 {
                     request["planType"] = planType;
                     request["triggerType"] = triggerPriceType;
-                    request["triggerPrice"] = this.priceToPrecision(((string)symbol), triggerPrice);
+                    request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
                     if ((price != null))
                     {
-                        request["executePrice"] = this.priceToPrecision(((string)symbol), price);
+                        request["executePrice"] = this.priceToPrecision(symbol, price);
                     }
                 }
             }
@@ -12087,7 +12087,7 @@ public partial class bitget : Exchange
             }
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate((data != null && 0 < data.Count ? data[0] : null), market));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(this.safeDict(data, 0, new Dictionary<string, object>() {}), market));
     }
 
     /**
@@ -12400,7 +12400,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(bills, market, since, limit));
     }
 
-    public virtual object parseFundingHistory(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseFundingHistory(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -12451,7 +12451,7 @@ public partial class bitget : Exchange
             // if (business !== 'contract_settle_fee') {
             //     continue;
             // }
-            IDictionary<string, object> parsedFunding = ((IDictionary<string, object>)this.parseFundingHistory(contract, market));
+            Dictionary<string, object> parsedFunding = this.parseFundingHistory(contract, market);
             result.Add(parsedFunding);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -12463,7 +12463,7 @@ public partial class bitget : Exchange
         return ((IList<object>)((object)(this.filterBySymbolSinceLimit(sorted, symbol, since, limit))));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

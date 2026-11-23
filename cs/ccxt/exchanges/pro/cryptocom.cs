@@ -169,7 +169,7 @@ public partial class cryptocom : ccxt.cryptocom
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             topics.Add(((("book." + this.safeString(market, "id", "")) + ".") + limitString));
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple(messageHashes, topics, paramsWithFrequency));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple<object>(messageHashes, topics, paramsWithFrequency));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -412,15 +412,15 @@ public partial class cryptocom : ccxt.cryptocom
             Dictionary<string, object> market = this.market(symbol);
             topics.Add(("trade." + this.safeString(market, "id", "")));
         }
-        object trades = await this.watchPublicMultiple(topics, topics, parameters);
+        ccxt.pro.ArrayCache trades = await this.watchPublicMultiple<ccxt.pro.ArrayCache>(topics, topics, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -541,13 +541,13 @@ public partial class cryptocom : ccxt.cryptocom
         {
             messageHash = ("user.trade." + this.safeString(market, "id", ""));
         }
-        object trades = await this.watchPrivateSubscribe(messageHash, parameters);
+        ccxt.pro.ArrayCache trades = await this.watchPrivateSubscribe<ccxt.pro.ArrayCache>(messageHash, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -567,7 +567,7 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        return ccxt.BaseExchange.ToTicker(await this.watchPublic(("ticker." + this.safeString(market, "id", "")), parameters));
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic<object>(("ticker." + this.safeString(market, "id", "")), parameters));
     }
 
     /**
@@ -861,13 +861,13 @@ public partial class cryptocom : ccxt.cryptocom
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object ohlcv = await this.watchPublic(((("candlestick." + interval) + ".") + this.safeString(market, "id", "")), parameters);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.watchPublic<ccxt.pro.ArrayCacheByTimestamp>(((("candlestick." + interval) + ".") + this.safeString(market, "id", "")), parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = ((Int64?)ohlcv.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -968,13 +968,13 @@ public partial class cryptocom : ccxt.cryptocom
         {
             messageHash = ("user.order." + this.safeString(market, "id", ""));
         }
-        object orders = await this.watchPrivateSubscribe(messageHash, parameters);
+        ccxt.pro.ArrayCache orders = await this.watchPrivateSubscribe<ccxt.pro.ArrayCache>(messageHash, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
@@ -1200,7 +1200,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         string messageHash = "user.balance";
-        return ccxt.BaseExchange.ToBalances(await this.watchPrivateSubscribe(messageHash, parameters));
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivateSubscribe<object>(messageHash, parameters));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -1427,7 +1427,7 @@ public partial class cryptocom : ccxt.cryptocom
         client.resolve(message, messageHash);
     }
 
-    public async virtual Task<object> watchPublic(string messageHash, object parameters = null)
+    public async virtual Task<T> watchPublic<T>(string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
@@ -1440,10 +1440,10 @@ public partial class cryptocom : ccxt.cryptocom
             { "nonce", id },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch<T>(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPublicMultiple(object messageHashes, object topics, object parameters = null)
+    public async virtual Task<T> watchPublicMultiple<T>(object messageHashes, object topics, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
@@ -1455,7 +1455,7 @@ public partial class cryptocom : ccxt.cryptocom
             } },
             { "nonce", id },
         };
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        return await this.watchMultiple<T>(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
     public async virtual Task<object> unWatchPublicMultiple(string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
@@ -1495,7 +1495,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watch(url, this.numberToString(nonce), message, true);
     }
 
-    public async virtual Task<object> watchPrivateSubscribe(string? messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> watchPrivateSubscribe<T>(string? messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -1509,7 +1509,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "nonce", id },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch<T>(url, messageHash, message, messageHash);
     }
 
     public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)

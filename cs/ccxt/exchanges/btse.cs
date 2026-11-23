@@ -2100,7 +2100,7 @@ public partial class btse : Exchange
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, double amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2343,7 +2343,7 @@ public partial class btse : Exchange
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

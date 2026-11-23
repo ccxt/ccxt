@@ -970,7 +970,7 @@ public partial class hibachi : Exchange
         return message;
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object nonce, string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object nonce, string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1120,7 +1120,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToOrderList(ret);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(object nonce, object id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(object nonce, string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

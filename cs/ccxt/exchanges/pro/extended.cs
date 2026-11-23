@@ -151,7 +151,7 @@ public partial class extended : ccxt.extended
         }
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, object subscription = null)
+    public async virtual Task<T> watchPrivate<T>(string messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
         string url = (this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "") + "/account");
@@ -177,7 +177,7 @@ public partial class extended : ccxt.extended
             this.client(url);
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = originalOptions;
         }
-        return await this.watch(url, messageHash, null, messageHash, subscription);
+        return await this.watch<T>(url, messageHash, null, messageHash, subscription);
     }
 
     /**
@@ -206,16 +206,16 @@ public partial class extended : ccxt.extended
             symbolResolved = this.safeString(market, "symbol", "");
             messageHash = ("orders:" + this.safeString(market, "symbol", ""));
         }
-        object orders = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
+        ccxt.pro.ArrayCache orders = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, new Dictionary<string, object>() {
             { "symbol", symbolResolved },
             { "limit", limit },
         });
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -233,7 +233,7 @@ public partial class extended : ccxt.extended
         {
             await this.loadMarkets();
         }
-        return ccxt.BaseExchange.ToBalances(await this.watchPrivate("balance", parameters));
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate<object>("balance", parameters));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -334,16 +334,16 @@ public partial class extended : ccxt.extended
             symbolResolved = this.safeString(market, "symbol", "");
             messageHash = ("myTrades:" + this.safeString(market, "symbol", ""));
         }
-        object trades = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
+        ccxt.pro.ArrayCache trades = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, new Dictionary<string, object>() {
             { "symbol", symbolResolved },
             { "limit", limit },
         });
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -438,7 +438,7 @@ public partial class extended : ccxt.extended
         {
             messageHash = messageHash + ("::" + String.Join(",", symbolsNormalized.ToArray()));
         }
-        object positions = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
+        object positions = await this.watchPrivate<object>(messageHash, new Dictionary<string, object>() {
             { "symbols", symbolsNormalized },
             { "limit", limit },
         });

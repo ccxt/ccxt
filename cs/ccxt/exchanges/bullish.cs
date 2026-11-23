@@ -2882,12 +2882,12 @@ public partial class bullish : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rows, i);

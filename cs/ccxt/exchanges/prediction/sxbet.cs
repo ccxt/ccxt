@@ -1203,7 +1203,7 @@ public partial class sxbet : PredictionExchange
             }
         }
         Int64 now = this.milliseconds();
-        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", this.safeString2(first, "orderId", "orderHash") },             { "clientOrderId", this.safeString(first, "clientOrderId", clientOrderId) },             { "info", response },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "status", orderStatus },             { "filled", filled },             { "remaining", remaining },             { "cost", filled },             { "outcome", this.safeString(outcomeObj, "outcome") },             { "outcomeId", outcomeId },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "timeInForce", timeInForce },             { "side", side },             { "price", this.parseNumber(roundedProbability) },             { "amount", amount },             { "fee", null },             { "trades", new List<object>() {} },         }, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", this.safeString2(first, "orderId", "orderHash") },             { "clientOrderId", this.safeString(first, "clientOrderId", clientOrderId) },             { "info", response },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "status", orderStatus },             { "filled", filled },             { "remaining", remaining },             { "cost", filled },             { "outcome", this.safeString(outcomeObj, "outcome") },             { "outcomeId", outcomeId },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "timeInForce", timeInForce },             { "side", side },             { "price", this.parseNumber(roundedProbability) },             { "amount", amount },             { "fee", null },             { "trades", new List<object>() {} },         }, outcomeObj));
     }
 
     /**
@@ -2091,7 +2091,7 @@ public partial class sxbet : PredictionExchange
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
         IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
-        IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
+        Dictionary<string, object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
         return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, outcomeObj));
     }
 
@@ -2124,7 +2124,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} snapshot the raw snapshot data
      * @returns {object} the best-odds shaped dict
      */
-    public virtual object parseSxbetSnapshotBestOdds(IDictionary<string, object> snapshot)
+    public virtual Dictionary<string, object> parseSxbetSnapshotBestOdds(IDictionary<string, object> snapshot)
     {
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
         List<object> oneLevels = this.safeList(snapshot, "outcomeOne", new List<object>() {});
@@ -2349,7 +2349,7 @@ public partial class sxbet : PredictionExchange
         };
         Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters));
         IDictionary<string, object> snapshot = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> sides = ((IDictionary<string, object>)this.parseSxbetV3BookSides(snapshot, isOutcomeOne));
+        Dictionary<string, object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
         IList<object> sortedBids = this.safeList(sides, "bids", new List<object>() {});
         IList<object> sortedAsks = this.safeList(sides, "asks", new List<object>() {});
         if ((limit != null))
@@ -2378,7 +2378,7 @@ public partial class sxbet : PredictionExchange
      * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
-    public virtual object parseSxbetV3BookSides(object snapshot, bool isOutcomeOne)
+    public virtual Dictionary<string, object> parseSxbetV3BookSides(object snapshot, bool isOutcomeOne)
     {
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
@@ -2746,7 +2746,7 @@ public partial class sxbet : PredictionExchange
             IDictionary<string, object> outcomeObj = this.outcome(sym);
             string? outcomeId = this.safeString(outcomeObj, "outcomeId");
             bool isOutcomeOne = ((outcomeId == marketHash));
-            IDictionary<string, object> sides = ((IDictionary<string, object>)this.parseSxbetV3BookSides(snapshot, isOutcomeOne));
+            Dictionary<string, object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
             ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, sym);
             if ((orderbook == null))
             {
@@ -2820,7 +2820,7 @@ public partial class sxbet : PredictionExchange
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
-            IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
+            Dictionary<string, object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
             Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             this.setWsOption("wsTickers", sym, ((object)ticker));
             hydrated = true;

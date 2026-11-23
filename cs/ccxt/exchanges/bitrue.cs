@@ -2297,7 +2297,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -2405,7 +2405,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -2650,7 +2650,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**

@@ -57,33 +57,6 @@ public partial class phemex : ccxt.phemex
         return ((object)precise).ToString();
     }
 
-    public override string? fromEp(object ep, object market = null)
-    {
-        if (((ep == null)) || ((market == null)))
-        {
-            return ((string?)((object)(ep)));
-        }
-        return ((string?)((object)(this.fromEn(ep, this.safeInteger(market, "priceScale")))));
-    }
-
-    public override string? fromEv(object ev, object market = null)
-    {
-        if (((ev == null)) || ((market == null)))
-        {
-            return ((string?)((object)(ev)));
-        }
-        return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
-    }
-
-    public override string? fromEr(object er, IDictionary<string, object> market = null)
-    {
-        if (((er == null)) || ((market == null)))
-        {
-            return ((string?)((object)(er)));
-        }
-        return ((string?)((object)(this.fromEn(er, this.safeInteger(market, "ratioScale")))));
-    }
-
     public virtual Int64 requestId()
     {
         this.lockId();
@@ -353,7 +326,7 @@ public partial class phemex : ccxt.phemex
         {
             messageHash = (type + ":balance");
         }
-        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, paramsMarketType));
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate<object>(type, messageHash, paramsMarketType));
     }
 
     public virtual void handleBalance(WebSocketClient client, IList<object> message, string type)
@@ -1068,13 +1041,13 @@ public partial class phemex : ccxt.phemex
                 messageHash = ("trades:" + type);
             }
         }
-        object trades = await this.subscribePrivate(type, messageHash, paramsType);
+        ccxt.pro.ArrayCache trades = await this.subscribePrivate<ccxt.pro.ArrayCache>(type, messageHash, paramsType);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, IList<object> message)
@@ -1263,13 +1236,13 @@ public partial class phemex : ccxt.phemex
                 messageHash = ("orders:" + type);
             }
         }
-        object orders = await this.subscribePrivate(type, messageHash, paramsType);
+        ccxt.pro.ArrayCache orders = await this.subscribePrivate<ccxt.pro.ArrayCache>(type, messageHash, paramsType);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, IDictionary<string, object> message)
@@ -1862,7 +1835,7 @@ public partial class phemex : ccxt.phemex
         }
     }
 
-    public async virtual Task<object> subscribePrivate(object type, string messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(object type, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1889,7 +1862,7 @@ public partial class phemex : ccxt.phemex
             { "params", new List<object>() {} },
         };
         request = this.extend(request, paramsOmitted);
-        return await this.watch(url, messageHash, request, channel);
+        return await this.watch<T>(url, messageHash, request, channel);
     }
 
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)

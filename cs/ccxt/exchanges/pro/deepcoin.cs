@@ -175,7 +175,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, unsubHash, this.deepExtend(request, parameters), unsubHash, subscriptionExtended);
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();

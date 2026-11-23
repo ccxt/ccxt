@@ -3254,7 +3254,7 @@ public partial class hitbtc : Exchange
             {
                 continue;
             }
-            IDictionary<string, object> rawFundingRate = this.safeDict(response, marketId);
+            IDictionary<string, object> rawFundingRate = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             Dictionary<string, object> marketInner = this.market(marketId);
             string? symbol = this.safeSymbol(marketId, marketInner);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
@@ -3821,7 +3821,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

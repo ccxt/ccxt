@@ -97,15 +97,15 @@ public partial class gemini : ccxt.gemini
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object trades = await this.helperForWatchMultipleConstruct("trades", symbols, parameters);
+        ccxt.pro.ArrayCache trades = await this.helperForWatchMultipleConstruct<ccxt.pro.ArrayCache>("trades", symbols, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
@@ -513,7 +513,7 @@ public partial class gemini : ccxt.gemini
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.helperForWatchMultipleConstruct("orderbook", symbols, parameters));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.helperForWatchMultipleConstruct<object>("orderbook", symbols, parameters));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -529,7 +529,7 @@ public partial class gemini : ccxt.gemini
     public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTickers(await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters));
+        return ccxt.BaseExchange.ToTickers(await this.helperForWatchMultipleConstruct<object>("bidsasks", symbols, parameters));
     }
 
     public virtual void handleBidsAsksForMultidata(WebSocketClient client, IList<object> rawBidAskChanges, Int64? timestamp, Int64? nonce)
@@ -608,7 +608,7 @@ public partial class gemini : ccxt.gemini
         client.resolve(bidsAsksDict, messageHash);
     }
 
-    public async virtual Task<object> helperForWatchMultipleConstruct(string itemHashName, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<T> helperForWatchMultipleConstruct<T>(string itemHashName, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -653,7 +653,7 @@ public partial class gemini : ccxt.gemini
         {
             url = url + "trades=true&bids=false&offers=false";
         }
-        return await this.watchMultiple(url, messageHashes, null);
+        return await this.watchMultiple<T>(url, messageHashes, null);
     }
 
     public virtual void handleOrderBookForMultidata(WebSocketClient client, IList<object> rawOrderBookChanges, Int64? timestamp, Int64? nonce)

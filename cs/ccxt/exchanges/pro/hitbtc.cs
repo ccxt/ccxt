@@ -1724,7 +1724,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < subscriptionHashes.Count; i++)
         {
-            object subscription = getValue(client.subscriptions, subscriptionHashes[i]);
+            object subscription = (client.subscriptions != null && subscriptionHashes[i] != null && client.subscriptions.ContainsKey((string)subscriptionHashes[i]) ? client.subscriptions[(string)subscriptionHashes[i]] : null);
             bool? isUnSubscription = this.safeBool(subscription, "unsubscribe", false);
             string? subscriptionId = this.safeString(subscription, "id");
             if ((isUnSubscription == true) && ((subscriptionId != null)) && ((subscriptionId == id)))

@@ -4676,7 +4676,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.sync] set to true to use the hf sync call
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, double amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4898,7 +4898,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5172,7 +5172,7 @@ public partial class kucoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual Dictionary<string, object> createUtaOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createUtaOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -9840,7 +9840,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async virtual Task<ccxt.TransferEntry> TransferUta(string code, object amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferUta(string code, double amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9948,7 +9948,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async virtual Task<ccxt.TransferEntry> TransferClassic(string code, object amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferClassic(string code, double amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11483,7 +11483,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> setContractLeverage(object leverage, string? symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> setContractLeverage(Int64 leverage, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

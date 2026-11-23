@@ -2358,7 +2358,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    public async virtual Task<List<object>> isUnifiedEnabled(object parameters = null)
+    public async virtual Task<List<object>> isUnifiedEnabled(IDictionary<string, object>? parameters = null)
     {
         // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
@@ -8651,7 +8651,7 @@ public partial class bybit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(symbol, parameters));
-        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(position, market));
+        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(this.extend(new Dictionary<string, object>() {}, position), market));
     }
 
     public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)

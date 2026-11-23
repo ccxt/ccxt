@@ -4433,7 +4433,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (ranksArray?.Count ?? 0); i++)
         {
-            Dictionary<string, object> rank = this.extend(this.parseADLRank(((IDictionary<string, object>)ranksArray[i])), parameters);
+            Dictionary<string, object> rank = this.extend(this.parseADLRank(this.extend(new Dictionary<string, object>() {}, ranksArray[i])), parameters);
             result.Add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -4446,7 +4446,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (accountsArray?.Count ?? 0); i++)
         {
-            Dictionary<string, object> account = this.extend(this.parseAccount(((IDictionary<string, object>)accountsArray[i])), parameters);
+            Dictionary<string, object> account = this.extend(this.parseAccount(this.extend(new Dictionary<string, object>() {}, accountsArray[i])), parameters);
             result.Add(account);
         }
         return result;
@@ -4953,7 +4953,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327808 && i_timestamp < ohlcvsSlot327808.Count ? ohlcvsSlot327808[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327850 && i_timestamp < ohlcvsSlot327850.Count ? ohlcvsSlot327850[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -6398,7 +6398,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (pricesData?.Count ?? 0); i++)
         {
-            results.Add(this.extend(this.parseLastPrice(((IDictionary<string, object>)(pricesData != null && i < pricesData.Count ? pricesData[i] : null))), parameters));
+            results.Add(this.extend(this.parseLastPrice(this.extend(new Dictionary<string, object>() {}, (pricesData != null && i < pricesData.Count ? pricesData[i] : null))), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
@@ -6568,7 +6568,7 @@ public partial class BaseExchange
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parseFundingRate((response != null && i < response.Count ? response[i] : null));
+            Dictionary<string, object> parsed = this.parseFundingRate(this.safeDict(response, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(parsed, "symbol");
             if ((symbol != null))
             {
@@ -6588,7 +6588,7 @@ public partial class BaseExchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            rates.Add(this.parseLongShortRatio((response != null && i < response.Count ? response[i] : null), market));
+            rates.Add(this.parseLongShortRatio(this.extend(new Dictionary<string, object>() {}, (response != null && i < response.Count ? response[i] : null)), market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
@@ -7162,7 +7162,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (incomes?.Count ?? 0); i++)
         {
-            result.Add(this.parseIncome(((IDictionary<string, object>)(incomes != null && i < incomes.Count ? incomes[i] : null)), market));
+            result.Add(this.parseIncome(this.extend(new Dictionary<string, object>() {}, (incomes != null && i < incomes.Count ? incomes[i] : null)), market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         string? symbol = this.safeString(market, "symbol");
@@ -7947,7 +7947,7 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.safeMarket(marketId, null, null,((string)marketTypeResolved));
             if (((symbols == null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
             {
-                leverageStructures[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseLeverage(((IDictionary<string, object>)info), market);
+                leverageStructures[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseLeverage(this.extend(new Dictionary<string, object>() {}, info), market);
             }
         }
         return leverageStructures;

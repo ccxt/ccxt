@@ -169,7 +169,7 @@ public partial class htx : ccxt.htx
             { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         });
         string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
-        return ccxt.BaseExchange.ToTicker(await this.subscribePublic(url, symbolValue, messageHash, null, parameters));
+        return ccxt.BaseExchange.ToTicker(await this.subscribePublic<object>(url, symbolValue, messageHash, null, parameters));
     }
 
     /**
@@ -284,13 +284,13 @@ public partial class htx : ccxt.htx
         string? marketId = this.safeString(market, "id", "");
         string messageHash = (("market." + marketId) + ".trade.detail");
         string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
-        object trades = await this.subscribePublic(url, symbolValue, messageHash, null, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribePublic<ccxt.pro.ArrayCache>(url, symbolValue, messageHash, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -399,13 +399,13 @@ public partial class htx : ccxt.htx
         string? marketId = this.safeString(market, "id", "");
         string messageHash = ((("market." + marketId) + ".kline.") + interval);
         string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
-        object ohlcv = await this.subscribePublic(url, symbolValue, messageHash, null, parameters);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.subscribePublic<ccxt.pro.ArrayCacheByTimestamp>(url, symbolValue, messageHash, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -544,7 +544,7 @@ public partial class htx : ccxt.htx
         {
             method = null;
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic(url, symbolValue, messageHash, method, paramsExtended));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic<object>(url, symbolValue, messageHash, method, paramsExtended));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -1041,7 +1041,7 @@ public partial class htx : ccxt.htx
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "isV5", isV5Linear },
         };
-        trades = await this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams);
+        trades = await this.subscribePrivate<object>(channel, messageHash, type, subType, paramsRequest, subscriptionParams);
         if ((trades == null))
         {
             throw new ArgumentsRequired ((this.id + " watchMyTrades() trades is required")) ;
@@ -1212,13 +1212,13 @@ public partial class htx : ccxt.htx
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "isV5", isV5Linear },
         };
-        object orders = await this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams);
+        ccxt.pro.ArrayCache orders = await this.subscribePrivate<ccxt.pro.ArrayCache>(channel, messageHash, type, subType, paramsRequest, subscriptionParams);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
@@ -1870,7 +1870,7 @@ public partial class htx : ccxt.htx
             { "isV5", isV5Linear },
             { "margin", marginMode },
         };
-        object newPositions = await this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams);
+        object newPositions = await this.subscribePrivate<object>(channel, messageHash, type, subType, paramsRequest, subscriptionParams);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -2164,7 +2164,7 @@ public partial class htx : ccxt.htx
         // because huobi returns a different topic than the topic sent. Example: we send
         // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
         // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams));
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate<object>(channel, messageHash, type, subType, paramsRequest, subscriptionParams));
     }
 
     public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
@@ -3262,16 +3262,16 @@ public partial class htx : ccxt.htx
         return url;
     }
 
-    public async virtual Task<object> subscribePublic(object url, object symbol, object messageHash, object method = null, object parameters = null)
+    public async virtual Task<T> subscribePublic<T>(object url, object symbol, object messageHash, object method = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId.ToString() },
+            { "id", ((object)requestId).ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId.ToString() },
+            { "id", ((object)requestId).ToString() },
             { "messageHash", messageHash },
             { "symbol", symbol },
             { "params", parameters },
@@ -3280,7 +3280,7 @@ public partial class htx : ccxt.htx
         {
             subscription["method"] = method;
         }
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+        return await this.watch<T>(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
     public async virtual Task<object> unsubscribePublic(IDictionary<string, object> market, string? subMessageHash, string? topic, IDictionary<string, object> parameters = null)
@@ -3315,13 +3315,13 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivate(object channel, object messageHash, object type, object subtype, object parameters = null, IDictionary<string, object>? subscriptionParams = null)
+    public async virtual Task<T> subscribePrivate<T>(object channel, object messageHash, object type, object subtype, object parameters = null, IDictionary<string, object>? subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId.ToString() },
+            { "id", ((object)requestId).ToString() },
             { "messageHash", messageHash },
             { "params", parameters },
         };
@@ -3338,7 +3338,7 @@ public partial class htx : ccxt.htx
             request = new Dictionary<string, object>() {
                 { "op", "sub" },
                 { "topic", channel },
-                { "cid", requestId.ToString() },
+                { "cid", ((object)requestId).ToString() },
             };
         }
         bool isLinear = (subtype is "linear");
@@ -3359,7 +3359,7 @@ public partial class htx : ccxt.htx
             { "hostname", hostname },
         };
         await this.authenticate(authParams);
-        return await this.watch(url, messageHash, this.extend(request, parameters), channel, extendedSubsription);
+        return await this.watch<T>(url, messageHash, this.extend(request, parameters), channel, extendedSubsription);
     }
 
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)

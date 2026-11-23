@@ -2127,7 +2127,7 @@ public partial class digifinex : Exchange
         return this.parseOrders(result, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, object side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2176,7 +2176,7 @@ public partial class digifinex : Exchange
             bool? reduceOnly = this.safeBool(paramsMarginMode, "reduceOnly", false);
             string? timeInForce = this.safeString(paramsMarginMode, "timeInForce");
             int? orderType = null;
-            if ((side is "buy"))
+            if ((side == "buy"))
             {
                 int requestType = reduceOnly == true ? 4 : 1;
                 request["type"] = requestType;
@@ -2204,7 +2204,7 @@ public partial class digifinex : Exchange
             }
             if ((price != null))
             {
-                request["price"] = this.priceToPrecision(((string)symbol), price);
+                request["price"] = this.priceToPrecision(symbol, price);
             }
             request["order_type"] = orderType;
             request["size"] = amount; // swap orders require the amount to be the number of contracts
@@ -2219,15 +2219,15 @@ public partial class digifinex : Exchange
                 suffix = "_market";
             } else
             {
-                request["price"] = this.priceToPrecision(((string)symbol), price);
+                request["price"] = this.priceToPrecision(symbol, price);
             }
-            request["type"] = add(side, suffix);
+            request["type"] = (side + suffix);
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             string? quantity = null;
             (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
             IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
-            bool isMarketBuy = isMarketOrder && ((side is "buy"));
+            bool isMarketBuy = isMarketOrder && ((side == "buy"));
             List<object> keysToOmit = new List<object>() {"postOnly"};
             if (isMarketBuy)
             {
@@ -2239,7 +2239,7 @@ public partial class digifinex : Exchange
                 double? cost = this.safeNumber(paramsRequiresPrice, "cost");
                 if ((cost != null))
                 {
-                    quantity = this.costToPrecision(((string)symbol), cost);
+                    quantity = this.costToPrecision(symbol, cost);
                 } else if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if ((price == null))
@@ -2250,15 +2250,15 @@ public partial class digifinex : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         double? costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
-                        quantity = this.costToPrecision(((string)symbol), costRequest);
+                        quantity = this.costToPrecision(symbol, costRequest);
                     }
                 } else
                 {
-                    quantity = this.costToPrecision(((string)symbol), amount);
+                    quantity = this.costToPrecision(symbol, amount);
                 }
             } else
             {
-                quantity = this.amountToPrecision(((string)symbol), amount);
+                quantity = this.amountToPrecision(symbol, amount);
             }
             request["amount"] = quantity;
         }
@@ -5171,7 +5171,7 @@ public partial class digifinex : Exchange
         return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, object type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, Int64? type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

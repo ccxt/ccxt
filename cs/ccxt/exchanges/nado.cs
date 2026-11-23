@@ -524,7 +524,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public async virtual Task<Dictionary<string, object>> CreateOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateOrderRequest(string? symbol, string? type, string? side, double amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -2684,7 +2684,7 @@ public partial class nado : Exchange
         };
     }
 
-    public virtual object parseFundingHistory(object funding, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseFundingHistory(object funding, IDictionary<string, object>? market = null)
     {
         //
         //     {

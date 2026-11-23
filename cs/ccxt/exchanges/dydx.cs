@@ -1394,9 +1394,9 @@ public partial class dydx : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual Dictionary<string, object> signOnboardingAction()

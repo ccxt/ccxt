@@ -7553,7 +7553,7 @@ public partial class binance : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> EditSpotOrder(string id, string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> EditSpotOrder(string id, string symbol, string type, string side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7834,7 +7834,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> EditContractOrder(string id, string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> EditContractOrder(string id, string symbol, string type, string side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -13493,7 +13493,7 @@ public partial class binance : Exchange
         //         "time": "1621252344001"
         //     }
         //
-        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(this.extend(new Dictionary<string, object>() {}, response), market));
     }
 
     /**
@@ -16320,7 +16320,7 @@ public partial class binance : Exchange
         return response;
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, Int64 addOrReduce, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double amount, Int64 addOrReduce, IDictionary<string, object> parameters = null)
     {
         // used to modify isolated positions
         parameters ??= new Dictionary<string, object>();

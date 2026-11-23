@@ -5368,7 +5368,7 @@ public partial class xt : Exchange
         return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string addOrReduce, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double amount, string addOrReduce, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? positionSide = this.safeString(parameters, "positionSide");
@@ -6084,7 +6084,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySinceLimit(sorted, since, limit));
     }
 
-    public virtual object parseFundingHistory(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseFundingHistory(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
     {
         //
         //     {

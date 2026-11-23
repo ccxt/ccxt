@@ -1318,7 +1318,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(result, market, since, limit));
     }
 
-    public virtual object parseFundingHistory(IDictionary<string, object> history, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseFundingHistory(IDictionary<string, object> history, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -2941,7 +2941,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(string? symbol, string? type, string? side, double amount, double? price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

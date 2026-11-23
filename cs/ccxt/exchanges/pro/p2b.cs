@@ -69,7 +69,7 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribe(object name, object messageHash, object request, object parameters = null)
+    public async virtual Task<T> subscribe<T>(object name, object messageHash, IList<object> request, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -79,7 +79,7 @@ public partial class p2b : ccxt.p2b
             { "id", this.milliseconds() },
         };
         Dictionary<string, object> query = this.extend(subscribe, parameters);
-        return await this.watch(url, messageHash, query, messageHash);
+        return await this.watch<T>(url, messageHash, query, messageHash);
     }
 
     /**
@@ -112,13 +112,13 @@ public partial class p2b : ccxt.p2b
         Dictionary<string, object> market = this.market(symbol);
         List<object> request = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), channel};
         string messageHash = ("kline::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.subscribe<ccxt.pro.ArrayCacheByTimestamp>("kline.subscribe", messageHash, request, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -148,7 +148,7 @@ public partial class p2b : ccxt.p2b
         ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         IDictionary<string, object> tickerSubs = this.safeDict(this.options, "tickerSubs", new Dictionary<string, object>() {});
         List<object> request = new List<object>(tickerSubs.Keys);
-        return ccxt.BaseExchange.ToTicker(await this.subscribe((nameOption + ".subscribe"), ((nameOption + "::") + this.safeString(market, "symbol", "")), request, paramsName));
+        return ccxt.BaseExchange.ToTicker(await this.subscribe<object>((nameOption + ".subscribe"), ((nameOption + "::") + this.safeString(market, "symbol", "")), request, paramsName));
     }
 
     /**
@@ -280,7 +280,7 @@ public partial class p2b : ccxt.p2b
         string? interval = this.safeString(parameters, "interval", "0.001");
         Int64? limitResolved = ((limit == null)) ? 100 : limit;
         List<object> request = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitResolved, interval};
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, messageHash, request, parameters));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe<object>(name, messageHash, request, parameters));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
