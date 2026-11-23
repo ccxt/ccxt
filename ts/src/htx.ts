@@ -5014,7 +5014,11 @@ export default class htx extends Exchange {
             if (feeCurrencyId !== undefined) {
                 feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             } else {
-                feeCurrency = (side === 'sell') ? marketResolved['quote'] : marketResolved['base'];
+                if (side === 'sell') {
+                    feeCurrency = this.safeString (marketResolved, 'quote');
+                } else {
+                    feeCurrency = this.safeString (marketResolved, 'base');
+                }
             }
             fee = {
                 'cost': feeCost,
@@ -5281,7 +5285,10 @@ export default class htx extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        let orderType: Str = (postOnly) ? 'post_only' : type;
+        let orderType: Str = type;
+        if (postOnly) {
+            orderType = 'post_only';
+        }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('createOrder', market, paramsPostOnly);
         let query: Dict = paramsSubType;
         const isLinear = (subType === 'linear');

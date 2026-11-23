@@ -1599,7 +1599,7 @@ export default class htx extends htxRest {
         let side: Str = undefined;
         if (type !== undefined) {
             const typeParts = type.split ('-');
-            side = typeParts[0];
+            side = this.safeString (typeParts, 0);
             type = this.safeString (typeParts, 1);
         }
         const aggressor = this.safeBool (trade, 'aggressor');
