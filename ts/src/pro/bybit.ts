@@ -2118,11 +2118,6 @@ export default class bybit extends bybitRest {
         const symbols: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const parsed = this.parseOrder (this.safeDict (rawOrders, i, {}));
-            // if (isSpot) {
-            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
-            // } else {
-            //     parsed = this.parseOrder (rawOrders[i]);
-            // }
             const symbol = this.safeString (parsed, 'symbol');
             if (symbol === undefined) {
                 continue;

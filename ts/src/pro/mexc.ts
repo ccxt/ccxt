@@ -1450,7 +1450,7 @@ export default class mexc extends mexcRest {
                 parsed['lastTradeTimestamp'] = sendTime;
             }
         } else if (data !== undefined) {
-            parsed = this.parseOrder (data, market);
+            parsed = this.parseOrder (this.extend ({}, data), market);
         } else {
             return;
         }

@@ -3100,8 +3100,8 @@ export default class deepcoin extends Exchange {
             const paramsOmitted = (positionId !== undefined) ? this.omit (params, 'positionId') : params;
             response = await this.privatePostDeepcoinTradeClosePositionByIds (this.extend (request, paramsOmitted));
         }
-        const data = this.safeList (response, 'data', []) as List;
-        return this.parseOrder (data, market);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrder (this.safeDict (data, 0, {}), market);
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {

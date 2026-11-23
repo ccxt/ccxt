@@ -1076,7 +1076,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 merged = this.extend (previous, rawOrder);
                 rawOrders[orderId] = merged;
             }
-            const parsed = this.parseOrder (merged);
+            const parsed = this.parseOrder (this.extend ({}, merged));
             orders.append (parsed);
             const orderSymbol = this.safeString (parsed, 'symbol');
             if (orderSymbol !== undefined) {

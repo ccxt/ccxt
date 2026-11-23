@@ -718,7 +718,7 @@ export default class blofin extends blofinRest {
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**

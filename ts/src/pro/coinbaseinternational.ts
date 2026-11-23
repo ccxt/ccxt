@@ -1693,7 +1693,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             market = this.market (symbol);
         }
         const result = await this.requestWs ('private/cancel', this.extend ({ 'order_id': id }, paramsResolved), true);
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -1747,7 +1747,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             market = this.market (symbol);
         }
         const result = await this.requestWs ('private/get_order_state', this.extend ({ 'order_id': id }, paramsResolved), true);
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**

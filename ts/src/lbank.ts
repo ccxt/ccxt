@@ -2001,12 +2001,6 @@ export default class lbank extends Exchange {
         if (numOrders === 1) {
             return this.parseOrder (this.safeDict (result, 0, {}));
         } else {
-            // const parsedOrders = [];
-            // for (let i = 0; i < numOrders; i++) {
-            //     const parsedOrder = this.parseOrder (result[i]);
-            //     parsedOrders.push (parsedOrder);
-            // }
-            // return parsedOrders;
             throw new BadRequest (this.id + ' fetchOrder() can only fetch one order at a time');
         }
     }

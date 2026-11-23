@@ -2880,7 +2880,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            data = this.safeValue (response, 'data');
+            data = this.safeDict (response, 'data', {});
         }
         return this.parseOrder (data, market);
     }
@@ -3421,9 +3421,9 @@ export default class mexc extends Exchange {
             if (method === 'contractPrivatePostPlanorderCancel') {
                 return this.safeOrder ({ 'id': id, 'symbol': this.safeString (market, 'symbol'), 'info': response }, market); // planorder/cancel answers without data, failures are raised by handleErrors
             }
-            data = this.safeValue (response, 'data');
-            const order = this.safeDict (data, 0);
-            const errorMsg = this.safeString (order, 'errorMsg', '');
+            const rows = this.safeList (response, 'data', []);
+            data = this.safeDict (rows, 0, {});
+            const errorMsg = this.safeString (data, 'errorMsg', '');
             if (errorMsg !== 'success') {
                 throw new InvalidOrder (this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }

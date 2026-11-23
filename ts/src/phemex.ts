@@ -3264,7 +3264,7 @@ export default class phemex extends Exchange {
             }
             order = this.safeDict (rows, 0, {});
         }
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**

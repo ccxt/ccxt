@@ -2355,7 +2355,7 @@ export default class btse extends Exchange {
         if (Array.isArray (order)) {
             order = this.safeDict (order, 0, {});
         }
-        return this.parseOrder (order as any, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**
@@ -3557,7 +3557,7 @@ export default class btse extends Exchange {
         const paramsOmitted = (typeUpper === 'LIMIT') ? this.omit (paramsOrderType, 'price') : paramsOrderType;
         const response = await this.privateDeleteFuturesApiV3TradePositions (this.extend (request, paramsOmitted));
         const order = this.safeDict (response, 0, response);
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**

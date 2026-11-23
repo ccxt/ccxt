@@ -5982,7 +5982,7 @@ export default class htx extends Exchange {
         if (result === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
-        return this.extend (this.parseOrder (result, market), {
+        return this.extend (this.parseOrder (this.extend ({}, result), market), {
             'id': id,
             'status': 'canceled',
         }) as Order;

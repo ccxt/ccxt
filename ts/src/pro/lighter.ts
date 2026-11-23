@@ -1277,7 +1277,7 @@ export default class lighter extends lighterRest {
             'id': requestId,
         };
         const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.parseOrder (rawMessage, market);
+        return this.parseOrder (this.extend ({}, rawMessage), market);
     }
 
     /**

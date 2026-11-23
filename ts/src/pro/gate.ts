@@ -191,7 +191,7 @@ export default class gate extends gateRest {
         const request = this.createOrderRequest (symbolValue, type, side, amount, price, params);
         await this.authenticate (url, messageType);
         const rawOrder = await this.requestPrivate (url, request, channel);
-        const order = this.parseOrder (rawOrder, market);
+        const order = this.parseOrder (this.extend ({}, rawOrder), market);
         return order;
     }
 
@@ -292,7 +292,7 @@ export default class gate extends gateRest {
         await this.authenticate (url, messageType);
         const orderRequest = this.extend (request, { 'order_id': id.toString () });
         const res = await this.requestPrivate (url, this.extend (orderRequest, requestParams), channel);
-        return this.parseOrder (res, market);
+        return this.parseOrder (this.extend ({}, res), market);
     }
 
     /**
@@ -321,7 +321,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         await this.authenticate (url, messageType);
         const rawOrder = await this.requestPrivate (url, extendedRequest, channel);
-        return this.parseOrder (rawOrder, market);
+        return this.parseOrder (this.extend ({}, rawOrder), market);
     }
 
     /**
@@ -355,7 +355,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         await this.authenticate (url, messageType);
         const rawOrder = await this.requestPrivate (url, this.extend (request, requestParams), channel);
-        return this.parseOrder (rawOrder, market);
+        return this.parseOrder (this.extend ({}, rawOrder), market);
     }
 
     /**
